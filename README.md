@@ -1,4 +1,7 @@
 # hash4j
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 hash4j is a Java library by Dynatrace that includes various hash algorithms.
 
 The library comes with various non-cryptographic hash functions. The interface is designed to allow hashing of objects 
