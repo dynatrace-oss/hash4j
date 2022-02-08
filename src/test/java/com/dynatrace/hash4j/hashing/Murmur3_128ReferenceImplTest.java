@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hashlib.hashing.TestUtils.hash128ToByteArray;
-import static com.dynatrace.hashlib.hashing.TestUtils.tupleToByteArray;
+import static com.dynatrace.hash4j.hashing.TestUtils.hash128ToByteArray;
+import static com.dynatrace.hash4j.hashing.TestUtils.tupleToByteArray;
 import static org.junit.Assert.*;
 
 import java.util.Arrays;

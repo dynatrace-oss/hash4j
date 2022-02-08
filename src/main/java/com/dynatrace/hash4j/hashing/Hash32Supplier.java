@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
 interface Hash32Supplier extends HashSink {
   int getAsInt();

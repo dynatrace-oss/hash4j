@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
-/**
- * A 128-bit hash function.
- *
- * <p>Implementations must ensure that
- *
- * <p>{@code hashTo128Bits(obj, funnel).getAsLong() == hashTo64Bits(obj, funnel)}
- */
-public interface Hasher128 extends Hasher64 {
+/** A 32-bit hash function. */
+public interface Hasher32 {
 
   /**
-   * Hashes an object to a 128-bit {@link HashValue128} value.
+   * Hashes an object to a 32-bit integer value.
    *
    * @param obj the object
    * @param funnel the funnel
    * @param <T> the type
    * @return the hash value
    */
-  <T> HashValue128 hashTo128Bits(final T obj, final HashFunnel<T> funnel);
+  <T> int hashToInt(final T obj, final HashFunnel<T> funnel);
 }

@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * A 128-bit hash function.
+ *
+ * <p>Implementations must ensure that
+ *
+ * <p>{@code hashTo128Bits(obj, funnel).getAsLong() == hashTo64Bits(obj, funnel)}
+ */
+public interface Hasher128 extends Hasher64 {
 
-public class TestHashSinkTest extends AbstractHashSinkTest<TestHashSink> {
-  @Override
-  protected TestHashSink createHashSink() {
-    return new TestHashSink();
-  }
-
-  @Override
-  protected List<Byte> getBytes(TestHashSink dataSink) {
-    List<Byte> result = new ArrayList<>();
-    for (byte b : dataSink.getData()) {
-      result.add(b);
-    }
-    return result;
-  }
+  /**
+   * Hashes an object to a 128-bit {@link HashValue128} value.
+   *
+   * @param obj the object
+   * @param funnel the funnel
+   * @param <T> the type
+   * @return the hash value
+   */
+  <T> HashValue128 hashTo128Bits(final T obj, final HashFunnel<T> funnel);
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -27,7 +27,7 @@ public class TestHashSink extends AbstractHashSink {
     if (size == data.length) {
       data = Arrays.copyOf(data, data.length * 2);
     }
-    data[size] = (byte) v;
+    data[size] = v;
     size += 1;
     return this;
   }

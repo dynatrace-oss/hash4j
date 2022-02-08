@@ -13,12 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
-interface Hash64Supplier extends Hash32Supplier {
-  long getAsLong();
+import java.util.ArrayList;
+import java.util.List;
 
-  default int getAsInt() {
-    return (int) getAsLong();
+public class TestHashSinkTest extends AbstractHashSinkTest<TestHashSink> {
+  @Override
+  protected TestHashSink createHashSink() {
+    return new TestHashSink();
+  }
+
+  @Override
+  protected List<Byte> getBytes(TestHashSink dataSink) {
+    List<Byte> result = new ArrayList<>();
+    for (byte b : dataSink.getData()) {
+      result.add(b);
+    }
+    return result;
   }
 }

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hashlib.hashing.TestUtils.byteListToHexString;
+import static com.dynatrace.hash4j.hashing.TestUtils.byteListToHexString;
 import static org.junit.Assert.assertEquals;
 
 import java.util.*;

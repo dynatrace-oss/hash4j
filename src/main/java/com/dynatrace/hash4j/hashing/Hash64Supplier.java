@@ -13,24 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hashlib.hashing;
+package com.dynatrace.hash4j.hashing;
 
-/**
- * A 64-bit hash function.
- *
- * <p>Implementations must ensure that
- *
- * <p>{@code hashTo64Bits(obj, funnel).getAsInt() == hashTo32Bits(obj, funnel)}
- */
-public interface Hasher64 extends Hasher32 {
+interface Hash64Supplier extends Hash32Supplier {
+  long getAsLong();
 
-  /**
-   * Hashes an object to a 64-bit {@code long} value.
-   *
-   * @param obj the object
-   * @param funnel the funnel
-   * @param <T> the type
-   * @return the hash value
-   */
-  <T> long hashToLong(final T obj, final HashFunnel<T> funnel);
+  default int getAsInt() {
+    return (int) getAsLong();
+  }
 }
