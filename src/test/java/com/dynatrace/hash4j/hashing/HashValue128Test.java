@@ -59,12 +59,12 @@ public class HashValue128Test {
     HashValue128 hash3 = new HashValue128(0x3b373969bb1aa907L, 0x9f3dc05b33bfb73eL);
     HashValue128 hash4 = new HashValue128(0x587b9c8a695ef518L, 0xf91ca468290066d3L);
 
-    assertFalse(hash1a.equals(null));
-    assertTrue(hash1a.equals(hash1b));
-    assertTrue(hash1a.equals(hash1a));
-    assertFalse(hash1a.equals(hash2));
-    assertFalse(hash1a.equals(hash3));
-    assertFalse(hash1a.equals(hash4));
-    assertFalse(hash1a.equals(new Object()));
+    assertNotEquals(hash1a, null);
+    assertEquals(hash1a, hash1b);
+    assertEquals(hash1a, hash1a);
+    assertNotEquals(hash1a, hash2);
+    assertNotEquals(hash1a, hash3);
+    assertNotEquals(hash1a, hash4);
+    assertNotEquals(hash1a, new Object());
   }
 }
