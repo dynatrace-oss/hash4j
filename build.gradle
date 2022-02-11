@@ -47,7 +47,7 @@ dependencies {
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
 }
 
-jacocoTestReport {
+jacocoTestReport { // necessary for sonarcloud coverage
     reports {
         xml.enabled true
     }
@@ -69,6 +69,7 @@ javadoc {
 jacoco {
     toolVersion = '0.8.7'
 }
+
 jacocoTestCoverageVerification {
     violationRules {
         rule {
