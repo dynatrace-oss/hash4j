@@ -14,4 +14,4 @@ libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/lat
 [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), or [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html).
 
 ## Usage
-Please see [DemoTest.java](https://github.com/dynatrace-oss/hash4j/blob/main/src/test/java/com/dynatrace/hashlib/hashing/DemoTest.java) for some examples.
+Please see [DemoTest.java](https://github.com/dynatrace-oss/hash4j/blob/main/src/test/java/com/dynatrace/hash4j/hashing/DemoTest.java) for some examples.
