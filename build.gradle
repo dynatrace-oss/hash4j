@@ -47,6 +47,12 @@ dependencies {
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
 }
 
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
+}
+
 tasks.test.finalizedBy jacocoTestReport
 check.dependsOn jacocoTestCoverageVerification
 
@@ -57,7 +63,7 @@ sourceSets {
 
 javadoc {
     failOnError true
-    options.addBooleanOption('html5', true)
+    title 'hash4j ' + project.version + ' API'
 }
 
 jacoco {
