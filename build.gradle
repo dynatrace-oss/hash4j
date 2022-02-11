@@ -2,12 +2,18 @@ plugins {
     id 'java'
     id 'java-library'
     id 'jacoco'
-    id "org.sonarqube" version "3.3"
-    id "com.diffplug.spotless" version "6.2.0"
+    id 'org.sonarqube' version '3.3'
+    id 'com.diffplug.spotless' version '6.2.0'
+    id 'maven-publish'
+    id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
 }
 
 sourceCompatibility = 11
 targetCompatibility = 11
+
+group = 'com.dynatrace.hash4j'
+version = '0.1.0'
 
 spotless {
     ratchetFrom 'origin/main'
@@ -21,9 +27,9 @@ spotless {
 
 sonarqube {
   properties {
-    property "sonar.projectKey", "dynatrace-oss_hash4j"
-    property "sonar.organization", "dynatrace-oss"
-    property "sonar.host.url", "https://sonarcloud.io"
+    property 'sonar.projectKey', 'dynatrace-oss_hash4j'
+    property 'sonar.organization', 'dynatrace-oss'
+    property 'sonar.host.url', 'https://sonarcloud.io'
   }
 }
 
@@ -41,16 +47,87 @@ dependencies {
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
 }
 
-jacocoTestReport {
-    reports {
-        xml.enabled true
-    }
-}
-
+tasks.test.finalizedBy jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification
 
 sourceSets {
     main
     test
 }
 
-tasks.test.finalizedBy jacocoTestReport
+javadoc {
+    failOnError true
+    options.addBooleanOption('html5', true)
+}
+
+jacoco {
+    toolVersion = '0.8.7'
+}
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 1.0
+                counter = 'LINE'
+            }
+            limit {
+                minimum = 1.0
+                counter = 'BRANCH'
+            }
+        }
+    }
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'com.dynatrace.hash4j:hash4j'
+                description = 'hash4j: A Dynatrace hash library for Java'
+                url = 'https://github.com/dynatrace-oss/hash4j'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'Dynatrace'
+                        name = 'Dynatrace LLC'
+                        email = 'opensource@dynatrace.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/dynatrace-oss/hash4j.git'
+                    developerConnection = 'scm:git:ssh://github.com/dynatrace-oss/hash4j.git'
+                    url = 'https://github.com/dynatrace-oss/hash4j'
+                }
+            }
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(System.getenv('GPG_PRIVATE_KEY'), System.getenv('GPG_PASSPHRASE'))
+    sign publishing.publications.mavenJava
+}
+
+nexusPublishing {
+    packageGroup = 'com.dynatrace'
+    useStaging = true
+    repositories {
+        sonatype {
+            nexusUrl = uri('https://oss.sonatype.org/service/local/')
+            snapshotRepositoryUrl = uri('https://oss.sonatype.org/content/repositories/snapshots/')
+            username = System.getenv('OSSRH_USERNAME')
+            password = System.getenv('OSSRH_PASSWORD')
+        }
+    }
+}
