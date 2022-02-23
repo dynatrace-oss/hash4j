@@ -61,6 +61,29 @@ public final class Hashing {
     }
   }
 
+  private static final Hasher32 MURMUR3_32 = (ExtendedHasher32) () -> new Murmur3_32(0);
+
+  /**
+   * Returns a {@link Hasher32} implementing the 32-bit Murmur3 algorithm (little-endian) using a
+   * seed value of zero.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher32 murmur3_32() {
+    return MURMUR3_32;
+  }
+
+  /**
+   * Returns a {@link Hasher32} implementing the 32-bit Murmur3 algorithm (little-endian) using the
+   * given seed value.
+   *
+   * @param seed a 32-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher32 murmur3_32(int seed) {
+    return (ExtendedHasher32) () -> new Murmur3_32(seed);
+  }
+
   private static final Hasher128 MURMUR3_128 = (ExtendedHasher128) () -> Murmur3_128.create(0);
 
   /**
