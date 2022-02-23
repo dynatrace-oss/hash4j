@@ -20,7 +20,7 @@ spotless {
     java {
         importOrder()
         removeUnusedImports()
-        googleJavaFormat('1.9')
+        googleJavaFormat('1.14.0')
         licenseHeaderFile 'docs/licenses/HEADER.txt'
     }
 }
@@ -38,7 +38,8 @@ repositories {
 }
 
 dependencies {
-    testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.0'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
@@ -49,8 +50,12 @@ dependencies {
 
 jacocoTestReport { // necessary for sonarcloud coverage
     reports {
-        xml.enabled true
+        xml.required = true
+        csv.required = true
     }
+}
+test {
+    useJUnitPlatform()
 }
 
 tasks.test.finalizedBy jacocoTestReport

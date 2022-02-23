@@ -16,11 +16,11 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.hashing.TestUtils.byteListToHexString;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.*;
 import java.util.function.Consumer;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public abstract class AbstractHashSinkTest<T extends HashSink> {
 

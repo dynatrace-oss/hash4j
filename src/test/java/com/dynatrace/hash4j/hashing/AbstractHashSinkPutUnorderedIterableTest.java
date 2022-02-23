@@ -17,8 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.apache.commons.collections4.iterators.PermutationIterator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AbstractHashSinkPutUnorderedIterableTest {
 

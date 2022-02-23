@@ -17,12 +17,13 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.hashing.TestUtils.hash128ToByteArray;
 import static com.dynatrace.hash4j.hashing.TestUtils.tupleToByteArray;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.Arrays;
 import net.openhft.hashing.LongTupleHashFunction;
 import org.apache.commons.codec.digest.MurmurHash3;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Murmur3_128ReferenceImplTest {
 
