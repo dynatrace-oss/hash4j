@@ -144,21 +144,21 @@ class Murmur3_128 extends AbstractHashSink implements Hash128Supplier {
         buffer1 |= ((long) LONG_HANDLE.get(b, off)) << oldBitCount;
       } else {
         if (regularBlockStartIdx >= 4) {
-          if (regularBlockStartIdx >= 7) {
-            buffer1 |= (b[off + regularBlockStartIdx - 7] & 0xFFL) << 8;
-          }
-          if (regularBlockStartIdx >= 6) {
-            buffer1 |= (b[off + regularBlockStartIdx - 6] & 0xFFL) << 16;
-          }
           if (regularBlockStartIdx >= 5) {
+            if (regularBlockStartIdx >= 6) {
+              if (regularBlockStartIdx >= 7) {
+                buffer1 |= (b[off + regularBlockStartIdx - 7] & 0xFFL) << 8;
+              }
+              buffer1 |= (b[off + regularBlockStartIdx - 6] & 0xFFL) << 16;
+            }
             buffer1 |= (b[off + regularBlockStartIdx - 5] & 0xFFL) << 24;
           }
           buffer1 |= (((long) INT_HANDLE.get(b, off + regularBlockStartIdx - 4)) << 32);
         } else {
-          if (regularBlockStartIdx >= 3) {
-            buffer1 |= (b[off + regularBlockStartIdx - 3] & 0xFFL) << 40;
-          }
           if (regularBlockStartIdx >= 2) {
+            if (regularBlockStartIdx >= 3) {
+              buffer1 |= (b[off + regularBlockStartIdx - 3] & 0xFFL) << 40;
+            }
             buffer1 |= (b[off + regularBlockStartIdx - 2] & 0xFFL) << 48;
           }
           buffer1 |= ((long) b[off + regularBlockStartIdx - 1]) << 56;
@@ -189,20 +189,20 @@ class Murmur3_128 extends AbstractHashSink implements Hash128Supplier {
           buffer1 |= (((long) INT_HANDLE.get(b, offLen - remainingBytes)) & 0xFFFFFFFFL);
           if (4 < remainingBytes) {
             buffer1 |= (b[offLen - (remainingBytes - 4)] & 0xFFL) << 32;
-          }
-          if (5 < remainingBytes) {
-            buffer1 |= (b[offLen - (remainingBytes - 5)] & 0xFFL) << 40;
-          }
-          if (6 < remainingBytes) {
-            buffer1 |= (b[offLen - (remainingBytes - 6)] & 0xFFL) << 48;
+            if (5 < remainingBytes) {
+              buffer1 |= (b[offLen - (remainingBytes - 5)] & 0xFFL) << 40;
+              if (6 < remainingBytes) {
+                buffer1 |= (b[offLen - (remainingBytes - 6)] & 0xFFL) << 48;
+              }
+            }
           }
         } else {
           buffer1 |= (b[offLen - remainingBytes] & 0xFFL);
           if (1 < remainingBytes) {
             buffer1 |= (b[offLen - (remainingBytes - 1)] & 0xFFL) << 8;
-          }
-          if (2 < remainingBytes) {
-            buffer1 |= (b[offLen - (remainingBytes - 2)] & 0xFFL) << 16;
+            if (2 < remainingBytes) {
+              buffer1 |= (b[offLen - (remainingBytes - 2)] & 0xFFL) << 16;
+            }
           }
         }
       }
