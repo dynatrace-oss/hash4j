@@ -3,14 +3,19 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id 'org.sonarqube' version '3.3'
-    id 'com.diffplug.spotless' version '6.2.0'
+    id 'com.diffplug.spotless' version '6.3.0'
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
 }
 
-sourceCompatibility = 11
-targetCompatibility = 11
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+    withJavadocJar()
+    withSourcesJar()
+}
 
 group = 'com.dynatrace.hash4j'
 version = '0.1.0'
@@ -90,10 +95,7 @@ jacocoTestCoverageVerification {
     }
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
+
 
 publishing {
     publications {
