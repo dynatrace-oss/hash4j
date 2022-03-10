@@ -48,7 +48,6 @@ dependencies {
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.0'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
-    testImplementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
 }

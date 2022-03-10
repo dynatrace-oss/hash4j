@@ -25,7 +25,7 @@ import net.openhft.hashing.LongTupleHashFunction;
 import org.apache.commons.codec.digest.MurmurHash3;
 import org.junit.jupiter.api.Test;
 
-public class Murmur3_128ReferenceImplTest {
+class Murmur3_128ReferenceImplTest {
 
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
@@ -120,7 +120,7 @@ public class Murmur3_128ReferenceImplTest {
   }
 
   @Test
-  public void test() {
+  void test() {
 
     // the hashes are calculated using the c++ reference implementation on an Intel x86 architecture
     // with little endianness using the code below

@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class TestHashSink extends AbstractHashSink {
+class TestHashSink extends AbstractHashSink {
   private int size = 0;
   private byte[] data = new byte[1];
 

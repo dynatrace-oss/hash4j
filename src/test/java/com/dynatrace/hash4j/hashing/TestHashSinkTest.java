@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestHashSinkTest extends AbstractHashSinkTest<TestHashSink> {
+class TestHashSinkTest extends AbstractHashSinkTest<TestHashSink> {
   @Override
   protected TestHashSink createHashSink() {
     return new TestHashSink();

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
-public class DemoTest {
+class DemoTest {
 
   // Some class with two string fields.
   private static final class Person {
@@ -157,21 +157,19 @@ public class DemoTest {
   }
 
   @Test
-  public void testHashPerson() {
+  void testHashPerson() {
     long hashValue = Hashing.murmur3_128().hashToLong(PERSON_BOB_SMITH, Person::put);
     assertEquals(-7660042399124123136L, hashValue);
   }
 
   @Test
-  public void testHashInformation() {
-
+  void testHashInformation() {
     long hashValue = Hashing.murmur3_128().hashToLong(INFO_BOB_SMITH, INFORMATION_HASH_FUNNEL);
     assertEquals(-7923957321699133338L, hashValue);
   }
 
   @Test
-  public void testHashDataBase() {
-
+  void testHashDataBase() {
     // setup database
     List<Person> personList =
         Arrays.asList(

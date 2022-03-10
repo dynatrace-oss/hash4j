@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Murmur3_32Test extends AbstractHashSinkTest<Murmur3_32> {
+class Murmur3_32Test extends AbstractHashSinkTest<Murmur3_32> {
   @Override
   protected Murmur3_32 createHashSink() {
     return new Murmur3_32(0x43a3fb15);

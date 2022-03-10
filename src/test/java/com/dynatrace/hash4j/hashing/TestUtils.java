@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import java.util.List;
 
-public final class TestUtils {
+final class TestUtils {
 
   private TestUtils() {}
 
@@ -28,7 +28,7 @@ public final class TestUtils {
   public static byte[] hexStringToByteArray(final String s) {
     final int len = s.length();
     if (len % 2 != 0) {
-      throw new IllegalArgumentException("Expecting an even number of hex-digits!");
+      throw new IllegalArgumentException();
     }
     final byte[] data = new byte[len / 2];
     for (int i = 0; i < len; i += 2) {
@@ -92,5 +92,19 @@ public final class TestUtils {
       }
     }
     return b;
+  }
+
+  public static long byteArrayToLong(byte[] b) {
+    if (b.length != 8) {
+      throw new IllegalArgumentException();
+    }
+    return ((b[0] & 0xFFL) << 56)
+        | ((b[1] & 0xFFL) << 48)
+        | ((b[2] & 0xFFL) << 40)
+        | ((b[3] & 0xFFL) << 32)
+        | ((b[4] & 0xFFL) << 24)
+        | ((b[5] & 0xFFL) << 16)
+        | ((b[6] & 0xFFL) << 8)
+        | (b[7] & 0xFFL);
   }
 }

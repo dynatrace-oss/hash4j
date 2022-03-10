@@ -20,40 +20,40 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class HashValue128Test {
+class HashValue128Test {
 
   @Test
-  public void testGetAsInt() {
+  void testGetAsInt() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     assertEquals(0x290066d3, hash.getAsInt());
   }
 
   @Test
-  public void testGetLeastSignificantBits() {
+  void testGetLeastSignificantBits() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     assertEquals(0xf91ca468290066d3L, hash.getLeastSignificantBits());
   }
 
   @Test
-  public void testGetAsLong() {
+  void testGetAsLong() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     assertEquals(0xf91ca468290066d3L, hash.getAsLong());
   }
 
   @Test
-  public void testHashCode() {
+  void testHashCode() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     assertEquals(0x290066d3, hash.hashCode());
   }
 
   @Test
-  public void testGetMostSignificantBits() {
+  void testGetMostSignificantBits() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     assertEquals(0x3b373969bb1aa907L, hash.getMostSignificantBits());
   }
 
   @Test
-  public void testEquals() {
+  void testEquals() {
     HashValue128 hash1a = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     HashValue128 hash1b = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
     HashValue128 hash2 = new HashValue128(0x587b9c8a695ef518L, 0x9f3dc05b33bfb73eL);

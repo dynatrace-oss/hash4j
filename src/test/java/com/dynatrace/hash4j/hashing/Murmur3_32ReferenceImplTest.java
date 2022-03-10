@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.apache.commons.codec.digest.MurmurHash3;
 import org.junit.jupiter.api.Test;
 
-public class Murmur3_32ReferenceImplTest {
+class Murmur3_32ReferenceImplTest {
 
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
@@ -31,7 +31,7 @@ public class Murmur3_32ReferenceImplTest {
    * Integer#MAX_VALUE} always results in the same hash value.
    */
   @Test
-  public void testLongInput() {
+  void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
     int hashValue =
         Hashing.murmur3_32()
@@ -78,7 +78,7 @@ public class Murmur3_32ReferenceImplTest {
   }
 
   @Test
-  public void test() {
+  void test() {
 
     // the hashes are calculated using the c++ reference implementation on an Intel x86 architecture
     // with little endianness using the code below

@@ -22,7 +22,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHashSinkTest<T extends HashSink> {
+abstract class AbstractHashSinkTest<T extends HashSink> {
 
   private static final class TestCase {
     private final byte[] expected;
@@ -134,7 +134,7 @@ public abstract class AbstractHashSinkTest<T extends HashSink> {
   }
 
   @Test
-  public void testRandomData() {
+  void testRandomData() {
 
     int numIterations = 100000;
 
@@ -164,7 +164,7 @@ public abstract class AbstractHashSinkTest<T extends HashSink> {
   }
 
   @Test
-  public void testComposedByteSequences() {
+  void testComposedByteSequences() {
 
     int maxSize = 256;
     SplittableRandom random = new SplittableRandom(0L);
@@ -204,7 +204,7 @@ public abstract class AbstractHashSinkTest<T extends HashSink> {
   }
 
   @Test
-  public void testPutString() {
+  void testPutString() {
 
     int maxPreSize = 64;
     int maxStringSize = 256;

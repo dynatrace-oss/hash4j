@@ -107,6 +107,7 @@ public final class Hashing {
     return (ExtendedHasher128) () -> Murmur3_128.create(seed);
   }
 
+  // visible for testing
   static Hasher128 murmur3_128withSeedBug(int seed) {
     return (ExtendedHasher128) () -> Murmur3_128.createWithSeedBug(seed);
   }

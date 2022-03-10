@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Murmur3_128Test extends AbstractHash128SupplierTest<Murmur3_128> {
+class Murmur3_128Test extends AbstractHash128SupplierTest<Murmur3_128> {
 
   @Override
   protected Murmur3_128 createHashSink() {

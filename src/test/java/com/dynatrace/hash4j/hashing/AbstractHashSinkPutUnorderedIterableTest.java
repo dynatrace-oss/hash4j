@@ -17,20 +17,21 @@ package com.dynatrace.hash4j.hashing;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-import org.apache.commons.collections4.iterators.PermutationIterator;
 import org.junit.jupiter.api.Test;
 
-public class AbstractHashSinkPutUnorderedIterableTest {
+class AbstractHashSinkPutUnorderedIterableTest {
 
   @Test
-  public void testContributeUnorderedIterableViaLong() {
+  void testContributeUnorderedIterableViaLong() {
 
     Set<String> set1 =
         Stream.of("A", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8").collect(toSet());
@@ -112,7 +113,7 @@ public class AbstractHashSinkPutUnorderedIterableTest {
   }
 
   @Test
-  public void
+  void
       testContributeUnorderedIterableViaLongCompatibilityBetweenIterableAndCollectionAndRandomAccessLists() {
 
     SplittableRandom rng = new SplittableRandom(0xa2238dd31febdd3aL);
@@ -142,7 +143,7 @@ public class AbstractHashSinkPutUnorderedIterableTest {
   }
 
   @Test
-  public void testContributeOrderedIterable() {
+  void testContributeOrderedIterable() {
 
     List<String> list1 =
         Stream.of("A", "B", "C", "1", "2", "3", "4", "5", "6", "7", "8").collect(toList());
@@ -173,14 +174,14 @@ public class AbstractHashSinkPutUnorderedIterableTest {
   }
 
   @Test
-  public void testPutUnorderedIterable() {
+  void testPutUnorderedIterable() {
 
     int maxSize = 11;
     for (int size = 0; size <= maxSize; ++size) {
 
       List<Long> sortedValues = LongStream.range(0, size).boxed().collect(Collectors.toList());
 
-      PermutationIterator<Long> permutationIterator = new PermutationIterator<>(sortedValues);
+      PermutationIterator permutationIterator = new PermutationIterator(size);
       ByteBuffer byteBuffer = ByteBuffer.allocate(sortedValues.size() * 8 + 4);
       for (Long value : sortedValues) {
         byteBuffer.putLong(Long.reverseBytes(value));
@@ -189,19 +190,195 @@ public class AbstractHashSinkPutUnorderedIterableTest {
       byte[] expected = byteBuffer.array();
 
       while (permutationIterator.hasNext()) {
-        List<Long> values = permutationIterator.next();
+        int[] values = permutationIterator.next();
         TestHashSink sinkRandomAccessList = new TestHashSink();
         TestHashSink sinkCollection = new TestHashSink();
         TestHashSink sinkIterable = new TestHashSink();
-
-        sinkRandomAccessList.putUnorderedIterable(values, v -> v);
-        sinkCollection.putUnorderedIterable(asCollection(values), v -> v);
-        sinkIterable.putUnorderedIterable(values::iterator, v -> v);
+        List<Long> longList = asLongRandomAccessList(values);
+        sinkRandomAccessList.putUnorderedIterable(longList, v -> v);
+        sinkCollection.putUnorderedIterable(asCollection(longList), v -> v);
+        sinkIterable.putUnorderedIterable(longList::iterator, v -> v);
 
         assertArrayEquals(expected, sinkRandomAccessList.getData());
         assertArrayEquals(expected, sinkCollection.getData());
         assertArrayEquals(expected, sinkIterable.getData());
       }
     }
+  }
+
+  private static List<Long> asLongRandomAccessList(int[] array) {
+    return new AbstractList<>() {
+      @Override
+      public Long get(int index) {
+        return Long.valueOf(array[index]);
+      }
+
+      @Override
+      public int size() {
+        return array.length;
+      }
+    };
+  }
+
+  private static class PermutationIterator implements Iterator<int[]> {
+
+    private final int[] keys;
+    private final boolean[] direction;
+    private int[] nextPermutation;
+
+    public PermutationIterator(int size) {
+      keys = new int[size];
+      direction = new boolean[size];
+      Arrays.fill(direction, false);
+      int value = 0;
+      for (int i = 0; i < size; ++i) {
+        keys[value] = value;
+        value++;
+      }
+      nextPermutation = IntStream.range(0, size).toArray();
+    }
+
+    @Override
+    public boolean hasNext() {
+      return nextPermutation != null;
+    }
+
+    @Override
+    public int[] next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+
+      int indexOfLargestMobileInteger = -1;
+      int largestKey = -1;
+      for (int i = 0; i < keys.length; i++) {
+        if ((direction[i] && i < keys.length - 1 && keys[i] > keys[i + 1])
+            || (!direction[i] && i > 0 && keys[i] > keys[i - 1])) {
+          if (keys[i] > largestKey) {
+            largestKey = keys[i];
+            indexOfLargestMobileInteger = i;
+          }
+        }
+      }
+      if (largestKey == -1) {
+        final int[] toReturn = nextPermutation;
+        nextPermutation = null;
+        return toReturn;
+      }
+
+      final int offset = direction[indexOfLargestMobileInteger] ? 1 : -1;
+      final int tmpKey = keys[indexOfLargestMobileInteger];
+      keys[indexOfLargestMobileInteger] = keys[indexOfLargestMobileInteger + offset];
+      keys[indexOfLargestMobileInteger + offset] = tmpKey;
+      final boolean tmpDirection = direction[indexOfLargestMobileInteger];
+      direction[indexOfLargestMobileInteger] = direction[indexOfLargestMobileInteger + offset];
+      direction[indexOfLargestMobileInteger + offset] = tmpDirection;
+
+      final int[] nextP = new int[keys.length];
+      for (int i = 0; i < keys.length; i++) {
+        if (keys[i] > largestKey) {
+          direction[i] = !direction[i];
+        }
+        nextP[i] = keys[i];
+      }
+      final int[] result = nextPermutation;
+      nextPermutation = nextP;
+      return result;
+    }
+
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  @Test
+  void testPermutation1() {
+    PermutationIterator it = new PermutationIterator(1);
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0});
+    assertThat(it.hasNext()).isFalse();
+  }
+
+  @Test
+  void testPermutation2() {
+    PermutationIterator it = new PermutationIterator(2);
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 0});
+    assertThat(it.hasNext()).isFalse();
+  }
+
+  @Test
+  void testPermutation3() {
+    PermutationIterator it = new PermutationIterator(3);
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 1, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 2, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 0, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 1, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 2, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 0, 2});
+    assertThat(it.hasNext()).isFalse();
+  }
+
+  @Test
+  void testPermutation4() {
+    PermutationIterator it = new PermutationIterator(4);
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 1, 2, 3});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 1, 3, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 3, 1, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {3, 0, 1, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {3, 0, 2, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 3, 2, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 2, 3, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {0, 2, 1, 3});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 0, 1, 3});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 0, 3, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 3, 0, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {3, 2, 0, 1});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {3, 2, 1, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 3, 1, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 1, 3, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {2, 1, 0, 3});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 2, 0, 3});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 2, 3, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 3, 2, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {3, 1, 2, 0});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {3, 1, 0, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 3, 0, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 0, 3, 2});
+    assertThat(it.hasNext()).isTrue();
+    assertThat(it.next()).isEqualTo(new int[] {1, 0, 2, 3});
+    assertThat(it.hasNext()).isFalse();
   }
 }

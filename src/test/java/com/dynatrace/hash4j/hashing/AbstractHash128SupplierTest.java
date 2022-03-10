@@ -19,11 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractHash128SupplierTest<T extends Hash128Supplier>
+abstract class AbstractHash128SupplierTest<T extends Hash128Supplier>
     extends AbstractHash64SupplierTest<T> {
 
   @Test
-  public void testHash128LongCompatibility() {
+  void testHash128LongCompatibility() {
     byte[] data = TestUtils.hexStringToByteArray("3011498ecb9ca21b2f6260617b55f3a7");
     Hash128Supplier hash128Sink = createHashSink();
     Hash64Supplier longSink = createHashSink();
