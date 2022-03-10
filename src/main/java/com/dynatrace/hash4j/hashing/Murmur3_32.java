@@ -38,7 +38,7 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     shift += 8;
     length += 1;
     if (shift >= 32) {
-      h1 = mixH1(h1, mixK1((int) buffer));
+      processBuffer((int) buffer);
       buffer >>>= 32;
       shift -= 32;
     }
@@ -51,7 +51,7 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     shift += 16;
     length += 2;
     if (shift >= 32) {
-      h1 = mixH1(h1, mixK1((int) buffer));
+      processBuffer((int) buffer);
       buffer >>>= 32;
       shift -= 32;
     }
@@ -62,18 +62,16 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
   public HashSink putInt(int v) {
     buffer |= (v & 0xFFFFFFFFL) << shift;
     length += 4;
-    h1 = mixH1(h1, mixK1((int) buffer));
+    processBuffer((int) buffer);
     buffer >>>= 32;
     return this;
   }
 
   @Override
   public HashSink putLong(long l) {
-    buffer |= l << shift;
-    h1 = mixH1(h1, mixK1((int) buffer));
-    buffer >>>= 32;
-    buffer |= (l >>> 32) << shift;
-    h1 = mixH1(h1, mixK1((int) buffer));
+    processBuffer((int) (buffer | (l << shift)));
+    buffer = l >>> (32 - shift);
+    processBuffer((int) buffer);
     buffer >>>= 32;
     length += 8;
     return this;
@@ -86,10 +84,10 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     length += len;
     if (regularBlockEndIdx < regularBlockStartIdx) {
       if (0 < len) {
-        buffer |= ((b[off] & 0xFFL) << shift);
+        buffer |= (b[off] & 0xFFL) << shift;
         shift += 8;
         if (1 < len) {
-          buffer |= ((b[off + 1] & 0xFFL) << shift);
+          buffer |= (b[off + 1] & 0xFFL) << shift;
           shift += 8;
         }
       }
@@ -104,12 +102,12 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
         buffer |= ((b[off + regularBlockStartIdx - 2] & 0xFFL) << 16);
       }
       buffer |= ((b[off + regularBlockStartIdx - 1] & 0xFFL) << 24);
-      h1 = mixH1(h1, mixK1((int) buffer));
+      processBuffer((int) buffer);
       buffer = 0;
     }
 
     for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 4) {
-      processBufferInt((int) INT_HANDLE.get(b, off + i));
+      processBuffer((int) INT_HANDLE.get(b, off + i));
     }
 
     int remainingBytes = len - regularBlockEndIdx;
@@ -141,10 +139,10 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     return h1;
   }
 
-  // Finalization mix - force all bits of a hash block to avalanche
-  private static int fmix(int h1, int b, int numBytes) {
-    h1 ^= mixK1(b);
-    h1 ^= numBytes;
+  @Override
+  public int getAsInt() {
+    h1 ^= mixK1((int) (buffer));
+    h1 ^= length;
     h1 ^= h1 >>> 16;
     h1 *= 0x85ebca6b;
     h1 ^= h1 >>> 13;
@@ -157,18 +155,8 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     this.h1 = seed;
   }
 
-  @Override
-  public int getAsInt() {
-    processRemainderAndFinalize();
-    return h1;
-  }
-
-  private void processBufferInt(int x) {
+  private void processBuffer(int x) {
     h1 = mixH1(h1, mixK1(x));
-  }
-
-  private void processRemainderAndFinalize() {
-    h1 = fmix(h1, (int) (buffer), length);
   }
 
   @Override
@@ -177,19 +165,19 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     if (len == 0) {
       return this;
     }
-    final int regularBlockStartIdx = (length >>> 1) & 0x1;
-    final int regularBlockEndIdx = len - ((len - (length >>> 1)) & 0x1);
+    final int regularBlockStartIdx = (length >>> 1) & 1;
+    final int regularBlockEndIdx = len - ((len & 1) ^ regularBlockStartIdx);
 
     length += len << 1;
 
     if ((length & 1) == 0) {
       if (regularBlockStartIdx > 0) {
-        processBufferInt(((int) buffer) | ((int) s.charAt(0)) << 16);
+        processBuffer(((int) buffer) | (s.charAt(0) << 16));
         buffer = 0;
         shift = 0;
       }
       for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
-        processBufferInt((s.charAt(i) & 0xFFFF) | (((int) s.charAt(i + 1)) << 16));
+        processBuffer((s.charAt(i) & 0xFFFF) | (s.charAt(i + 1) << 16));
       }
       if (regularBlockEndIdx < len) {
         buffer = s.charAt(regularBlockEndIdx) & 0xFFFFL;
@@ -197,14 +185,14 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
       }
     } else {
       if (regularBlockStartIdx > 0) {
-        buffer |= (s.charAt(regularBlockStartIdx - 1) & 0xFFFFL) << 24;
-        processBufferInt((int) buffer);
+        buffer |= (s.charAt(0) & 0xFFFFL) << 24;
+        processBuffer((int) buffer);
         buffer >>= 32;
         shift = 8;
       }
       for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
-        buffer |= buffer | ((s.charAt(i) & 0xFFFFL) << 8) | ((s.charAt(i + 1) & 0xFFFFL) << 24);
-        processBufferInt((int) buffer);
+        buffer |= ((s.charAt(i) & 0xFFFFL) << 8) | ((s.charAt(i + 1) & 0xFFFFL) << 24);
+        processBuffer((int) buffer);
         buffer >>= 32;
       }
       if (regularBlockEndIdx < len) {
