@@ -191,9 +191,9 @@ class AbstractHashSinkPutUnorderedIterableTest {
 
       while (permutationIterator.hasNext()) {
         int[] values = permutationIterator.next();
-        TestHashSink sinkRandomAccessList = new TestHashSink();
-        TestHashSink sinkCollection = new TestHashSink();
-        TestHashSink sinkIterable = new TestHashSink();
+        TestHashCalculator sinkRandomAccessList = new TestHashCalculator();
+        TestHashCalculator sinkCollection = new TestHashCalculator();
+        TestHashCalculator sinkIterable = new TestHashCalculator();
         List<Long> longList = asLongRandomAccessList(values);
         sinkRandomAccessList.putUnorderedIterable(longList, v -> v);
         sinkCollection.putUnorderedIterable(asCollection(longList), v -> v);

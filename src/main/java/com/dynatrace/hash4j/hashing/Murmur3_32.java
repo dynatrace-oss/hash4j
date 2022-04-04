@@ -15,14 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
-
-class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
-
-  private static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
+class Murmur3_32 extends AbstractHashCalculator {
 
   private static final int C1 = 0xcc9e2d51;
   private static final int C2 = 0x1b873593;
@@ -31,6 +24,21 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
   private long buffer;
   private int shift;
   private int length;
+
+  private static final AbstractHasher32 DEFAULT_HASHER_INSTANCE = create(0);
+
+  static AbstractHasher32 create() {
+    return DEFAULT_HASHER_INSTANCE;
+  }
+
+  static AbstractHasher32 create(int seed) {
+    return new AbstractHasher32() {
+      @Override
+      protected HashCalculator newHashCalculator() {
+        return new Murmur3_32(seed);
+      }
+    };
+  }
 
   @Override
   public HashSink putByte(byte b) {
@@ -151,7 +159,7 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
     return h1;
   }
 
-  Murmur3_32(int seed) {
+  private Murmur3_32(int seed) {
     this.h1 = seed;
   }
 
@@ -201,5 +209,10 @@ class Murmur3_32 extends AbstractHashSink implements Hash32Supplier {
       }
     }
     return this;
+  }
+
+  @Override
+  public int getHashBitSize() {
+    return 32;
   }
 }

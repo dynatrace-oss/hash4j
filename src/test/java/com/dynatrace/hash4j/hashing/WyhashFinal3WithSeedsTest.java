@@ -15,6 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-interface Hash128Supplier extends Hash64Supplier {
-  HashValue128 get();
+public class WyhashFinal3WithSeedsTest extends AbstractHashCalculatorTest {
+
+  private static final AbstractHasher64 HASHER =
+      WyhashFinal3.create(0xfa681c2ee9f17f88L, 0x3c88abf5128e96cbL);
+
+  @Override
+  protected HashCalculator createHashCalculator() {
+    return HASHER.newHashCalculator();
+  }
 }

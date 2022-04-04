@@ -15,12 +15,25 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_128Test extends AbstractHashCalculatorTest {
-
-  private static final AbstractHasher128 HASHER = Murmur3_128.create(0xfc64a346);
+abstract class AbstractHasher128 extends AbstractHasher64 implements Hasher128 {
 
   @Override
-  protected HashCalculator createHashCalculator() {
-    return HASHER.newHashCalculator();
+  protected abstract HashCalculator newHashCalculator();
+
+  @Override
+  public <T> HashValue128 hashTo128Bits(T data, HashFunnel<T> funnel) {
+    HashCalculator hashCalculator = this.newHashCalculator();
+    funnel.put(data, hashCalculator);
+    return hashCalculator.get();
+  }
+
+  @Override
+  public HashValue128 hashBytesTo128Bits(byte[] input) {
+    return hashBytesTo128Bits(input, 0, input.length);
+  }
+
+  @Override
+  public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
+    return hashTo128Bits(input, (b, f) -> f.putBytes(b, off, len));
   }
 }

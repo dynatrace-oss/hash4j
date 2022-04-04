@@ -15,22 +15,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+public class WyhashFinal3WithSeedTest extends AbstractHashCalculatorTest {
 
-import org.junit.jupiter.api.Test;
+  private static final AbstractHasher64 HASHER = WyhashFinal3.create(0xdfd1434b2173588fL);
 
-abstract class AbstractHash64SupplierTest<T extends Hash64Supplier>
-    extends AbstractHashSinkTest<T> {
-
-  @Test
-  void testLongIntCompatibility() {
-    byte[] data = TestUtils.hexStringToByteArray("3011498ecb9ca21b2f6260617b55f3a7");
-    Hash64Supplier longSink = createHashSink();
-    Hash32Supplier intSink = createHashSink();
-    longSink.putBytes(data);
-    intSink.putBytes(data);
-    long longHash = longSink.getAsLong();
-    int intHash = intSink.getAsInt();
-    assertEquals(intHash, (int) longHash);
+  @Override
+  protected HashCalculator createHashCalculator() {
+    return HASHER.newHashCalculator();
   }
 }

@@ -15,27 +15,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import java.util.ArrayList;
-import java.util.List;
+class Murmur3_32Test extends AbstractHashCalculatorTest {
 
-class Murmur3_32Test extends AbstractHashSinkTest<Murmur3_32> {
-  @Override
-  protected Murmur3_32 createHashSink() {
-    return new Murmur3_32(0x43a3fb15);
-  }
+  private static final AbstractHasher32 HASHER = Murmur3_32.create();
 
   @Override
-  protected List<Byte> getBytes(Murmur3_32 dataSink) {
-    int x = dataSink.getAsInt();
-    List<Byte> result = new ArrayList<>(4);
-    for (int i = 24; i >= 0; i -= 8) {
-      result.add((byte) ((x >>> i) & 0xFFL));
-    }
-    return result;
-  }
-
-  @Override
-  protected boolean compareWithOriginalData() {
-    return false;
+  protected HashCalculator createHashCalculator() {
+    return HASHER.newHashCalculator();
   }
 }

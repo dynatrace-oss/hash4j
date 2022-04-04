@@ -15,9 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_128Test extends AbstractHashCalculatorTest {
+public class WyhashFinal3Test extends AbstractHashCalculatorTest {
 
-  private static final AbstractHasher128 HASHER = Murmur3_128.create(0xfc64a346);
+  private static final AbstractHasher64 HASHER = WyhashFinal3.create();
 
   @Override
   protected HashCalculator createHashCalculator() {

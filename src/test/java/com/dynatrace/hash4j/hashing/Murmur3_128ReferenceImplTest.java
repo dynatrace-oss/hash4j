@@ -20,12 +20,21 @@ import static com.dynatrace.hash4j.hashing.TestUtils.tupleToByteArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.appmattus.crypto.Algorithm;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import net.openhft.hashing.LongTupleHashFunction;
 import org.apache.commons.codec.digest.MurmurHash3;
 import org.junit.jupiter.api.Test;
 
 class Murmur3_128ReferenceImplTest {
+
+  private static final HashFunnel<byte[]> BYTES_FUNNEL_1 = (input, sink) -> sink.putBytes(input);
+  private static final HashFunnel<byte[]> BYTES_FUNNEL_2 =
+      (input, sink) -> {
+        for (byte b : input) sink.putByte(b);
+      };
 
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
@@ -36,18 +45,41 @@ class Murmur3_128ReferenceImplTest {
   @Test
   public void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
-    HashValue128 hashValue =
-        Hashing.murmur3_128()
-            .hashTo128Bits(
-                null,
-                (obj, sink) -> {
-                  for (long i = 0; i < len; ++i) {
-                    sink.putByte((byte) (i & 0xFF));
-                  }
-                });
-    byte[] hashValueBytes = hash128ToByteArray(hashValue);
-    byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
-    assertArrayEquals(expected, hashValueBytes);
+    {
+      HashValue128 hashValue =
+          Hashing.murmur3_128()
+              .hashTo128Bits(
+                  null,
+                  (obj, sink) -> {
+                    for (long i = 0; i < len; ++i) {
+                      sink.putByte((byte) (i & 0xFF));
+                    }
+                  });
+      byte[] hashValueBytes = hash128ToByteArray(hashValue);
+      byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
+      assertArrayEquals(expected, hashValueBytes);
+    }
+  }
+
+  private static final byte[] hashCryptoMurmurHash3_X64_128(int seed, byte[] data) {
+    Constructor<Algorithm.MurmurHash3_X64_128> constructor;
+    try {
+      constructor = Algorithm.MurmurHash3_X64_128.class.getDeclaredConstructor(int.class);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
+    constructor.setAccessible(true);
+
+    byte[] hash;
+    try {
+      hash = constructor.newInstance(seed).hash(data);
+    } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new RuntimeException(e);
+    }
+    return new byte[] {
+      hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0], hash[15], hash[14],
+      hash[13], hash[12], hash[11], hash[10], hash[9], hash[8]
+    };
   }
 
   private void test(String hash, String hashWithSeed, int seed, String data) {
@@ -58,21 +90,40 @@ class Murmur3_128ReferenceImplTest {
 
     assertArrayEquals(
         hashBytes,
-        hash128ToByteArray(
-            Hashing.murmur3_128().hashTo128Bits(dataBytes, (b, funnel) -> funnel.putBytes(b))));
+        hash128ToByteArray(Hashing.murmur3_128().hashTo128Bits(dataBytes, BYTES_FUNNEL_1)));
+    assertArrayEquals(
+        hashBytes,
+        hash128ToByteArray(Hashing.murmur3_128().hashTo128Bits(dataBytes, BYTES_FUNNEL_2)));
+    assertArrayEquals(
+        hashBytes, hash128ToByteArray(Hashing.murmur3_128().hashBytesTo128Bits(dataBytes)));
 
     assertArrayEquals(
         hashWithSeedBytes,
-        hash128ToByteArray(
-            Hashing.murmur3_128(seed).hashTo128Bits(dataBytes, (b, funnel) -> funnel.putBytes(b))));
+        hash128ToByteArray(Hashing.murmur3_128(seed).hashTo128Bits(dataBytes, BYTES_FUNNEL_1)));
+    assertArrayEquals(
+        hashWithSeedBytes,
+        hash128ToByteArray(Hashing.murmur3_128(seed).hashTo128Bits(dataBytes, BYTES_FUNNEL_2)));
+    assertArrayEquals(
+        hashWithSeedBytes,
+        hash128ToByteArray(Hashing.murmur3_128(seed).hashBytesTo128Bits(dataBytes)));
 
     if (seed >= 0) {
       assertArrayEquals(
           hashWithSeedBytes,
           hash128ToByteArray(
-              Hashing.murmur3_128withSeedBug(seed)
-                  .hashTo128Bits(dataBytes, (b, funnel) -> funnel.putBytes(b))));
+              Murmur3_128.createWithSeedBug(seed).hashTo128Bits(dataBytes, BYTES_FUNNEL_1)));
+      assertArrayEquals(
+          hashWithSeedBytes,
+          hash128ToByteArray(
+              Murmur3_128.createWithSeedBug(seed).hashTo128Bits(dataBytes, BYTES_FUNNEL_2)));
+      assertArrayEquals(
+          hashWithSeedBytes,
+          hash128ToByteArray(Murmur3_128.createWithSeedBug(seed).hashBytesTo128Bits(dataBytes)));
     }
+
+    // cross-check with https://github.com/appmattus/crypto
+    assertArrayEquals(hashBytes, hashCryptoMurmurHash3_X64_128(0, dataBytes));
+    assertArrayEquals(hashWithSeedBytes, hashCryptoMurmurHash3_X64_128(seed, dataBytes));
 
     // cross-check with Apache Commons Codec Murmur3_128 implementation
     assertArrayEquals(
@@ -84,11 +135,21 @@ class Murmur3_128ReferenceImplTest {
     // cross-check with Guava
     assertArrayEquals(
         hashBytes, com.google.common.hash.Hashing.murmur3_128().hashBytes(dataBytes).asBytes());
+    assertArrayEquals(
+        hashBytes,
+        com.google.common.hash.Hashing.murmur3_128()
+            .hashObject(dataBytes, (b, f) -> f.putBytes(b))
+            .asBytes());
     if (seed >= 0) {
       // see https://github.com/google/guava/issues/3493
       assertArrayEquals(
           hashWithSeedBytes,
           com.google.common.hash.Hashing.murmur3_128(seed).hashBytes(dataBytes).asBytes());
+      assertArrayEquals(
+          hashWithSeedBytes,
+          com.google.common.hash.Hashing.murmur3_128(seed)
+              .hashObject(dataBytes, (b, f) -> f.putBytes(b))
+              .asBytes());
     }
 
     // cross-check with Zero-Allocation-Hashing
@@ -105,7 +166,7 @@ class Murmur3_128ReferenceImplTest {
       // Guava and Zero-Allocation-Hashing libraries are incompatible for negative seeds
       byte[] murmur3WithSeedBug =
           hash128ToByteArray(
-              Hashing.murmur3_128withSeedBug(seed)
+              Murmur3_128.createWithSeedBug(seed)
                   .hashTo128Bits(dataBytes, (b, funnel) -> funnel.putBytes(b)));
       byte[] murmur3Guava =
           com.google.common.hash.Hashing.murmur3_128(seed).hashBytes(dataBytes).asBytes();

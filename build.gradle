@@ -3,7 +3,7 @@ plugins {
     id 'java-library'
     id 'jacoco'
     id 'org.sonarqube' version '3.3'
-    id 'com.diffplug.spotless' version '6.3.0'
+    id 'com.diffplug.spotless' version '6.4.1'
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
@@ -25,7 +25,7 @@ spotless {
     java {
         importOrder()
         removeUnusedImports()
-        googleJavaFormat('1.14.0')
+        googleJavaFormat('1.15.0')
         licenseHeaderFile 'docs/licenses/HEADER.txt'
     }
 }
@@ -47,9 +47,10 @@ dependencies {
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.0'
-    testImplementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
+    testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
+    testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.0'
 }
 
 jacocoTestReport { // necessary for sonarcloud coverage

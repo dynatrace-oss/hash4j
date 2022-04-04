@@ -15,10 +15,24 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-interface Hash64Supplier extends Hash32Supplier {
-  long getAsLong();
+abstract class AbstractHasher32 implements Hasher32 {
 
-  default int getAsInt() {
-    return (int) getAsLong();
+  protected abstract HashCalculator newHashCalculator();
+
+  @Override
+  public <T> int hashToInt(T data, HashFunnel<T> funnel) {
+    HashCalculator hashCalculator = newHashCalculator();
+    funnel.put(data, hashCalculator);
+    return hashCalculator.getAsInt();
+  }
+
+  @Override
+  public int hashBytesToInt(byte[] input) {
+    return hashBytesToInt(input, 0, input.length);
+  }
+
+  @Override
+  public int hashBytesToInt(byte[] input, int off, int len) {
+    return hashToInt(input, (b, f) -> f.putBytes(b));
   }
 }

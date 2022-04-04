@@ -20,95 +20,113 @@ public final class Hashing {
 
   private Hashing() {}
 
-  @FunctionalInterface
-  private interface ExtendedHasher32 extends Hasher32 {
-
-    Hash32Supplier create();
-
-    @Override
-    default <T> int hashToInt(T data, HashFunnel<T> funnel) {
-      Hash32Supplier sink = create();
-      funnel.put(data, sink);
-      return sink.getAsInt();
-    }
-  }
-
-  @FunctionalInterface
-  private interface ExtendedHasher64 extends Hasher64, ExtendedHasher32 {
-
-    @Override
-    Hash64Supplier create();
-
-    @Override
-    default <T> long hashToLong(T data, HashFunnel<T> funnel) {
-      Hash64Supplier sink = create();
-      funnel.put(data, sink);
-      return sink.getAsLong();
-    }
-  }
-
-  @FunctionalInterface
-  private interface ExtendedHasher128 extends Hasher128, ExtendedHasher64 {
-
-    @Override
-    Hash128Supplier create();
-
-    @Override
-    default <T> HashValue128 hashTo128Bits(T data, HashFunnel<T> funnel) {
-      Hash128Supplier sink = create();
-      funnel.put(data, sink);
-      return sink.get();
-    }
-  }
-
-  private static final Hasher32 MURMUR3_32 = (ExtendedHasher32) () -> new Murmur3_32(0);
-
   /**
    * Returns a {@link Hasher32} implementing the 32-bit Murmur3 algorithm (little-endian) using a
    * seed value of zero.
    *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MurmurHash3_x86_32} defined in <a
+   * href="https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash3.cpp">MurmurHash3.cpp</a>
+   * on an Intel x86 architecture.
+   *
    * @return a hasher instance
    */
   public static Hasher32 murmur3_32() {
-    return MURMUR3_32;
+    return Murmur3_32.create();
   }
 
   /**
    * Returns a {@link Hasher32} implementing the 32-bit Murmur3 algorithm (little-endian) using the
    * given seed value.
    *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MurmurHash3_x86_32} defined in <a
+   * href="https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash3.cpp">MurmurHash3.cpp</a>
+   * on an Intel x86 architecture.
+   *
    * @param seed a 32-bit seed
    * @return a hasher instance
    */
   public static Hasher32 murmur3_32(int seed) {
-    return (ExtendedHasher32) () -> new Murmur3_32(seed);
+    return Murmur3_32.create(seed);
   }
-
-  private static final Hasher128 MURMUR3_128 = (ExtendedHasher128) () -> Murmur3_128.create(0);
 
   /**
    * Returns a {@link Hasher128} implementing the 128-bit Murmur3 algorithm (little-endian) using a
    * seed value of zero.
    *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MurmurHash3_x64_128} defined in <a
+   * href="https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash3.cpp">MurmurHash3.cpp</a>
+   * on an Intel x86 architecture.
+   *
    * @return a hasher instance
    */
   public static Hasher128 murmur3_128() {
-    return MURMUR3_128;
+    return Murmur3_128.create();
   }
 
   /**
    * Returns a {@link Hasher128} implementing the 128-bit Murmur3 algorithm (little-endian) using
    * the given seed value.
    *
-   * @param seed a 128-bit seed
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MurmurHash3_x64_128} defined in <a
+   * href="https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash3.cpp">MurmurHash3.cpp</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 32-bit seed
    * @return a hasher instance
    */
   public static Hasher128 murmur3_128(int seed) {
-    return (ExtendedHasher128) () -> Murmur3_128.create(seed);
+    return Murmur3_128.create(seed);
   }
 
-  // visible for testing
-  static Hasher128 murmur3_128withSeedBug(int seed) {
-    return (ExtendedHasher128) () -> Murmur3_128.createWithSeedBug(seed);
+  /**
+   * Returns a {@link Hasher128} implementing the 128-bit Murmur3 algorithm (little-endian) using a
+   * seed value of zero and the default secret.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
+   * defined in <a
+   * href="https://github.com/wangyi-fudan/wyhash/blob/a6b833719aeee8c9154540ee397192cb14b124d4/wyhash.h">wyhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 wyhashFinal3() {
+    return WyhashFinal3.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 3) algorithm using the
+   * given seed value and the default secret.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
+   * defined in <a
+   * href="https://github.com/wangyi-fudan/wyhash/blob/a6b833719aeee8c9154540ee397192cb14b124d4/wyhash.h">wyhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 wyhashFinal3(long seed) {
+    return WyhashFinal3.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 3) algorithm using the
+   * given seed values.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
+   * and {@code make_secret} defined in <a
+   * href="https://github.com/wangyi-fudan/wyhash/blob/a6b833719aeee8c9154540ee397192cb14b124d4/wyhash.h">wyhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @param seedForSecret a 64-bit seed for secret generation
+   * @return a hasher instance
+   */
+  public static Hasher64 wyhashFinal3(long seed, long seedForSecret) {
+    return WyhashFinal3.create(seed, seedForSecret);
   }
 }

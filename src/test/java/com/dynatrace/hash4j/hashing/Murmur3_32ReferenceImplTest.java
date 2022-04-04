@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToInt;
 import static com.dynatrace.hash4j.hashing.TestUtils.hash32ToByteArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,6 +24,12 @@ import org.apache.commons.codec.digest.MurmurHash3;
 import org.junit.jupiter.api.Test;
 
 class Murmur3_32ReferenceImplTest {
+
+  private static final HashFunnel<byte[]> BYTES_FUNNEL_1 = (input, sink) -> sink.putBytes(input);
+  private static final HashFunnel<byte[]> BYTES_FUNNEL_2 =
+      (input, sink) -> {
+        for (byte b : input) sink.putByte(b);
+      };
 
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
@@ -51,15 +58,16 @@ class Murmur3_32ReferenceImplTest {
     byte[] hashBytes = TestUtils.hexStringToByteArray(hash);
     byte[] hashWithSeedBytes = TestUtils.hexStringToByteArray(hashWithSeed);
     byte[] dataBytes = TestUtils.hexStringToByteArray(data);
+    int hashInt = byteArrayToInt(hashBytes);
+    int hashWithSeedInt = byteArrayToInt(hashWithSeedBytes);
 
-    assertArrayEquals(
-        hashBytes,
-        hash32ToByteArray(
-            Hashing.murmur3_32().hashToInt(dataBytes, (b, funnel) -> funnel.putBytes(b))));
-    assertArrayEquals(
-        hashWithSeedBytes,
-        hash32ToByteArray(
-            Hashing.murmur3_32(seed).hashToInt(dataBytes, (b, funnel) -> funnel.putBytes(b))));
+    assertEquals(hashInt, Hashing.murmur3_32().hashToInt(dataBytes, BYTES_FUNNEL_1));
+    assertEquals(hashInt, Hashing.murmur3_32().hashToInt(dataBytes, BYTES_FUNNEL_2));
+    assertEquals(hashInt, Hashing.murmur3_32().hashBytesToInt(dataBytes));
+
+    assertEquals(hashWithSeedInt, Hashing.murmur3_32(seed).hashToInt(dataBytes, BYTES_FUNNEL_1));
+    assertEquals(hashWithSeedInt, Hashing.murmur3_32(seed).hashToInt(dataBytes, BYTES_FUNNEL_2));
+    assertEquals(hashWithSeedInt, Hashing.murmur3_32(seed).hashBytesToInt(dataBytes));
 
     // cross-check with Guava Murmur3_32 implementation
     assertArrayEquals(

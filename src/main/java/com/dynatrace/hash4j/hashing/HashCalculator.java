@@ -15,6 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-interface Hash32Supplier extends HashSink {
+interface HashCalculator extends HashSink {
+
   int getAsInt();
+
+  long getAsLong();
+
+  HashValue128 get();
+
+  int getHashBitSize();
 }

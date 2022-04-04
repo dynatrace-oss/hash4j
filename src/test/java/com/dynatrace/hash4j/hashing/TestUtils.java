@@ -98,13 +98,20 @@ final class TestUtils {
     if (b.length != 8) {
       throw new IllegalArgumentException();
     }
-    return ((b[0] & 0xFFL) << 56)
-        | ((b[1] & 0xFFL) << 48)
-        | ((b[2] & 0xFFL) << 40)
-        | ((b[3] & 0xFFL) << 32)
-        | ((b[4] & 0xFFL) << 24)
-        | ((b[5] & 0xFFL) << 16)
-        | ((b[6] & 0xFFL) << 8)
-        | (b[7] & 0xFFL);
+    return ((b[7] & 0xFFL) << 56)
+        | ((b[6] & 0xFFL) << 48)
+        | ((b[5] & 0xFFL) << 40)
+        | ((b[4] & 0xFFL) << 32)
+        | ((b[3] & 0xFFL) << 24)
+        | ((b[2] & 0xFFL) << 16)
+        | ((b[1] & 0xFFL) << 8)
+        | (b[0] & 0xFFL);
+  }
+
+  public static int byteArrayToInt(byte[] b) {
+    if (b.length != 4) {
+      throw new IllegalArgumentException();
+    }
+    return ((b[3] & 0xFF) << 24) | ((b[2] & 0xFF) << 16) | ((b[1] & 0xFF) << 8) | (b[0] & 0xFF);
   }
 }

@@ -32,5 +32,27 @@ public interface Hasher128 extends Hasher64 {
    * @param <T> the type
    * @return the hash value
    */
-  <T> HashValue128 hashTo128Bits(final T obj, final HashFunnel<T> funnel);
+  <T> HashValue128 hashTo128Bits(T obj, HashFunnel<T> funnel);
+
+  /**
+   * Hashes a byte array to a 128-bit {@link HashValue128} value.
+   *
+   * <p>Equivalent to {@code hashBytesTo128Bits(input, 0, input.length)}.
+   *
+   * @param input the byte array
+   * @return the hash value
+   */
+  HashValue128 hashBytesTo128Bits(byte[] input);
+
+  /**
+   * Hashes a byte array to a 128-bit {@link HashValue128} value.
+   *
+   * <p>Equivalent to {@code hashTo128Bits(input, (b, f) -> f.putBytes(b, off, len))}.
+   *
+   * @param input the byte array
+   * @param off the offset
+   * @param len the length
+   * @return the hash value
+   */
+  HashValue128 hashBytesTo128Bits(byte[] input, int off, int len);
 }

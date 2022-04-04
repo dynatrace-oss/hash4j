@@ -19,7 +19,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 
-class Murmur3_128 extends AbstractHashSink implements Hash128Supplier {
+class Murmur3_128 extends AbstractHashCalculator {
 
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;
@@ -30,12 +30,30 @@ class Murmur3_128 extends AbstractHashSink implements Hash128Supplier {
   private long buffer1 = 0;
   private long bitCount = 0;
 
-  public static Murmur3_128 create(int seed) {
-    return new Murmur3_128(seed & 0xFFFFFFFFL);
+  private static final AbstractHasher128 DEFAULT_HASHER_INSTANCE = create(0);
+
+  static AbstractHasher128 create() {
+    return DEFAULT_HASHER_INSTANCE;
   }
 
-  public static Murmur3_128 createWithSeedBug(int seed) {
-    return new Murmur3_128(seed);
+  static AbstractHasher128 create(int seed) {
+    long longSeed = seed & 0xFFFFFFFFL;
+    return new AbstractHasher128() {
+      @Override
+      protected HashCalculator newHashCalculator() {
+        return new Murmur3_128(longSeed);
+      }
+    };
+  }
+
+  static AbstractHasher128 createWithSeedBug(int seed) {
+    long longSeed = seed;
+    return new AbstractHasher128() {
+      @Override
+      protected HashCalculator newHashCalculator() {
+        return new Murmur3_128(seed);
+      }
+    };
   }
 
   private Murmur3_128(long h) {
@@ -286,149 +304,159 @@ class Murmur3_128 extends AbstractHashSink implements Hash128Supplier {
 
   @Override
   public HashSink putChars(CharSequence s) {
-    int len = s.length();
-    final int numWrittenBytes = (int) (bitCount >>> 3);
-    final int regularBlockStartIdx = ((1 - numWrittenBytes) >>> 1) & 0x7;
-    final int regularBlockEndIdx = len - ((len - regularBlockStartIdx) & 0x7);
-    if (regularBlockEndIdx < regularBlockStartIdx) {
-      return super.putChars(s);
+    final int len = s.length();
+    int i = ((8 - (int) (bitCount)) >>> 4) & 0x7;
+    if (len < i) {
+      for (int j = 0; j < len; j++) {
+        final long l = s.charAt(j);
+        buffer1 |= l << bitCount;
+        if ((bitCount & 0x30L) == 0x30L) {
+          buffer0 = buffer1;
+          buffer1 = (l >>> (-bitCount));
+        }
+        bitCount += 16;
+      }
+      return this;
     }
-    bitCount += ((long) len) << 4;
 
     if ((bitCount & 0xFL) == 0) {
-      if (regularBlockStartIdx - 7 >= 0) {
-        buffer1 |= (s.charAt(0) & 0xFFFFL) << 16;
-      }
-      if (regularBlockStartIdx - 6 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 6) & 0xFFFFL) << 32;
-      }
-      if (regularBlockStartIdx - 5 >= 0) {
-        buffer1 |= ((long) s.charAt(regularBlockStartIdx - 5)) << 48;
-        buffer0 = buffer1;
-        buffer1 = 0;
-      }
-      if (regularBlockStartIdx - 4 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 4) & 0xFFFFL);
-      }
-      if (regularBlockStartIdx - 3 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 3) & 0xFFFFL) << 16;
-      }
-      if (regularBlockStartIdx - 2 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 2) & 0xFFFFL) << 32;
-      }
-      if (regularBlockStartIdx - 1 >= 0) {
-        buffer1 |= ((long) s.charAt(regularBlockStartIdx - 1)) << 48;
+      if (i - 1 >= 0) {
+        if (i - 2 >= 0) {
+          if (i - 3 >= 0) {
+            if (i - 4 >= 0) {
+              if (i - 5 >= 0) {
+                if (i - 6 >= 0) {
+                  if (i - 7 >= 0) {
+                    buffer1 |= ((long) s.charAt(0)) << 16;
+                  }
+                  buffer1 |= ((long) s.charAt(i - 6)) << 32;
+                }
+                buffer1 |= ((long) s.charAt(i - 5)) << 48;
+                buffer0 = buffer1;
+                buffer1 = 0;
+              }
+              buffer1 |= ((long) s.charAt(i - 4));
+            }
+            buffer1 |= ((long) s.charAt(i - 3)) << 16;
+          }
+          buffer1 |= ((long) s.charAt(i - 2)) << 32;
+        }
+        buffer1 |= ((long) s.charAt(i - 1)) << 48;
         processBuffer(buffer0, buffer1);
         buffer1 = 0;
       }
-      for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 8) {
+      for (; i + 8 <= len; i += 8) {
         long b0 =
-            (s.charAt(i) & 0xFFFFL)
-                | ((s.charAt(i + 1) & 0xFFFFL) << 16)
-                | ((s.charAt(i + 2) & 0xFFFFL) << 32)
+            (s.charAt(i))
+                | (((long) s.charAt(i + 1)) << 16)
+                | (((long) s.charAt(i + 2)) << 32)
                 | (((long) s.charAt(i + 3)) << 48);
         long b1 =
-            (s.charAt(i + 4) & 0xFFFFL)
-                | ((s.charAt(i + 5) & 0xFFFFL) << 16)
-                | ((s.charAt(i + 6) & 0xFFFFL) << 32)
+            (s.charAt(i + 4))
+                | (((long) s.charAt(i + 5)) << 16)
+                | (((long) s.charAt(i + 6)) << 32)
                 | (((long) s.charAt(i + 7)) << 48);
         processBuffer(b0, b1);
       }
 
-      if (regularBlockEndIdx < len) {
-        buffer1 |= s.charAt(regularBlockEndIdx) & 0xFFFFL;
+      if (i < len) {
+        buffer1 |= s.charAt(i);
+        if (i + 1 < len) {
+          buffer1 |= ((long) s.charAt(i + 1)) << 16;
+          if (i + 2 < len) {
+            buffer1 |= ((long) s.charAt(i + 2)) << 32;
+            if (i + 3 < len) {
+              buffer1 |= ((long) s.charAt(i + 3)) << 48;
+              buffer0 = buffer1;
+              buffer1 = 0;
+              if (i + 4 < len) {
+                buffer1 |= s.charAt(i + 4);
+                if (i + 5 < len) {
+                  buffer1 |= ((long) s.charAt(i + 5)) << 16;
+                  if (i + 6 < len) {
+                    buffer1 |= ((long) s.charAt(i + 6)) << 32;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
-      if (regularBlockEndIdx + 1 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 1) & 0xFFFFL) << 16;
-      }
-      if (regularBlockEndIdx + 2 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 2) & 0xFFFFL) << 32;
-      }
-      if (regularBlockEndIdx + 3 < len) {
-        buffer1 |= ((long) s.charAt(regularBlockEndIdx + 3)) << 48;
-        buffer0 = buffer1;
-        buffer1 = 0;
-      }
-      if (regularBlockEndIdx + 4 < len) {
-        buffer1 |= s.charAt(regularBlockEndIdx + 4) & 0xFFFFL;
-      }
-      if (regularBlockEndIdx + 5 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 5) & 0xFFFFL) << 16;
-      }
-      if (regularBlockEndIdx + 6 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 6) & 0xFFFFL) << 32;
-      }
-
     } else {
-
-      if (regularBlockStartIdx - 7 >= 0) {
-        buffer1 |= (s.charAt(0) & 0xFFFFL) << 24;
-      }
-      if (regularBlockStartIdx - 6 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 6) & 0xFFFFL) << 40;
-      }
-      if (regularBlockStartIdx - 5 >= 0) {
-        final long l = s.charAt(regularBlockStartIdx - 5) & 0xFFFFL;
-        buffer1 |= l << 56;
-        buffer0 = buffer1;
-        buffer1 = (l >>> 8);
-      }
-      if (regularBlockStartIdx - 4 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 4) & 0xFFFFL) << 8;
-      }
-      if (regularBlockStartIdx - 3 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 3) & 0xFFFFL) << 24;
-      }
-      if (regularBlockStartIdx - 2 >= 0) {
-        buffer1 |= (s.charAt(regularBlockStartIdx - 2) & 0xFFFFL) << 40;
-      }
-      if (regularBlockStartIdx - 1 >= 0) {
-        final long l = s.charAt(regularBlockStartIdx - 1) & 0xFFFFL;
+      if (i - 1 >= 0) {
+        if (i - 2 >= 0) {
+          if (i - 3 >= 0) {
+            if (i - 4 >= 0) {
+              if (i - 5 >= 0) {
+                if (i - 6 >= 0) {
+                  if (i - 7 >= 0) {
+                    buffer1 |= ((long) s.charAt(0)) << 24;
+                  }
+                  buffer1 |= ((long) s.charAt(i - 6)) << 40;
+                }
+                final long l = s.charAt(i - 5);
+                buffer1 |= l << 56;
+                buffer0 = buffer1;
+                buffer1 = (l >>> 8);
+              }
+              buffer1 |= ((long) s.charAt(i - 4)) << 8;
+            }
+            buffer1 |= ((long) s.charAt(i - 3)) << 24;
+          }
+          buffer1 |= ((long) s.charAt(i - 2)) << 40;
+        }
+        final long l = s.charAt(i - 1);
         buffer1 |= l << 56;
         processBuffer(buffer0, buffer1);
         buffer1 = (l >>> 8);
       }
 
-      for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 8) {
-        long c0 = s.charAt(i) & 0xFFFFL;
-        long c1 = s.charAt(i + 1) & 0xFFFFL;
-        long c2 = s.charAt(i + 2) & 0xFFFFL;
-        long c3 = s.charAt(i + 3) & 0xFFFFL;
-        long c4 = s.charAt(i + 4) & 0xFFFFL;
-        long c5 = s.charAt(i + 5) & 0xFFFFL;
-        long c6 = s.charAt(i + 6) & 0xFFFFL;
-        long c7 = s.charAt(i + 7) & 0xFFFFL;
+      for (; i + 8 <= len; i += 8) {
+        long c0 = s.charAt(i);
+        long c1 = s.charAt(i + 1);
+        long c2 = s.charAt(i + 2);
+        long c3 = s.charAt(i + 3);
+        long c4 = s.charAt(i + 4);
+        long c5 = s.charAt(i + 5);
+        long c6 = s.charAt(i + 6);
+        long c7 = s.charAt(i + 7);
         long b0 = buffer1 | (c0 << 8) | (c1 << 24) | (c2 << 40) | (c3 << 56);
         long b1 = (c3 >>> 8) | (c4 << 8) | (c5 << 24) | (c6 << 40) | (c7 << 56);
         processBuffer(b0, b1);
         buffer1 = c7 >>> 8;
       }
 
-      if (regularBlockEndIdx < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx) & 0xFFFFL) << 8;
-      }
-      if (regularBlockEndIdx + 1 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 1) & 0xFFFFL) << 24;
-      }
-      if (regularBlockEndIdx + 2 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 2) & 0xFFFFL) << 40;
-      }
-      if (regularBlockEndIdx + 3 < len) {
-        final long l = s.charAt(regularBlockEndIdx + 3) & 0xFFFFL;
-        buffer1 |= l << 56;
-        buffer0 = buffer1;
-        buffer1 = (l >>> 8);
-      }
-      if (regularBlockEndIdx + 4 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 4) & 0xFFFFL) << 8;
-      }
-      if (regularBlockEndIdx + 5 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 5) & 0xFFFFL) << 24;
-      }
-      if (regularBlockEndIdx + 6 < len) {
-        buffer1 |= (s.charAt(regularBlockEndIdx + 6) & 0xFFFFL) << 40;
+      if (i < len) {
+        buffer1 |= ((long) s.charAt(i)) << 8;
+        if (i + 1 < len) {
+          buffer1 |= ((long) s.charAt(i + 1)) << 24;
+          if (i + 2 < len) {
+            buffer1 |= ((long) s.charAt(i + 2)) << 40;
+            if (i + 3 < len) {
+              final long l = s.charAt(i + 3);
+              buffer1 |= l << 56;
+              buffer0 = buffer1;
+              buffer1 = (l >>> 8);
+              if (i + 4 < len) {
+                buffer1 |= ((long) s.charAt(i + 4)) << 8;
+                if (i + 5 < len) {
+                  buffer1 |= ((long) s.charAt(i + 5)) << 24;
+                  if (i + 6 < len) {
+                    buffer1 |= ((long) s.charAt(i + 6)) << 40;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
+    bitCount += ((long) len) << 4;
     return this;
+  }
+
+  @Override
+  public int getHashBitSize() {
+    return 128;
   }
 }

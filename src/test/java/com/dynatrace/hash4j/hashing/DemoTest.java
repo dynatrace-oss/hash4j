@@ -156,15 +156,17 @@ class DemoTest {
     }
   }
 
+  private static final Hasher128 HASHER = Hashing.murmur3_128();
+
   @Test
   void testHashPerson() {
-    long hashValue = Hashing.murmur3_128().hashToLong(PERSON_BOB_SMITH, Person::put);
+    long hashValue = HASHER.hashToLong(PERSON_BOB_SMITH, Person::put);
     assertEquals(-7660042399124123136L, hashValue);
   }
 
   @Test
   void testHashInformation() {
-    long hashValue = Hashing.murmur3_128().hashToLong(INFO_BOB_SMITH, INFORMATION_HASH_FUNNEL);
+    long hashValue = HASHER.hashToLong(INFO_BOB_SMITH, INFORMATION_HASH_FUNNEL);
     assertEquals(-7923957321699133338L, hashValue);
   }
 
@@ -184,7 +186,7 @@ class DemoTest {
     infoMap.put(PERSON_JUAN_CARLOS, INFO_JUAN_CARLOS);
     DataBase dataBase = new DataBase(personList, infoMap);
 
-    long hashValue = Hashing.murmur3_128().hashToLong(dataBase, DataBase::put);
+    long hashValue = HASHER.hashToLong(dataBase, DataBase::put);
     assertEquals(5410597687054228776L, hashValue);
   }
 }

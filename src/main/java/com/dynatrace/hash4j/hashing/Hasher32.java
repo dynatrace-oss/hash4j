@@ -26,5 +26,27 @@ public interface Hasher32 {
    * @param <T> the type
    * @return the hash value
    */
-  <T> int hashToInt(final T obj, final HashFunnel<T> funnel);
+  <T> int hashToInt(T obj, HashFunnel<T> funnel);
+
+  /**
+   * Hashes a byte array to a 32-bit integer value.
+   *
+   * <p>Equivalent to {@code hashBytesToInt(input, 0, input.length)}.
+   *
+   * @param input the byte array
+   * @return the hash value
+   */
+  int hashBytesToInt(byte[] input);
+
+  /**
+   * Hashes a byte array to a 32-bit integer value.
+   *
+   * <p>Equivalent to {@code hashBytesToInt(input, (b, f) -> f.putBytes(b, off, len))}.
+   *
+   * @param input the byte array
+   * @param off the offset
+   * @param len the length
+   * @return the hash value
+   */
+  int hashBytesToInt(byte[] input, int off, int len);
 }
