@@ -33,6 +33,6 @@ abstract class AbstractHasher32 implements Hasher32 {
 
   @Override
   public int hashBytesToInt(byte[] input, int off, int len) {
-    return hashToInt(input, (b, f) -> f.putBytes(b));
+    return hashToInt(input, (b, f) -> f.putBytes(b, off, len));
   }
 }
