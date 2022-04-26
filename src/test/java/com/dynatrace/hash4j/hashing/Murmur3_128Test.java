@@ -23,4 +23,9 @@ class Murmur3_128Test extends AbstractHashCalculatorTest {
   protected HashCalculator createHashCalculator() {
     return HASHER.newHashCalculator();
   }
+
+  @Override
+  protected Hasher64 createHasher() {
+    return Hashing.murmur3_128(0xfc64a346);
+  }
 }

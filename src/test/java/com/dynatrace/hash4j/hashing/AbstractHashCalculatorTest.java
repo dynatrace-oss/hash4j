@@ -128,6 +128,8 @@ abstract class AbstractHashCalculatorTest {
 
   protected abstract HashCalculator createHashCalculator();
 
+  protected abstract Hasher32 createHasher();
+
   private HashCalculator getNonOptimizedHashCalculator() {
     HashCalculator hashCalculator = createHashCalculator();
 
@@ -289,6 +291,47 @@ abstract class AbstractHashCalculatorTest {
       HashValue128 hash128Hash = hash128Calculator.get();
       assertEquals(longHash, hash128Hash.getAsLong());
     } catch (UnsupportedOperationException e) {
+    }
+  }
+
+  @Test
+  void testHashBytesOffset() {
+    int numCycles = 1000;
+    int maxByteLength = 100;
+    int maxOffset = 100;
+    int maxExtraLength = 100;
+    SplittableRandom random = new SplittableRandom(0);
+
+    for (int i = 0; i < numCycles; ++i) {
+      int length = random.nextInt(maxByteLength + 1);
+      int offset = random.nextInt(maxOffset + 1);
+      int extraLength = random.nextInt(maxExtraLength + 1);
+      byte[] data = new byte[length];
+      byte[] dataWithOffset = new byte[length + offset + extraLength];
+
+      random.nextBytes(data);
+      System.arraycopy(data, 0, dataWithOffset, offset, length);
+
+      var hasher = createHasher();
+      if (hasher instanceof Hasher32) {
+        Hasher32 hasher32 = (Hasher32) hasher;
+        long hash32 = hasher.hashBytesToInt(data);
+        long hash32WithOffset = hasher.hashBytesToInt(dataWithOffset, offset, length);
+        assertEquals(hash32, hash32WithOffset);
+      }
+      if (hasher instanceof Hasher64) {
+        Hasher64 hasher64 = (Hasher64) hasher;
+        long hash64 = hasher64.hashBytesToLong(data);
+        long hash64WithOffset = hasher64.hashBytesToLong(dataWithOffset, offset, length);
+        assertEquals(hash64, hash64WithOffset);
+      }
+      if (hasher instanceof Hasher128) {
+        Hasher128 hasher128 = (Hasher128) hasher;
+        HashValue128 hash128 = hasher128.hashBytesTo128Bits(data);
+        HashValue128 hash128WithOffset =
+            hasher128.hashBytesTo128Bits(dataWithOffset, offset, length);
+        assertEquals(hash128, hash128WithOffset);
+      }
     }
   }
 

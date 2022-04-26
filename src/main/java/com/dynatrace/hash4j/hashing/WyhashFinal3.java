@@ -34,18 +34,8 @@ class WyhashFinal3 extends AbstractHashCalculator {
   private final long secret2;
   private final long secret3;
 
-  static AbstractHasher64 create(long seedForHash, long seedForSecret) {
-    long[] secret = makeSecret(seedForSecret);
-    long seed = seedForHash ^ secret[0];
-    long secret1 = secret[1];
-    long secret2 = secret[2];
-    long secret3 = secret[3];
-    return new AbstractHasher64() {
-      @Override
-      protected HashCalculator newHashCalculator() {
-        return new WyhashFinal3(seed, secret1, secret2, secret3);
-      }
-    };
+  static AbstractHasher64 create() {
+    return DEFAULT_HASHER_INSTANCE;
   }
 
   static AbstractHasher64 create(long seedForHash) {
@@ -54,16 +44,77 @@ class WyhashFinal3 extends AbstractHashCalculator {
     long secret1 = secret[1];
     long secret2 = secret[2];
     long secret3 = secret[3];
-    return new AbstractHasher64() {
-      @Override
-      protected HashCalculator newHashCalculator() {
-        return new WyhashFinal3(seed, secret1, secret2, secret3);
-      }
-    };
+    return new AbstractHasher64Impl(seed, secret1, secret2, secret3);
   }
 
-  static AbstractHasher64 create() {
-    return DEFAULT_HASHER_INSTANCE;
+  static AbstractHasher64 create(long seedForHash, long seedForSecret) {
+    long[] secret = makeSecret(seedForSecret);
+    long seed = seedForHash ^ secret[0];
+    long secret1 = secret[1];
+    long secret2 = secret[2];
+    long secret3 = secret[3];
+    return new AbstractHasher64Impl(seed, secret1, secret2, secret3);
+  }
+
+  private static class AbstractHasher64Impl extends AbstractHasher64 {
+
+    private final long seed;
+    private final long secret1;
+    private final long secret2;
+    private final long secret3;
+
+    public AbstractHasher64Impl(long seed, long secret1, long secret2, long secret3) {
+      this.seed = seed;
+      this.secret1 = secret1;
+      this.secret2 = secret2;
+      this.secret3 = secret3;
+    }
+
+    @Override
+    protected HashCalculator newHashCalculator() {
+      return new WyhashFinal3(seed, secret1, secret2, secret3);
+    }
+
+    @Override
+    public long hashBytesToLong(byte[] input, int off, int len) {
+      long seed = this.seed;
+      long a, b;
+      if (len <= 16) {
+        if (len >= 4) {
+          a = (wyr4(input, off) << 32) | wyr4(input, off + ((len >>> 3) << 2));
+          b = (wyr4(input, off + len - 4) << 32) | wyr4(input, off + len - 4 - ((len >>> 3) << 2));
+        } else if (len > 0) {
+          a = wyr3(input, off, len);
+          b = 0;
+        } else {
+          a = 0;
+          b = 0;
+        }
+      } else {
+        int i = len;
+        int p = off;
+        if (i > 48) {
+          long see1 = this.seed;
+          long see2 = this.seed;
+          do {
+            seed = wymix(wyr8(input, p) ^ this.secret1, wyr8(input, p + 8) ^ seed);
+            see1 = wymix(wyr8(input, p + 16) ^ this.secret2, wyr8(input, p + 24) ^ see1);
+            see2 = wymix(wyr8(input, p + 32) ^ this.secret3, wyr8(input, p + 40) ^ see2);
+            p += 48;
+            i -= 48;
+          } while (i > 48);
+          seed ^= see1 ^ see2;
+        }
+        while (i > 16) {
+          seed = wymix(wyr8(input, p) ^ this.secret1, wyr8(input, p + 8) ^ seed);
+          i -= 16;
+          p += 16;
+        }
+        a = wyr8(input, p + i - 16);
+        b = wyr8(input, p + i - 8);
+      }
+      return wymix(this.secret1 ^ len, wymix(a ^ this.secret1, b ^ seed));
+    }
   }
 
   private WyhashFinal3(long seed, long secret1, long secret2, long secret3) {
@@ -324,8 +375,10 @@ class WyhashFinal3 extends AbstractHashCalculator {
     return (long) LONG_HANDLE.get(data, p);
   }
 
-  private static long wyr3(byte[] data, int k) {
-    return ((data[0] & 0xFFL) << 16) | ((data[k >>> 1] & 0xFFL) << 8) | (data[k - 1] & 0xFFL);
+  private static long wyr3(byte[] data, int off, int k) {
+    return ((data[off] & 0xFFL) << 16)
+        | ((data[off + (k >>> 1)] & 0xFFL) << 8)
+        | (data[off + k - 1] & 0xFFL);
   }
 
   private static long wyr4(byte[] data, int p) {
@@ -340,7 +393,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
         a = (wyr4(buffer, 0) << 32) | wyr4(buffer, ((offset >>> 3) << 2));
         b = (wyr4(buffer, offset - 4) << 32) | wyr4(buffer, offset - 4 - ((offset >>> 3) << 2));
       } else if (byteCount > 0) {
-        a = wyr3(buffer, offset);
+        a = wyr3(buffer, 0, offset);
         b = 0;
       } else {
         a = 0;

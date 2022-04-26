@@ -22,7 +22,7 @@ import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 
-public class WyhashReferenceImplTest {
+public class WyhashFinal3ReferenceImplTest {
 
   private static final HashFunnel<byte[]> BYTES_FUNNEL_1 = (input, sink) -> sink.putBytes(input);
   private static final HashFunnel<byte[]> BYTES_FUNNEL_2 =

@@ -24,4 +24,9 @@ public class WyhashFinal3WithSeedsTest extends AbstractHashCalculatorTest {
   protected HashCalculator createHashCalculator() {
     return HASHER.newHashCalculator();
   }
+
+  @Override
+  protected Hasher64 createHasher() {
+    return Hashing.wyhashFinal3(0xfa681c2ee9f17f88L, 0x3c88abf5128e96cbL);
+  }
 }

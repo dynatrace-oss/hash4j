@@ -23,4 +23,9 @@ class Murmur3_32Test extends AbstractHashCalculatorTest {
   protected HashCalculator createHashCalculator() {
     return HASHER.newHashCalculator();
   }
+
+  @Override
+  protected Hasher32 createHasher() {
+    return Hashing.murmur3_32();
+  }
 }
