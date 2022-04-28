@@ -82,36 +82,51 @@ class Murmur3_128 extends AbstractHashCalculator {
       switch (len & 15) {
         case 15:
           k2 ^= (input[off + 14] & 0xFFL) << 48;
+          // fallthrough
         case 14:
           k2 ^= (input[off + 13] & 0xFFL) << 40;
+          // fallthrough
         case 13:
           k2 ^= (input[off + 12] & 0xFFL) << 32;
+          // fallthrough
         case 12:
           k2 ^= (input[off + 11] & 0xFFL) << 24;
+          // fallthrough
         case 11:
           k2 ^= (input[off + 10] & 0xFFL) << 16;
+          // fallthrough
         case 10:
           k2 ^= (input[off + 9] & 0xFFL) << 8;
+          // fallthrough
         case 9:
           k2 ^= input[off + 8] & 0xFFL;
           h2 ^= mixK2(k2);
+          // fallthrough
         case 8:
           k1 ^= (long) input[off + 7] << 56;
+          // fallthrough
         case 7:
           k1 ^= (input[off + 6] & 0xFFL) << 48;
+          // fallthrough
         case 6:
           k1 ^= (input[off + 5] & 0xFFL) << 40;
+          // fallthrough
         case 5:
           k1 ^= (input[off + 4] & 0xFFL) << 32;
+          // fallthrough
         case 4:
           k1 ^= (input[off + 3] & 0xFFL) << 24;
+          // fallthrough
         case 3:
           k1 ^= (input[off + 2] & 0xFFL) << 16;
+          // fallthrough
         case 2:
           k1 ^= (input[off + 1] & 0xFFL) << 8;
+          // fallthrough
         case 1:
           k1 ^= input[off + 0] & 0xFFL;
           h1 ^= mixK1(k1);
+          // fallthrough
         default:
           // do nothing
       }
