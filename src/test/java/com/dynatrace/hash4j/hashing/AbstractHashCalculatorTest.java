@@ -294,6 +294,13 @@ abstract class AbstractHashCalculatorTest {
     }
   }
 
+  private static final HashFunnel<byte[]> BYTES_FUNNEL =
+      (input, sink) -> {
+        for (byte b : input) {
+          sink.putByte(b);
+        }
+      };
+
   @Test
   void testHashBytesOffset() {
     int numCycles = 1000;
@@ -315,22 +322,28 @@ abstract class AbstractHashCalculatorTest {
       var hasher = createHasher();
       if (hasher instanceof Hasher32) {
         Hasher32 hasher32 = (Hasher32) hasher;
-        long hash32 = hasher.hashBytesToInt(data);
-        long hash32WithOffset = hasher.hashBytesToInt(dataWithOffset, offset, length);
-        assertEquals(hash32, hash32WithOffset);
+        long hash32Reference = hasher32.hashToInt(data, BYTES_FUNNEL);
+        long hash32 = hasher32.hashBytesToInt(data);
+        long hash32WithOffset = hasher32.hashBytesToInt(dataWithOffset, offset, length);
+        assertEquals(hash32Reference, hash32);
+        assertEquals(hash32Reference, hash32WithOffset);
       }
       if (hasher instanceof Hasher64) {
         Hasher64 hasher64 = (Hasher64) hasher;
+        long hash64Reference = hasher64.hashToLong(data, BYTES_FUNNEL);
         long hash64 = hasher64.hashBytesToLong(data);
         long hash64WithOffset = hasher64.hashBytesToLong(dataWithOffset, offset, length);
-        assertEquals(hash64, hash64WithOffset);
+        assertEquals(hash64Reference, hash64);
+        assertEquals(hash64Reference, hash64WithOffset);
       }
       if (hasher instanceof Hasher128) {
         Hasher128 hasher128 = (Hasher128) hasher;
+        HashValue128 hash128Reference = hasher128.hashTo128Bits(data, BYTES_FUNNEL);
         HashValue128 hash128 = hasher128.hashBytesTo128Bits(data);
         HashValue128 hash128WithOffset =
             hasher128.hashBytesTo128Bits(dataWithOffset, offset, length);
-        assertEquals(hash128, hash128WithOffset);
+        assertEquals(hash128Reference, hash128);
+        assertEquals(hash128Reference, hash128WithOffset);
       }
     }
   }
