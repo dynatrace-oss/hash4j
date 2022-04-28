@@ -96,7 +96,7 @@ class Murmur3_128 extends AbstractHashCalculator {
           k2 ^= input[off + 8] & 0xFFL;
           h2 ^= mixK2(k2);
         case 8:
-          k1 ^= (long)input[off + 7] << 56;
+          k1 ^= (long) input[off + 7] << 56;
         case 7:
           k1 ^= (input[off + 6] & 0xFFL) << 48;
         case 6:
@@ -112,6 +112,8 @@ class Murmur3_128 extends AbstractHashCalculator {
         case 1:
           k1 ^= input[off + 0] & 0xFFL;
           h1 ^= mixK1(k1);
+        default:
+          // do nothing
       }
 
       h1 ^= len;

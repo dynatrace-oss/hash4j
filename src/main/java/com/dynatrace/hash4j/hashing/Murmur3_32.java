@@ -70,6 +70,8 @@ class Murmur3_32 extends AbstractHashCalculator {
           k1 ^= (input[off] & 0xFF);
           k1 = mixK1(k1);
           h1 ^= k1;
+        default:
+          // do nothing
       }
 
       h1 ^= len;
