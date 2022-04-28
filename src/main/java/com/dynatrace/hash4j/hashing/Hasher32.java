@@ -41,7 +41,7 @@ public interface Hasher32 {
   /**
    * Hashes a byte array to a 32-bit integer value.
    *
-   * <p>Equivalent to {@code hashBytesToInt(input, (b, f) -> f.putBytes(b, off, len))}.
+   * <p>Equivalent to {@code hashToInt(input, (b, f) -> f.putBytes(b, off, len))}.
    *
    * @param input the byte array
    * @param off the offset

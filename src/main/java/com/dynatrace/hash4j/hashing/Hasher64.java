@@ -47,7 +47,7 @@ public interface Hasher64 extends Hasher32 {
   /**
    * Hashes a byte array to a 64-bit {@code long} value.
    *
-   * <p>Equivalent to {@code hashBytesToLong(input, (b, f) -> f.putBytes(b, off, len))}.
+   * <p>Equivalent to {@code hashToLong(input, (b, f) -> f.putBytes(b, off, len))}.
    *
    * @param input the byte array
    * @param off the offset
