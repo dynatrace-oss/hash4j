@@ -88,7 +88,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
    * defined in <a
-   * href="https://github.com/wangyi-fudan/wyhash/blob/a6b833719aeee8c9154540ee397192cb14b124d4/wyhash.h">wyhash.h</a>
+   * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
    *
    * @return a hasher instance
@@ -103,7 +103,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
    * defined in <a
-   * href="https://github.com/wangyi-fudan/wyhash/blob/a6b833719aeee8c9154540ee397192cb14b124d4/wyhash.h">wyhash.h</a>
+   * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
    *
    * @param seed a 64-bit seed
@@ -119,7 +119,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
    * and {@code make_secret} defined in <a
-   * href="https://github.com/wangyi-fudan/wyhash/blob/a6b833719aeee8c9154540ee397192cb14b124d4/wyhash.h">wyhash.h</a>
+   * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
    *
    * @param seed a 64-bit seed

@@ -38,22 +38,96 @@ class Murmur3_128 extends AbstractHashCalculator {
 
   static AbstractHasher128 create(int seed) {
     long longSeed = seed & 0xFFFFFFFFL;
-    return new AbstractHasher128() {
-      @Override
-      protected HashCalculator newHashCalculator() {
-        return new Murmur3_128(longSeed);
-      }
-    };
+    return new AbstractHasher128Impl(longSeed);
   }
 
   static AbstractHasher128 createWithSeedBug(int seed) {
     long longSeed = seed;
-    return new AbstractHasher128() {
-      @Override
-      protected HashCalculator newHashCalculator() {
-        return new Murmur3_128(seed);
+    return new AbstractHasher128Impl(longSeed);
+  }
+
+  private static class AbstractHasher128Impl extends AbstractHasher128 {
+
+    private final long seed;
+
+    public AbstractHasher128Impl(long seed) {
+      this.seed = seed;
+    }
+
+    @Override
+    protected HashCalculator newHashCalculator() {
+      return new Murmur3_128(seed);
+    }
+
+    @Override
+    public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
+      long seed = this.seed;
+      int nblocks = len >>> 4;
+      long h1 = seed;
+      long h2 = seed;
+
+      for (int i = 0; i < nblocks; i++, off += 16) {
+        long k1 = (long) LONG_HANDLE.get(input, off);
+        long k2 = (long) LONG_HANDLE.get(input, off + 8);
+
+        h1 ^= mixK1(k1);
+        h1 = mixH1(h1, h2);
+        h2 ^= mixK2(k2);
+        h2 = mixH2(h1, h2);
       }
-    };
+
+      long k1 = 0;
+      long k2 = 0;
+
+      switch (len & 15) {
+        case 15:
+          k2 ^= (input[off + 14] & 0xFFL) << 48;
+        case 14:
+          k2 ^= (input[off + 13] & 0xFFL) << 40;
+        case 13:
+          k2 ^= (input[off + 12] & 0xFFL) << 32;
+        case 12:
+          k2 ^= (input[off + 11] & 0xFFL) << 24;
+        case 11:
+          k2 ^= (input[off + 10] & 0xFFL) << 16;
+        case 10:
+          k2 ^= (input[off + 9] & 0xFFL) << 8;
+        case 9:
+          k2 ^= (input[off + 8] & 0xFFL) << 0;
+          h2 ^= mixK2(k2);
+        case 8:
+          k1 ^= (input[off + 7] & 0xFFL) << 56;
+        case 7:
+          k1 ^= (input[off + 6] & 0xFFL) << 48;
+        case 6:
+          k1 ^= (input[off + 5] & 0xFFL) << 40;
+        case 5:
+          k1 ^= (input[off + 4] & 0xFFL) << 32;
+        case 4:
+          k1 ^= (input[off + 3] & 0xFFL) << 24;
+        case 3:
+          k1 ^= (input[off + 2] & 0xFFL) << 16;
+        case 2:
+          k1 ^= (input[off + 1] & 0xFFL) << 8;
+        case 1:
+          k1 ^= (input[off + 0] & 0xFFL) << 0;
+          h1 ^= mixK1(k1);
+      }
+
+      h1 ^= len;
+      h2 ^= len;
+
+      h1 += h2;
+      h2 += h1;
+
+      h1 = fmix64(h1);
+      h2 = fmix64(h2);
+
+      h1 += h2;
+      h2 += h1;
+
+      return new HashValue128(h2, h1);
+    }
   }
 
   private Murmur3_128(long h) {
@@ -230,16 +304,9 @@ class Murmur3_128 extends AbstractHashCalculator {
 
   private void processBuffer(long b0, long b1) {
     h1 ^= mixK1(b0);
-
-    h1 = Long.rotateLeft(h1, 27);
-    h1 += h2;
-    h1 = h1 * 5 + 0x52dce729;
-
+    h1 = mixH1(h1, h2);
     h2 ^= mixK2(b1);
-
-    h2 = Long.rotateLeft(h2, 31);
-    h2 += h1;
-    h2 = h2 * 5 + 0x38495ab5;
+    h2 = mixH2(h1, h2);
   }
 
   private void processRemainderAndFinalize() {
@@ -288,6 +355,18 @@ class Murmur3_128 extends AbstractHashCalculator {
     k2 = Long.rotateLeft(k2, 33);
     k2 *= C1;
     return k2;
+  }
+
+  private static long mixH1(long h1, long h2) {
+    h1 = Long.rotateLeft(h1, 27);
+    h1 += h2;
+    return h1 * 5 + 0x52dce729;
+  }
+
+  private static long mixH2(long h1, long h2) {
+    h2 = Long.rotateLeft(h2, 31);
+    h2 += h1;
+    return h2 * 5 + 0x38495ab5;
   }
 
   @Override

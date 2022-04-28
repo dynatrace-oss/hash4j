@@ -32,12 +32,49 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   static AbstractHasher32 create(int seed) {
-    return new AbstractHasher32() {
-      @Override
-      protected HashCalculator newHashCalculator() {
-        return new Murmur3_32(seed);
+    return new AbstractHasher32Impl(seed);
+  }
+
+  private static class AbstractHasher32Impl extends AbstractHasher32 {
+
+    private final int seed;
+
+    public AbstractHasher32Impl(int seed) {
+      this.seed = seed;
+    }
+
+    @Override
+    protected HashCalculator newHashCalculator() {
+      return new Murmur3_32(seed);
+    }
+
+    @Override
+    public int hashBytesToInt(byte[] input, int off, int len) {
+      int nblocks = len >>> 2;
+      int h1 = seed;
+
+      for (int i = 0; i < nblocks; i++, off += 4) {
+        int k1 = (int) INT_HANDLE.get(input, off);
+        k1 = mixK1(k1);
+        h1 = mixH1(k1, h1);
       }
-    };
+
+      int k1 = 0;
+
+      switch (len & 3) {
+        case 3:
+          k1 ^= (input[off + 2] & 0xFF) << 16;
+        case 2:
+          k1 ^= (input[off + 1] & 0xFF) << 8;
+        case 1:
+          k1 ^= (input[off] & 0xFF);
+          k1 = mixK1(k1);
+          h1 ^= k1;
+      }
+
+      h1 ^= len;
+      return fmix32(h1);
+    }
   }
 
   @Override
@@ -147,16 +184,20 @@ class Murmur3_32 extends AbstractHashCalculator {
     return h1;
   }
 
+  private static int fmix32(int h) {
+    h ^= h >>> 16;
+    h *= 0x85ebca6b;
+    h ^= h >>> 13;
+    h *= 0xc2b2ae35;
+    h ^= h >>> 16;
+    return h;
+  }
+
   @Override
   public int getAsInt() {
     h1 ^= mixK1((int) (buffer));
     h1 ^= length;
-    h1 ^= h1 >>> 16;
-    h1 *= 0x85ebca6b;
-    h1 ^= h1 >>> 13;
-    h1 *= 0xc2b2ae35;
-    h1 ^= h1 >>> 16;
-    return h1;
+    return fmix32(h1);
   }
 
   private Murmur3_32(int seed) {
