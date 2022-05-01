@@ -97,21 +97,21 @@ class WyhashFinal3 extends AbstractHashCalculator {
           long see1 = this.seed;
           long see2 = this.seed;
           do {
-            seed = wymix(wyr8(input, p) ^ this.secret1, wyr8(input, p + 8) ^ seed);
-            see1 = wymix(wyr8(input, p + 16) ^ this.secret2, wyr8(input, p + 24) ^ see1);
-            see2 = wymix(wyr8(input, p + 32) ^ this.secret3, wyr8(input, p + 40) ^ see2);
+            seed = wymix(getLong(input, p) ^ this.secret1, getLong(input, p + 8) ^ seed);
+            see1 = wymix(getLong(input, p + 16) ^ this.secret2, getLong(input, p + 24) ^ see1);
+            see2 = wymix(getLong(input, p + 32) ^ this.secret3, getLong(input, p + 40) ^ see2);
             p += 48;
             i -= 48;
           } while (i > 48);
           seed ^= see1 ^ see2;
         }
         while (i > 16) {
-          seed = wymix(wyr8(input, p) ^ this.secret1, wyr8(input, p + 8) ^ seed);
+          seed = wymix(getLong(input, p) ^ this.secret1, getLong(input, p + 8) ^ seed);
           i -= 16;
           p += 16;
         }
-        a = wyr8(input, p + i - 16);
-        b = wyr8(input, p + i - 8);
+        a = getLong(input, p + i - 16);
+        b = getLong(input, p + i - 8);
       }
       return wymix(this.secret1 ^ len, wymix(a ^ this.secret1, b ^ seed));
     }
@@ -141,52 +141,52 @@ class WyhashFinal3 extends AbstractHashCalculator {
 
   @Override
   public HashSink putShort(short v) {
-    SHORT_HANDLE.set(buffer, offset, v);
+    setShort(buffer, offset, v);
     offset += 2;
     byteCount += 2;
     if (offset > 48) {
       offset -= 48;
       processBuffer();
-      SHORT_HANDLE.set(buffer, 0, (short) SHORT_HANDLE.get(buffer, 48));
+      setShort(buffer, 0, getShort(buffer, 48));
     }
     return this;
   }
 
   @Override
   public HashSink putChar(char v) {
-    CHAR_HANDLE.set(buffer, offset, v);
+    setChar(buffer, offset, v);
     offset += 2;
     byteCount += 2;
     if (offset > 48) {
       offset -= 48;
       processBuffer();
-      CHAR_HANDLE.set(buffer, 0, (char) CHAR_HANDLE.get(buffer, 48));
+      setChar(buffer, 0, getChar(buffer, 48));
     }
     return this;
   }
 
   @Override
   public HashSink putInt(int v) {
-    INT_HANDLE.set(buffer, offset, v);
+    setInt(buffer, offset, v);
     offset += 4;
     byteCount += 4;
     if (offset > 48) {
       offset -= 48;
       processBuffer();
-      INT_HANDLE.set(buffer, 0, (int) INT_HANDLE.get(buffer, 48));
+      setInt(buffer, 0, getInt(buffer, 48));
     }
     return this;
   }
 
   @Override
   public HashSink putLong(long v) {
-    LONG_HANDLE.set(buffer, offset, v);
+    setLong(buffer, offset, v);
     offset += 8;
     byteCount += 8;
     if (offset > 48) {
       offset -= 48;
       processBuffer();
-      LONG_HANDLE.set(buffer, 0, (long) LONG_HANDLE.get(buffer, 48));
+      setLong(buffer, 0, getLong(buffer, 48));
     }
     return this;
   }
@@ -205,12 +205,12 @@ class WyhashFinal3 extends AbstractHashCalculator {
     offset = len - p;
     p += off;
     while (offset > 48) {
-      long b0 = (long) LONG_HANDLE.get(b, p + 0);
-      long b1 = (long) LONG_HANDLE.get(b, p + 8);
-      long b2 = (long) LONG_HANDLE.get(b, p + 16);
-      long b3 = (long) LONG_HANDLE.get(b, p + 24);
-      long b4 = (long) LONG_HANDLE.get(b, p + 32);
-      long b5 = (long) LONG_HANDLE.get(b, p + 40);
+      long b0 = getLong(b, p + 0);
+      long b1 = getLong(b, p + 8);
+      long b2 = getLong(b, p + 16);
+      long b3 = getLong(b, p + 24);
+      long b4 = getLong(b, p + 32);
+      long b5 = getLong(b, p + 40);
       processBuffer(b0, b1, b2, b3, b4, b5);
       p += 48;
       offset -= 48;
@@ -229,18 +229,12 @@ class WyhashFinal3 extends AbstractHashCalculator {
     int i = 0;
     if (len > ((48 - offset) >> 1)) {
       while (offset < 41) {
-        LONG_HANDLE.set(
-            buffer,
-            offset,
-            ((long) s.charAt(i))
-                | ((long) s.charAt(i + 1) << 16)
-                | ((long) s.charAt(i + 2) << 32)
-                | ((long) s.charAt(i + 3) << 48));
+        setLong(buffer, offset, getLong(s, i));
         i += 4;
         offset += 8;
       }
       while (offset < 48) {
-        CHAR_HANDLE.set(buffer, offset, s.charAt(i));
+        setChar(buffer, offset, s.charAt(i));
         i += 1;
         offset += 2;
       }
@@ -248,101 +242,48 @@ class WyhashFinal3 extends AbstractHashCalculator {
       offset &= 1;
       if (offset == 0) {
         for (; i + 24 < len; i += 24) {
-          long b0 =
-              (long) s.charAt(i + 0)
-                  | ((long) s.charAt(i + 1) << 16)
-                  | ((long) s.charAt(i + 2) << 32)
-                  | ((long) s.charAt(i + 3) << 48);
-          long b1 =
-              (long) s.charAt(i + 4)
-                  | ((long) s.charAt(i + 5) << 16)
-                  | ((long) s.charAt(i + 6) << 32)
-                  | ((long) s.charAt(i + 7) << 48);
-          long b2 =
-              (long) s.charAt(i + 8)
-                  | ((long) s.charAt(i + 9) << 16)
-                  | ((long) s.charAt(i + 10) << 32)
-                  | ((long) s.charAt(i + 11) << 48);
-          long b3 =
-              (long) s.charAt(i + 12)
-                  | ((long) s.charAt(i + 13) << 16)
-                  | ((long) s.charAt(i + 14) << 32)
-                  | ((long) s.charAt(i + 15) << 48);
-          long b4 =
-              (long) s.charAt(i + 16)
-                  | ((long) s.charAt(i + 17) << 16)
-                  | ((long) s.charAt(i + 18) << 32)
-                  | ((long) s.charAt(i + 19) << 48);
-          long b5 =
-              (long) s.charAt(i + 20)
-                  | ((long) s.charAt(i + 21) << 16)
-                  | ((long) s.charAt(i + 22) << 32)
-                  | ((long) s.charAt(i + 23) << 48);
+          long b0 = getLong(s, i);
+          long b1 = getLong(s, i + 4);
+          long b2 = getLong(s, i + 8);
+          long b3 = getLong(s, i + 12);
+          long b4 = getLong(s, i + 16);
+          long b5 = getLong(s, i + 20);
           processBuffer(b0, b1, b2, b3, b4, b5);
         }
       } else {
         long x = (long) s.charAt(i - 1) >>> 8;
         for (; i + 24 <= len; i += 24) {
-          long b0 =
-              x
-                  | ((long) s.charAt(i + 0) << 8)
-                  | ((long) s.charAt(i + 1) << 24)
-                  | ((long) s.charAt(i + 2) << 40)
-                  | ((long) s.charAt(i + 3) << 56);
-          long b1 =
-              ((long) s.charAt(i + 3) >>> 8)
-                  | ((long) s.charAt(i + 4) << 8)
-                  | ((long) s.charAt(i + 5) << 24)
-                  | ((long) s.charAt(i + 6) << 40)
-                  | ((long) s.charAt(i + 7) << 56);
-          long b2 =
-              ((long) s.charAt(i + 7) >>> 8)
-                  | ((long) s.charAt(i + 8) << 8)
-                  | ((long) s.charAt(i + 9) << 24)
-                  | ((long) s.charAt(i + 10) << 40)
-                  | ((long) s.charAt(i + 11) << 56);
-          long b3 =
-              ((long) s.charAt(i + 11) >>> 8)
-                  | ((long) s.charAt(i + 12) << 8)
-                  | ((long) s.charAt(i + 13) << 24)
-                  | ((long) s.charAt(i + 14) << 40)
-                  | ((long) s.charAt(i + 15) << 56);
-          long b4 =
-              ((long) s.charAt(i + 15) >>> 8)
-                  | ((long) s.charAt(i + 16) << 8)
-                  | ((long) s.charAt(i + 17) << 24)
-                  | ((long) s.charAt(i + 18) << 40)
-                  | ((long) s.charAt(i + 19) << 56);
-          long b5 =
-              ((long) s.charAt(i + 19) >>> 8)
-                  | ((long) s.charAt(i + 20) << 8)
-                  | ((long) s.charAt(i + 21) << 24)
-                  | ((long) s.charAt(i + 22) << 40)
-                  | ((long) s.charAt(i + 23) << 56);
-          x = (long) s.charAt(i + 23) >>> 8;
+          long b0 = getLong(s, i);
+          long b1 = getLong(s, i + 4);
+          long b2 = getLong(s, i + 8);
+          long b3 = getLong(s, i + 12);
+          long b4 = getLong(s, i + 16);
+          long b5 = getLong(s, i + 20);
+          long y = b5 >>> 56;
+          b5 = (b4 >>> 56) | (b5 << 8);
+          b4 = (b3 >>> 56) | (b4 << 8);
+          b3 = (b2 >>> 56) | (b3 << 8);
+          b2 = (b1 >>> 56) | (b2 << 8);
+          b1 = (b0 >>> 56) | (b1 << 8);
+          b0 = x | (b0 << 8);
+          x = y;
           processBuffer(b0, b1, b2, b3, b4, b5);
         }
         buffer[0] = (byte) (x);
       }
       if (len > 24) {
         for (int j = 32 + offset + ((len - i) << 1), k = len - 8; j < 48; j += 2, k += 1) {
-          CHAR_HANDLE.set(buffer, j, s.charAt(k));
+          setChar(buffer, j, s.charAt(k));
         }
       }
     }
     while (i + 3 < len) {
-      LONG_HANDLE.set(
-          buffer,
-          offset,
-          ((long) s.charAt(i))
-              | ((long) s.charAt(i + 1) << 16)
-              | ((long) s.charAt(i + 2) << 32)
-              | ((long) s.charAt(i + 3) << 48));
+      setLong(buffer, offset, getLong(s, i));
       i += 4;
       offset += 8;
     }
     while (i < len) {
-      CHAR_HANDLE.set(buffer, offset, s.charAt(i));
+      setChar(buffer, offset, s.charAt(i));
       i += 1;
       offset += 2;
     }
@@ -350,12 +291,12 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   private void processBuffer() {
-    long b0 = (long) LONG_HANDLE.get(buffer, 0);
-    long b1 = (long) LONG_HANDLE.get(buffer, 8);
-    long b2 = (long) LONG_HANDLE.get(buffer, 16);
-    long b3 = (long) LONG_HANDLE.get(buffer, 24);
-    long b4 = (long) LONG_HANDLE.get(buffer, 32);
-    long b5 = (long) LONG_HANDLE.get(buffer, 40);
+    long b0 = getLong(buffer, 0);
+    long b1 = getLong(buffer, 8);
+    long b2 = getLong(buffer, 16);
+    long b3 = getLong(buffer, 24);
+    long b4 = getLong(buffer, 32);
+    long b5 = getLong(buffer, 40);
     processBuffer(b0, b1, b2, b3, b4, b5);
   }
 
@@ -371,10 +312,6 @@ class WyhashFinal3 extends AbstractHashCalculator {
     see2 = wymix(b4 ^ secret3, b5 ^ see2);
   }
 
-  private static long wyr8(byte[] data, int p) {
-    return (long) LONG_HANDLE.get(data, p);
-  }
-
   private static long wyr3(byte[] data, int off, int k) {
     return ((data[off] & 0xFFL) << 16)
         | ((data[off + (k >>> 1)] & 0xFFL) << 8)
@@ -382,7 +319,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   private static long wyr4(byte[] data, int p) {
-    return (int) INT_HANDLE.get(data, p) & 0xFFFFFFFFL;
+    return getInt(data, p) & 0xFFFFFFFFL;
   }
 
   @Override
@@ -404,23 +341,23 @@ class WyhashFinal3 extends AbstractHashCalculator {
       int i = offset;
       int p = 0;
       while (i > 16) {
-        seed = wymix(wyr8(buffer, p) ^ secret1, wyr8(buffer, p + 8) ^ seed);
+        seed = wymix(getLong(buffer, p) ^ secret1, getLong(buffer, p + 8) ^ seed);
         i -= 16;
         p += 16;
       }
       if (offset >= 16) {
-        a = wyr8(buffer, offset - 16);
-        b = wyr8(buffer, offset - 8);
+        a = getLong(buffer, offset - 16);
+        b = getLong(buffer, offset - 8);
       } else {
-        b = wyr8(buffer, 0);
-        a = wyr8(buffer, 40);
+        b = getLong(buffer, 0);
+        a = getLong(buffer, 40);
         int shift = (offset << 3);
         if (offset > 8) {
           a = (a >>> shift) | (b << -shift);
-          b = wyr8(buffer, offset - 8);
+          b = getLong(buffer, offset - 8);
         } else if (offset < 8) {
           b = (a >>> shift) | (b << -shift);
-          a = wyr8(buffer, offset + 32);
+          a = getLong(buffer, offset + 32);
         }
       }
     }

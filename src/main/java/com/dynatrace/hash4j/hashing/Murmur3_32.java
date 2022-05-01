@@ -54,7 +54,7 @@ class Murmur3_32 extends AbstractHashCalculator {
       int h1 = seed;
 
       for (int i = 0; i < nblocks; i++, off += 4) {
-        int k1 = (int) INT_HANDLE.get(input, off);
+        int k1 = getInt(input, off);
         k1 = mixK1(k1);
         h1 = mixH1(k1, h1);
       }
@@ -157,7 +157,7 @@ class Murmur3_32 extends AbstractHashCalculator {
     }
 
     for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 4) {
-      processBuffer((int) INT_HANDLE.get(b, off + i));
+      processBuffer(getInt(b, off + i));
     }
 
     int remainingBytes = len - regularBlockEndIdx;

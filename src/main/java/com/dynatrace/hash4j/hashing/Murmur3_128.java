@@ -442,16 +442,8 @@ class Murmur3_128 extends AbstractHashCalculator {
         buffer1 = 0;
       }
       for (; i + 8 <= len; i += 8) {
-        long b0 =
-            (s.charAt(i))
-                | (((long) s.charAt(i + 1)) << 16)
-                | (((long) s.charAt(i + 2)) << 32)
-                | (((long) s.charAt(i + 3)) << 48);
-        long b1 =
-            (s.charAt(i + 4))
-                | (((long) s.charAt(i + 5)) << 16)
-                | (((long) s.charAt(i + 6)) << 32)
-                | (((long) s.charAt(i + 7)) << 48);
+        long b0 = getLong(s, i);
+        long b1 = getLong(s, i + 4);
         processBuffer(b0, b1);
       }
 
