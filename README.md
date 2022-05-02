@@ -14,6 +14,7 @@ The library comes with various non-cryptographic hash functions. The interface i
 ## Implemented Hash Algorithms
 * [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp) (128-bit and 32-bit)
 * [Wyhash](https://github.com/wangyi-fudan/wyhash) (final version 3)
+* [Komihash](https://github.com/avaneev/komihash) (version 4.3)
 
 ## Usage
 Please see [DemoTest.java](https://github.com/dynatrace-oss/hash4j/blob/main/src/test/java/com/dynatrace/hash4j/hashing/DemoTest.java) for some examples.
