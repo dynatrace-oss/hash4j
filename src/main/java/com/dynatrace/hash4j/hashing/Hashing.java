@@ -83,7 +83,38 @@ public final class Hashing {
   }
 
   /**
-   * Returns a {@link Hasher128} implementing the 128-bit Murmur3 algorithm (little-endian) using a
+   * Returns a {@link Hasher64} implementing the 64-bit Komihash (version 4.3) algorithm using a
+   * seed value of zero.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code komihash}
+   * defined in <a
+   * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 komihash4_3() {
+    return Komihash4_3.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Komihash (version 4.3) algorithm using the
+   * given seed value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code komihash}
+   * defined in <a
+   * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 komihash4_3(long seed) {
+    return Komihash4_3.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 3) algorithm using a
    * seed value of zero and the default secret.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}

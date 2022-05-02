@@ -70,6 +70,10 @@ abstract class AbstractHashCalculator extends AbstractHashSink implements HashCa
         | ((long) s.charAt(off + 3) << 48);
   }
 
+  protected static int getInt(CharSequence s, int off) {
+    return (int) s.charAt(off + 0) | ((int) s.charAt(off + 1) << 16);
+  }
+
   protected static void setChar(byte[] b, int off, char v) {
     CHAR_HANDLE.set(b, off, v);
   }
