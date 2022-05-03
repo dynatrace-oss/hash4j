@@ -434,7 +434,7 @@ class Komihash4_3 extends AbstractHashCalculator {
     int len = s.length();
     int offset = (int) byteCount & 0x3F;
     byteCount += ((long) len) << 1;
-    if ((offset & 1) == 0L) {
+    if ((offset & 1) == 0) {
       if (i < len && (offset & 0x3) != 0) {
         setChar(buffer, offset, s.charAt(i));
         i += 1;
