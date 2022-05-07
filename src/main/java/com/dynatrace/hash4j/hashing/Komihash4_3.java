@@ -429,9 +429,8 @@ class Komihash4_3 extends AbstractHashCalculator {
     int remainingChars = s.length();
     int offset = (int) byteCount & 0x3F;
     byteCount += ((long) remainingChars) << 1;
-    int x = 64 - offset;
     int off = 0;
-    if (remainingChars >= ((x + 1) >>> 1)) {
+    if (remainingChars >= ((65 - offset) >>> 1)) {
       if (offset > 1) {
         while (offset < 58) {
           setLong(buffer, offset, getLong(s, off));

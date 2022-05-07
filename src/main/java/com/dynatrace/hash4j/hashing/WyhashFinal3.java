@@ -232,8 +232,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
     int remainingChars = s.length();
     byteCount += ((long) remainingChars) << 1;
     int off = 0;
-    int x = 48 - offset;
-    if (remainingChars > (x >>> 1)) {
+    if (remainingChars > ((48 - offset) >>> 1)) {
       if (offset > 1) {
         while (offset < 42) {
           setLong(buffer, offset, getLong(s, off));
