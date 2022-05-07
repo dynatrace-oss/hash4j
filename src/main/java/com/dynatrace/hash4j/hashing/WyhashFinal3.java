@@ -194,97 +194,126 @@ class WyhashFinal3 extends AbstractHashCalculator {
   @Override
   public HashSink putBytes(byte[] b, int off, int len) {
     byteCount += len;
-    int p = 48 - offset;
-    if (len <= p) {
-      System.arraycopy(b, off, buffer, offset, len);
-      offset += len;
-      return this;
+    int x = 48 - offset;
+    if (len > x) {
+      System.arraycopy(b, off, buffer, offset, x);
+      len -= x;
+      off += x;
+      offset = 0;
+      processBuffer();
+      if (len > 48) {
+        long b0, b1, b2, b3, b4, b5;
+        do {
+          b0 = getLong(b, off + 0);
+          b1 = getLong(b, off + 8);
+          b2 = getLong(b, off + 16);
+          b3 = getLong(b, off + 24);
+          b4 = getLong(b, off + 32);
+          b5 = getLong(b, off + 40);
+          processBuffer(b0, b1, b2, b3, b4, b5);
+          off += 48;
+          len -= 48;
+        } while (len > 48);
+        if (len < 16) {
+          if (len < 8) {
+            setLong(buffer, 32, b4);
+          }
+          setLong(buffer, 40, b5);
+        }
+      }
     }
-    System.arraycopy(b, off, buffer, offset, p);
-    processBuffer();
-    offset = len - p;
-    p += off;
-    while (offset > 48) {
-      long b0 = getLong(b, p + 0);
-      long b1 = getLong(b, p + 8);
-      long b2 = getLong(b, p + 16);
-      long b3 = getLong(b, p + 24);
-      long b4 = getLong(b, p + 32);
-      long b5 = getLong(b, p + 40);
-      processBuffer(b0, b1, b2, b3, b4, b5);
-      p += 48;
-      offset -= 48;
-    }
-    System.arraycopy(b, p, buffer, 0, offset);
-    if (offset < 16 && len > 48) {
-      System.arraycopy(b, off + (len - 16), buffer, 32 + offset, 16 - offset);
-    }
+    System.arraycopy(b, off, buffer, offset, len);
+    offset += len;
     return this;
   }
 
   @Override
   public HashSink putChars(CharSequence s) {
-    final int len = s.length();
-    byteCount += ((long) len) << 1;
-    int i = 0;
-    if (len > ((48 - offset) >> 1)) {
-      while (offset < 41) {
-        setLong(buffer, offset, getLong(s, i));
-        i += 4;
-        offset += 8;
+    int remainingChars = s.length();
+    byteCount += ((long) remainingChars) << 1;
+    int off = 0;
+    int x = 48 - offset;
+    if (remainingChars > (x >>> 1)) {
+      if (offset > 1) {
+        while (offset < 42) {
+          setLong(buffer, offset, getLong(s, off));
+          off += 4;
+          offset += 8;
+        }
+        if (offset < 46) {
+          setInt(buffer, offset, getInt(s, off));
+          off += 2;
+          offset += 4;
+        }
+        if (offset < 48) {
+          setChar(buffer, offset, s.charAt(off));
+          off += 1;
+          offset += 2;
+        }
+        remainingChars -= off;
+        processBuffer();
+        offset &= 1;
       }
-      while (offset < 48) {
-        setChar(buffer, offset, s.charAt(i));
-        i += 1;
-        offset += 2;
-      }
-      processBuffer();
-      offset &= 1;
       if (offset == 0) {
-        for (; i + 24 < len; i += 24) {
-          long b0 = getLong(s, i);
-          long b1 = getLong(s, i + 4);
-          long b2 = getLong(s, i + 8);
-          long b3 = getLong(s, i + 12);
-          long b4 = getLong(s, i + 16);
-          long b5 = getLong(s, i + 20);
-          processBuffer(b0, b1, b2, b3, b4, b5);
+        if (remainingChars >= 24) {
+          long b0, b1, b2, b3, b4, b5;
+          do {
+            b0 = getLong(s, off);
+            b1 = getLong(s, off + 4);
+            b2 = getLong(s, off + 8);
+            b3 = getLong(s, off + 12);
+            b4 = getLong(s, off + 16);
+            b5 = getLong(s, off + 20);
+            processBuffer(b0, b1, b2, b3, b4, b5);
+            off += 24;
+            remainingChars -= 24;
+          } while (remainingChars >= 24);
+          setLong(buffer, 32, b4);
+          setLong(buffer, 40, b5);
         }
       } else {
-        long x = (long) s.charAt(i - 1) >>> 8;
-        for (; i + 24 <= len; i += 24) {
-          long b0 = getLong(s, i);
-          long b1 = getLong(s, i + 4);
-          long b2 = getLong(s, i + 8);
-          long b3 = getLong(s, i + 12);
-          long b4 = getLong(s, i + 16);
-          long b5 = getLong(s, i + 20);
-          long y = b5 >>> 56;
-          b5 = (b4 >>> 56) | (b5 << 8);
-          b4 = (b3 >>> 56) | (b4 << 8);
-          b3 = (b2 >>> 56) | (b3 << 8);
-          b2 = (b1 >>> 56) | (b2 << 8);
-          b1 = (b0 >>> 56) | (b1 << 8);
-          b0 = x | (b0 << 8);
-          x = y;
-          processBuffer(b0, b1, b2, b3, b4, b5);
+        long z = buffer[(off == 0) ? 0 : 48] & 0xFFL;
+        if (remainingChars >= 24) {
+          long b0, b1, b2, b3, b4, b5;
+          do {
+            b0 = getLong(s, off);
+            b1 = getLong(s, off + 4);
+            b2 = getLong(s, off + 8);
+            b3 = getLong(s, off + 12);
+            b4 = getLong(s, off + 16);
+            b5 = getLong(s, off + 20);
+            long y = b5 >>> 56;
+            b5 = (b4 >>> 56) | (b5 << 8);
+            b4 = (b3 >>> 56) | (b4 << 8);
+            b3 = (b2 >>> 56) | (b3 << 8);
+            b2 = (b1 >>> 56) | (b2 << 8);
+            b1 = (b0 >>> 56) | (b1 << 8);
+            b0 = z | (b0 << 8);
+            z = y;
+            processBuffer(b0, b1, b2, b3, b4, b5);
+            off += 24;
+            remainingChars -= 24;
+          } while (remainingChars >= 24);
+          setLong(buffer, 32, b4);
+          setLong(buffer, 40, b5);
         }
-        buffer[0] = (byte) (x);
-      }
-      if (len > 24) {
-        for (int j = 32 + offset + ((len - i) << 1), k = len - 8; j < 48; j += 2, k += 1) {
-          setChar(buffer, j, s.charAt(k));
-        }
+        buffer[0] = (byte) (z);
       }
     }
-    while (i + 3 < len) {
-      setLong(buffer, offset, getLong(s, i));
-      i += 4;
+    while (remainingChars >= 4) {
+      setLong(buffer, offset, getLong(s, off));
+      off += 4;
       offset += 8;
+      remainingChars -= 4;
     }
-    while (i < len) {
-      setChar(buffer, offset, s.charAt(i));
-      i += 1;
+    if (remainingChars >= 2) {
+      setInt(buffer, offset, getInt(s, off));
+      off += 2;
+      offset += 4;
+      remainingChars -= 2;
+    }
+    if (remainingChars != 0) {
+      setChar(buffer, offset, s.charAt(off));
       offset += 2;
     }
     return this;
