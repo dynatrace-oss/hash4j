@@ -303,7 +303,7 @@ abstract class AbstractHashCalculatorTest {
 
   @Test
   void testHashBytesOffset() {
-    int numCycles = 1000;
+    int numCycles = 100000;
     int maxByteLength = 100;
     int maxOffset = 100;
     int maxExtraLength = 100;
