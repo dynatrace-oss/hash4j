@@ -197,30 +197,25 @@ class WyhashFinal3 extends AbstractHashCalculator {
     int x = 48 - offset;
     if (len > x) {
       System.arraycopy(b, off, buffer, offset, x);
+      processBuffer();
       len -= x;
       off += x;
-      offset = 0;
-      processBuffer();
-      if (len > 48) {
-        long b0, b1, b2, b3, b4, b5;
-        do {
-          b0 = getLong(b, off + 0);
-          b1 = getLong(b, off + 8);
-          b2 = getLong(b, off + 16);
-          b3 = getLong(b, off + 24);
-          b4 = getLong(b, off + 32);
-          b5 = getLong(b, off + 40);
-          processBuffer(b0, b1, b2, b3, b4, b5);
-          off += 48;
-          len -= 48;
-        } while (len > 48);
-        if (len < 16) {
-          if (len < 8) {
-            setLong(buffer, 32, b4);
-          }
-          setLong(buffer, 40, b5);
-        }
+      while (len > 48) {
+        long b0 = getLong(b, off + 0);
+        long b1 = getLong(b, off + 8);
+        long b2 = getLong(b, off + 16);
+        long b3 = getLong(b, off + 24);
+        long b4 = getLong(b, off + 32);
+        long b5 = getLong(b, off + 40);
+        processBuffer(b0, b1, b2, b3, b4, b5);
+        off += 48;
+        len -= 48;
       }
+      int y = 16 - len;
+      if (y > 0 && off - y >= 0) {
+        System.arraycopy(b, off - y, buffer, 32 + len, y);
+      }
+      offset = 0;
     }
     System.arraycopy(b, off, buffer, offset, len);
     offset += len;
@@ -353,6 +348,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   @Override
   public long getAsLong() {
     long a, b;
+    long s = seed;
     if (byteCount <= 16) {
       if (byteCount >= 4) {
         a = (wyr4(buffer, 0) << 32) | wyr4(buffer, ((offset >>> 3) << 2));
@@ -365,11 +361,11 @@ class WyhashFinal3 extends AbstractHashCalculator {
         b = 0;
       }
     } else {
-      seed ^= see1 ^ see2;
+      s ^= see1 ^ see2;
       int i = offset;
       int p = 0;
       while (i > 16) {
-        seed = wymix(getLong(buffer, p) ^ secret1, getLong(buffer, p + 8) ^ seed);
+        s = wymix(getLong(buffer, p) ^ secret1, getLong(buffer, p + 8) ^ s);
         i -= 16;
         p += 16;
       }
@@ -389,7 +385,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
         }
       }
     }
-    return wymix(secret1 ^ byteCount, wymix(a ^ secret1, b ^ seed));
+    return wymix(secret1 ^ byteCount, wymix(a ^ secret1, b ^ s));
   }
 
   private static long[] makeSecret(long seed) {
