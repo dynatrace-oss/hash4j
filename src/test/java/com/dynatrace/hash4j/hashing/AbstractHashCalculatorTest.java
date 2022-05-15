@@ -15,9 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.byteListToHexString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToHexString;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -82,7 +81,7 @@ abstract class AbstractHashCalculatorTest {
           new TestCase(h -> h.putBytes(new byte[] {}), ""),
           new TestCase(
               h -> h.putBytes(TestUtils.hexStringToByteArray("6143f28b2b11d8")), "6143f28b2b11d8"),
-          new TestCase(h -> h.putBytes(BYTE_SEQ_199), TestUtils.byteArrayToHexString(BYTE_SEQ_199)),
+          new TestCase(h -> h.putBytes(BYTE_SEQ_199), byteArrayToHexString(BYTE_SEQ_199)),
           new TestCase(
               h -> h.putBytes(TestUtils.hexStringToByteArray("c1ce762d62"), 1, 3), "ce762d"),
           new TestCase(h -> h.putChar((char) 0x1466), "6614"),
@@ -93,8 +92,7 @@ abstract class AbstractHashCalculatorTest {
           new TestCase(
               h -> h.putString(String.copyValueOf(new char[] {0x59be, 0x768b, 0x2c9a})),
               "be598b769a2c03000000"),
-          new TestCase(
-              h -> h.putString(STRING_179), TestUtils.byteArrayToHexString(BYTES_STRING_179)),
+          new TestCase(h -> h.putString(STRING_179), byteArrayToHexString(BYTES_STRING_179)),
           new TestCase(
               h ->
                   h.putUnorderedIterable(
@@ -185,12 +183,12 @@ abstract class AbstractHashCalculatorTest {
           rawBytes.add(b);
         }
       }
-      String rawBytesHash = byteListToHexString(getBytes(rawBytesHashCalculator));
-      String dataHash = byteListToHexString(getBytes(dataHashCalculator));
-      String nonOptimizedHash = byteListToHexString(getBytes(nonOptimizedHashCalculator));
+      byte[] rawBytesHash = getBytesAndVerifyRepetitiveGetCalls(rawBytesHashCalculator);
+      byte[] dataHash = getBytesAndVerifyRepetitiveGetCalls(dataHashCalculator);
+      byte[] nonOptimizedHash = getBytesAndVerifyRepetitiveGetCalls(nonOptimizedHashCalculator);
 
-      assertEquals(rawBytesHash, dataHash);
-      assertEquals(rawBytesHash, nonOptimizedHash);
+      assertArrayEquals(rawBytesHash, dataHash);
+      assertArrayEquals(rawBytesHash, nonOptimizedHash);
     }
   }
 
@@ -205,13 +203,13 @@ abstract class AbstractHashCalculatorTest {
       random.nextBytes(data);
       HashCalculator expectedHashCalculator = createHashCalculator();
       expectedHashCalculator.putBytes(data);
-      List<Byte> expected = getBytes(expectedHashCalculator);
+      byte[] expected = getBytesAndVerifyRepetitiveGetCalls(expectedHashCalculator);
 
       for (int k = 0; k < size; ++k) {
         HashCalculator hashCalculator = createHashCalculator();
         hashCalculator.putBytes(data, 0, k);
         hashCalculator.putBytes(data, k, size - k);
-        assertEquals(expected, getBytes(hashCalculator));
+        assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashCalculator));
       }
 
       for (int j = 0; j < size; ++j) {
@@ -220,7 +218,7 @@ abstract class AbstractHashCalculatorTest {
           hashCalculator.putBytes(data, 0, j);
           hashCalculator.putBytes(data, j, k - j);
           hashCalculator.putBytes(data, k, size - k);
-          assertEquals(expected, getBytes(hashCalculator));
+          assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashCalculator));
         }
       }
     }
@@ -267,9 +265,9 @@ abstract class AbstractHashCalculatorTest {
           expectedSink.putBytes(post);
           actualSink.putBytes(post);
 
-          List<Byte> expected = getBytes(expectedSink);
-          List<Byte> actual = getBytes(actualSink);
-          assertEquals(expected, actual);
+          byte[] expected = getBytesAndVerifyRepetitiveGetCalls(expectedSink);
+          byte[] actual = getBytesAndVerifyRepetitiveGetCalls(actualSink);
+          assertArrayEquals(expected, actual);
         }
       }
     }
@@ -348,34 +346,40 @@ abstract class AbstractHashCalculatorTest {
     }
   }
 
-  protected final List<Byte> getBytes(HashCalculator hashCalculator) {
+  private final byte[] getBytes(HashCalculator hashCalculator) {
+    byte[] result = new byte[hashCalculator.getHashBitSize() / 8];
     if (hashCalculator.getHashBitSize() == 32) {
       int x = hashCalculator.getAsInt();
-      List<Byte> result = new ArrayList<>(4);
-      for (int i = 24; i >= 0; i -= 8) {
-        result.add((byte) ((x >>> i) & 0xFFL));
+      for (int i = 24, j = 0; i >= 0; i -= 8, j += 1) {
+        result[j] = (byte) ((x >>> i) & 0xFFL);
       }
       return result;
     } else if (hashCalculator.getHashBitSize() == 64) {
       long hash = hashCalculator.getAsLong();
-      List<Byte> result = new ArrayList<>(8);
-      for (int i = 56; i >= 0; i -= 8) {
-        result.add((byte) ((hash >>> i) & 0xFFL));
+      for (int i = 56, j = 0; i >= 0; i -= 8, j += 1) {
+        result[j] = (byte) ((hash >>> i) & 0xFFL);
       }
-      return result;
     } else if (hashCalculator.getHashBitSize() == 128) {
       HashValue128 x = hashCalculator.get();
-      List<Byte> result = new ArrayList<>(16);
-      for (int i = 56; i >= 0; i -= 8) {
-        result.add((byte) ((x.getMostSignificantBits() >>> i) & 0xFFL));
+      for (int i = 56, j = 0; i >= 0; i -= 8, j += 1) {
+        result[j] = (byte) ((x.getMostSignificantBits() >>> i) & 0xFFL);
       }
-      for (int i = 56; i >= 0; i -= 8) {
-        result.add((byte) ((x.getLeastSignificantBits() >>> i) & 0xFFL));
+      for (int i = 56, j = 8; i >= 0; i -= 8, j += 1) {
+        result[j] = (byte) ((x.getLeastSignificantBits() >>> i) & 0xFFL);
       }
-      return result;
     } else {
       fail();
-      return null;
     }
+    return result;
+  }
+
+  private final byte[] getBytesAndVerifyRepetitiveGetCalls(HashCalculator hashCalculator) {
+    byte[] result = getBytes(hashCalculator);
+
+    int numRecalculations = 5;
+    for (int i = 0; i < numRecalculations; ++i) {
+      assertArrayEquals(result, getBytes(hashCalculator));
+    }
+    return result;
   }
 }

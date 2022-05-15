@@ -326,31 +326,6 @@ class Murmur3_128 extends AbstractHashCalculator {
     h2 = mixH2(h1, h2);
   }
 
-  private void processRemainderAndFinalize() {
-    if ((bitCount & 0x7FL) != 0) {
-      buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -bitCount);
-      if ((bitCount & 0x40L) == 0) {
-        h1 ^= mixK1(buffer1);
-      } else {
-        h1 ^= mixK1(buffer0);
-        h2 ^= mixK2(buffer1);
-      }
-    }
-
-    final long byteCount = bitCount >>> 3;
-    h1 ^= byteCount;
-    h2 ^= byteCount;
-
-    h1 += h2;
-    h2 += h1;
-
-    h1 = fmix64(h1);
-    h2 = fmix64(h2);
-
-    h1 += h2;
-    h2 += h1;
-  }
-
   private static long fmix64(long k) {
     k ^= k >>> 33;
     k *= 0xff51afd7ed558ccdL;
@@ -388,14 +363,62 @@ class Murmur3_128 extends AbstractHashCalculator {
 
   @Override
   public HashValue128 get() {
-    processRemainderAndFinalize();
-    return new HashValue128(h2, h1);
+    long g1 = h1;
+    long g2 = h2;
+
+    if ((bitCount & 0x7FL) != 0) {
+      buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -bitCount);
+      if ((bitCount & 0x40L) == 0) {
+        g1 ^= mixK1(buffer1);
+      } else {
+        g1 ^= mixK1(buffer0);
+        g2 ^= mixK2(buffer1);
+      }
+    }
+
+    final long byteCount = bitCount >>> 3;
+    g1 ^= byteCount;
+    g2 ^= byteCount;
+
+    g1 += g2;
+    g2 += g1;
+
+    g1 = fmix64(g1);
+    g2 = fmix64(g2);
+
+    g1 += g2;
+    g2 += g1;
+    return new HashValue128(g2, g1);
   }
 
   @Override
   public long getAsLong() {
-    processRemainderAndFinalize();
-    return h1;
+    long g1 = h1;
+    long g2 = h2;
+
+    if ((bitCount & 0x7FL) != 0) {
+      buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -bitCount);
+      if ((bitCount & 0x40L) == 0) {
+        g1 ^= mixK1(buffer1);
+      } else {
+        g1 ^= mixK1(buffer0);
+        g2 ^= mixK2(buffer1);
+      }
+    }
+
+    final long byteCount = bitCount >>> 3;
+    g1 ^= byteCount;
+    g2 ^= byteCount;
+
+    g1 += g2;
+    g2 += g1;
+
+    g1 = fmix64(g1);
+    g2 = fmix64(g2);
+
+    g1 += g2;
+
+    return g1;
   }
 
   @Override

@@ -200,9 +200,7 @@ class Murmur3_32 extends AbstractHashCalculator {
 
   @Override
   public int getAsInt() {
-    h1 ^= mixK1((int) (buffer));
-    h1 ^= length;
-    return fmix32(h1);
+    return fmix32(h1 ^ mixK1((int) (buffer)) ^ length);
   }
 
   private Murmur3_32(int seed) {

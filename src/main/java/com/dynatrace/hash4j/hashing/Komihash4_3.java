@@ -56,12 +56,12 @@ class Komihash4_3 extends AbstractHashCalculator {
 
   static AbstractHasher64 create(long useSeed) {
 
-    long seed1NonFinal = 0x243F6A8885A308D3L ^ (useSeed & 0x5555555555555555L);
-    long seed5NonFinal = 0x452821E638D01377L ^ (useSeed & 0xAAAAAAAAAAAAAAAAL);
-    long l = seed1NonFinal * seed5NonFinal;
-    long h = unsignedMultiplyHigh(seed1NonFinal, seed5NonFinal);
-    long seed5 = seed5NonFinal + h;
-    long seed1 = seed5 ^ l;
+    long seed1 = 0x243F6A8885A308D3L ^ (useSeed & 0x5555555555555555L);
+    long seed5 = 0x452821E638D01377L ^ (useSeed & 0xAAAAAAAAAAAAAAAAL);
+    long l = seed1 * seed5;
+    long h = unsignedMultiplyHigh(seed1, seed5);
+    seed5 += h;
+    seed1 = seed5 ^ l;
     long seed2 = 0x13198A2E03707344L ^ seed1;
     long seed3 = 0xA4093822299F31D0L ^ seed1;
     long seed4 = 0x082EFA98EC4E6C89L ^ seed1;
@@ -119,96 +119,7 @@ class Komihash4_3 extends AbstractHashCalculator {
       long seed7 = this.seed7;
       long seed8 = this.seed8;
 
-      if (len < 16) {
-        long r2l = seed1;
-        long r2h = seed5;
-
-        if (len > 7) {
-          int ml8 = len << 3;
-          long fb = 1L << ml8 << ((input[off + len - 1] & 0xFF) >>> 7);
-          long x = getInt(input, off + len - 4) & 0xFFFFFFFFL;
-          if (len < 12) {
-            fb |= x >>> (32 - ml8);
-          } else {
-            fb |= (x >>> (-ml8)) << 32;
-            fb |= getInt(input, off + 8) & 0xFFFFFFFFL;
-          }
-          r2h ^= fb;
-          r2l ^= getLong(input, off);
-        } else if (len != 0) {
-          int ml8 = len << 3;
-          long fb = 1L << ml8 << ((input[off + len - 1] & 0xFF) >>> 7);
-          if (len < 4) {
-            fb |= input[off] & 0xFFL;
-            if (len > 1) {
-              fb |= (input[off + 1] & 0xFFL) << 8;
-              if (len > 2) {
-                fb |= (input[off + 2] & 0xFFL) << 16;
-              }
-            }
-          } else {
-            fb |= (((getInt(input, off + len - 4) & 0xFFFFFFFFL) >>> (-ml8)) << 32);
-            fb |= getInt(input, off) & 0xFFFFFFFFL;
-          }
-          r2l ^= fb;
-        }
-
-        long r1l = r2l * r2h;
-        long r1h = unsignedMultiplyHigh(r2l, r2h);
-        seed5 += r1h;
-        seed1 = seed5 ^ r1l;
-
-        r2l = seed1 * seed5;
-        r2h = unsignedMultiplyHigh(seed1, seed5);
-        seed5 += r2h;
-        seed1 = seed5 ^ r2l;
-
-        return seed1;
-      }
-
-      if (len < 32) {
-        long tmp1 = seed1 ^ getLong(input, off);
-        long tmp2 = seed5 ^ getLong(input, off + 8);
-        long r1l = tmp1 * tmp2;
-        long r1h = unsignedMultiplyHigh(tmp1, tmp2);
-        seed5 += r1h;
-        seed1 = seed5 ^ r1l;
-
-        int ml8 = len << 3;
-        long fb = 1L << ml8 << ((input[off + len - 1] & 0xFF) >>> 7);
-
-        long r2h;
-        long r2l;
-        if (len > 23) {
-          if (len < 29) {
-            fb |= (getInt(input, off + len - 4) & 0xFFFFFFFFL) >>> (32 - ml8);
-          } else {
-            fb |= getLong(input, off + len - 8) >>> (-ml8);
-          }
-          r2h = seed5 ^ fb;
-          r2l = seed1 ^ getLong(input, off + 16);
-        } else {
-          if (len < 21) {
-            fb |= (getInt(input, off + len - 4) & 0xFFFFFFFFL) >>> (32 - ml8);
-          } else {
-            fb |= getLong(input, off + len - 8) >>> (-ml8);
-          }
-          r2l = seed1 ^ fb;
-          r2h = seed5;
-        }
-
-        r1l = r2l * r2h;
-        r1h = unsignedMultiplyHigh(r2l, r2h);
-        seed5 += r1h;
-        seed1 = seed5 ^ r1l;
-
-        r2l = seed1 * seed5;
-        r2h = unsignedMultiplyHigh(seed1, seed5);
-        seed5 += r2h;
-        seed1 = seed5 ^ r2l;
-
-        return seed1;
-      }
+      boolean nonZeroLength = len > 0;
 
       if (len > 63) {
 
@@ -280,33 +191,33 @@ class Komihash4_3 extends AbstractHashCalculator {
         len -= 16;
       }
 
+      long r2h = seed5;
+      long r2l = seed1;
       int ml8 = len << 3;
-      long fb = 1L << ml8 << ((input[off + len - 1] & 0xFF) >> 7);
-
-      long r2h;
-      long r2l;
       if (len > 7) {
-        if (len < 13) {
-          fb |= (getInt(input, off + len - 4) & 0xFFFFFFFFL) >>> (32 - ml8);
-        } else {
-          fb |= getLong(input, off + len - 8) >>> (-ml8);
-        }
-        r2h = seed5 ^ fb;
-        r2l = seed1 ^ getLong(input, off);
-      } else {
-        if (len < 5) {
-          fb |= (getInt(input, off + len - 4) & 0xFFFFFFFFL) >>> (32 - ml8);
-        } else {
-          fb |= getLong(input, off + len - 8) >>> (-ml8);
-        }
-        r2l = seed1 ^ fb;
-        r2h = seed5;
+        r2l ^= getLong(input, off);
+        long y = getLong(input, off + len - 8);
+        long fb = y >>> 1 >>> ~ml8;
+        fb |= 1L << ml8 << (y >>> 63);
+        r2h ^= fb;
+      } else if (len > 3) {
+        long fb = getInt(input, off) & 0xFFFFFFFFL;
+        long y = getInt(input, off + len - 4);
+        fb |= (y << 32) >>> (-ml8);
+        fb |= 1L << ml8 << (y >>> 63);
+        r2l ^= fb;
+      } else if (len > 0) {
+        long fb = input[off] & 0xFFL;
+        if (len > 1) fb |= (input[off + 1] & 0xFFL) << 8;
+        if (len > 2) fb |= (input[off + 2] & 0xFFL) << 16;
+        fb |= 1L << ml8 << (fb >>> (ml8 - 1));
+        r2l ^= fb;
+      } else if (nonZeroLength) {
+        r2l ^= (input[off - 1] < 0) ? 2L : 1L;
       }
 
-      long r1l = r2l * r2h;
-      long r1h = unsignedMultiplyHigh(r2l, r2h);
-      seed5 += r1h;
-      seed1 = seed5 ^ r1l;
+      seed5 += unsignedMultiplyHigh(r2l, r2h);
+      seed1 = seed5 ^ (r2l * r2h);
 
       r2l = seed1 * seed5;
       r2h = unsignedMultiplyHigh(seed1, seed5);
@@ -403,7 +314,7 @@ class Komihash4_3 extends AbstractHashCalculator {
         offset = 0;
         processBuffer();
       }
-      while (len >= 64) {
+      while (len > 63) {
         long b0 = getLong(b, off + 0);
         long b1 = getLong(b, off + 8);
         long b2 = getLong(b, off + 16);
@@ -555,105 +466,61 @@ class Komihash4_3 extends AbstractHashCalculator {
 
   @Override
   public long getAsLong() {
-    long r1l, r1h, r2l, r2h;
-    if (byteCount < 16) {
-      r2l = seed1;
-      r2h = seed5;
-      if (byteCount >= 8) {
-        long b0 = getLong(buffer, 0);
-        long b1 = getLong(buffer, 8);
-        long y = 1L << (byteCount << 3);
-        long fb = (b0 >>> 55 >>> byteCount) + y + ((b1 << 1) & y);
-        r2l ^= b0;
-        r2h ^= fb | b1;
-      } else if (byteCount != 0) {
-        long b0 = getLong(buffer, 0);
-        long y = 1L << (byteCount << 3);
-        long fb = y + ((b0 << 1) & y);
-        r2l ^= fb | b0;
-      }
-    } else if (byteCount < 32) {
-      long b0 = getLong(buffer, 0);
-      long b1 = getLong(buffer, 8);
-      long tmp1 = seed1 ^ b0;
-      long tmp2 = seed5 ^ b1;
-      r1l = tmp1 * tmp2;
-      r1h = unsignedMultiplyHigh(tmp1, tmp2);
-      seed5 += r1h;
-      seed1 = seed5 ^ r1l;
-      if (byteCount >= 24) {
-        long b2 = getLong(buffer, 16);
-        long b3 = getLong(buffer, 24);
-        long y = 1L << (byteCount << 3);
-        long fb = (b2 >>> 39 >>> byteCount) + y + ((b3 << 1) & y);
-        r2h = seed5 ^ (fb | b3);
-        r2l = seed1 ^ b2;
-      } else {
-        long b2 = getLong(buffer, 16);
-        long y = 1L << (byteCount << 3);
-        long fb = (b1 >>> 47 >>> byteCount) + y + ((b2 << 1) & y);
-        r2l = seed1 ^ (fb | b2);
-        r2h = seed5;
-      }
-    } else {
-      int off = 0;
-      if (byteCount >= 64) {
-        seed5 ^= seed6 ^ seed7 ^ seed8;
-        seed1 ^= seed2 ^ seed3 ^ seed4;
-        byteCount = byteCount & 0x3fL;
-      }
 
-      if (byteCount >= 16) {
-        long tmp1 = seed1 ^ getLong(buffer, 0);
-        long tmp2 = seed5 ^ getLong(buffer, 8);
-        r1l = tmp1 * tmp2;
-        r1h = unsignedMultiplyHigh(tmp1, tmp2);
-        seed5 += r1h;
-        seed1 = seed5 ^ r1l;
-        off += 16;
-        if (byteCount >= 32) {
-          tmp1 = seed1 ^ getLong(buffer, 16);
-          tmp2 = seed5 ^ getLong(buffer, 24);
-          r1l = tmp1 * tmp2;
-          r1h = unsignedMultiplyHigh(tmp1, tmp2);
-          seed5 += r1h;
-          seed1 = seed5 ^ r1l;
-          off += 16;
-          if (byteCount >= 48) {
-            tmp1 = seed1 ^ getLong(buffer, 32);
-            tmp2 = seed5 ^ getLong(buffer, 40);
-            r1l = tmp1 * tmp2;
-            r1h = unsignedMultiplyHigh(tmp1, tmp2);
-            seed5 += r1h;
-            seed1 = seed5 ^ r1l;
-            off += 16;
-          }
-        }
-      }
-      if (byteCount >= off + 8) {
-        long y = 1L << (byteCount << 3);
-        long bx = getLong(buffer, off);
-        long by = getLong(buffer, off + 8) & (y - 1);
-        long fb = (bx >>> 55 >> (byteCount - off)) + y + ((by << 1) & y);
-        r2h = seed5 ^ (fb | by);
-        r2l = seed1 ^ bx;
-      } else if (byteCount > off) {
-        long y = 1L << (byteCount << 3);
-        long bx = getLong(buffer, off) & (y - 1);
-        long fb = y + ((bx << 1) & y);
-        r2l = seed1 ^ (fb | bx);
-        r2h = seed5;
-      } else {
-        long fb = (1L + (buffer[(int) (byteCount - 1) & 0x3F] < 0 ? 1L : 0L));
-        r2l = seed1 ^ fb;
-        r2h = seed5;
-      }
+    long seed5 = this.seed5;
+    long seed1 = this.seed1;
+    if (byteCount > 63) {
+      seed5 ^= seed6 ^ seed7 ^ seed8;
+      seed1 ^= seed2 ^ seed3 ^ seed4;
     }
 
-    r1l = r2l * r2h;
-    r1h = unsignedMultiplyHigh(r2l, r2h);
-    seed5 += r1h;
-    seed1 = seed5 ^ r1l;
+    int len = (int) (byteCount & 0x3f);
+    int off = 0;
+
+    if (len > 31) {
+      long tmp1 = seed1 ^ getLong(buffer, off);
+      long tmp2 = seed5 ^ getLong(buffer, off + 8);
+      long r1l = tmp1 * tmp2;
+      long r1h = unsignedMultiplyHigh(tmp1, tmp2);
+      seed5 += r1h;
+      seed1 = seed5 ^ r1l;
+      long tmp3 = seed1 ^ getLong(buffer, off + 16);
+      long tmp4 = seed5 ^ getLong(buffer, off + 24);
+      r1l = tmp3 * tmp4;
+      r1h = unsignedMultiplyHigh(tmp3, tmp4);
+      seed5 += r1h;
+      seed1 = seed5 ^ r1l;
+      off += 32;
+      len -= 32;
+    }
+
+    if (len > 15) {
+      long tmp1 = seed1 ^ getLong(buffer, off);
+      long tmp2 = seed5 ^ getLong(buffer, off + 8);
+      long r1l = tmp1 * tmp2;
+      long r1h = unsignedMultiplyHigh(tmp1, tmp2);
+      seed5 += r1h;
+      seed1 = seed5 ^ r1l;
+
+      off += 16;
+      len -= 16;
+    }
+
+    long r2h = seed5;
+    long r2l = seed1;
+    long y = 1L << (len << 3);
+    long fb = y << ((buffer[(off + len - 1) & 0x3f] < 0) ? 1 : 0);
+    if (len > 7) {
+      fb |= getLong(buffer, off + 8) & (y - 1);
+      r2h ^= fb;
+      r2l ^= getLong(buffer, off);
+    } else if (byteCount > 0) {
+      fb |= getLong(buffer, off) & (y - 1);
+      r2l ^= fb;
+    }
+
+    seed5 += unsignedMultiplyHigh(r2l, r2h);
+    seed1 = seed5 ^ (r2l * r2h);
 
     r2l = seed1 * seed5;
     r2h = unsignedMultiplyHigh(seed1, seed5);
