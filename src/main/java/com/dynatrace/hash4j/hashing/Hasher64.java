@@ -20,7 +20,7 @@ package com.dynatrace.hash4j.hashing;
  *
  * <p>Implementations must ensure that
  *
- * <p>{@code hashTo64Bits(obj, funnel).getAsInt() == hashTo32Bits(obj, funnel)}
+ * <p>{@code (int)hashTo64Bits(obj, funnel) == hashTo32Bits(obj, funnel)}
  */
 public interface Hasher64 extends Hasher32 {
 
