@@ -360,47 +360,54 @@ class Komihash4_3 extends AbstractHashCalculator {
         remainingChars -= off;
         processBuffer();
         offset &= 1;
+        if (offset != 0) {
+          buffer[0] = buffer[64];
+        }
       }
-      if (offset == 0) {
-        while (remainingChars >= 32) {
-          long b0 = getLong(s, off);
-          long b1 = getLong(s, off + 4);
-          long b2 = getLong(s, off + 8);
-          long b3 = getLong(s, off + 12);
-          long b4 = getLong(s, off + 16);
-          long b5 = getLong(s, off + 20);
-          long b6 = getLong(s, off + 24);
-          long b7 = getLong(s, off + 28);
-          processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-          remainingChars -= 32;
-          off += 32;
+      if (remainingChars >= 32) {
+        long b0, b1, b2, b3, b4, b5, b6, b7;
+        if (offset == 0) {
+          do {
+            b0 = getLong(s, off);
+            b1 = getLong(s, off + 4);
+            b2 = getLong(s, off + 8);
+            b3 = getLong(s, off + 12);
+            b4 = getLong(s, off + 16);
+            b5 = getLong(s, off + 20);
+            b6 = getLong(s, off + 24);
+            b7 = getLong(s, off + 28);
+            processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+            remainingChars -= 32;
+            off += 32;
+          } while (remainingChars >= 32);
+          buffer[63] = (byte) (b7 >>> 56);
+        } else {
+          long z = buffer[0] & 0xFFL;
+          do {
+            b0 = getLong(s, off);
+            b1 = getLong(s, off + 4);
+            b2 = getLong(s, off + 8);
+            b3 = getLong(s, off + 12);
+            b4 = getLong(s, off + 16);
+            b5 = getLong(s, off + 20);
+            b6 = getLong(s, off + 24);
+            b7 = getLong(s, off + 28);
+            long y = b7 >>> 56;
+            b7 = (b6 >>> 56) | (b7 << 8);
+            b6 = (b5 >>> 56) | (b6 << 8);
+            b5 = (b4 >>> 56) | (b5 << 8);
+            b4 = (b3 >>> 56) | (b4 << 8);
+            b3 = (b2 >>> 56) | (b3 << 8);
+            b2 = (b1 >>> 56) | (b2 << 8);
+            b1 = (b0 >>> 56) | (b1 << 8);
+            b0 = z | (b0 << 8);
+            z = y;
+            processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+            remainingChars -= 32;
+            off += 32;
+          } while (remainingChars >= 32);
+          buffer[0] = (byte) (z);
         }
-      } else {
-        long z = buffer[(off == 0) ? 0 : 64] & 0xFFL;
-        while (remainingChars >= 32) {
-          long b0 = getLong(s, off);
-          long b1 = getLong(s, off + 4);
-          long b2 = getLong(s, off + 8);
-          long b3 = getLong(s, off + 12);
-          long b4 = getLong(s, off + 16);
-          long b5 = getLong(s, off + 20);
-          long b6 = getLong(s, off + 24);
-          long b7 = getLong(s, off + 28);
-          long y = b7 >>> 56;
-          b7 = (b6 >>> 56) | (b7 << 8);
-          b6 = (b5 >>> 56) | (b6 << 8);
-          b5 = (b4 >>> 56) | (b5 << 8);
-          b4 = (b3 >>> 56) | (b4 << 8);
-          b3 = (b2 >>> 56) | (b3 << 8);
-          b2 = (b1 >>> 56) | (b2 << 8);
-          b1 = (b0 >>> 56) | (b1 << 8);
-          b0 = z | (b0 << 8);
-          z = y;
-          processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-          remainingChars -= 32;
-          off += 32;
-        }
-        buffer[0] = (byte) (z);
       }
     }
     while (remainingChars >= 4) {

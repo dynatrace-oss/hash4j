@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToInt;
-import static com.dynatrace.hash4j.hashing.TestUtils.hash32ToByteArray;
+import static com.dynatrace.hash4j.hashing.TestUtils.*;
+import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToCharSequence;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,6 +30,7 @@ class Murmur3_32ReferenceImplTest {
       (input, sink) -> {
         for (byte b : input) sink.putByte(b);
       };
+  private static final HashFunnel<CharSequence> CHAR_FUNNEL = (input, sink) -> sink.putChars(input);
 
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
@@ -69,6 +70,13 @@ class Murmur3_32ReferenceImplTest {
     assertEquals(hashWithSeedInt, Hashing.murmur3_32(seed).hashToInt(dataBytes, BYTES_FUNNEL_2));
     assertEquals(hashWithSeedInt, Hashing.murmur3_32(seed).hashBytesToInt(dataBytes));
 
+    if (dataBytes.length % 2 == 0) {
+      assertEquals(
+          hashInt, Hashing.murmur3_32().hashToInt(byteArrayToCharSequence(dataBytes), CHAR_FUNNEL));
+      assertEquals(
+          hashWithSeedInt,
+          Hashing.murmur3_32(seed).hashToInt(byteArrayToCharSequence(dataBytes), CHAR_FUNNEL));
+    }
     // cross-check with Guava Murmur3_32 implementation
     assertArrayEquals(
         hashBytes,

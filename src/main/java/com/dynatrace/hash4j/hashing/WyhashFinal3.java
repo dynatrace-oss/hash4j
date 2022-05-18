@@ -249,7 +249,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
         offset &= 1;
       }
       if (offset == 0) {
-        if (remainingChars >= 24) {
+        if (remainingChars > 24) {
           long b0, b1, b2, b3, b4, b5;
           do {
             b0 = getLong(s, off);
@@ -261,7 +261,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
             processBuffer(b0, b1, b2, b3, b4, b5);
             off += 24;
             remainingChars -= 24;
-          } while (remainingChars >= 24);
+          } while (remainingChars > 24);
           setLong(buffer, 32, b4);
           setLong(buffer, 40, b5);
         }

@@ -233,41 +233,49 @@ abstract class AbstractHashCalculatorTest {
   }
 
   @Test
-  void testPutString() {
+  void testPutChars() {
 
-    int maxPreSize = 64;
-    int maxStringSize = 256;
-    int maxPostSize = 64;
+    int maxPreSize = 72;
+    int maxStringSize = 264;
+    int maxPostSize = 72;
+    int numCycles = 3;
+    SplittableRandom seedRandom = new SplittableRandom(0L);
 
-    SplittableRandom random = new SplittableRandom(0L);
-    for (int stringSize = 0; stringSize < maxStringSize; stringSize += 1) {
-      String s = generateRandomString(random, stringSize);
-      for (int preSize = 0; preSize < maxPreSize; preSize += 1) {
-        byte[] pre = new byte[preSize];
-        random.nextBytes(pre);
-        for (int postSize = 0; postSize < maxPostSize; postSize += 1) {
-          byte[] post = new byte[postSize];
-          random.nextBytes(post);
+    for (int c = 0; c < numCycles; ++c) {
+      SplittableRandom random = new SplittableRandom(seedRandom.nextLong());
+      for (int stringSize = 0; stringSize <= maxStringSize; stringSize += 1) {
+        String s = generateRandomString(random, stringSize);
+        for (int preSize = 0; preSize <= maxPreSize; preSize += 1) {
+          byte[] pre = new byte[preSize];
+          random.nextBytes(pre);
+          for (int postSize = 0; postSize <= maxPostSize; postSize += 1) {
+            byte[] post = new byte[postSize];
+            random.nextBytes(post);
 
-          HashCalculator expectedSink = createHashCalculator();
-          HashCalculator actualSink = createHashCalculator();
+            HashCalculator expectedSink = createHashCalculator();
+            HashCalculator actualSink = createHashCalculator();
 
-          expectedSink.putBytes(pre);
-          actualSink.putBytes(pre);
+            for (int i = 0; i < pre.length; ++i) {
+              expectedSink.putByte(pre[i]);
+              actualSink.putByte(pre[i]);
+            }
+            // actualSink.putBytes(pre);
 
-          for (int i = 0; i < s.length(); ++i) {
-            expectedSink.putChar(s.charAt(i));
+            for (int i = 0; i < s.length(); ++i) {
+              expectedSink.putChar(s.charAt(i));
+            }
+            actualSink.putChars(s);
+
+            for (int i = 0; i < post.length; ++i) {
+              expectedSink.putByte(post[i]);
+              actualSink.putByte(post[i]);
+            }
+            // actualSink.putBytes(post);
+
+            byte[] expected = getBytesAndVerifyRepetitiveGetCalls(expectedSink);
+            byte[] actual = getBytesAndVerifyRepetitiveGetCalls(actualSink);
+            assertArrayEquals(expected, actual);
           }
-          expectedSink.putInt(s.length());
-
-          actualSink.putString(s);
-
-          expectedSink.putBytes(post);
-          actualSink.putBytes(post);
-
-          byte[] expected = getBytesAndVerifyRepetitiveGetCalls(expectedSink);
-          byte[] actual = getBytesAndVerifyRepetitiveGetCalls(actualSink);
-          assertArrayEquals(expected, actual);
         }
       }
     }
@@ -353,7 +361,6 @@ abstract class AbstractHashCalculatorTest {
       for (int i = 24, j = 0; i >= 0; i -= 8, j += 1) {
         result[j] = (byte) ((x >>> i) & 0xFFL);
       }
-      return result;
     } else if (hashCalculator.getHashBitSize() == 64) {
       long hash = hashCalculator.getAsLong();
       for (int i = 56, j = 0; i >= 0; i -= 8, j += 1) {

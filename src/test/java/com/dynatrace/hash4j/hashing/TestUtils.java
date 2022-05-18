@@ -16,6 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 final class TestUtils {
 
@@ -113,5 +114,36 @@ final class TestUtils {
       throw new IllegalArgumentException();
     }
     return ((b[3] & 0xFF) << 24) | ((b[2] & 0xFF) << 16) | ((b[1] & 0xFF) << 8) | (b[0] & 0xFF);
+  }
+
+  public static CharSequence byteArrayToCharSequence(byte[] b) {
+    if (b.length % 2 != 0) {
+      throw new IllegalArgumentException();
+    }
+    return new CharSequence() {
+      @Override
+      public int length() {
+        return b.length / 2;
+      }
+
+      @Override
+      public char charAt(int index) {
+        return (char)
+            ((((int) (b[2 * index + 1] & 0xFF)) << 8) | (((int) b[2 * index + 0]) & 0xFF));
+      }
+
+      @NotNull
+      @Override
+      public CharSequence subSequence(int start, int end) {
+        byte[] y = new byte[2 * (end - start)];
+        System.arraycopy(b, 2 * start, y, 0, 2 * (end - start));
+        return byteArrayToCharSequence(y);
+      }
+
+      @Override
+      public String toString() {
+        return new StringBuilder(length()).append(this).toString();
+      }
+    };
   }
 }

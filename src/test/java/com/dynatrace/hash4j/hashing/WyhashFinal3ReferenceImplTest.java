@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToCharSequence;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ public class WyhashFinal3ReferenceImplTest {
       (input, sink) -> {
         for (byte b : input) sink.putByte(b);
       };
+  private static final HashFunnel<CharSequence> CHAR_FUNNEL = (input, sink) -> sink.putChars(input);
 
   private void test(
       long hash0, long hash1, long hash2, long hash3, long seed0, long seed1, String data) {
@@ -43,6 +45,14 @@ public class WyhashFinal3ReferenceImplTest {
     assertEquals(hash3, Hashing.wyhashFinal3(seed0, seed1).hashToLong(dataBytes, BYTES_FUNNEL_1));
     assertEquals(hash3, Hashing.wyhashFinal3(seed0, seed1).hashToLong(dataBytes, BYTES_FUNNEL_2));
     assertEquals(hash3, Hashing.wyhashFinal3(seed0, seed1).hashBytesToLong(dataBytes));
+
+    if (dataBytes.length % 2 == 0) {
+      CharSequence charSequence = byteArrayToCharSequence(dataBytes);
+      assertEquals(hash0, Hashing.wyhashFinal3().hashToLong(charSequence, CHAR_FUNNEL));
+      assertEquals(hash1, Hashing.wyhashFinal3(seed0).hashToLong(charSequence, CHAR_FUNNEL));
+      assertEquals(hash2, Hashing.wyhashFinal3(0, seed1).hashToLong(charSequence, CHAR_FUNNEL));
+      assertEquals(hash3, Hashing.wyhashFinal3(seed0, seed1).hashToLong(charSequence, CHAR_FUNNEL));
+    }
   }
 
   @Test

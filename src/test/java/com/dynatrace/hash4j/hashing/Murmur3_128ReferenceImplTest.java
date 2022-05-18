@@ -15,10 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.hash128ToByteArray;
-import static com.dynatrace.hash4j.hashing.TestUtils.tupleToByteArray;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static com.dynatrace.hash4j.hashing.TestUtils.*;
+import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToCharSequence;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.appmattus.crypto.Algorithm;
 import java.lang.reflect.Constructor;
@@ -35,6 +34,7 @@ class Murmur3_128ReferenceImplTest {
       (input, sink) -> {
         for (byte b : input) sink.putByte(b);
       };
+  private static final HashFunnel<CharSequence> CHAR_FUNNEL = (input, sink) -> sink.putChars(input);
 
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
@@ -107,6 +107,18 @@ class Murmur3_128ReferenceImplTest {
         hashWithSeedBytes,
         hash128ToByteArray(Hashing.murmur3_128(seed).hashBytesTo128Bits(dataBytes)));
 
+    if (dataBytes.length % 2 == 0) {
+      assertArrayEquals(
+          hashBytes,
+          hash128ToByteArray(
+              Hashing.murmur3_128()
+                  .hashTo128Bits(byteArrayToCharSequence(dataBytes), CHAR_FUNNEL)));
+      assertArrayEquals(
+          hashWithSeedBytes,
+          hash128ToByteArray(
+              Hashing.murmur3_128(seed)
+                  .hashTo128Bits(byteArrayToCharSequence(dataBytes), CHAR_FUNNEL)));
+    }
     if (seed >= 0) {
       assertArrayEquals(
           hashWithSeedBytes,

@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToCharSequence;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ public class Komihash4_3ReferenceImplTest {
       (input, sink) -> {
         for (byte b : input) sink.putByte(b);
       };
+  private static final HashFunnel<CharSequence> CHAR_FUNNEL = (input, sink) -> sink.putChars(input);
 
   private void test(long hash0, long hash1, long seed, String data) {
     byte[] b = TestUtils.hexStringToByteArray(data);
@@ -35,6 +37,13 @@ public class Komihash4_3ReferenceImplTest {
     assertEquals(hash1, Hashing.komihash4_3(seed).hashToLong(b, BYTES_FUNNEL_1));
     assertEquals(hash1, Hashing.komihash4_3(seed).hashToLong(b, BYTES_FUNNEL_2));
     assertEquals(hash1, Hashing.komihash4_3(seed).hashBytesToLong(b));
+
+    if (b.length % 2 == 0) {
+      assertEquals(
+          hash0, Hashing.komihash4_3().hashToLong(byteArrayToCharSequence(b), CHAR_FUNNEL));
+      assertEquals(
+          hash1, Hashing.komihash4_3(seed).hashToLong(byteArrayToCharSequence(b), CHAR_FUNNEL));
+    }
   }
 
   @Test
