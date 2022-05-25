@@ -15,17 +15,30 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class Komihash4_3Test extends AbstractHashCalculatorTest {
+import com.dynatrace.hash4j.hashing.Komihash4_3ReferenceData.ReferenceRecord;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-  private static final AbstractHasher64 HASHER = Komihash4_3.create();
+public class Komihash4_3Test extends AbstractHashCalculator64Test {
+
+  private static final List<Hasher64> HASHERS =
+      Arrays.asList(Hashing.komihash4_3(), Hashing.komihash4_3(0x1b5af6b8376953d2L));
 
   @Override
-  protected HashCalculator createHashCalculator() {
-    return HASHER.newHashCalculator();
+  protected List<Hasher64> getHashers() {
+    return HASHERS;
   }
 
   @Override
-  protected Hasher64 createHasher() {
-    return Hashing.komihash4_3();
+  protected List<ReferenceTestRecord64> getReferenceTestRecords() {
+    List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
+    for (ReferenceRecord r : Komihash4_3ReferenceData.get()) {
+      referenceTestRecords.add(
+          new ReferenceTestRecord64(Komihash4_3.create(), r.getData(), r.getHash0()));
+      referenceTestRecords.add(
+          new ReferenceTestRecord64(Komihash4_3.create(r.getSeed()), r.getData(), r.getHash1()));
+    }
+    return referenceTestRecords;
   }
 }

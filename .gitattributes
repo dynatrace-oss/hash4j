@@ -1,0 +1,9 @@
+* text=auto
+
+*.java text
+*.py text
+*.md text
+
+*.bat text eol=crlf
+
+*.jar binary

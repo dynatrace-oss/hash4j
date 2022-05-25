@@ -15,18 +15,19 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class WyhashFinal3WithSeedsTest extends AbstractHashCalculatorTest {
+public class BaseReferenceRecord {
+  private final byte[] data;
 
-  private static final AbstractHasher64 HASHER =
-      WyhashFinal3.create(0xfa681c2ee9f17f88L, 0x3c88abf5128e96cbL);
+  public BaseReferenceRecord(String data) {
+    this.data = TestUtils.hexStringToByteArray(data);
+  }
 
-  @Override
-  protected HashCalculator createHashCalculator() {
-    return HASHER.newHashCalculator();
+  public byte[] getData() {
+    return data;
   }
 
   @Override
-  protected Hasher64 createHasher() {
-    return Hashing.wyhashFinal3(0xfa681c2ee9f17f88L, 0x3c88abf5128e96cbL);
+  public final String toString() {
+    return "BaseReferenceRecord{" + "data.length=" + data.length + '}';
   }
 }

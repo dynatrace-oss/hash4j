@@ -53,6 +53,7 @@ repositories {
 dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.1'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
@@ -67,6 +68,7 @@ jacocoTestReport { // necessary for sonarcloud coverage
         csv.required = true
     }
 }
+
 test {
     useJUnitPlatform()
 }

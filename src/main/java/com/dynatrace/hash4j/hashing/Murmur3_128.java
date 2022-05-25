@@ -41,11 +41,6 @@ class Murmur3_128 extends AbstractHashCalculator {
     return new AbstractHasher128Impl(longSeed);
   }
 
-  static AbstractHasher128 createWithSeedBug(int seed) {
-    long longSeed = seed;
-    return new AbstractHasher128Impl(longSeed);
-  }
-
   private static class AbstractHasher128Impl extends AbstractHasher128 {
 
     private final long seed;
@@ -124,7 +119,7 @@ class Murmur3_128 extends AbstractHashCalculator {
           k1 ^= (input[off + 1] & 0xFFL) << 8;
           // fallthrough
         case 1:
-          k1 ^= input[off + 0] & 0xFFL;
+          k1 ^= input[off] & 0xFFL;
           h1 ^= mixK1(k1);
           // fallthrough
         default:
@@ -454,7 +449,7 @@ class Murmur3_128 extends AbstractHashCalculator {
                 buffer0 = buffer1;
                 buffer1 = 0;
               }
-              buffer1 |= ((long) s.charAt(i - 4));
+              buffer1 |= s.charAt(i - 4);
             }
             buffer1 |= ((long) s.charAt(i - 3)) << 16;
           }

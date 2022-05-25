@@ -175,7 +175,6 @@ class AbstractHashSinkPutUnorderedIterableTest {
 
   @Test
   void testPutUnorderedIterable() {
-
     int maxSize = 11;
     for (int size = 0; size <= maxSize; ++size) {
 

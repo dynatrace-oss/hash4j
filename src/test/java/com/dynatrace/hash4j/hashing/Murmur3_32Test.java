@@ -15,17 +15,54 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_32Test extends AbstractHashCalculatorTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-  private static final AbstractHasher32 HASHER = Murmur3_32.create();
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+class Murmur3_32Test extends AbstractHashCalculator32Test {
+
+  private static final List<Hasher32> HASHERS =
+      Arrays.asList(Hashing.murmur3_32(), Hashing.murmur3_32(0x43a3fb15));
 
   @Override
-  protected HashCalculator createHashCalculator() {
-    return HASHER.newHashCalculator();
+  protected List<Hasher32> getHashers() {
+    return HASHERS;
   }
 
   @Override
-  protected Hasher32 createHasher() {
-    return Hashing.murmur3_32();
+  protected List<ReferenceTestRecord32> getReferenceTestRecords() {
+    List<ReferenceTestRecord32> referenceTestRecords = new ArrayList<>();
+    for (Murmur3_32ReferenceData.ReferenceRecord r : Murmur3_32ReferenceData.get()) {
+      referenceTestRecords.add(
+          new ReferenceTestRecord32(Hashing.murmur3_32(), r.getData(), r.getHash0()));
+      referenceTestRecords.add(
+          new ReferenceTestRecord32(Hashing.murmur3_32(r.getSeed()), r.getData(), r.getHash1()));
+    }
+    return referenceTestRecords;
+  }
+
+  /**
+   * The C reference implementation does not define the hash value computation of byte sequences
+   * longer than {@link Integer#MAX_VALUE} as it uses a native unsigned {@code int} for the length
+   * of the byte array. This test verifies that a predefined byte sequence longer than {@link
+   * Integer#MAX_VALUE} always results in the same hash value.
+   */
+  @Test
+  void testLongInput() {
+    long len = 1L + Integer.MAX_VALUE;
+    int hashValue =
+        Hashing.murmur3_32()
+            .hashToInt(
+                null,
+                (obj, sink) -> {
+                  for (long i = 0; i < len; ++i) {
+                    sink.putByte((byte) (i & 0xFF));
+                  }
+                });
+    int expected = 0x0038818d;
+    assertEquals(expected, hashValue);
   }
 }
