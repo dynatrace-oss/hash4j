@@ -17,7 +17,6 @@ package com.dynatrace.hash4j.hashing;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.*;
 import org.junit.jupiter.api.Test;
 
 public class AbstractHasher64Test {
@@ -30,11 +29,11 @@ public class AbstractHasher64Test {
     AbstractHasher64 hasher =
         new AbstractHasher64() {
           @Override
-          protected HashCalculator newHashCalculator() {
-            return new AbstractHashCalculator() {
+          public HashStream hashStream() {
+            return new AbstractHashStream() {
 
               @Override
-              public HashSink putByte(byte v) {
+              public HashStream putByte(byte v) {
                 return this;
               }
 

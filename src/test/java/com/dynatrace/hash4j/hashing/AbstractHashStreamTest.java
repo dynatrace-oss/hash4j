@@ -26,7 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(PER_CLASS)
-abstract class AbstractHashCalculatorTest<T extends Hasher32> {
+abstract class AbstractHashStreamTest {
 
   protected static final HashFunnel<byte[]> BYTES_FUNNEL_1 = (input, sink) -> sink.putBytes(input);
   protected static final HashFunnel<byte[]> BYTES_FUNNEL_2 =
@@ -36,7 +36,7 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
   protected static final HashFunnel<CharSequence> CHAR_FUNNEL =
       (input, sink) -> sink.putChars(input);
 
-  public static class ReferenceTestRecord<T extends Hasher32> {
+  public static class ReferenceTestRecord<T extends Hasher> {
 
     private final T hasher;
     private final byte[] data;
@@ -60,7 +60,7 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
     }
   }
 
-  protected abstract List<T> getHashers();
+  protected abstract List<? extends Hasher> getHashers();
 
   private static final class TestCase {
     private final byte[] expected;
@@ -162,40 +162,40 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
               h -> h.putOptional(Optional.of(0x3fb29bab9f35fde8L), (x, g) -> g.putLong(x)),
               "e8fd359fab9bb23f01"));
 
-  private HashCalculator getNonOptimizedHashCalculator(T hasher) {
-    HashCalculator hashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
+  private HashStream getNonOptimizedHashCalculator(Hasher hasher) {
+    HashStream hashStream = hasher.hashStream();
 
-    return new AbstractHashCalculator() {
+    return new AbstractHashStream() {
       @Override
-      public HashSink putByte(byte v) {
-        return hashCalculator.putByte(v);
+      public HashStream putByte(byte v) {
+        return hashStream.putByte(v);
       }
 
       @Override
       public int getHashBitSize() {
-        return hashCalculator.getHashBitSize();
+        return hashStream.getHashBitSize();
       }
 
       @Override
       public int getAsInt() {
-        return hashCalculator.getAsInt();
+        return hashStream.getAsInt();
       }
 
       @Override
       public long getAsLong() {
-        return hashCalculator.getAsLong();
+        return hashStream.getAsLong();
       }
 
       @Override
       public HashValue128 get() {
-        return hashCalculator.get();
+        return hashStream.get();
       }
     };
   }
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testRandomData(T hasher) {
+  void testRandomData(Hasher hasher) {
 
     int numIterations = 100000;
 
@@ -203,21 +203,21 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
 
     for (int k = 0; k < numIterations; ++k) {
 
-      HashCalculator rawBytesHashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-      HashCalculator dataHashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-      HashCalculator nonOptimizedHashCalculator = getNonOptimizedHashCalculator(hasher);
+      HashStream rawBytesHashStream = hasher.hashStream();
+      HashStream dataHashStream = hasher.hashStream();
+      HashStream nonOptimizedHashStream = getNonOptimizedHashCalculator(hasher);
 
       while (random.nextDouble() >= 0.05) {
         TestCase tc = testCases.get(random.nextInt(testCases.size()));
-        tc.getSinkConsumer().accept(dataHashCalculator);
-        tc.getSinkConsumer().accept(nonOptimizedHashCalculator);
+        tc.getSinkConsumer().accept(dataHashStream);
+        tc.getSinkConsumer().accept(nonOptimizedHashStream);
         for (byte b : tc.getExpected()) {
-          rawBytesHashCalculator.putByte(b);
+          rawBytesHashStream.putByte(b);
         }
       }
-      byte[] rawBytesHash = getBytesAndVerifyRepetitiveGetCalls(rawBytesHashCalculator);
-      byte[] dataHash = getBytesAndVerifyRepetitiveGetCalls(dataHashCalculator);
-      byte[] nonOptimizedHash = getBytesAndVerifyRepetitiveGetCalls(nonOptimizedHashCalculator);
+      byte[] rawBytesHash = getBytesAndVerifyRepetitiveGetCalls(rawBytesHashStream);
+      byte[] dataHash = getBytesAndVerifyRepetitiveGetCalls(dataHashStream);
+      byte[] nonOptimizedHash = getBytesAndVerifyRepetitiveGetCalls(nonOptimizedHashStream);
 
       assertArrayEquals(rawBytesHash, dataHash);
       assertArrayEquals(rawBytesHash, nonOptimizedHash);
@@ -226,7 +226,7 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testComposedByteSequences(T hasher) {
+  void testComposedByteSequences(Hasher hasher) {
 
     int maxSize = 256;
     SplittableRandom random = new SplittableRandom(0L);
@@ -234,24 +234,24 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
     for (int size = 0; size < maxSize; ++size) {
       byte[] data = new byte[size];
       random.nextBytes(data);
-      HashCalculator expectedHashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-      expectedHashCalculator.putBytes(data);
-      byte[] expected = getBytesAndVerifyRepetitiveGetCalls(expectedHashCalculator);
+      HashStream expectedHashStream = hasher.hashStream();
+      expectedHashStream.putBytes(data);
+      byte[] expected = getBytesAndVerifyRepetitiveGetCalls(expectedHashStream);
 
       for (int k = 0; k < size; ++k) {
-        HashCalculator hashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-        hashCalculator.putBytes(data, 0, k);
-        hashCalculator.putBytes(data, k, size - k);
-        assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashCalculator));
+        HashStream hashStream = hasher.hashStream();
+        hashStream.putBytes(data, 0, k);
+        hashStream.putBytes(data, k, size - k);
+        assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashStream));
       }
 
       for (int j = 0; j < size; ++j) {
         for (int k = j; k < size; ++k) {
-          HashCalculator hashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-          hashCalculator.putBytes(data, 0, j);
-          hashCalculator.putBytes(data, j, k - j);
-          hashCalculator.putBytes(data, k, size - k);
-          assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashCalculator));
+          HashStream hashStream = hasher.hashStream();
+          hashStream.putBytes(data, 0, j);
+          hashStream.putBytes(data, j, k - j);
+          hashStream.putBytes(data, k, size - k);
+          assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashStream));
         }
       }
     }
@@ -267,7 +267,7 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testPutChars(T hasher) {
+  void testPutChars(Hasher hasher) {
 
     int maxPreSize = 72;
     int maxStringSize = 264;
@@ -286,8 +286,8 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
             byte[] post = new byte[postSize];
             random.nextBytes(post);
 
-            HashCalculator expectedSink = ((AbstractHasher32) hasher).newHashCalculator();
-            HashCalculator actualSink = ((AbstractHasher32) hasher).newHashCalculator();
+            HashStream expectedSink = hasher.hashStream();
+            HashStream actualSink = hasher.hashStream();
 
             for (byte b : pre) {
               expectedSink.putByte(b);
@@ -317,17 +317,17 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testGetCompatibility(T hasher) {
+  void testGetCompatibility(Hasher hasher) {
     byte[] data = TestUtils.hexStringToByteArray("3011498ecb9ca21b2f6260617b55f3a7");
-    HashCalculator intHashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-    HashCalculator longHashCalculator = ((AbstractHasher32) hasher).newHashCalculator();
-    HashCalculator hash128Calculator = ((AbstractHasher32) hasher).newHashCalculator();
-    intHashCalculator.putBytes(data);
-    longHashCalculator.putBytes(data);
+    HashStream intHashStream = hasher.hashStream();
+    HashStream longHashStream = hasher.hashStream();
+    HashStream hash128Calculator = hasher.hashStream();
+    intHashStream.putBytes(data);
+    longHashStream.putBytes(data);
     hash128Calculator.putBytes(data);
-    int intHash = intHashCalculator.getAsInt();
+    int intHash = intHashStream.getAsInt();
     try {
-      long longHash = longHashCalculator.getAsLong();
+      long longHash = longHashStream.getAsLong();
       assertEquals(intHash, (int) longHash);
       HashValue128 hash128Hash = hash128Calculator.get();
       assertEquals(longHash, hash128Hash.getAsLong());
@@ -344,7 +344,7 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testHashBytesOffset(T hasher) {
+  void testHashBytesOffset(Hasher hasher) {
     int numCycles = 100000;
     int maxByteLength = 100;
     int maxOffset = 100;
@@ -389,20 +389,20 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
     }
   }
 
-  private byte[] getBytes(HashCalculator hashCalculator) {
-    byte[] result = new byte[hashCalculator.getHashBitSize() / 8];
-    if (hashCalculator.getHashBitSize() == 32) {
-      int x = hashCalculator.getAsInt();
+  private byte[] getBytes(HashStream hashStream) {
+    byte[] result = new byte[hashStream.getHashBitSize() / 8];
+    if (hashStream.getHashBitSize() == 32) {
+      int x = hashStream.getAsInt();
       for (int i = 24, j = 0; i >= 0; i -= 8, j += 1) {
         result[j] = (byte) ((x >>> i) & 0xFFL);
       }
-    } else if (hashCalculator.getHashBitSize() == 64) {
-      long hash = hashCalculator.getAsLong();
+    } else if (hashStream.getHashBitSize() == 64) {
+      long hash = hashStream.getAsLong();
       for (int i = 56, j = 0; i >= 0; i -= 8, j += 1) {
         result[j] = (byte) ((hash >>> i) & 0xFFL);
       }
-    } else if (hashCalculator.getHashBitSize() == 128) {
-      HashValue128 x = hashCalculator.get();
+    } else if (hashStream.getHashBitSize() == 128) {
+      HashValue128 x = hashStream.get();
       for (int i = 56, j = 0; i >= 0; i -= 8, j += 1) {
         result[j] = (byte) ((x.getMostSignificantBits() >>> i) & 0xFFL);
       }
@@ -415,12 +415,12 @@ abstract class AbstractHashCalculatorTest<T extends Hasher32> {
     return result;
   }
 
-  private byte[] getBytesAndVerifyRepetitiveGetCalls(HashCalculator hashCalculator) {
-    byte[] result = getBytes(hashCalculator);
+  private byte[] getBytesAndVerifyRepetitiveGetCalls(HashStream hashStream) {
+    byte[] result = getBytes(hashStream);
 
     int numRecalculations = 5;
     for (int i = 0; i < numRecalculations; ++i) {
-      assertArrayEquals(result, getBytes(hashCalculator));
+      assertArrayEquals(result, getBytes(hashStream));
     }
     return result;
   }

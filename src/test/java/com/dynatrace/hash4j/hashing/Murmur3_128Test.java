@@ -21,9 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
 
-class Murmur3_128Test extends AbstractHashCalculator128Test {
+class Murmur3_128Test extends AbstractHashStream128Test {
 
   private static final List<Hasher128> HASHERS =
       Arrays.asList(Hashing.murmur3_128(), Hashing.murmur3_128(0xfc64a346));
@@ -42,20 +43,11 @@ class Murmur3_128Test extends AbstractHashCalculator128Test {
   @Test
   public void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
-    {
-      HashValue128 hashValue =
-          Hashing.murmur3_128()
-              .hashTo128Bits(
-                  null,
-                  (obj, sink) -> {
-                    for (long i = 0; i < len; ++i) {
-                      sink.putByte((byte) (i & 0xFF));
-                    }
-                  });
-      byte[] hashValueBytes = hash128ToByteArray(hashValue);
-      byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
-      assertArrayEquals(expected, hashValueBytes);
-    }
+    HashStream stream = Hashing.murmur3_128().hashStream();
+    LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
+    byte[] hashValueBytes = hash128ToByteArray(stream.get());
+    byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
+    assertArrayEquals(expected, hashValueBytes);
   }
 
   @Override

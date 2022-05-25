@@ -19,17 +19,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class AbstractHashCalculatorCompatibilityTest {
+public class AbstractHashStreamCompatibilityTest {
 
   @Test
   void testHashCompatibility() {
 
     HashValue128 hash128 = new HashValue128(0x4cdfea92fccec3ffL, 0x85e6a3b83eb8873aL);
-    AbstractHashCalculator calculator =
-        new AbstractHashCalculator() {
+    AbstractHashStream calculator =
+        new AbstractHashStream() {
 
           @Override
-          public HashSink putByte(byte v) {
+          public HashStream putByte(byte v) {
             return this;
           }
 

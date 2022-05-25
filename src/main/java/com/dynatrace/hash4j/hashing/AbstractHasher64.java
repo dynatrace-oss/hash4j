@@ -18,13 +18,8 @@ package com.dynatrace.hash4j.hashing;
 abstract class AbstractHasher64 extends AbstractHasher32 implements Hasher64 {
 
   @Override
-  protected abstract HashCalculator newHashCalculator();
-
-  @Override
   public <T> long hashToLong(T data, HashFunnel<T> funnel) {
-    HashCalculator hashCalculator = newHashCalculator();
-    funnel.put(data, hashCalculator);
-    return hashCalculator.getAsLong();
+    return hashStream().put(data, funnel).getAsLong();
   }
 
   @Override

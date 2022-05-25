@@ -22,10 +22,10 @@ import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public abstract class AbstractHashCalculator64Test extends AbstractHashCalculatorTest<Hasher64> {
+public abstract class AbstractHashStream64Test extends AbstractHashStreamTest {
 
   public static class ReferenceTestRecord64
-      extends AbstractHashCalculatorTest.ReferenceTestRecord<Hasher64> {
+      extends AbstractHashStreamTest.ReferenceTestRecord<Hasher64> {
 
     private final long expectedHash;
 

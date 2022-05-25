@@ -18,12 +18,12 @@ package com.dynatrace.hash4j.hashing;
 import java.util.Arrays;
 import java.util.Objects;
 
-class TestHashCalculator extends AbstractHashSink {
+class TestHashStream extends AbstractHashStream {
   private int size = 0;
   private byte[] data = new byte[1];
 
   @Override
-  public HashSink putByte(byte v) {
+  public HashStream putByte(byte v) {
     if (size == data.length) {
       data = Arrays.copyOf(data, data.length * 2);
     }
@@ -33,10 +33,15 @@ class TestHashCalculator extends AbstractHashSink {
   }
 
   @Override
+  public int getHashBitSize() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    TestHashCalculator that = (TestHashCalculator) o;
+    TestHashStream that = (TestHashStream) o;
     return size == that.size && Arrays.equals(data, that.data);
   }
 

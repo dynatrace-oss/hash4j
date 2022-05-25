@@ -17,13 +17,9 @@ package com.dynatrace.hash4j.hashing;
 
 abstract class AbstractHasher32 implements Hasher32 {
 
-  protected abstract HashCalculator newHashCalculator();
-
   @Override
   public <T> int hashToInt(T data, HashFunnel<T> funnel) {
-    HashCalculator hashCalculator = newHashCalculator();
-    funnel.put(data, hashCalculator);
-    return hashCalculator.getAsInt();
+    return hashStream().put(data, funnel).getAsInt();
   }
 
   @Override

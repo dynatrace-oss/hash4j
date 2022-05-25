@@ -18,13 +18,8 @@ package com.dynatrace.hash4j.hashing;
 abstract class AbstractHasher128 extends AbstractHasher64 implements Hasher128 {
 
   @Override
-  protected abstract HashCalculator newHashCalculator();
-
-  @Override
   public <T> HashValue128 hashTo128Bits(T data, HashFunnel<T> funnel) {
-    HashCalculator hashCalculator = this.newHashCalculator();
-    funnel.put(data, hashCalculator);
-    return hashCalculator.get();
+    return hashStream().put(data, funnel).get();
   }
 
   @Override

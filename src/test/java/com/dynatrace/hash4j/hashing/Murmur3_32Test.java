@@ -20,9 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
 
-class Murmur3_32Test extends AbstractHashCalculator32Test {
+class Murmur3_32Test extends AbstractHashStream32Test {
 
   private static final List<Hasher32> HASHERS =
       Arrays.asList(Hashing.murmur3_32(), Hashing.murmur3_32(0x43a3fb15));
@@ -53,16 +54,9 @@ class Murmur3_32Test extends AbstractHashCalculator32Test {
   @Test
   void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
-    int hashValue =
-        Hashing.murmur3_32()
-            .hashToInt(
-                null,
-                (obj, sink) -> {
-                  for (long i = 0; i < len; ++i) {
-                    sink.putByte((byte) (i & 0xFF));
-                  }
-                });
+    HashStream stream = Hashing.murmur3_32().hashStream();
+    LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
     int expected = 0x0038818d;
-    assertEquals(expected, hashValue);
+    assertEquals(expected, stream.getAsInt());
   }
 }

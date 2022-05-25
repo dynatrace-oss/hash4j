@@ -16,7 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 /** A 32-bit hash function. */
-public interface Hasher32 {
+public interface Hasher32 extends Hasher {
 
   /**
    * Hashes an object to a 32-bit integer value.

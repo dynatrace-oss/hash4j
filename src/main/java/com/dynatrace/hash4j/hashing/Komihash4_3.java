@@ -41,7 +41,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Komihash4_3 extends AbstractHashCalculator {
+class Komihash4_3 extends AbstractHashStream {
 
   private final byte[] buffer = new byte[64 + 7];
   private long byteCount = 0;
@@ -69,10 +69,10 @@ class Komihash4_3 extends AbstractHashCalculator {
     long seed7 = 0xC0AC29B7C97C50DDL ^ seed5;
     long seed8 = 0x3F84D5B5B5470917L ^ seed5;
 
-    return new AbstractHasher64Impl(seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8);
+    return new HasherImpl(seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8);
   }
 
-  private static class AbstractHasher64Impl extends AbstractHasher64 {
+  private static class HasherImpl extends AbstractHasher64 {
 
     private final long seed1;
     private final long seed2;
@@ -83,7 +83,7 @@ class Komihash4_3 extends AbstractHashCalculator {
     private final long seed7;
     private final long seed8;
 
-    public AbstractHasher64Impl(
+    public HasherImpl(
         long seed1,
         long seed2,
         long seed3,
@@ -103,7 +103,7 @@ class Komihash4_3 extends AbstractHashCalculator {
     }
 
     @Override
-    protected HashCalculator newHashCalculator() {
+    public HashStream hashStream() {
       return new Komihash4_3(seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8);
     }
 
@@ -125,7 +125,7 @@ class Komihash4_3 extends AbstractHashCalculator {
 
         do {
 
-          long tmp1 = seed1 ^ getLong(input, off + 0);
+          long tmp1 = seed1 ^ getLong(input, off);
           long tmp2 = seed5 ^ getLong(input, off + 8);
           long tmp3 = seed2 ^ getLong(input, off + 16);
           long tmp4 = seed6 ^ getLong(input, off + 24);
@@ -248,7 +248,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putByte(byte v) {
+  public HashStream putByte(byte v) {
     buffer[(int) (byteCount & 0x3FL)] = v;
     if ((byteCount & 0x3FL) >= 0x3FL) {
       processBuffer();
@@ -258,7 +258,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putShort(short v) {
+  public HashStream putShort(short v) {
     setShort(buffer, (int) (byteCount & 0x3FL), v);
     if ((byteCount & 0x3FL) >= 0x3EL) {
       processBuffer();
@@ -269,7 +269,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putChar(char v) {
+  public HashStream putChar(char v) {
     setChar(buffer, (int) (byteCount & 0x3FL), v);
     if ((byteCount & 0x3FL) >= 0x3EL) {
       processBuffer();
@@ -280,7 +280,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putInt(int v) {
+  public HashStream putInt(int v) {
     setInt(buffer, (int) (byteCount & 0x3FL), v);
     if ((byteCount & 0x3FL) >= 0x3CL) {
       processBuffer();
@@ -291,7 +291,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putLong(long v) {
+  public HashStream putLong(long v) {
     setLong(buffer, (int) (byteCount & 0x3FL), v);
     if ((byteCount & 0x3FL) >= 0x38L) {
       processBuffer();
@@ -302,7 +302,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putBytes(byte[] b, int off, int len) {
+  public HashStream putBytes(byte[] b, int off, int len) {
     int offset = ((int) byteCount) & 0x3F;
     byteCount += len;
     int x = 64 - offset;
@@ -315,7 +315,7 @@ class Komihash4_3 extends AbstractHashCalculator {
         processBuffer();
       }
       while (len > 63) {
-        long b0 = getLong(b, off + 0);
+        long b0 = getLong(b, off);
         long b1 = getLong(b, off + 8);
         long b2 = getLong(b, off + 16);
         long b3 = getLong(b, off + 24);
@@ -336,7 +336,7 @@ class Komihash4_3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putChars(CharSequence s) {
+  public HashStream putChars(CharSequence s) {
     int remainingChars = s.length();
     int offset = (int) byteCount & 0x3F;
     byteCount += ((long) remainingChars) << 1;

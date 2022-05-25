@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class WyhashFinal3 extends AbstractHashCalculator {
+class WyhashFinal3 extends AbstractHashStream {
 
   private static final long[] DEFAULT_SECRET = {
     0xa0761d6478bd642fL, 0xe7037ed1a0b428dbL, 0x8ebc6af09c88c6e3L, 0x589965cc75374cc3L
@@ -44,7 +44,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
     long secret1 = secret[1];
     long secret2 = secret[2];
     long secret3 = secret[3];
-    return new AbstractHasher64Impl(seed, secret1, secret2, secret3);
+    return new HasherImpl(seed, secret1, secret2, secret3);
   }
 
   static AbstractHasher64 create(long seedForHash, long seedForSecret) {
@@ -53,17 +53,17 @@ class WyhashFinal3 extends AbstractHashCalculator {
     long secret1 = secret[1];
     long secret2 = secret[2];
     long secret3 = secret[3];
-    return new AbstractHasher64Impl(seed, secret1, secret2, secret3);
+    return new HasherImpl(seed, secret1, secret2, secret3);
   }
 
-  private static class AbstractHasher64Impl extends AbstractHasher64 {
+  private static class HasherImpl extends AbstractHasher64 {
 
     private final long seed;
     private final long secret1;
     private final long secret2;
     private final long secret3;
 
-    public AbstractHasher64Impl(long seed, long secret1, long secret2, long secret3) {
+    public HasherImpl(long seed, long secret1, long secret2, long secret3) {
       this.seed = seed;
       this.secret1 = secret1;
       this.secret2 = secret2;
@@ -71,7 +71,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
     }
 
     @Override
-    protected HashCalculator newHashCalculator() {
+    public HashStream hashStream() {
       return new WyhashFinal3(seed, secret1, secret2, secret3);
     }
 
@@ -127,7 +127,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putByte(byte v) {
+  public HashStream putByte(byte v) {
     buffer[offset] = v;
     offset += 1;
     byteCount += 1;
@@ -140,7 +140,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putShort(short v) {
+  public HashStream putShort(short v) {
     setShort(buffer, offset, v);
     offset += 2;
     byteCount += 2;
@@ -153,7 +153,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putChar(char v) {
+  public HashStream putChar(char v) {
     setChar(buffer, offset, v);
     offset += 2;
     byteCount += 2;
@@ -166,7 +166,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putInt(int v) {
+  public HashStream putInt(int v) {
     setInt(buffer, offset, v);
     offset += 4;
     byteCount += 4;
@@ -179,7 +179,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putLong(long v) {
+  public HashStream putLong(long v) {
     setLong(buffer, offset, v);
     offset += 8;
     byteCount += 8;
@@ -192,7 +192,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putBytes(byte[] b, int off, int len) {
+  public HashStream putBytes(byte[] b, int off, int len) {
     byteCount += len;
     int x = 48 - offset;
     if (len > x) {
@@ -201,7 +201,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
       len -= x;
       off += x;
       while (len > 48) {
-        long b0 = getLong(b, off + 0);
+        long b0 = getLong(b, off);
         long b1 = getLong(b, off + 8);
         long b2 = getLong(b, off + 16);
         long b3 = getLong(b, off + 24);
@@ -223,7 +223,7 @@ class WyhashFinal3 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putChars(CharSequence s) {
+  public HashStream putChars(CharSequence s) {
     int remainingChars = s.length();
     byteCount += ((long) remainingChars) << 1;
     int off = 0;

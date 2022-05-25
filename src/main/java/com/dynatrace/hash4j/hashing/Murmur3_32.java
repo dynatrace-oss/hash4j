@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_32 extends AbstractHashCalculator {
+class Murmur3_32 extends AbstractHashStream {
 
   private static final int C1 = 0xcc9e2d51;
   private static final int C2 = 0x1b873593;
@@ -32,19 +32,19 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   static AbstractHasher32 create(int seed) {
-    return new AbstractHasher32Impl(seed);
+    return new HasherImpl(seed);
   }
 
-  private static class AbstractHasher32Impl extends AbstractHasher32 {
+  private static class HasherImpl extends AbstractHasher32 {
 
     private final int seed;
 
-    public AbstractHasher32Impl(int seed) {
+    public HasherImpl(int seed) {
       this.seed = seed;
     }
 
     @Override
-    protected HashCalculator newHashCalculator() {
+    public HashStream hashStream() {
       return new Murmur3_32(seed);
     }
 
@@ -83,7 +83,7 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putByte(byte b) {
+  public HashStream putByte(byte b) {
     buffer |= ((b & 0xFFL) << shift);
     shift += 8;
     length += 1;
@@ -96,7 +96,7 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putShort(short v) {
+  public HashStream putShort(short v) {
     buffer |= (v & 0xFFFFL) << shift;
     shift += 16;
     length += 2;
@@ -109,7 +109,7 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putInt(int v) {
+  public HashStream putInt(int v) {
     buffer |= (v & 0xFFFFFFFFL) << shift;
     length += 4;
     processBuffer((int) buffer);
@@ -118,7 +118,7 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putLong(long l) {
+  public HashStream putLong(long l) {
     processBuffer((int) (buffer | (l << shift)));
     buffer = l >>> (32 - shift);
     processBuffer((int) buffer);
@@ -128,7 +128,7 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putBytes(byte[] b, int off, int len) {
+  public HashStream putBytes(byte[] b, int off, int len) {
     final int regularBlockStartIdx = (-length) & 0x3;
     final int regularBlockEndIdx = len - ((len + length) & 0x3);
     length += len;
@@ -212,7 +212,7 @@ class Murmur3_32 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putChars(CharSequence s) {
+  public HashStream putChars(CharSequence s) {
     int len = s.length();
     if (len == 0) {
       return this;

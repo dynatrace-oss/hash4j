@@ -17,20 +17,95 @@ package com.dynatrace.hash4j.hashing;
 
 import static java.util.Objects.requireNonNull;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
-abstract class AbstractHashSink implements HashSink {
+abstract class AbstractHashStream implements HashStream {
+
+  private static final VarHandle LONG_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
+  private static final VarHandle INT_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
+  private static final VarHandle SHORT_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
+  private static final VarHandle CHAR_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(char[].class, ByteOrder.LITTLE_ENDIAN);
+
+  protected static final long unsignedMultiplyHigh(long a, long b) {
+    return Math.multiplyHigh(a, b) + ((a >> 63) & b) + ((b >> 63) & a);
+    // return Math.multiplyHigh(a, b) + ((a < 0) ? b : 0) + ((b < 0) ? a : 0);
+  }
+
+  protected static char getChar(byte[] b, int off) {
+    return (char) CHAR_HANDLE.get(b, off);
+  }
+
+  protected static short getShort(byte[] b, int off) {
+    return (short) SHORT_HANDLE.get(b, off);
+  }
+
+  protected static int getInt(byte[] b, int off) {
+    return (int) INT_HANDLE.get(b, off);
+  }
+
+  protected static long getLong(byte[] b, int off) {
+    return (long) LONG_HANDLE.get(b, off);
+  }
+
+  protected static void setLong(byte[] b, int off, long v) {
+    LONG_HANDLE.set(b, off, v);
+  }
+
+  protected static void setInt(byte[] b, int off, int v) {
+    INT_HANDLE.set(b, off, v);
+  }
+
+  protected static void setShort(byte[] b, int off, short v) {
+    SHORT_HANDLE.set(b, off, v);
+  }
+
+  protected static long getLong(CharSequence s, int off) {
+    return (long) s.charAt(off)
+        | ((long) s.charAt(off + 1) << 16)
+        | ((long) s.charAt(off + 2) << 32)
+        | ((long) s.charAt(off + 3) << 48);
+  }
+
+  protected static int getInt(CharSequence s, int off) {
+    return (int) s.charAt(off) | ((int) s.charAt(off + 1) << 16);
+  }
+
+  protected static void setChar(byte[] b, int off, char v) {
+    CHAR_HANDLE.set(b, off, v);
+  }
 
   @Override
-  public HashSink putBytes(byte[] b) {
+  public int getAsInt() {
+    return (int) getAsLong();
+  }
+
+  @Override
+  public long getAsLong() {
+    return get().getAsLong();
+  }
+
+  @Override
+  public HashValue128 get() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public HashStream putBytes(byte[] b) {
     putBytes(b, 0, b.length);
     return this;
   }
 
   @Override
-  public HashSink putBytes(byte[] b, int off, int len) {
+  public HashStream putBytes(byte[] b, int off, int len) {
     for (int i = 0; i < len; i++) {
       putByte(b[off + i]);
     }
@@ -38,26 +113,26 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public HashSink putBoolean(boolean v) {
+  public HashStream putBoolean(boolean v) {
     putByte((byte) (v ? 1 : 0));
     return this;
   }
 
   @Override
-  public HashSink putShort(short v) {
+  public HashStream putShort(short v) {
     putByte((byte) v);
     putByte((byte) (v >>> 8));
     return this;
   }
 
   @Override
-  public HashSink putChar(char v) {
+  public HashStream putChar(char v) {
     putShort((short) v);
     return this;
   }
 
   @Override
-  public HashSink putInt(int v) {
+  public HashStream putInt(int v) {
     putByte((byte) v);
     putByte((byte) (v >>> 8));
     putByte((byte) (v >>> 16));
@@ -66,26 +141,26 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public HashSink putLong(long v) {
+  public HashStream putLong(long v) {
     putInt((int) (v));
     putInt((int) (v >> 32));
     return this;
   }
 
   @Override
-  public HashSink putFloat(float v) {
+  public HashStream putFloat(float v) {
     putInt(Float.floatToRawIntBits(v));
     return this;
   }
 
   @Override
-  public HashSink putDouble(double v) {
+  public HashStream putDouble(double v) {
     putLong(Double.doubleToRawLongBits(v));
     return this;
   }
 
   @Override
-  public HashSink putChars(CharSequence s) {
+  public HashStream putChars(CharSequence s) {
     int len = s.length();
     for (int i = 0; i < len; i++) {
       putChar(s.charAt(i));
@@ -94,27 +169,27 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public HashSink putString(String s) {
+  public HashStream putString(String s) {
     putChars(s);
     putInt(s.length());
     return this;
   }
 
   @Override
-  public HashSink putUUID(UUID uuid) {
+  public HashStream putUUID(UUID uuid) {
     putLong(uuid.getLeastSignificantBits());
     putLong(uuid.getMostSignificantBits());
     return this;
   }
 
   @Override
-  public <T> HashSink put(T data, HashFunnel<T> funnel) {
+  public <T> HashStream put(T data, HashFunnel<T> funnel) {
     funnel.put(data, this);
     return this;
   }
 
   @Override
-  public <T> HashSink putNullable(T data, HashFunnel<T> funnel) {
+  public <T> HashStream putNullable(T data, HashFunnel<T> funnel) {
     if (data != null) {
       funnel.put(data, this);
       putBoolean(true);
@@ -125,7 +200,7 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public <T> HashSink putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
+  public <T> HashStream putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
     int counter = 0;
     for (T d : data) {
       put(d, funnel);
@@ -136,13 +211,13 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public <T> HashSink putUnorderedIterable(
+  public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier) {
     return putUnorderedIterable(data, x -> hasherSupplier.get().hashToLong(x, funnel));
   }
 
   @Override
-  public <T> HashSink putUnorderedIterable(
+  public <T> HashStream putUnorderedIterable(
       final Iterable<T> data, final ToLongFunction<? super T> elementHashFunction) {
     requireNonNull(data);
     requireNonNull(elementHashFunction);
@@ -1199,7 +1274,7 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public <T> HashSink putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
+  public <T> HashStream putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
     if (obj.isPresent()) {
       put(obj.get(), funnel);
       putBoolean(true);
@@ -1210,7 +1285,7 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public HashSink putOptionalInt(OptionalInt v) {
+  public HashStream putOptionalInt(OptionalInt v) {
     if (v.isPresent()) {
       putInt(v.getAsInt());
       putBoolean(true);
@@ -1221,7 +1296,7 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public HashSink putOptionalLong(OptionalLong v) {
+  public HashStream putOptionalLong(OptionalLong v) {
     if (v.isPresent()) {
       putLong(v.getAsLong());
       putBoolean(true);
@@ -1232,7 +1307,7 @@ abstract class AbstractHashSink implements HashSink {
   }
 
   @Override
-  public HashSink putOptionalDouble(OptionalDouble v) {
+  public HashStream putOptionalDouble(OptionalDouble v) {
     if (v.isPresent()) {
       putDouble(v.getAsDouble());
       putBoolean(true);
@@ -1242,7 +1317,7 @@ abstract class AbstractHashSink implements HashSink {
     return this;
   }
 
-  protected HashSink putLongs(long[] data, int off, int len) {
+  protected HashStream putLongs(long[] data, int off, int len) {
     for (int i = 0; i < len; ++i) {
       putLong(data[off + i]);
     }

@@ -29,11 +29,11 @@ public class AbstractHasher32Test {
     AbstractHasher32 hasher =
         new AbstractHasher32() {
           @Override
-          protected HashCalculator newHashCalculator() {
-            return new AbstractHashCalculator() {
+          public HashStream hashStream() {
+            return new AbstractHashStream() {
 
               @Override
-              public HashSink putByte(byte v) {
+              public HashStream putByte(byte v) {
                 return this;
               }
 

@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public abstract class AbstractHashCalculator128Test extends AbstractHashCalculatorTest<Hasher128> {
+public abstract class AbstractHashStream128Test extends AbstractHashStreamTest {
 
   public static class ReferenceTestRecord128 extends ReferenceTestRecord<Hasher128> {
 
@@ -44,7 +44,7 @@ public abstract class AbstractHashCalculator128Test extends AbstractHashCalculat
 
   @ParameterizedTest
   @MethodSource("getReferenceTestRecords")
-  void testAgainstReference(AbstractHashCalculator128Test.ReferenceTestRecord128 r) {
+  void testAgainstReference(AbstractHashStream128Test.ReferenceTestRecord128 r) {
 
     assertArrayEquals(
         r.getExpectedHash(),

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Komihash4_3Test extends AbstractHashCalculator64Test {
+public class Komihash4_3Test extends AbstractHashStream64Test {
 
   private static final List<Hasher64> HASHERS =
       Arrays.asList(Hashing.komihash4_3(), Hashing.komihash4_3(0x1b5af6b8376953d2L));
@@ -35,9 +35,9 @@ public class Komihash4_3Test extends AbstractHashCalculator64Test {
     List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
     for (ReferenceRecord r : Komihash4_3ReferenceData.get()) {
       referenceTestRecords.add(
-          new ReferenceTestRecord64(Komihash4_3.create(), r.getData(), r.getHash0()));
+          new ReferenceTestRecord64(Hashing.komihash4_3(), r.getData(), r.getHash0()));
       referenceTestRecords.add(
-          new ReferenceTestRecord64(Komihash4_3.create(r.getSeed()), r.getData(), r.getHash1()));
+          new ReferenceTestRecord64(Hashing.komihash4_3(r.getSeed()), r.getData(), r.getHash1()));
     }
     return referenceTestRecords;
   }

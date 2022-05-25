@@ -19,7 +19,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 
-class Murmur3_128 extends AbstractHashCalculator {
+class Murmur3_128 extends AbstractHashStream {
 
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;
@@ -38,19 +38,19 @@ class Murmur3_128 extends AbstractHashCalculator {
 
   static AbstractHasher128 create(int seed) {
     long longSeed = seed & 0xFFFFFFFFL;
-    return new AbstractHasher128Impl(longSeed);
+    return new HasherImpl(longSeed);
   }
 
-  private static class AbstractHasher128Impl extends AbstractHasher128 {
+  private static class HasherImpl extends AbstractHasher128 {
 
     private final long seed;
 
-    public AbstractHasher128Impl(long seed) {
+    public HasherImpl(long seed) {
       this.seed = seed;
     }
 
     @Override
-    protected HashCalculator newHashCalculator() {
+    public HashStream hashStream() {
       return new Murmur3_128(seed);
     }
 
@@ -148,7 +148,7 @@ class Murmur3_128 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putByte(byte b) {
+  public HashStream putByte(byte b) {
     buffer1 |= ((b & 0xFFL) << bitCount);
     if ((bitCount & 0x38L) == 0x38L) {
       if ((bitCount & 0x40L) != 0) {
@@ -162,7 +162,7 @@ class Murmur3_128 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putShort(short v) {
+  public HashStream putShort(short v) {
     final long l = v & 0xFFFFL;
     buffer1 |= l << bitCount;
     if ((bitCount & 0x30L) == 0x30L) {
@@ -177,7 +177,7 @@ class Murmur3_128 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putInt(int v) {
+  public HashStream putInt(int v) {
     final long l = v & 0xFFFFFFFFL;
     buffer1 |= l << bitCount;
     if ((bitCount & 0x20L) != 0) {
@@ -192,7 +192,7 @@ class Murmur3_128 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putLong(long l) {
+  public HashStream putLong(long l) {
     buffer1 |= (l << bitCount);
     if ((bitCount & 0x40L) != 0) {
       processBuffer(buffer0, buffer1);
@@ -209,7 +209,7 @@ class Murmur3_128 extends AbstractHashCalculator {
       MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
 
   @Override
-  public HashSink putBytes(byte[] b, int off, int len) {
+  public HashStream putBytes(byte[] b, int off, int len) {
 
     final long oldBitCount = bitCount;
     final int numWrittenBytes = (int) bitCount >>> 3;
@@ -417,7 +417,7 @@ class Murmur3_128 extends AbstractHashCalculator {
   }
 
   @Override
-  public HashSink putChars(CharSequence s) {
+  public HashStream putChars(CharSequence s) {
     final int len = s.length();
     int i = ((8 - (int) (bitCount)) >>> 4) & 0x7;
     if (len < i) {

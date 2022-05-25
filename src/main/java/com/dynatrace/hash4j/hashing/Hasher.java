@@ -15,13 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-interface HashCalculator extends HashSink {
+/** A hash function. */
+public interface Hasher {
 
-  int getAsInt();
-
-  long getAsLong();
-
-  HashValue128 get();
-
-  int getHashBitSize();
+  /**
+   * Starts a hash stream.
+   *
+   * @return a new {@link HashStream} instance
+   */
+  HashStream hashStream();
 }
