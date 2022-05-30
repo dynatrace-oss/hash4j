@@ -198,6 +198,7 @@ class WyhashFinal3 extends AbstractHashStream {
     if (len > x) {
       System.arraycopy(b, off, buffer, offset, x);
       processBuffer();
+      int lenOrig = len;
       len -= x;
       off += x;
       while (len > 48) {
@@ -212,7 +213,7 @@ class WyhashFinal3 extends AbstractHashStream {
         len -= 48;
       }
       int y = 16 - len;
-      if (y > 0 && off - y >= 0) {
+      if (lenOrig > 48 && y > 0) {
         System.arraycopy(b, off - y, buffer, 32 + len, y);
       }
       offset = 0;
