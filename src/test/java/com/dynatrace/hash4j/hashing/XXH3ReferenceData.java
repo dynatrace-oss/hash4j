@@ -71,7 +71,7 @@ public final class XXH3ReferenceData {
     // the hashes are calculated using the c++ reference implementation on an Intel x86 architecture
     // with little endianness
     // the reference implementation was taken from
-    // hhttps://github.com/Cyan4973/xxHash/tree/d8aff149b5b9b9461f4b01fc5ab4842112d2c867
+    // https://github.com/Cyan4973/xxHash/tree/d8aff149b5b9b9461f4b01fc5ab4842112d2c867
 
     /*
       #define XXH_INLINE_ALL
