@@ -15,18 +15,15 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-/**
- * A hash function.
- *
- * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
- * threads and for multiple hash calculations.
- */
-public interface Hasher {
+import net.openhft.hashing.LongHashFunction;
 
-  /**
-   * Starts a hash stream.
-   *
-   * @return a new {@link HashStream} instance
-   */
-  HashStream hashStream();
+public class Murmur3_128ZeroAllocationHashingPerformanceTest
+    extends AbstractZeroAllocationHashing64BitPerformanceTest {
+
+  private static final LongHashFunction HASH_FUNCTION = LongHashFunction.murmur_3();
+
+  @Override
+  protected LongHashFunction createHashFunction() {
+    return HASH_FUNCTION;
+  }
 }

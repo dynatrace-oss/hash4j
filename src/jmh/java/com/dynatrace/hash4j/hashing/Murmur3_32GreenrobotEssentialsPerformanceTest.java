@@ -15,30 +15,34 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-abstract class AbstractHasher128 extends AbstractHasher64 implements Hasher128 {
+import org.greenrobot.essentials.hash.Murmur3A;
+
+public class Murmur3_32GreenrobotEssentialsPerformanceTest extends AbstractPerformanceTest {
 
   @Override
-  public <T> HashValue128 hashTo128Bits(T data, HashFunnel<T> funnel) {
-    return hashStream().put(data, funnel).get();
+  protected long hashObject(TestObject testObject) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public HashValue128 hashBytesTo128Bits(byte[] input) {
-    return hashBytesTo128Bits(input, 0, input.length);
+  protected long hashBytesDirect(byte[] b) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-    return hashTo128Bits(input, (b, f) -> f.putBytes(b, off, len));
+  protected long hashCharsDirect(String s) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
-  public long hashBytesToLong(byte[] input, int off, int len) {
-    return hashBytesTo128Bits(input, off, len).getAsLong();
+  protected long hashBytesIndirect(byte[] b) {
+    Murmur3A murmur = new Murmur3A();
+    murmur.update(b);
+    return murmur.getValue();
   }
 
   @Override
-  public HashValue128 hashCharsTo128Bits(CharSequence input) {
-    return hashTo128Bits(input, (c, f) -> f.putChars(c));
+  protected long hashCharsIndirect(String s) {
+    throw new UnsupportedOperationException();
   }
 }

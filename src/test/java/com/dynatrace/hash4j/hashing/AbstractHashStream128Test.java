@@ -58,6 +58,8 @@ public abstract class AbstractHashStream128Test extends AbstractHashStreamTest {
     if (r.getData().length % 2 == 0) {
       CharSequence charSequence = byteArrayToCharSequence(r.getData());
       assertArrayEquals(
+          r.getExpectedHash(), hash128ToByteArray(r.getHasher().hashCharsTo128Bits(charSequence)));
+      assertArrayEquals(
           r.getExpectedHash(),
           hash128ToByteArray(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL)));
     }

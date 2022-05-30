@@ -15,7 +15,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-/** A 32-bit hash function. */
+/**
+ * A 32-bit hash function.
+ *
+ * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
+ * threads and for multiple hash calculations.
+ */
 public interface Hasher32 extends Hasher {
 
   /**
@@ -31,7 +36,7 @@ public interface Hasher32 extends Hasher {
   /**
    * Hashes a byte array to a 32-bit integer value.
    *
-   * <p>Equivalent to {@code hashBytesToInt(input, 0, input.length)}.
+   * <p>Equivalent to {@link #hashBytesToInt}{@code (input, 0, input.length)}.
    *
    * @param input the byte array
    * @return the hash value
@@ -41,7 +46,7 @@ public interface Hasher32 extends Hasher {
   /**
    * Hashes a byte array to a 32-bit integer value.
    *
-   * <p>Equivalent to {@code hashToInt(input, (b, f) -> f.putBytes(b, off, len))}.
+   * <p>Equivalent to {@link #hashToInt}{@code (input, (b, f) -> f.putBytes(b, off, len))}.
    *
    * @param input the byte array
    * @param off the offset
@@ -49,4 +54,14 @@ public interface Hasher32 extends Hasher {
    * @return the hash value
    */
   int hashBytesToInt(byte[] input, int off, int len);
+
+  /**
+   * Hashes a {@link CharSequence} to a 32-bit {@code int} value.
+   *
+   * <p>Equivalent to {@link #hashCharsToInt}{@code (input, (c, f) -> f.putChars(c))}.
+   *
+   * @param input the char sequence
+   * @return the hash value
+   */
+  int hashCharsToInt(CharSequence input);
 }

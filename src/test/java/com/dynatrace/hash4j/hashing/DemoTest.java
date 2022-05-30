@@ -22,6 +22,30 @@ import org.junit.jupiter.api.Test;
 
 class DemoTest {
 
+  @Test
+  void testHashObjectInTwoDifferentWays() {
+
+    // create an instance of some test class
+    class TestClass {
+      int a = 345;
+      long b = 1756743462445L;
+    }
+    TestClass obj = new TestClass();
+
+    // get a hasher instance
+    Hasher64 hasher = Hashing.wyhashFinal3();
+
+    // variant 1: hash object by passing data into a hash stream
+    long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).getAsLong();
+
+    // variant 2: hash object by defining a funnel
+    HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b);
+    long hash2 = hasher.hashToLong(obj, funnel);
+
+    // both variants lead to the same hash value
+    assertEquals(hash1, hash2);
+  }
+
   // Some class with two string fields.
   private static final class Person {
     private final String firstName;

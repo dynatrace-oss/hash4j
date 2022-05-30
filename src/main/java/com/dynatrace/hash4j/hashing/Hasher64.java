@@ -18,9 +18,13 @@ package com.dynatrace.hash4j.hashing;
 /**
  * A 64-bit hash function.
  *
+ * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
+ * threads and for multiple hash calculations.
+ *
  * <p>Implementations must ensure that
  *
- * <p>{@code (int)hashTo64Bits(obj, funnel) == hashTo32Bits(obj, funnel)}
+ * <p>{@code (int)}{@link #hashToLong}{@code (obj, funnel) == }{@link #hashToInt}{@code (obj,
+ * funnel)}
  */
 public interface Hasher64 extends Hasher32 {
 
@@ -37,7 +41,7 @@ public interface Hasher64 extends Hasher32 {
   /**
    * Hashes a byte array to a 64-bit {@code long} value.
    *
-   * <p>Equivalent to {@code hashBytesToLong(input, 0, input.length)}.
+   * <p>Equivalent to {@link #hashBytesToLong}{@code (input, 0, input.length)}.
    *
    * @param input the byte array
    * @return the hash value
@@ -47,7 +51,7 @@ public interface Hasher64 extends Hasher32 {
   /**
    * Hashes a byte array to a 64-bit {@code long} value.
    *
-   * <p>Equivalent to {@code hashToLong(input, (b, f) -> f.putBytes(b, off, len))}.
+   * <p>Equivalent to {@link #hashToLong}{@code (input, (b, f) -> f.putBytes(b, off, len))}.
    *
    * @param input the byte array
    * @param off the offset
@@ -55,4 +59,14 @@ public interface Hasher64 extends Hasher32 {
    * @return the hash value
    */
   long hashBytesToLong(byte[] input, int off, int len);
+
+  /**
+   * Hashes a {@link CharSequence} to a 64-bit {@code long} value.
+   *
+   * <p>Equivalent to {@link #hashToLong}{@code (input, (c, f) -> f.putChars(c))}.
+   *
+   * @param input the char sequence
+   * @return the hash value
+   */
+  long hashCharsToLong(CharSequence input);
 }

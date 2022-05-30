@@ -99,6 +99,30 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
+  public HashStream putBoolean(boolean v) {
+    putByte((byte) (v ? 1 : 0));
+    return this;
+  }
+
+  @Override
+  public HashStream putBooleans(boolean[] x) {
+    return putBooleans(x, 0, x.length);
+  }
+
+  @Override
+  public HashStream putBooleans(boolean[] x, int off, int len) {
+    for (int i = 0; i < len; i++) {
+      putBoolean(x[off + i]);
+    }
+    return this;
+  }
+
+  @Override
+  public HashStream putBooleanArray(boolean[] x) {
+    return putBooleans(x).putInt(x.length);
+  }
+
+  @Override
   public HashStream putBytes(byte[] b) {
     putBytes(b, 0, b.length);
     return this;
@@ -113,16 +137,8 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putBoolean(boolean v) {
-    putByte((byte) (v ? 1 : 0));
-    return this;
-  }
-
-  @Override
-  public HashStream putShort(short v) {
-    putByte((byte) v);
-    putByte((byte) (v >>> 8));
-    return this;
+  public HashStream putByteArray(byte[] x) {
+    return putBytes(x).putInt(x.length);
   }
 
   @Override
@@ -132,30 +148,15 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putInt(int v) {
-    putByte((byte) v);
-    putByte((byte) (v >>> 8));
-    putByte((byte) (v >>> 16));
-    putByte((byte) (v >>> 24));
-    return this;
+  public HashStream putChars(char[] x) {
+    return putChars(x, 0, x.length);
   }
 
   @Override
-  public HashStream putLong(long v) {
-    putInt((int) (v));
-    putInt((int) (v >> 32));
-    return this;
-  }
-
-  @Override
-  public HashStream putFloat(float v) {
-    putInt(Float.floatToRawIntBits(v));
-    return this;
-  }
-
-  @Override
-  public HashStream putDouble(double v) {
-    putLong(Double.doubleToRawLongBits(v));
+  public HashStream putChars(char[] x, int off, int len) {
+    for (int i = 0; i < len; i++) {
+      putChar(x[off + i]);
+    }
     return this;
   }
 
@@ -169,9 +170,139 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
+  public HashStream putCharArray(char[] x) {
+    return putChars(x).putInt(x.length);
+  }
+
+  @Override
   public HashStream putString(String s) {
     putChars(s);
     putInt(s.length());
+    return this;
+  }
+
+  @Override
+  public HashStream putShort(short v) {
+    putByte((byte) v);
+    putByte((byte) (v >>> 8));
+    return this;
+  }
+
+  @Override
+  public HashStream putShortArray(short[] x) {
+    return putShorts(x).putInt(x.length);
+  }
+
+  @Override
+  public HashStream putShorts(short[] x) {
+    return putShorts(x, 0, x.length);
+  }
+
+  @Override
+  public HashStream putShorts(short[] x, int off, int len) {
+    for (int i = 0; i < len; i++) {
+      putShort(x[off + i]);
+    }
+    return this;
+  }
+
+  @Override
+  public HashStream putInt(int v) {
+    putByte((byte) v);
+    putByte((byte) (v >>> 8));
+    putByte((byte) (v >>> 16));
+    putByte((byte) (v >>> 24));
+    return this;
+  }
+
+  @Override
+  public HashStream putIntArray(int[] x) {
+    return putInts(x).putInt(x.length);
+  }
+
+  @Override
+  public HashStream putInts(int[] x) {
+    return putInts(x, 0, x.length);
+  }
+
+  @Override
+  public HashStream putInts(int[] x, int off, int len) {
+    for (int i = 0; i < len; i++) {
+      putInt(x[off + i]);
+    }
+    return this;
+  }
+
+  @Override
+  public HashStream putLong(long v) {
+    putInt((int) (v));
+    putInt((int) (v >> 32));
+    return this;
+  }
+
+  @Override
+  public HashStream putLongArray(long[] x) {
+    return putLongs(x).putInt(x.length);
+  }
+
+  @Override
+  public HashStream putLongs(long[] x) {
+    return putLongs(x, 0, x.length);
+  }
+
+  @Override
+  public HashStream putLongs(long[] x, int off, int len) {
+    for (int i = 0; i < len; ++i) {
+      putLong(x[off + i]);
+    }
+    return this;
+  }
+
+  @Override
+  public HashStream putFloat(float v) {
+    putInt(Float.floatToRawIntBits(v));
+    return this;
+  }
+
+  @Override
+  public HashStream putFloats(float[] x) {
+    return putFloats(x, 0, x.length);
+  }
+
+  @Override
+  public HashStream putFloats(float[] x, int off, int len) {
+    for (int i = 0; i < len; ++i) {
+      putFloat(x[off + i]);
+    }
+    return this;
+  }
+
+  @Override
+  public HashStream putFloatArray(float[] x) {
+    return putFloats(x).putInt(x.length);
+  }
+
+  @Override
+  public HashStream putDouble(double v) {
+    putLong(Double.doubleToRawLongBits(v));
+    return this;
+  }
+
+  @Override
+  public HashStream putDoubleArray(double[] x) {
+    return putDoubles(x).putInt(x.length);
+  }
+
+  @Override
+  public HashStream putDoubles(double[] x) {
+    return putDoubles(x, 0, x.length);
+  }
+
+  @Override
+  public HashStream putDoubles(double[] x, int off, int len) {
+    for (int i = 0; i < len; ++i) {
+      putDouble(x[off + i]);
+    }
     return this;
   }
 
@@ -243,6 +374,15 @@ abstract class AbstractHashStream implements HashStream {
       putInt(counter);
     }
     return this;
+  }
+
+  // visible for testing
+  static int increaseArraySize(int currentSize) {
+    if (currentSize <= 0x3fffffff) {
+      return currentSize << 1; // increase by 100%
+    } else {
+      return Integer.MAX_VALUE;
+    }
   }
 
   private void putSorted(long l0, long l1) {
@@ -1266,13 +1406,6 @@ abstract class AbstractHashStream implements HashStream {
     putInt(size);
   }
 
-  private static int increaseArraySize(int currentSize) {
-    return (int)
-        (currentSize * 2.
-            + 1); // increase by 100% and at least by 1, cast from double to int ensures truncation
-    // at Integer.MAX_VALUE
-  }
-
   @Override
   public <T> HashStream putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
     if (obj.isPresent()) {
@@ -1313,13 +1446,6 @@ abstract class AbstractHashStream implements HashStream {
       putBoolean(true);
     } else {
       putBoolean(false);
-    }
-    return this;
-  }
-
-  protected HashStream putLongs(long[] data, int off, int len) {
-    for (int i = 0; i < len; ++i) {
-      putLong(data[off + i]);
     }
     return this;
   }

@@ -18,9 +18,13 @@ package com.dynatrace.hash4j.hashing;
 /**
  * A 128-bit hash function.
  *
+ * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
+ * threads and for multiple hash calculations.
+ *
  * <p>Implementations must ensure that
  *
- * <p>{@code hashTo128Bits(obj, funnel).getAsLong() == hashTo64Bits(obj, funnel)}
+ * <p>{@link #hashTo128Bits}{@code (obj, funnel).getAsLong() == }{@link #hashToLong}{@code (obj,
+ * funnel)}
  */
 public interface Hasher128 extends Hasher64 {
 
@@ -37,7 +41,7 @@ public interface Hasher128 extends Hasher64 {
   /**
    * Hashes a byte array to a 128-bit {@link HashValue128} value.
    *
-   * <p>Equivalent to {@code hashBytesTo128Bits(input, 0, input.length)}.
+   * <p>Equivalent to {@link #hashBytesTo128Bits}{@code (input, 0, input.length)}.
    *
    * @param input the byte array
    * @return the hash value
@@ -55,4 +59,14 @@ public interface Hasher128 extends Hasher64 {
    * @return the hash value
    */
   HashValue128 hashBytesTo128Bits(byte[] input, int off, int len);
+
+  /**
+   * Hashes a {@link CharSequence} to a 128-bit {@link HashValue128} value.
+   *
+   * <p>Equivalent to {@link #hashTo128Bits}{@code (input, (c, f) -> f.putChars(c))}.
+   *
+   * @param input the char sequence
+   * @return the hash value
+   */
+  HashValue128 hashCharsTo128Bits(CharSequence input);
 }

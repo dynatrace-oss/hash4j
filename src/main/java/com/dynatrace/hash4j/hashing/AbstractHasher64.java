@@ -36,4 +36,9 @@ abstract class AbstractHasher64 extends AbstractHasher32 implements Hasher64 {
   public int hashBytesToInt(byte[] input, int off, int len) {
     return (int) hashBytesToLong(input, off, len);
   }
+
+  @Override
+  public long hashCharsToLong(CharSequence input) {
+    return hashToLong(input, (c, f) -> f.putChars(c));
+  }
 }

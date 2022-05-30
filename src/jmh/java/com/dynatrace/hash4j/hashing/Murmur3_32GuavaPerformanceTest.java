@@ -15,18 +15,14 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-/**
- * A hash function.
- *
- * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
- * threads and for multiple hash calculations.
- */
-public interface Hasher {
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 
-  /**
-   * Starts a hash stream.
-   *
-   * @return a new {@link HashStream} instance
-   */
-  HashStream hashStream();
+public class Murmur3_32GuavaPerformanceTest extends AbstractGuava32BitPerformanceTest {
+  private static final HashFunction HASH_FUNCTION = Hashing.murmur3_32_fixed();
+
+  @Override
+  protected HashFunction createHashFunction() {
+    return HASH_FUNCTION;
+  }
 }

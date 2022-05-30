@@ -15,18 +15,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-/**
- * A hash function.
- *
- * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
- * threads and for multiple hash calculations.
- */
-public interface Hasher {
+public class WyhashFinal3PerformanceTest extends AbstactHasher64PerformanceTest {
 
-  /**
-   * Starts a hash stream.
-   *
-   * @return a new {@link HashStream} instance
-   */
-  HashStream hashStream();
+  private static final Hasher64 HASHER_INSTANCE = Hashing.wyhashFinal3();
+
+  @Override
+  protected Hasher64 getHasherInstance() {
+    return HASHER_INSTANCE;
+  }
 }

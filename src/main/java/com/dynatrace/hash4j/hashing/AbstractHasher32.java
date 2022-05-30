@@ -31,4 +31,9 @@ abstract class AbstractHasher32 implements Hasher32 {
   public int hashBytesToInt(byte[] input, int off, int len) {
     return hashToInt(input, (b, f) -> f.putBytes(b, off, len));
   }
+
+  @Override
+  public int hashCharsToInt(CharSequence input) {
+    return hashToInt(input, (c, f) -> f.putChars(c));
+  }
 }

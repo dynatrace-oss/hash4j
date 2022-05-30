@@ -15,18 +15,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-/**
- * A hash function.
- *
- * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
- * threads and for multiple hash calculations.
- */
-public interface Hasher {
+public class Murmur3_128PerformanceTest extends AbstactHasher64PerformanceTest {
 
-  /**
-   * Starts a hash stream.
-   *
-   * @return a new {@link HashStream} instance
-   */
-  HashStream hashStream();
+  private static final Hasher128 HASHER_INSTANCE = Hashing.murmur3_128();
+
+  @Override
+  protected Hasher128 getHasherInstance() {
+    return HASHER_INSTANCE;
+  }
 }

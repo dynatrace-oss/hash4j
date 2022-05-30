@@ -31,50 +31,121 @@ public interface HashSink {
   HashSink putByte(byte v);
 
   /**
-   * Adds all bytes of the given byte array to the hash computation.
+   * Adds all elements of a {@code byte} array to the hash computation.
    *
-   * <p>Equivalent to <br>
-   * {@code hashBytes(b, 0, b.length)}
+   * <p>Unlike {@link #putByteArray} this method does not add the length of the array.
    *
-   * <p>Note: This method does not include the length of the byte array in the hash computation. If
-   * the byte array has variable length, and it is just one of many variable-length fields of the
-   * object for which a hash value is calculated, appending the length of the byte array by calling
-   * {@code putInt(b.length)} is highly recommended. This will improve the hash quality and to
-   * decrease the chance of hash collisions.
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * @param b the data.
+   * <p>Equivalent to {@link #putBytes}{@code (x, 0, x.length);}
+   *
+   * @param x the array
    * @return this
    */
-  HashSink putBytes(byte[] b);
+  HashSink putBytes(byte[] x);
 
   /**
-   * Adds <code>len</code> bytes of the given byte array to the hash computation.
+   * Adds <code>len</code> elements of the given {@code byte} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) writeByte(b[off + i]);}
+   * {@code for (int i = 0; i < len; i++) }{@link #putByte}{@code (x[off + i]);}
    *
-   * <p>Note: If the byte array has not fixed length, and it is just one of many variable-length
-   * fields of an object for which a hash value is calculated, the length of the byte array by
-   * calling {@code putInt(len)} is highly recommended, in order to improve the hash quality and to
-   * decrease the chance of hash collisions.
-   *
-   * @param b the data.
-   * @param off the start offset in the data.
-   * @param len the number of bytes to write.
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
    * @return this
    */
-  HashSink putBytes(byte[] b, int off, int len);
+  HashSink putBytes(byte[] x, int off, int len);
+
+  /**
+   * Adds a {@code byte} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putByteArray}{@code (new byte[]{1, 2}).}{@link #putByteArray}{@code
+   * (new byte[]{3})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putByteArray}{@code (new byte[]{1}).}{@link #putByteArray}{@code
+   * (new byte[]{2, 3})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putBytes}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the boolean array
+   * @return this
+   */
+  HashSink putByteArray(byte[] x);
 
   /**
    * Adds a <code>boolean</code> value to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code writeByte(v ? 1 : 0);}
+   * {@link #putByte}{@code (v ? 1 : 0);}
    *
    * @param v the value
    * @return this
    */
   HashSink putBoolean(boolean v);
+
+  /**
+   * Adds all elements of a {@code boolean} array to the hash computation.
+   *
+   * <p>Unlike {@link #putBooleanArray} this method does not add the length of the array.
+   *
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
+   *
+   * <p>Equivalent to {@link #putBooleans}{@code (x, 0, x.length);}
+   *
+   * @param x the array
+   * @return this
+   */
+  HashSink putBooleans(boolean[] x);
+
+  /**
+   * Adds <code>len</code> elements of the given {@code boolean} array to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putBoolean}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putBooleans(boolean[] x, int off, int len);
+
+  /**
+   * Adds a {@code boolean} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putBooleanArray}{@code (new boolean[]{true, false}).}{@link
+   * #putBooleanArray}{@code (new boolean[]{true})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putBooleanArray}{@code (new boolean[]{true}).}{@link
+   * #putBooleanArray}{@code (new boolean[]{false, true})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putBooleans}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the boolean array
+   * @return this
+   */
+  HashSink putBooleanArray(boolean[] x);
 
   /**
    * Adds a <code>short</code> value to the hash computation using little-endian byte order.
@@ -85,12 +156,162 @@ public interface HashSink {
   HashSink putShort(short v);
 
   /**
+   * Adds all elements of a {@code short} array to the hash computation.
+   *
+   * <p>Unlike {@link #putShortArray} this method does not add the length of the array.
+   *
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
+   *
+   * <p>Equivalent to {@link #putShorts}{@code (x, 0, x.length);}
+   *
+   * @param x the array
+   * @return this
+   */
+  HashSink putShorts(short[] x);
+
+  /**
+   * Adds <code>len</code> elements of the given {@code short} array to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putShort}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putShorts(short[] x, int off, int len);
+
+  /**
+   * Adds a {@code short} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putShortArray}{@code (new short[]{1, 2}).}{@link
+   * #putShortArray}{@code (new short[]{3})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putShortArray}{@code (new short[]{1}).}{@link #putShortArray}{@code
+   * (new short[]{2, 3})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putShorts}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the short array
+   * @return this
+   */
+  HashSink putShortArray(short[] x);
+
+  /**
    * Adds a <code>char</code> value to the hash computation using little-endian byte order.
    *
    * @param v the value
    * @return this
    */
   HashSink putChar(char v);
+
+  /**
+   * Adds all elements of a {@code char} array to the hash computation.
+   *
+   * <p>Unlike {@link #putCharArray} this method does not add the length of the array.
+   *
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
+   *
+   * <p>Equivalent to {@link #putChars}{@code (x, 0, x.length);}
+   *
+   * @param x the array
+   * @return this
+   */
+  HashSink putChars(char[] x);
+
+  /**
+   * Adds <code>len</code> elements of the given {@code char} array to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putChar}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putChars(char[] x, int off, int len);
+
+  /**
+   * Adds chars to the hash computation.
+   *
+   * <p>This method does not include the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putChars}{@code ("AB").}{@link #putChars}{@code ("C")}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putChars}{@code ("A").}{@link #putChars}{@code ("BC")}
+   *
+   * <p>will be equivalent contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code for (int i = 0; i < s.length(); ++i) }{@link #putChar}{@code (s.charAt(i));}
+   *
+   * @param c a char sequence
+   * @return this
+   */
+  HashSink putChars(CharSequence c);
+
+  /**
+   * Adds a {@code char} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putCharArray}{@code (new char[]{'A', 'B'}).}{@link
+   * #putCharArray}{@code (new char[]{'C'})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putCharArray}{@code (new char[]{'A'}).}{@link #putCharArray}{@code
+   * (new char[]{'B', 'C'})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putChars}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the char array
+   * @return this
+   */
+  HashSink putCharArray(char[] x);
+
+  /**
+   * Adds a string to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putString}{@code ("AB").}{@link #putString}{@code ("C")}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putString}{@code ("A").}{@link #putString}{@code ("BC")}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putChars}{@code (s).}{@link #putInt}{@code (s.length());}
+   *
+   * @param s the string
+   * @return this
+   */
+  HashSink putString(String s);
 
   /**
    * Adds an <code>int</code> value to the hash computation using little-endian byte order.
@@ -101,6 +322,59 @@ public interface HashSink {
   HashSink putInt(int v);
 
   /**
+   * Adds all elements of an {@code int} array to the hash computation.
+   *
+   * <p>Unlike {@link #putIntArray} this method does not add the length of the array.
+   *
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
+   *
+   * <p>Equivalent to {@link #putInts}{@code (x, 0, x.length);}
+   *
+   * @param x the array
+   * @return this
+   */
+  HashSink putInts(int[] x);
+
+  /**
+   * Adds <code>len</code> elements of the given {@code int} array to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putInt}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putInts(int[] x, int off, int len);
+
+  /**
+   * Adds an {@code int} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putIntArray}{@code (new int[]{1, 2}).}{@link #putIntArray}{@code
+   * (new int[]{3})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putIntArray}{@code (new int[]{1}).}{@link #putIntArray}{@code (new
+   * int[]{2, 3})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putInts}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the int array
+   * @return this
+   */
+  HashSink putIntArray(int[] x);
+
+  /**
    * Adds along <code>long</code> value to the hash computation using little-endian byte order.
    *
    * @param v the value
@@ -109,9 +383,62 @@ public interface HashSink {
   HashSink putLong(long v);
 
   /**
+   * Adds all elements of a {@code long} array to the hash computation.
+   *
+   * <p>Unlike {@link #putLongArray} this method does not add the length of the array.
+   *
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
+   *
+   * <p>Equivalent to {@link #putLongs}{@code (x, 0, x.length);}
+   *
+   * @param x the array
+   * @return this
+   */
+  HashSink putLongs(long[] x);
+
+  /**
+   * Adds <code>len</code> elements of the given {@code long} array to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putLong}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putLongs(long[] x, int off, int len);
+
+  /**
+   * Adds a {@code long} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putLongArray}{@code (new long[]{1, 2}).}{@link #putLongArray}{@code
+   * (new long[]{3})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putLongArray}{@code (new long[]{1}).}{@link #putLongArray}{@code
+   * (new long[]{2, 3})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putLongs}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the int array
+   * @return this
+   */
+  HashSink putLongArray(long[] x);
+
+  /**
    * Adds a <code>float</code> value to the hash computation using little-endian byte order.
    *
-   * <p>Equivalent to: {@code putInt(Float.floatToRawIntBits(v));}
+   * <p>Equivalent to: {@link #putInt}{@code (Float.floatToRawIntBits(v));}
    *
    * @param v the value
    * @return this
@@ -119,9 +446,62 @@ public interface HashSink {
   HashSink putFloat(float v);
 
   /**
+   * Adds all elements of a {@code float} array to the hash computation.
+   *
+   * <p>Unlike {@link #putFloatArray} this method does not add the length of the array.
+   *
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
+   *
+   * <p>Equivalent to {@link #putFloats}{@code (x, 0, x.length);}
+   *
+   * @param x the array
+   * @return this
+   */
+  HashSink putFloats(float[] x);
+
+  /**
+   * Adds <code>len</code> elements of the given {@code float} array to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putFloat}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putFloats(float[] x, int off, int len);
+
+  /**
+   * Adds a {@code float} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putFloatArray}{@code (new float[]{1, 2}).}{@link
+   * #putFloatArray}{@code (new float[]{3})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putFloatArray}{@code (new float[]{1}).}{@link #putFloatArray}{@code
+   * (new float[]{2, 3})}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to
+   *
+   * <p>{@code }{@link #putFloats}{@code (x).}{@link #putInt}{@code (x.length);}
+   *
+   * @param x the float array
+   * @return this
+   */
+  HashSink putFloatArray(float[] x);
+
+  /**
    * Adds a <code>double</code> value to the hash computation using little-endian byte order.
    *
-   * <p>Equivalent to: {@code putLong(Double.doubleToRawLongBits(v));}
+   * <p>Equivalent to: {@link #putLong}{@code (Double.doubleToRawLongBits(v));}
    *
    * @param v the value
    * @return this
@@ -129,44 +509,65 @@ public interface HashSink {
   HashSink putDouble(double v);
 
   /**
-   * Adds a string to the hash computation.
+   * Adds all elements of a {@code double} array to the hash computation.
    *
-   * <p>This method includes the string length information. In this way, {@code
-   * hashSink.putString("AB").putString("C")} and {@code hashSink.putString("A").putString("BC")}
-   * will lead to different hashes.
+   * <p>Unlike {@link #putDoubleArray} this method does not add the length of the array.
    *
-   * <p>Equivalent to
+   * <p>If the array has variable length, and it is just one of many variable-length fields of the
+   * object for which a hash value is calculated, it is highly recommended to also incorporate the
+   * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>{@code for (int i = 0; i < s.length(); ++i) putChar(s.charAt(i));} <br>
-   * {@code putInt(s.length());}
+   * <p>Equivalent to {@link #putDoubles}{@code (x, 0, x.length);}
    *
-   * @param s the string
+   * @param x the array
    * @return this
    */
-  HashSink putString(String s);
+  HashSink putDoubles(double[] x);
 
   /**
-   * Adds chars to the hash computation.
+   * Adds <code>len</code> elements of the given {@code double} array to the hash computation.
    *
-   * <p>This method does not include the string length information. In this way, {@code
-   * hashSink.putString("AB").putString("C")} and {@code hashSink.putString("A").putString("BC")}
-   * will lead to different hashes.
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) }{@link #putDouble}{@code (x[off + i]);}
+   *
+   * @param x the array
+   * @param off the start offset in the array
+   * @param len the number of elements
+   * @return this
+   */
+  HashSink putDoubles(double[] x, int off, int len);
+
+  /**
+   * Adds a {@code double} array to the hash computation.
+   *
+   * <p>This method includes the length information. In this way,
+   *
+   * <p>{@code hashSink.}{@link #putDoubleArray}{@code (new double[]{1, 2}).}{@link
+   * #putDoubleArray}{@code (new double[]{3})}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.}{@link #putDoubleArray}{@code (new double[]{1}).}{@link
+   * #putDoubleArray}{@code (new double[]{2, 3})}
+   *
+   * <p>will be different contributions to the hash value computation.
    *
    * <p>Equivalent to
    *
-   * <p>{@code putChars(s).putInt(s.length());}
+   * <p>{@code }{@link #putDoubles}{@code (x).}{@link #putInt}{@code (x.length);}
    *
-   * @param s the string
+   * @param x the double array
    * @return this
    */
-  HashSink putChars(CharSequence s);
+  HashSink putDoubleArray(double[] x);
 
   /**
    * Adds a {@link UUID} to the hash computation.
    *
    * <p>Equivalent to:
    *
-   * <p>{@code putLong(uuid.getLeastSignificantBits()).putLong(uuid.getMostSignificantBits());}
+   * <p>{@link #putLong}{@code (uuid.getLeastSignificantBits()).}{@link #putLong}{@code
+   * (uuid.getMostSignificantBits());}
    *
    * @param uuid the UUID
    * @return this

@@ -50,6 +50,7 @@ public abstract class AbstractHashStream32Test extends AbstractHashStreamTest {
 
     if (r.getData().length % 2 == 0) {
       CharSequence charSequence = byteArrayToCharSequence(r.getData());
+      assertEquals(r.getExpectedHash(), r.getHasher().hashCharsToInt(charSequence));
       assertEquals(r.getExpectedHash(), r.getHasher().hashToInt(charSequence, CHAR_FUNNEL));
     }
   }

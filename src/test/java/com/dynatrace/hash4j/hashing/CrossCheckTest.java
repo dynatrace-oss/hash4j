@@ -28,6 +28,8 @@ import java.util.List;
 import net.openhft.hashing.LongHashFunction;
 import net.openhft.hashing.LongTupleHashFunction;
 import org.apache.commons.codec.digest.MurmurHash3;
+import org.greenrobot.essentials.hash.Murmur3A;
+import org.greenrobot.essentials.hash.Murmur3F;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -122,6 +124,18 @@ public class CrossCheckTest {
   }
 
   @ParameterizedTest
+  @MethodSource("getMurmur3_32ReferenceData")
+  void testMurmur3_32GreenrobotEssentials(Murmur3_32ReferenceData.ReferenceRecord r) {
+    Murmur3A murmur = new Murmur3A();
+    murmur.update(r.getData());
+    assertEquals(r.getHash0(), (int) murmur.getValue());
+
+    Murmur3A murmurWithSeed = new Murmur3A(r.getSeed());
+    murmurWithSeed.update(r.getData());
+    assertEquals(r.getHash1(), (int) murmurWithSeed.getValue());
+  }
+
+  @ParameterizedTest
   @MethodSource("getMurmur3_128ReferenceData")
   void testMurmur3_128ApacheCommonsCodec(Murmur3_128ReferenceData.ReferenceRecord r) {
     assertArrayEquals(
@@ -181,6 +195,18 @@ public class CrossCheckTest {
         Arrays.equals(
             r.getHash1(),
             tupleToByteArray(LongTupleHashFunction.murmur_3(r.getSeed()).hashBytes(r.getData()))));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getMurmur3_128ReferenceData")
+  void testMurmur3_128GreenrobotEssentials(Murmur3_128ReferenceData.ReferenceRecord r) {
+    Murmur3F murmur = new Murmur3F();
+    murmur.update(r.getData());
+    assertArrayEquals(r.getHash0(), murmur.getValueBytesLittleEndian());
+
+    Murmur3F murmurWithSeed = new Murmur3F(r.getSeed());
+    murmurWithSeed.update(r.getData());
+    assertArrayEquals(r.getHash1(), murmurWithSeed.getValueBytesLittleEndian());
   }
 
   @ParameterizedTest

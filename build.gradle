@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'java-library'
     id 'jacoco'
+    id 'me.champeau.jmh' version '0.6.6'
     id 'org.sonarqube' version '3.3'
     id 'com.diffplug.spotless' version '6.6.1'
     id 'maven-publish'
@@ -60,6 +61,7 @@ dependencies {
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
     testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.0'
+    testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 }
 
 jacocoTestReport { // necessary for sonarcloud coverage
@@ -73,10 +75,38 @@ test {
     useJUnitPlatform()
 }
 
+jmh {
+    fork = 1
+    timeUnit = 'us'
+    failOnError = false
+    timeOnIteration = '1s'
+    warmupForks = 0
+    warmupIterations = 5
+    warmupBatchSize = 1
+    warmup = '1s'
+    iterations = 20
+}
+
+task evaluateBenchmarksPython(type:Exec) {
+    workingDir '.'
+    commandLine 'python3', 'python/benchmark_evaluation.py'
+}
+
+tasks.register('copyBenchmarkReport', Copy) {
+    def proc = "git rev-parse HEAD".execute()
+    def revision = proc.text.trim()
+    rename ('results.txt', new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision + '.txt')
+    from file('build/results/jmh/results.txt')
+    into file('benchmark-results/')
+}
+
 tasks.test.finalizedBy jacocoTestReport
+tasks.jmh.finalizedBy copyBenchmarkReport
+tasks.copyBenchmarkReport.finalizedBy evaluateBenchmarksPython
 check.dependsOn jacocoTestCoverageVerification
 
 sourceSets {
+    jmh
     main
     test
 }
