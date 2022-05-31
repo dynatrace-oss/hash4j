@@ -219,9 +219,9 @@ public class CrossCheckTest {
   @ParameterizedTest
   @MethodSource("getXXH3ReferenceData")
   void testXXH3Crypto(XXH3ReferenceData.ReferenceRecord r) {
-    if (r.getData().length != 1
-        && r.getData().length != 2
-        && r.getData().length != 3) { // crypto has a bug affecting input lengths 1, 2, and 3
+    if (r.getData().length != 1 && r.getData().length != 2 && r.getData().length != 3) {
+      // crypto has a bug affecting input lengths 1, 2, and 3, see
+      // https://github.com/appmattus/crypto/issues/42
       assertEquals(
           r.getHash0(),
           Long.reverseBytes(byteArrayToLong(new Algorithm.XXH3_64.Seeded(0L).hash(r.getData()))));
