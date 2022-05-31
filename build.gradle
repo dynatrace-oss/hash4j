@@ -92,6 +92,16 @@ task evaluateBenchmarksPython(type:Exec) {
     commandLine 'python3', 'python/benchmark_evaluation.py'
 }
 
+tasks.register('checkStatusForBenchmarks') {
+    outputs.upToDateWhen { false }
+    doLast {
+        def status_text = "git status --porcelain".execute().text
+        if(status_text?.trim()) {
+            throw new GradleException('There are uncommitted changes:\n' + status_text)
+        }
+    }
+}
+
 tasks.register('copyBenchmarkReport', Copy) {
     def proc = "git rev-parse HEAD".execute()
     def revision = proc.text.trim()
@@ -104,6 +114,8 @@ tasks.test.finalizedBy jacocoTestReport
 tasks.jmh.finalizedBy copyBenchmarkReport
 tasks.copyBenchmarkReport.finalizedBy evaluateBenchmarksPython
 check.dependsOn jacocoTestCoverageVerification
+tasks.jmh.dependsOn checkStatusForBenchmarks
+tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
 
 sourceSets {
     jmh
