@@ -1,6 +1,7 @@
 # folders
 /.gradle/
 /build/
+/benchmark-results/
 /bin/
 /.idea/
 /.vs/
