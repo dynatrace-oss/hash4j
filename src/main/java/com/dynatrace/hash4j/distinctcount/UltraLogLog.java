@@ -233,7 +233,7 @@ public final class UltraLogLog {
    * @return this sketch
    */
   public UltraLogLog add(long hashValue) {
-    int q = Long.numberOfLeadingZeros(state.length - 1);
+    int q = Long.numberOfLeadingZeros(state.length - 1L);
     int idx = (int) (hashValue >>> q);
     int nlz = Long.numberOfLeadingZeros((hashValue << (-q)) | (state.length - 1));
     long hashPrefix = registerToHashPrefix(state[idx]);
@@ -321,7 +321,7 @@ public final class UltraLogLog {
     int bmc = b - c;
     int abc = a + b + c;
     double x =
-        (Math.sqrt(Math.multiplyFull(a, abc << 2) + Math.multiplyFull(bmc, bmc)) - bmc)
+        (Math.sqrt((double) (Math.multiplyFull(a, abc << 2) + Math.multiplyFull(bmc, bmc))) - bmc)
             / (abc << 1);
     x *= x;
     x *= x;
