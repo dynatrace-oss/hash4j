@@ -289,7 +289,7 @@ public final class UltraLogLog {
 
   // visible for testing
   static double calculateRegisterContribution(byte x) {
-    int y = x & (((x & 3) + 1) >>> 1);
+    int y = ((int) x) & (((x & 3) + 1) >>> 1);
     return Double.longBitsToDouble((((960L - y) << 2) + (~x & 0xFFL)) << 50);
   }
 
