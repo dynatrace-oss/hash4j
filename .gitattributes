@@ -3,6 +3,7 @@
 *.java text
 *.py text
 *.md text
+*.csv text
 
 *.bat text eol=crlf
 

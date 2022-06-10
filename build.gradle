@@ -4,11 +4,66 @@ plugins {
     id 'jacoco'
     id 'me.champeau.jmh' version '0.6.6'
     id 'org.sonarqube' version '3.3'
-    id 'com.diffplug.spotless' version '6.6.1'
+    id 'com.diffplug.spotless' version '6.7.0'
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
 }
+
+def createJavaLicense = {
+    File licenseFile = new File('docs/licenses/DYNATRACE_APACHE_2_0_LICENSE.txt')
+    def line
+    def s = '/*\n'
+    licenseFile.withReader { reader ->
+        while ((line = reader.readLine()) != null) {
+            s += ' *'
+            if(!line.isEmpty()) {
+                s += ' '
+                s += line
+            }
+            s += '\n'
+        }
+    }
+    s += ' */'
+    return s
+}
+
+def createKomihashLicense = {
+    File licenseFile = new File('docs/licenses/KOMIHASH_MIT_LICENSE.txt')
+    def line
+    def s = '/*\n'
+    licenseFile.withReader { reader ->
+        while ((line = reader.readLine()) != null) {
+            s += ' *'
+            if(!line.isEmpty()) {
+                s += ' '
+                s += line
+            }
+            s += '\n'
+        }
+    }
+    s += ' */'
+    return s
+}
+
+def createPythonLicense = {
+    File licenseFile = new File('docs/licenses/DYNATRACE_APACHE_2_0_LICENSE.txt')
+    def line
+    def s = '#\n'
+    licenseFile.withReader { reader ->
+        while ((line = reader.readLine()) != null) {
+            s += '#'
+            if(!line.isEmpty()) {
+                s += ' '
+                s += line
+            }
+            s += '\n'
+        }
+    }
+    s += '#'
+    return s
+}
+
 
 java {
     toolchain {
@@ -19,22 +74,27 @@ java {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.4.0'
+version = '0.5.0'
 
 spotless {
     ratchetFrom 'origin/main'
+    python {
+        target 'python/**/*.py'
+        black('22.3.0')
+        licenseHeader createPythonLicense(), '(import|from)'
+    }
     java {
         importOrder()
         removeUnusedImports()
         googleJavaFormat('1.15.0')
-        licenseHeaderFile 'docs/licenses/HEADER.txt'
+        licenseHeader createJavaLicense()
         targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
     }
     format 'javaKomihash', com.diffplug.gradle.spotless.JavaExtension, {
         importOrder()
         removeUnusedImports()
         googleJavaFormat('1.15.0')
-        licenseHeaderFile 'docs/licenses/HEADER_KOMIHASH.txt'
+        licenseHeader createJavaLicense() + '\n\n' + createKomihashLicense()
         target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
     }
 }
@@ -55,7 +115,7 @@ dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
-    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.22.0'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.23.1'
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.1'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
@@ -87,9 +147,22 @@ jmh {
     iterations = 20
 }
 
-task evaluateBenchmarksPython(type:Exec) {
+task evaluateBenchmarks(type:Exec) {
+    group "evaluation"
     workingDir '.'
     commandLine 'python3', 'python/benchmark_evaluation.py'
+}
+
+task evaluateEstimationErrors(type:Exec) {
+    group "evaluation"
+    workingDir '.'
+    commandLine 'python3', 'python/estimation_error_evaluation.py'
+}
+
+task simulateEstimationErrors(type: JavaExec) {
+    group "evaluation"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dynatrace.hash4j.distinctcount.UltraLogLogEstimationErrorSimulation'
 }
 
 tasks.register('checkStatusForBenchmarks') {
@@ -112,10 +185,11 @@ tasks.register('copyBenchmarkReport', Copy) {
 
 tasks.test.finalizedBy jacocoTestReport
 tasks.jmh.finalizedBy copyBenchmarkReport
-tasks.copyBenchmarkReport.finalizedBy evaluateBenchmarksPython
+tasks.copyBenchmarkReport.finalizedBy evaluateBenchmarks
 check.dependsOn jacocoTestCoverageVerification
 tasks.jmh.dependsOn checkStatusForBenchmarks
 tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
+tasks.simulateEstimationErrors.finalizedBy evaluateEstimationErrors
 
 sourceSets {
     jmh

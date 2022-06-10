@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-/* This file includes a Java port of the Komihash algorithm originally published
+/*
+ * This file includes a Java port of the Komihash algorithm originally published
  * at https://github.com/avaneev/komihash under the following license:
  *
  * MIT License

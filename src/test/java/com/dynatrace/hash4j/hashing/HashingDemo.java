@@ -20,30 +20,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 
-class DemoTest {
+class HashingDemo {
 
   @Test
-  void testHashObjectInTwoDifferentWays() {
+  void demoObjectInTwoDifferentWays() {
 
-    // create an instance of some test class
     class TestClass {
-      int a = 345;
-      long b = 1756743462445L;
+      int a = 42;
+      long b = 1234567890L;
+      String c = "Hello world!";
     }
+
     TestClass obj = new TestClass();
 
-    // get a hasher instance
+    // create a hasher instance
     Hasher64 hasher = Hashing.wyhashFinal3();
 
     // variant 1: hash object by passing data into a hash stream
-    long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).getAsLong();
+    long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong();
 
     // variant 2: hash object by defining a funnel
-    HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b);
+    HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putString(o.c);
     long hash2 = hasher.hashToLong(obj, funnel);
 
     // both variants lead to the same hash value
-    assertEquals(hash1, hash2);
+    assertEquals(0x2cf18e9ee8fd3546L, hash1);
+    assertEquals(0x2cf18e9ee8fd3546L, hash2);
   }
 
   // Some class with two string fields.
@@ -183,19 +185,19 @@ class DemoTest {
   private static final Hasher128 HASHER = Hashing.murmur3_128();
 
   @Test
-  void testHashPerson() {
+  void demoHashPerson() {
     long hashValue = HASHER.hashToLong(PERSON_BOB_SMITH, Person::put);
     assertEquals(-7660042399124123136L, hashValue);
   }
 
   @Test
-  void testHashInformation() {
+  void demoHashInformation() {
     long hashValue = HASHER.hashToLong(INFO_BOB_SMITH, INFORMATION_HASH_FUNNEL);
     assertEquals(-7923957321699133338L, hashValue);
   }
 
   @Test
-  void testHashDataBase() {
+  void demoHashDataBase() {
     // setup database
     List<Person> personList =
         Arrays.asList(
