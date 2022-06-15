@@ -65,7 +65,8 @@ See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount
 
 ### Estimation Error
 
-The state of an UltraLogLog sketch with precision parameter $p$ requires $m = 2^p$ bytes. The expected relative standard error is approximately given by $\sqrt{\frac{\frac{8317}{3528}\ln(2)-1}{m}}\approx \frac{0.796}{\sqrt{m}}.$ This theoretically derived formula is a good approximation for all $p\geq 6$ and large distinct counts. However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller. The bias is always much smaller than the root-mean-square error (rmse) and can therefore be neglected. The following charts show the empirically evaluated relative error as a function of the true distinct count for various precision parameters based on 100k simulation runs.   
+The state of an UltraLogLog sketch with precision parameter $p$ requires $m = 2^p$ bytes. The expected relative standard error is approximately given by
+$\sqrt{\frac{\frac{8317}{3528}\ln(2)-1}{m}}\approx \frac{0.796}{\sqrt{m}}.$ This theoretically derived formula is a good approximation for all $p\geq 6$ and large distinct counts. However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller. The bias is always much smaller than the root-mean-square error (rmse) and can therefore be neglected. The following charts show the empirically evaluated relative error as a function of the true distinct count for various precision parameters based on 100k simulation runs.   
 
 
 | precision | error chart | precision | error chart |
