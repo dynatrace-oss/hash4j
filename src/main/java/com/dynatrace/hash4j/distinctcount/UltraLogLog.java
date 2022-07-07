@@ -195,7 +195,7 @@ public final class UltraLogLog {
    */
   public static UltraLogLog merge(UltraLogLog sketch1, UltraLogLog sketch2) {
     requireNonNull(sketch1, "first sketch was null");
-    requireNonNull(sketch1, "second sketch was null");
+    requireNonNull(sketch2, "second sketch was null");
     if (sketch1.getP() <= sketch2.getP()) {
       return sketch1.copy().add(sketch2);
     } else {
