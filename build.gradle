@@ -80,7 +80,7 @@ spotless {
     ratchetFrom 'origin/main'
     python {
         target 'python/**/*.py'
-        black('22.3.0')
+        black('22.6.0')
         licenseHeader createPythonLicense(), '(import|from)'
     }
     java {

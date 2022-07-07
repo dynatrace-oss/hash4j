@@ -18,7 +18,7 @@ jobs:
         with:
           java-version: 11
       - name: Install black
-        run: pip install black
+        run: pip install --force-reinstall black==22.6.0
       - name: Cache SonarCloud packages
         uses: actions/cache@v1
         with:
