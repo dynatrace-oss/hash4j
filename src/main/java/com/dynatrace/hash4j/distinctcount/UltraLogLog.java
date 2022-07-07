@@ -313,29 +313,33 @@ public final class UltraLogLog {
     }
     sum *= state.length;
 
-    int h01 = h[0] + h[1];
-    int h0123 = h01 + h[2] + h[3];
-    int a = h0123 + h01 + ((h[0] + h[2]) << 1);
-    int b = state.length - h[0] + h[3];
-    int c = h[1] + h[3];
-    int bmc = b - c;
-    int abc = a + b + c;
-    double x =
-        (Math.sqrt((double) (Math.multiplyFull(a, abc << 2) + Math.multiplyFull(bmc, bmc))) - bmc)
-            / (abc << 1);
-    x *= x;
-    x *= x;
+    int alpha = h[0] + h[1];
+    int beta = alpha + h[2] + h[3];
+    int gamma = beta + alpha + ((h[0] + h[2]) << 1);
+    double x = calculateX(state.length, alpha, beta, gamma);
     double x2 = x * x;
-
-    sum += 0.25 * a;
-    sum += h0123 * x;
-    sum += (h01 << 1) * x2;
+    sum += 0.25 * gamma;
+    sum += beta * x;
+    sum += (alpha << 1) * x2;
 
     if (h[0] > 0) {
       sum += (h[0] << 2) * (xi(x2 * x2 * x) / x);
     }
 
     return (ESTIMATION_FACTOR * Math.multiplyFull(state.length, state.length)) / sum;
+  }
+
+  // visible for testing
+  static double calculateX(int m, int alpha, int beta, int gamma) {
+    int mma = m - alpha;
+    int m3b = m + beta + (beta << 1);
+    double x =
+        (Math.sqrt((double) (Math.multiplyFull(gamma, m3b << 2) + Math.multiplyFull(mma, mma)))
+                - mma)
+            / (m3b << 1);
+    x *= x;
+    x *= x;
+    return x;
   }
 
   // visible for testing
@@ -355,10 +359,9 @@ public final class UltraLogLog {
       oldSum = sum;
       x *= x;
       sum += x * y;
-      if (oldSum == sum) break;
+      if (oldSum == sum) return sum;
       y += y;
     }
-    return sum;
   }
 
   /**

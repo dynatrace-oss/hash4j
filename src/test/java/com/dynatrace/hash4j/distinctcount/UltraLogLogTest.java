@@ -228,16 +228,16 @@ public class UltraLogLogTest {
       double expected = Double.NaN;
       switch (i & 3) {
         case 0:
-          expected = (1. / 4 + 1. / 8 + 1. / 16) * Math.pow(0.5, (i - 8) / 4);
+          expected = (1. / 1 + 1. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
           break;
         case 1:
-          expected = (0. / 4 + 1. / 8 + 1. / 16) * Math.pow(0.5, (i - 8) / 4);
+          expected = (0. / 1 + 1. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
           break;
         case 2:
-          expected = (1. / 4 + 0. / 8 + 1. / 16) * Math.pow(0.5, (i - 8) / 4);
+          expected = (1. / 1 + 0. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
           break;
         case 3:
-          expected = (0. / 4 + 0. / 8 + 1. / 16) * Math.pow(0.5, (i - 8) / 4);
+          expected = (0. / 1 + 0. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
           break;
         default:
           fail();
@@ -703,5 +703,75 @@ public class UltraLogLogTest {
     testErrorOfDistinctCountEqualThree(12);
     testErrorOfDistinctCountEqualThree(13);
     testErrorOfDistinctCountEqualThree(14);
+  }
+
+  private static strictfp int xiIterations(double x) {
+    if (x <= 0.) return 0;
+    if (x >= 1.) return 0;
+    if (Double.isNaN(x)) return 0;
+    double sum = x;
+    double y = 2;
+    double oldSum;
+    int counter = 0;
+    while (true) {
+      oldSum = sum;
+      x *= x;
+      sum += x * y;
+      counter += 1;
+      if (oldSum == sum) return counter;
+      y += y;
+    }
+  }
+
+  private static double calculateX(int m, int h0, int h1, int h2, int h3) {
+    int alpha = h0 + h1;
+    int beta = alpha + h2 + h3;
+    int gamma = beta + alpha + ((h0 + h2) << 1);
+    return UltraLogLog.calculateX(m, alpha, beta, gamma);
+  }
+
+  @Test
+  void testXiIterations() {
+    assertThat(xiIterations(0.)).isEqualTo(0);
+    assertThat(xiIterations(Double.POSITIVE_INFINITY)).isEqualTo(0);
+    assertThat(xiIterations(1.)).isEqualTo(0);
+    assertThat(xiIterations(Math.nextDown(1.))).isEqualTo(59);
+    assertThat(xiIterations(Math.nextUp(0.))).isEqualTo(1);
+    int minPrecision = 3;
+    int maxPrecision = 26;
+    int maxNumIterations =
+        31; // 30 should be enough, but let's take 31 to encounter potential platform dependencies
+    for (int p = minPrecision; p <= maxPrecision; ++p) {
+      int m = 1 << p;
+      {
+        // case h0 = m - 1, h1 = 1, h2 = 0, h3 = 0
+        double x = calculateX(m, m - 1, 1, 0, 0);
+        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+      }
+      {
+        // case h0 = m - 1, h1 = 0, h2 = 1, h3 = 0
+        double x = calculateX(m, m - 1, 0, 1, 0);
+        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+      }
+      {
+        // case h0 = m - 1, h1 = 0, h2 = 0, h3 = 1
+        double x = calculateX(m, m - 1, 0, 0, 1);
+        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+      }
+      {
+        // case h0 = m - 1, h1 = 0, h2 = 0, h3 = 0
+        double x = calculateX(m, m - 1, 0, 0, 0);
+        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+      }
+      // further cases
+      for (int h1 = 0; h1 <= 2; ++h1) {
+        for (int h2 = 0; h2 <= 2; ++h2) {
+          for (int h3 = 0; h3 <= 2; ++h3) {
+            double x = calculateX(m, m - h1 - h2 - h3, h1, h2, h3);
+            assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+          }
+        }
+      }
+    }
   }
 }
