@@ -10,7 +10,21 @@
 
 hash4j is a Java library by Dynatrace that includes various non-cryptographic hash algorithms and data structures that are based on high-quality hash functions.
 
-## Hash Algorithms
+## Adding hash4j to your build
+To add a dependency on hash4j using Maven, use the following:
+```xml
+<dependency>
+  <groupId>com.dynatrace.hash4j</groupId>
+  <artifactId>hash4j</artifactId>
+  <version>0.5.0</version>
+</dependency>
+```
+To add a dependency using Gradle:
+```gradle
+implementation 'com.dynatrace.hash4j:hash4j:0.5.0'
+```
+
+## Hash algorithms
 hash4j currently implements the following hash algorithms:
 * [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp) (128-bit and 32-bit)
 * [Wyhash](https://github.com/wangyi-fudan/wyhash) (final version 3)
@@ -63,7 +77,7 @@ double distinctCountEstimate = sketch.getDistinctCountEstimate(); // gives a val
 ```
 See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/UltraLogLogDemo.java).
 
-### Estimation Error
+### Estimation error
 
 The state of an UltraLogLog sketch with precision parameter $p$ requires $m = 2^p$ bytes. The expected relative standard error is approximately given by 
 $\sqrt{\frac{\frac{8317}{3528}\ln(2)-1}{m}}\approx \frac{0.796}{\sqrt{m}}$. This theoretically derived formula is a good approximation for all $p\geq 6$ and large distinct counts. However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller. The bias is always much smaller than the root-mean-square error (rmse) and can therefore be neglected. The following charts show the empirically evaluated relative error as a function of the true distinct count for various precision parameters based on 100k simulation runs.
