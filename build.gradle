@@ -10,8 +10,8 @@ plugins {
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
 }
 
-def createJavaLicense = {
-    File licenseFile = new File('docs/licenses/DYNATRACE_APACHE_2_0_LICENSE.txt')
+def readJavaLicense = licenseName -> {
+    File licenseFile = new File('docs/licenses/' + licenseName + '.txt')
     def line
     def s = '/*\n'
     licenseFile.withReader { reader ->
@@ -28,26 +28,8 @@ def createJavaLicense = {
     return s
 }
 
-def createKomihashLicense = {
-    File licenseFile = new File('docs/licenses/KOMIHASH_MIT_LICENSE.txt')
-    def line
-    def s = '/*\n'
-    licenseFile.withReader { reader ->
-        while ((line = reader.readLine()) != null) {
-            s += ' *'
-            if(!line.isEmpty()) {
-                s += ' '
-                s += line
-            }
-            s += '\n'
-        }
-    }
-    s += ' */'
-    return s
-}
-
-def createPythonLicense = {
-    File licenseFile = new File('docs/licenses/DYNATRACE_APACHE_2_0_LICENSE.txt')
+def readPythonLicense = licenseName -> {
+    File licenseFile = new File('docs/licenses/' + licenseName + '.txt')
     def line
     def s = '#\n'
     licenseFile.withReader { reader ->
@@ -81,20 +63,20 @@ spotless {
     python {
         target 'python/**/*.py'
         black('22.6.0')
-        licenseHeader createPythonLicense(), '(import|from)'
+        licenseHeader readPythonLicense('DYNATRACE_APACHE_2_0_LICENSE'), '(import|from)'
     }
     java {
         importOrder()
         removeUnusedImports()
         googleJavaFormat('1.15.0')
-        licenseHeader createJavaLicense()
+        licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE')
         targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
     }
     format 'javaKomihash', com.diffplug.gradle.spotless.JavaExtension, {
         importOrder()
         removeUnusedImports()
         googleJavaFormat('1.15.0')
-        licenseHeader createJavaLicense() + '\n\n' + createKomihashLicense()
+        licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE') + '\n\n' + readJavaLicense('KOMIHASH_MIT_LICENSE')
         target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
     }
 }
