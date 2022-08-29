@@ -315,17 +315,19 @@ public final class UltraLogLog {
 
     int alpha = h[0] + h[1];
     int beta = alpha + h[2] + h[3];
-    int gamma = beta + alpha + ((h[0] + h[2]) << 1);
-    double x = calculateX(state.length, alpha, beta, gamma);
-    double x2 = x * x;
-    sum += 0.25 * gamma;
-    sum += beta * x;
-    sum += (alpha << 1) * x2;
-
-    if (h[0] > 0) {
-      sum += (h[0] << 2) * (xi(x2 * x2 * x) / x);
+    if (beta > 0) {
+      int gamma = beta + alpha + ((h[0] + h[2]) << 1);
+      double x = calculateX(state.length, alpha, beta, gamma);
+      sum += 0.25 * gamma;
+      sum += beta * x;
+      if (alpha > 0) {
+        double x2 = x * x;
+        sum += (alpha << 1) * x2;
+        if (h[0] > 0) {
+          sum += (h[0] << 2) * (xi(x2 * x2 * x) / x);
+        }
+      }
     }
-
     return (ESTIMATION_FACTOR * Math.multiplyFull(state.length, state.length)) / sum;
   }
 
