@@ -233,11 +233,13 @@ public final class UltraLogLog {
    * @return this sketch
    */
   public UltraLogLog add(long hashValue) {
-    int q = Long.numberOfLeadingZeros(state.length - 1L);
+    int q = Long.numberOfLeadingZeros(state.length - 1L); // q = 64 - p
     int idx = (int) (hashValue >>> q);
-    int nlz = Long.numberOfLeadingZeros((hashValue << (-q)) | (state.length - 1));
+    int nlz =
+        Long.numberOfLeadingZeros(
+            (hashValue << (-q)) | (state.length - 1)); // nlz in {0, 1, ..., 64-p}
     long hashPrefix = registerToHashPrefix(state[idx]);
-    hashPrefix |= 1L << (nlz + (~q));
+    hashPrefix |= 1L << (nlz + (~q)); // nlz + p - 1 in {p-1, ... 63}
     state[idx] = hashPrefixToRegister(hashPrefix);
     return this;
   }
