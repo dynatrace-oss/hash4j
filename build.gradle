@@ -119,7 +119,7 @@ dependencies {
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.1'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
-    testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
+    testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
     testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
     testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 }
