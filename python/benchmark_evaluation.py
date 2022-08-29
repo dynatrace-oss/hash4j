@@ -28,7 +28,16 @@ import time
 git_repo = git.Repo(".")
 Record = namedtuple(
     "Record",
-    ["commit_date", "exec_date", "revision", "algorithm", "test", "avg", "std"],
+    [
+        "commit_date",
+        "exec_date",
+        "revision",
+        "algorithm",
+        "test",
+        "avg",
+        "std",
+        "parameters",
+    ],
 )
 DateCommit = namedtuple("DateCommit", ["commit_date", "revision", "exec_date"])
 
@@ -62,18 +71,32 @@ def read_data(bechmark_result_directory):
     data = []
 
     for benchmark_result_file in benchmark_result_files:
+
         exec_date = parse_exec_date_from_benchmark_result_file(benchmark_result_file)
         revision = parse_revision_from_benchmark_result_file(benchmark_result_file)
         commit_date = get_commit_date(revision)
 
         with open(bechmark_result_path / benchmark_result_file) as file:
             lines = file.readlines()
+            split_header = lines[0].split()
+            parameter_names = []
+            for w in split_header:
+                if w[0] == "(" and w[-1] == ")":
+                    parameter_names.append(w[1:-1])
+
+            num_parameters = len(parameter_names)
             for line in lines[1:]:
                 split_line = line.split()
-                algorithm = split_line[0].split(".")[0]
-                test = split_line[0].split(".")[1]
-                avg = float(split_line[3])
-                std = float(split_line[5])
+                algorithm = split_line[0].split(".")[-2]
+                test = split_line[0].split(".")[-1]
+                avg = float(split_line[3 + num_parameters])
+                std = float(split_line[5 + num_parameters])
+                parameters = {}
+                for h in range(0, num_parameters):
+                    p = split_line[1 + h]
+                    if p != "N/A":
+                        parameters[parameter_names[h]] = split_line[1 + h]
+
                 data.append(
                     Record(
                         commit_date=commit_date,
@@ -83,15 +106,23 @@ def read_data(bechmark_result_directory):
                         test=test,
                         avg=avg,
                         std=std,
+                        parameters=parameters,
                     )
                 )
     return data
 
 
-def split_data_by_test(data):
+def splitted_data_by_test_and_parameters(data):
     result = defaultdict(list)
     for d in data:
-        result[d.test].append(d)
+        test_name = d.test
+        if len(d.parameters) > 0:
+            test_name += " ("
+            for param in sorted(d.parameters):
+                test_name += param + "=" + d.parameters[param] + ";"
+            test_name = test_name[:-1]
+            test_name += ")"
+        result[test_name].append(d)
     return result
 
 
@@ -129,22 +160,22 @@ def plot_algorithm(ax, labels, algorithm, data):
             label_strings.append(format_label(l))
             y_values.append(values[l].avg)
 
-    if algorithm.startswith("FarmHash"):
+    if "FarmHash" in algorithm:
         color = "blue"
-    elif algorithm.startswith("Komihash"):
+    elif "Komihash" in algorithm:
         color = "green"
-    elif algorithm.startswith("Murmur3_128"):
+    elif "Murmur3_128" in algorithm:
         color = "black"
-    elif algorithm.startswith("Murmur3_32"):
+    elif "Murmur3_32" in algorithm:
         color = "red"
-    elif algorithm.startswith("XXH3"):
+    elif "XXH3" in algorithm:
         color = "brown"
-    elif algorithm.startswith("Wyhash"):
+    elif "Wyhash" in algorithm:
         color = "magenta"
-    elif algorithm.startswith("UnorderedHashTest"):
+    elif "UnorderedHashTest" in algorithm:
         color = "black"
     else:
-        assert False
+        color = None
 
     linestyle = "solid"
     if "ZeroAllocationHashing" in algorithm:
@@ -202,8 +233,9 @@ def make_chart(test, data, output_path):
 
 
 data = read_data("benchmark-results")
+splitted_data_by_test_and_parameters = splitted_data_by_test_and_parameters(data)
 
-splitted_data_by_test = split_data_by_test(data)
-
-for test in splitted_data_by_test:
-    make_chart(test, splitted_data_by_test[test], Path("benchmark-results"))
+for test in splitted_data_by_test_and_parameters:
+    make_chart(
+        test, splitted_data_by_test_and_parameters[test], Path("benchmark-results")
+    )
