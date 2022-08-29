@@ -275,6 +275,7 @@ abstract class AbstractHashStreamTest {
       HashValue128 hash128Hash = hash128Calculator.get();
       assertEquals(longHash, hash128Hash.getAsLong());
     } catch (UnsupportedOperationException e) {
+      // no compatibility check necessary, if 128-bit hash value is not supported
     }
   }
 
