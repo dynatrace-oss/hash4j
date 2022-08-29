@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.hashing;
+package com.dynatrace.hash4j.testutils;
 
+import com.dynatrace.hash4j.hashing.HashValue128;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-final class TestUtils {
+public final class TestUtils {
 
   private TestUtils() {}
 

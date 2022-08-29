@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import com.dynatrace.hash4j.testutils.TestUtils;
 import java.util.ArrayList;
 import java.util.List;
 

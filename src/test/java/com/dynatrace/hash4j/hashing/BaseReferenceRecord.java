@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import com.dynatrace.hash4j.testutils.TestUtils;
+
 public class BaseReferenceRecord {
   private final byte[] data;
 

@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToCharSequence;
+import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;

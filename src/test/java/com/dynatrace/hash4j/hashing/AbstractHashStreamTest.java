@@ -15,10 +15,11 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.byteArrayToHexString;
+import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
+import com.dynatrace.hash4j.testutils.TestUtils;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
