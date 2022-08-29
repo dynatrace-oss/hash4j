@@ -246,7 +246,7 @@ public final class UltraLogLog {
    * Adds another {@link UltraLogLog} sketch.
    *
    * <p>The precision parameter of the added sketch must not be smaller than the precision parameter
-   * of this sketch. Otherwose, an {@link IllegalArgumentException} will be thrown.
+   * of this sketch. Otherwise, an {@link IllegalArgumentException} will be thrown.
    *
    * @param other the other sketch
    * @return this sketch
