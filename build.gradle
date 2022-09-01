@@ -70,7 +70,7 @@ spotless {
         removeUnusedImports()
         googleJavaFormat('1.15.0')
         licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE')
-        targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
+        targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
     }
     format 'javaKomihash', com.diffplug.gradle.spotless.JavaExtension, {
         importOrder()
@@ -78,6 +78,13 @@ spotless {
         googleJavaFormat('1.15.0')
         licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE') + '\n\n' + readJavaLicense('KOMIHASH_MIT_LICENSE')
         target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
+    }
+    format 'javaSplitMix64', com.diffplug.gradle.spotless.JavaExtension, {
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat('1.15.0')
+        licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE') + '\n\n' + readJavaLicense('SPLITMIX64_CREATIVE_COMMONS_LICENSE')
+        target 'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
     }
 }
 
@@ -165,9 +172,14 @@ tasks.register('copyBenchmarkReport', Copy) {
     into file('benchmark-results/')
 }
 
+tasks.register('deleteBenchmarkReport', Delete) {
+    delete 'build/results/jmh/results.txt'
+}
+
 tasks.test.finalizedBy jacocoTestReport
 tasks.jmh.finalizedBy copyBenchmarkReport
-tasks.copyBenchmarkReport.finalizedBy evaluateBenchmarks
+tasks.copyBenchmarkReport.finalizedBy deleteBenchmarkReport
+tasks.deleteBenchmarkReport.finalizedBy evaluateBenchmarks
 check.dependsOn jacocoTestCoverageVerification
 tasks.jmh.dependsOn checkStatusForBenchmarks
 tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
