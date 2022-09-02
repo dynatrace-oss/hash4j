@@ -28,7 +28,8 @@ public interface ElementHashProvider {
    *
    * <p>The function must be defined for all nonnegative indices less than {@link
    * #getNumberOfElements()}. Multiple calls with the same element index must always return the same
-   * hash value.
+   * hash value. The hash values must have a high quality, meaning that they can be considered as
+   * uniformly distributed and mutual independent in practice.
    *
    * @param elementIndex the element index
    * @return the hash value
