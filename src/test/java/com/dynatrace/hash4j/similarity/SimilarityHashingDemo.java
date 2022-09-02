@@ -15,13 +15,13 @@
  */
 package com.dynatrace.hash4j.similarity;
 
+import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 
 import com.dynatrace.hash4j.hashing.Hashing;
 import java.util.Set;
 import java.util.function.ToLongFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
@@ -30,16 +30,14 @@ public class SimilarityHashingDemo {
   @Test
   void demoBasicUsage() {
 
-    Set<Integer> setA = IntStream.range(0, 900000).boxed().collect(Collectors.toSet());
-    Set<Integer> setB = IntStream.range(100000, 1000000).boxed().collect(Collectors.toSet());
-    // intersection size = 800000, union size = 1000000
-    // => exact Jaccard similarity of sets A and B is J = 800000 / 1000000 = 0.8
+    Set<String> setA = IntStream.range(0, 90000).mapToObj(Integer::toString).collect(toSet());
+    Set<String> setB = IntStream.range(10000, 100000).mapToObj(Integer::toString).collect(toSet());
+    // intersection size = 80000, union size = 100000
+    // => exact Jaccard similarity of sets A and B is J = 80000 / 100000 = 0.8
 
-    ToLongFunction<Integer> valueToHash =
-        i -> Hashing.komihash4_3().hashStream().putInt(i).getAsLong();
-
-    long[] hashesA = setA.stream().mapToLong(valueToHash).toArray();
-    long[] hashesB = setB.stream().mapToLong(valueToHash).toArray();
+    ToLongFunction<String> stringToHash = s -> Hashing.komihash4_3().hashCharsToLong(s);
+    long[] hashesA = setA.stream().mapToLong(stringToHash).toArray();
+    long[] hashesB = setB.stream().mapToLong(stringToHash).toArray();
 
     int numberOfComponents = 1024;
     int bitsPerComponent = 1;
@@ -59,7 +57,7 @@ public class SimilarityHashingDemo {
         (fractionOfEqualComponents - Math.pow(2., -bitsPerComponent))
             / (1. - Math.pow(2., -bitsPerComponent)); // gives a value close to 0.8
 
-    System.out.println(estimatedJaccardSimilarity); // 0.78515625
+    // System.out.println(estimatedJaccardSimilarity); // 0.80078125
     assertThat(estimatedJaccardSimilarity).isCloseTo(0.8, withPercentage(2));
   }
 }

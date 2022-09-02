@@ -60,17 +60,16 @@ Similarity hashing algorithms are able to compute hash signature of sets that al
 * [SuperMinHash](https://arxiv.org/abs/1706.05698)
 
 ### Usage
+
 ```java
-Set<Integer> setA = IntStream.range(0, 900000).boxed().collect(Collectors.toSet());
-Set<Integer> setB = IntStream.range(100000, 1000000).boxed().collect(Collectors.toSet());
-// intersection size = 800000, union size = 1000000
-// => exact Jaccard similarity of sets A and B is J = 800000 / 1000000 = 0.8
+Set<String> setA = IntStream.range(0, 90000).mapToObj(Integer::toString).collect(toSet());
+Set<String> setB = IntStream.range(10000, 100000).mapToObj(Integer::toString).collect(toSet());
+// intersection size = 80000, union size = 100000
+// => exact Jaccard similarity of sets A and B is J = 80000 / 100000 = 0.8
 
-ToLongFunction<Integer> valueToHash =
-    i -> Hashing.komihash4_3().hashStream().putInt(i).getAsLong();
-
-long[] hashesA = setA.stream().mapToLong(valueToHash).toArray();
-long[] hashesB = setB.stream().mapToLong(valueToHash).toArray();
+ToLongFunction<String> stringToHash = s -> Hashing.komihash4_3().hashCharsToLong(s);
+long[] hashesA = setA.stream().mapToLong(stringToHash).toArray();
+long[] hashesB = setB.stream().mapToLong(stringToHash).toArray();
 
 int numberOfComponents = 1024;
 int bitsPerComponent = 1;
