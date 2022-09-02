@@ -21,7 +21,7 @@ To add a dependency on hash4j using Maven, use the following:
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.5.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.6.0'
 ```
 
 ## Hash algorithms
