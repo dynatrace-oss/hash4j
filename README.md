@@ -16,7 +16,7 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
@@ -53,6 +53,45 @@ HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putStr
 long hash2 = hasher.hashToLong(obj, funnel); // gives 0x2cf18e9ee8fd3546L
 ```
 More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/hash4j/hashing/HashingDemo.java).
+
+## Similarity Hashing
+Similarity hashing algorithms are able to compute hash signature of sets that allow estimation of set similarity without using the original sets. Currently, the following algorithms are available:
+* [MinHash](https://en.wikipedia.org/wiki/MinHash)
+* [SuperMinHash](https://arxiv.org/abs/1706.05698)
+
+### Usage
+```java
+Set<Integer> setA = IntStream.range(0, 900000).boxed().collect(Collectors.toSet());
+Set<Integer> setB = IntStream.range(100000, 1000000).boxed().collect(Collectors.toSet());
+// intersection size = 800000, union size = 1000000
+// => exact Jaccard similarity of sets A and B is J = 800000 / 1000000 = 0.8
+
+ToLongFunction<Integer> valueToHash =
+    i -> Hashing.komihash4_3().hashStream().putInt(i).getAsLong();
+
+long[] hashesA = setA.stream().mapToLong(valueToHash).toArray();
+long[] hashesB = setB.stream().mapToLong(valueToHash).toArray();
+
+int numberOfComponents = 1024;
+int bitsPerComponent = 1;
+// => each signature will take 1 * 1024 bits = 128 bytes
+
+SimilarityHashPolicy policy =
+    SimilarityHashing.superMinHash(numberOfComponents, bitsPerComponent);
+SimilarityHasher hasher = policy.createHasher();
+
+byte[] signatureA = hasher.compute(ElementHashProvider.ofValues(hashesA));
+byte[] signatuerB = hasher.compute(ElementHashProvider.ofValues(hashesB));
+
+double fractionOfEqualComponents = policy.getFractionOfEqualComponents(signatureA, signatuerB);
+
+// this formula estimates the Jaccard similarity from the fraction of equal components
+double estimatedJaccardSimilarity =
+    (fractionOfEqualComponents - Math.pow(2., -bitsPerComponent))
+        / (1. - Math.pow(2., -bitsPerComponent)); // gives a value close to 0.8
+```
+
+See also [SimilarityHashingDemo.java](src/test/java/com/dynatrace/hash4j/similarity/SimilarityHashingDemo.java).
 
 ## UltraLogLog
 UltraLogLog is a more space-efficient alternative to [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog) for approximate counting of distinct items. It has the following properties:

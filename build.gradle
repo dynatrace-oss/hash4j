@@ -4,7 +4,7 @@ plugins {
     id 'jacoco'
     id 'me.champeau.jmh' version '0.6.6'
     id 'org.sonarqube' version '3.4.0.2513'
-    id 'com.diffplug.spotless' version '6.8.0'
+    id 'com.diffplug.spotless' version '6.10.0'
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
@@ -56,13 +56,13 @@ java {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.5.0'
+version = '0.6.0'
 
 spotless {
     ratchetFrom 'origin/main'
     python {
         target 'python/**/*.py'
-        black('22.6.0')
+        black('22.8.0')
         licenseHeader readPythonLicense('DYNATRACE_APACHE_2_0_LICENSE'), '(import|from)'
     }
     java {
@@ -70,7 +70,7 @@ spotless {
         removeUnusedImports()
         googleJavaFormat('1.15.0')
         licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE')
-        targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
+        targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
     }
     format 'javaKomihash', com.diffplug.gradle.spotless.JavaExtension, {
         importOrder()
@@ -78,6 +78,13 @@ spotless {
         googleJavaFormat('1.15.0')
         licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE') + '\n\n' + readJavaLicense('KOMIHASH_MIT_LICENSE')
         target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
+    }
+    format 'javaSplitMix64', com.diffplug.gradle.spotless.JavaExtension, {
+        importOrder()
+        removeUnusedImports()
+        googleJavaFormat('1.15.0')
+        licenseHeader readJavaLicense('DYNATRACE_APACHE_2_0_LICENSE') + '\n\n' + readJavaLicense('SPLITMIX64_CREATIVE_COMMONS_LICENSE')
+        target 'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
     }
 }
 
@@ -94,11 +101,11 @@ repositories {
 }
 
 dependencies {
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.9.0'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.0'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.9.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.23.1'
-    testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.1'
+    testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.2'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
@@ -165,9 +172,14 @@ tasks.register('copyBenchmarkReport', Copy) {
     into file('benchmark-results/')
 }
 
+tasks.register('deleteBenchmarkReport', Delete) {
+    delete 'build/results/jmh/results.txt'
+}
+
 tasks.test.finalizedBy jacocoTestReport
 tasks.jmh.finalizedBy copyBenchmarkReport
-tasks.copyBenchmarkReport.finalizedBy evaluateBenchmarks
+tasks.copyBenchmarkReport.finalizedBy deleteBenchmarkReport
+tasks.deleteBenchmarkReport.finalizedBy evaluateBenchmarks
 check.dependsOn jacocoTestCoverageVerification
 tasks.jmh.dependsOn checkStatusForBenchmarks
 tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
