@@ -102,7 +102,7 @@ final class FastSimHashPolicy_v1 extends AbstractSimilarityHashPolicy {
             tmpCounts[h] = 0;
             for (int g = 0; g < (1 << BULK_CONSTANT); ++g) {
               counts[g + (h << BULK_CONSTANT)] +=
-                  (tmp >>> (g << (6 - BULK_CONSTANT))) & TEMPORARY_COUNTER_LIMIT;
+                  (int) ((tmp >>> (g << (6 - BULK_CONSTANT))) & TEMPORARY_COUNTER_LIMIT);
             }
           }
           for (int h = (counts.length >>> BULK_CONSTANT); h < tmpCounts.length; ++h) {
@@ -110,7 +110,7 @@ final class FastSimHashPolicy_v1 extends AbstractSimilarityHashPolicy {
             tmpCounts[h] = 0;
             for (int g = 0; g < counts.length - (h << BULK_CONSTANT); ++g) {
               counts[g + (h << BULK_CONSTANT)] +=
-                  (tmp >>> (g << (6 - BULK_CONSTANT))) & TEMPORARY_COUNTER_LIMIT;
+                  (int) ((tmp >>> (g << (6 - BULK_CONSTANT))) & TEMPORARY_COUNTER_LIMIT);
             }
           }
         }
