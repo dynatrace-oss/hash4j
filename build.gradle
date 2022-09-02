@@ -4,7 +4,7 @@ plugins {
     id 'jacoco'
     id 'me.champeau.jmh' version '0.6.6'
     id 'org.sonarqube' version '3.4.0.2513'
-    id 'com.diffplug.spotless' version '6.8.0'
+    id 'com.diffplug.spotless' version '6.10.0'
     id 'maven-publish'
     id 'signing'
     id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
@@ -56,13 +56,13 @@ java {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.5.0'
+version = '0.6.0'
 
 spotless {
     ratchetFrom 'origin/main'
     python {
         target 'python/**/*.py'
-        black('22.6.0')
+        black('22.8.0')
         licenseHeader readPythonLicense('DYNATRACE_APACHE_2_0_LICENSE'), '(import|from)'
     }
     java {
@@ -101,11 +101,11 @@ repositories {
 }
 
 dependencies {
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.9.0'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.9.0'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.9.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.23.1'
-    testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.1'
+    testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.2'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
