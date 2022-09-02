@@ -54,6 +54,20 @@ public interface SimilarityHashPolicy {
   int getNumberOfEqualComponents(byte[] signature1, byte[] signature2);
 
   /**
+   * Returns the fraction of equal components of two given hash signatures.
+   *
+   * <p>Throws an {@link IllegalArgumentException}, if the hash signatures do not have the expected
+   * size as given by {@link #getSignatureSizeInBytes()}.
+   *
+   * @param signature1 hash signature 1
+   * @param signature2 hash signature 2
+   * @return the number of equal components
+   * @throws IllegalArgumentException if the hash signatures are null or do not have the expected
+   *     size
+   */
+  double getFractionOfEqualComponents(byte[] signature1, byte[] signature2);
+
+  /**
    * Returns the hash signature size in bytes.
    *
    * @return the signature size

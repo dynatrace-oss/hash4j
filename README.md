@@ -16,7 +16,7 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.5.0</version>
+  <version>0.6.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
@@ -83,15 +83,14 @@ SimilarityHasher hasher = policy.createHasher();
 byte[] signatureA = hasher.compute(ElementHashProvider.ofValues(hashesA));
 byte[] signatuerB = hasher.compute(ElementHashProvider.ofValues(hashesB));
 
-double fractionOfEqualComponents =
-    policy.getNumberOfEqualComponents(signatureA, signatuerB)
-        / (double) policy.getNumberOfComponents();
+double fractionOfEqualComponents = policy.getFractionOfEqualComponents(signatureA, signatuerB);
 
 // this formula estimates the Jaccard similarity from the fraction of equal components
 double estimatedJaccardSimilarity =
     (fractionOfEqualComponents - Math.pow(2., -bitsPerComponent))
-            / (1. - Math.pow(2., -bitsPerComponent)); // gives a value close to 0.8
+        / (1. - Math.pow(2., -bitsPerComponent)); // gives a value close to 0.8
 ```
+
 See also [SimilarityHashingDemo.java](src/test/java/com/dynatrace/hash4j/similarity/SimilarityHashingDemo.java).
 
 ## UltraLogLog

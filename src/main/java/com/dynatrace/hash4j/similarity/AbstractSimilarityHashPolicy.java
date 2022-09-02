@@ -72,4 +72,9 @@ abstract class AbstractSimilarityHashPolicy implements SimilarityHashPolicy {
     checkArgument(idx < numberOfComponents);
     return packedArrayHandler.get(signature, idx);
   }
+
+  @Override
+  public double getFractionOfEqualComponents(byte[] signature1, byte[] signature2) {
+    return getNumberOfEqualComponents(signature1, signature2) / (double) numberOfComponents;
+  }
 }

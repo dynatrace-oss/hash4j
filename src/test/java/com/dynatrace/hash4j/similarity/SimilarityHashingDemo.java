@@ -52,9 +52,7 @@ public class SimilarityHashingDemo {
     byte[] signatureA = hasher.compute(ElementHashProvider.ofValues(hashesA));
     byte[] signatuerB = hasher.compute(ElementHashProvider.ofValues(hashesB));
 
-    double fractionOfEqualComponents =
-        policy.getNumberOfEqualComponents(signatureA, signatuerB)
-            / (double) policy.getNumberOfComponents();
+    double fractionOfEqualComponents = policy.getFractionOfEqualComponents(signatureA, signatuerB);
 
     // this formula estimates the Jaccard similarity from the fraction of equal components
     double estimatedJaccardSimilarity =

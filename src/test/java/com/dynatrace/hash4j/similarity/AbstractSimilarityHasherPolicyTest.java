@@ -23,7 +23,6 @@ import com.dynatrace.hash4j.hashing.HashStream;
 import com.dynatrace.hash4j.hashing.Hashing;
 import java.util.*;
 import java.util.stream.IntStream;
-import org.assertj.core.api.Assertions;
 import org.hipparchus.stat.inference.AlternativeHypothesis;
 import org.hipparchus.stat.inference.BinomialTest;
 import org.junit.jupiter.api.Test;
@@ -116,8 +115,8 @@ public abstract class AbstractSimilarityHasherPolicyTest {
       byte[] signature2 = hasher.compute(ElementHashProvider.ofValues(hashesSet2));
 
       int numEquals = verifyAndGetNumberOfEqualComponents(policy, signature1, signature2);
-
-      Assertions.assertThat(numEquals).isEqualTo(numberOfComponents);
+      assertThat(numEquals).isEqualTo(numberOfComponents);
+      assertThat(policy.getFractionOfEqualComponents(signature1, signature2)).isEqualTo(1.);
     }
   }
 
@@ -138,7 +137,7 @@ public abstract class AbstractSimilarityHasherPolicyTest {
 
     int numEquals = verifyAndGetNumberOfEqualComponents(policy, signature1, signature2);
 
-    Assertions.assertThat(
+    assertThat(
             new BinomialTest()
                 .binomialTest(numberOfComponents, numEquals, 0.5, AlternativeHypothesis.TWO_SIDED))
         .isGreaterThan(0.01);
@@ -203,7 +202,7 @@ public abstract class AbstractSimilarityHasherPolicyTest {
   }
 
   @Test
-  void testSinatureSizeInBytes() {
+  void testSignatureSizeInBytes() {
     SimilarityHashPolicy policy = getSimilarityHashPolicy(12);
     assertThat(policy.getSignatureSizeInBytes()).isEqualTo(2);
   }
