@@ -54,7 +54,7 @@ long hash2 = hasher.hashToLong(obj, funnel); // gives 0x2cf18e9ee8fd3546L
 ```
 More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/hash4j/hashing/HashingDemo.java).
 
-## Similarity Hashing
+## Similarity hashing
 Similarity hashing algorithms are able to compute hash signature of sets that allow estimation of set similarity without using the original sets. Following algorithms are currently available:
 * [MinHash](https://en.wikipedia.org/wiki/MinHash)
 * [SuperMinHash](https://arxiv.org/abs/1706.05698)
