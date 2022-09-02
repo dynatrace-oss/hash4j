@@ -64,7 +64,7 @@ public final class PermutationGenerator {
   }
 
   // visible for testing
-  void setVersionCounter(int versionCounter) {
-    this.versionCounter = versionCounter;
+  void setVersionCounterToMinus1() {
+    versionCounter = -1;
   }
 }

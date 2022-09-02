@@ -17,8 +17,7 @@ package com.dynatrace.hash4j.random;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import org.hipparchus.stat.inference.ChiSquareTest;
@@ -107,8 +106,20 @@ public class PermutationGeneratorTest {
 
   @Test
   void testResetVersionOverflowBranch() {
-    PermutationGenerator permutationGenerator = new PermutationGenerator(1);
-    permutationGenerator.setVersionCounter(-1);
+    PseudoRandomGenerator pseudoRandomGenerator =
+        PseudoRandomGeneratorProvider.splitMix64_V1().create();
+    pseudoRandomGenerator.reset(0xd48b9921c97d0346L);
+    int size = 100;
+    PermutationGenerator permutationGenerator = new PermutationGenerator(size);
+    permutationGenerator.setVersionCounterToMinus1();
+
     permutationGenerator.reset();
+    int[] permutation = new int[size];
+    for (int j = 0; j < size; ++j) {
+      assertTrue(permutationGenerator.hasNext());
+      permutation[j] = permutationGenerator.next(pseudoRandomGenerator);
+    }
+    assertFalse(permutationGenerator.hasNext());
+    verifyPermutation(permutation);
   }
 }
