@@ -1,0 +1,4 @@
+black==22.6.0
+matplotlib
+gitpython
+pandas

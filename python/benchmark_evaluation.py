@@ -13,19 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+
+import time
+from collections import defaultdict, namedtuple
 from os import listdir
 from os.path import isfile, join
 from pathlib import Path
-from collections import namedtuple
-from collections import defaultdict
+
+import git
+import pandas as pd
+
 import matplotlib
 
 matplotlib.use("PDF")
 import matplotlib.pyplot as plt
-import git
-import time
 
-git_repo = git.Repo(".")
+
 Record = namedtuple(
     "Record",
     [
@@ -54,61 +58,149 @@ def parse_revision_from_benchmark_result_file(file_name):
     return file_name.split(" ")[1].split(".")[0]
 
 
-def get_commit_date(commit):
+def get_commit_date(commit, git_repo):
     return time.strftime(
         "%Y-%m-%d %H:%M:%S", time.localtime(git_repo.commit(commit).committed_date)
     )
 
 
-def read_data(bechmark_result_directory):
-    bechmark_result_path = Path(bechmark_result_directory)
-    benchmark_result_files = [
+def read_data_file(benchmark_result_path, benchmark_result_file, git_repo):
+    data = []
+    exec_date = parse_exec_date_from_benchmark_result_file(benchmark_result_file)
+    revision = parse_revision_from_benchmark_result_file(benchmark_result_file)
+    commit_date = get_commit_date(revision, git_repo)
+
+    # print(f"Reading file {benchmark_result_path / benchmark_result_file} as .txt")
+
+    with open(benchmark_result_path / benchmark_result_file) as file:
+        lines = file.readlines()
+        split_header = lines[0].split()
+        parameter_names = []
+        for w in split_header:
+            if w[0] == "(" and w[-1] == ")":
+                parameter_names.append(w[1:-1])
+
+        num_parameters = len(parameter_names)
+        for line in lines[1:]:
+            split_line = line.split()
+            algorithm = split_line[0].split(".")[-2]
+            test = split_line[0].split(".")[-1]
+            avg = float(split_line[3 + num_parameters])
+            std = float(split_line[5 + num_parameters])
+            parameters = {}
+            for h in range(0, num_parameters):
+                p = split_line[1 + h]
+                if p != "N/A":
+                    parameters[parameter_names[h]] = split_line[1 + h]
+
+            data.append(
+                Record(
+                    commit_date=commit_date,
+                    exec_date=exec_date,
+                    revision=revision,
+                    algorithm=algorithm,
+                    test=test,
+                    avg=avg,
+                    std=std,
+                    parameters=parameters,
+                )
+            )
+    return data
+
+
+def read_data_files_json_df(benchmark_result_path, benchmark_result_files, git_repo):
+    def read_json(f):
+        # print(f"Reading file {f} as json")
+        return pd.read_json(f, orient="record")
+
+    # read all files
+    files = [join(benchmark_result_path, f) for f in benchmark_result_files]
+    df = pd.concat({f: read_json(f) for f in files})
+
+    # add columns "filename" and "indexInFile"
+    df.index.names = ["filename", "indexInFile"]
+    df = df.reset_index()
+
+    # add more columns
+    df[["benchmarkClassPath", "algorithm", "test"]] = df["benchmark"].str.rsplit(
+        ".", n=2, expand=True
+    )
+    df[["exec_date", "revision"]] = (
+        df["filename"]
+        .str.rsplit("/", n=1, expand=True)[1]
+        .str.rsplit(".", n=1, expand=True)[0]
+        .str.rsplit(" ", n=1, expand=True)
+    )
+    df["commit_date"] = df["revision"].map(lambda x: get_commit_date(x, git_repo))
+
+    # add params column if missing
+    if 'params' not in df:
+        df['params'] = None
+    df['params'] = [{} if x is None else x for x in df['params']]
+    
+    # add the avg and std columns, note that this only makes sense if score actually represents an average
+    df["avg"] = df["primaryMetric"].apply(lambda pm: pm["score"])
+    df["std"] = df["primaryMetric"].apply(lambda pm: pm["scoreError"])
+    return df
+
+
+def read_data_files_json(benchmark_result_path, benchmark_result_files, git_repo):
+    df_json = read_data_files_json_df(
+        benchmark_result_path, benchmark_result_files, git_repo
+    )
+    data_json = [
+        Record(*row[1:])  # list comprehension, make new records...
+        for row in df_json.rename(columns={"params": "parameters"})[
+            [  # select the columns in the correct order for the "Record" NamedTuple
+                "commit_date",
+                "exec_date",
+                "revision",
+                "algorithm",
+                "test",
+                "avg",
+                "std",
+                "parameters",
+            ]
+        ].itertuples()
+    ]
+    return data_json
+
+
+def read_data(bechmark_result_directory, git_repo_path="."):
+    git_repo = git.Repo(git_repo_path)
+    benchmark_result_path = Path(bechmark_result_directory)
+
+    benchmark_result_files_json = [
         f
-        for f in listdir(bechmark_result_path)
-        if isfile(join(bechmark_result_path, f)) and f.endswith(".txt")
+        for f in listdir(benchmark_result_path)
+        if isfile(join(benchmark_result_path, f)) and f.endswith(".json")
+    ]
+
+    # skip txt files if a json-file with the same base filename was alreasy read
+    benchmark_result_files_txt_exclude = [
+        f.rsplit(".", 1)[0] for f in benchmark_result_files_json
+    ]
+    benchmark_result_files_txt = [
+        f
+        for f in listdir(benchmark_result_path)
+        if isfile(join(benchmark_result_path, f))
+        and f.endswith(".txt")
+        and f.rsplit(".", 1)[0] not in benchmark_result_files_txt_exclude
     ]
 
     data = []
 
-    for benchmark_result_file in benchmark_result_files:
+    # add json data
+    data = data + read_data_files_json(
+        benchmark_result_path, benchmark_result_files_json, git_repo
+    )
 
-        exec_date = parse_exec_date_from_benchmark_result_file(benchmark_result_file)
-        revision = parse_revision_from_benchmark_result_file(benchmark_result_file)
-        commit_date = get_commit_date(revision)
+    # add txt data
+    for benchmark_result_file in benchmark_result_files_txt:
+        data = data + read_data_file(
+            benchmark_result_path, benchmark_result_file, git_repo
+        )
 
-        with open(bechmark_result_path / benchmark_result_file) as file:
-            lines = file.readlines()
-            split_header = lines[0].split()
-            parameter_names = []
-            for w in split_header:
-                if w[0] == "(" and w[-1] == ")":
-                    parameter_names.append(w[1:-1])
-
-            num_parameters = len(parameter_names)
-            for line in lines[1:]:
-                split_line = line.split()
-                algorithm = split_line[0].split(".")[-2]
-                test = split_line[0].split(".")[-1]
-                avg = float(split_line[3 + num_parameters])
-                std = float(split_line[5 + num_parameters])
-                parameters = {}
-                for h in range(0, num_parameters):
-                    p = split_line[1 + h]
-                    if p != "N/A":
-                        parameters[parameter_names[h]] = split_line[1 + h]
-
-                data.append(
-                    Record(
-                        commit_date=commit_date,
-                        exec_date=exec_date,
-                        revision=revision,
-                        algorithm=algorithm,
-                        test=test,
-                        avg=avg,
-                        std=std,
-                        parameters=parameters,
-                    )
-                )
     return data
 
 
@@ -232,10 +324,17 @@ def make_chart(test, data, output_path):
     plt.close(fig)
 
 
-data = read_data("benchmark-results")
-splitted_data_by_test_and_parameters = splitted_data_by_test_and_parameters(data)
+def main():
+    print("Evaluating benchmarks...")
+    print("Make sure there are no empty files!")
+    data = read_data("benchmark-results")
+    splitted_data_by_test_and_parameters_ = splitted_data_by_test_and_parameters(data)
 
-for test in splitted_data_by_test_and_parameters:
-    make_chart(
-        test, splitted_data_by_test_and_parameters[test], Path("benchmark-results")
-    )
+    for test in splitted_data_by_test_and_parameters_:
+        make_chart(
+            test, splitted_data_by_test_and_parameters_[test], Path("benchmark-results")
+        )
+
+
+if __name__ == "__main__":
+    main()
