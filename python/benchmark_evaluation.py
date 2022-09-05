@@ -18,7 +18,7 @@
 import time
 from collections import defaultdict, namedtuple
 from os import listdir
-from os.path import isfile, join
+from os.path import basename, getsize, isfile, join
 from pathlib import Path
 
 import git
@@ -127,17 +127,17 @@ def read_data_files_json_df(benchmark_result_path, benchmark_result_files, git_r
     )
     df[["exec_date", "revision"]] = (
         df["filename"]
-        .str.rsplit("/", n=1, expand=True)[1]
+        .map(basename)
         .str.rsplit(".", n=1, expand=True)[0]
         .str.rsplit(" ", n=1, expand=True)
     )
     df["commit_date"] = df["revision"].map(lambda x: get_commit_date(x, git_repo))
 
     # add params column if missing
-    if 'params' not in df:
-        df['params'] = None
-    df['params'] = [{} if x is None else x for x in df['params']]
-    
+    if "params" not in df:
+        df["params"] = None
+    df["params"] = [{} if x is None else x for x in df["params"]]
+
     # add the avg and std columns, note that this only makes sense if score actually represents an average
     df["avg"] = df["primaryMetric"].apply(lambda pm: pm["score"])
     df["std"] = df["primaryMetric"].apply(lambda pm: pm["scoreError"])
@@ -173,7 +173,9 @@ def read_data(bechmark_result_directory, git_repo_path="."):
     benchmark_result_files_json = [
         f
         for f in listdir(benchmark_result_path)
-        if isfile(join(benchmark_result_path, f)) and f.endswith(".json")
+        if isfile(join(benchmark_result_path, f))
+        and getsize(join(benchmark_result_path, f)) > 0
+        and f.endswith(".json")
     ]
 
     # skip txt files if a json-file with the same base filename was alreasy read
@@ -184,6 +186,7 @@ def read_data(bechmark_result_directory, git_repo_path="."):
         f
         for f in listdir(benchmark_result_path)
         if isfile(join(benchmark_result_path, f))
+        and getsize(join(benchmark_result_path, f)) > 0
         and f.endswith(".txt")
         and f.rsplit(".", 1)[0] not in benchmark_result_files_txt_exclude
     ]
@@ -325,8 +328,6 @@ def make_chart(test, data, output_path):
 
 
 def main():
-    print("Evaluating benchmarks...")
-    print("Make sure there are no empty files!")
     data = read_data("benchmark-results")
     splitted_data_by_test_and_parameters_ = splitted_data_by_test_and_parameters(data)
 
