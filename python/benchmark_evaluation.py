@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
 import time
 from collections import defaultdict, namedtuple
 from os import listdir
