@@ -93,7 +93,7 @@ public final class UltraLogLog {
   private static final int MIN_P = 3;
 
   /**
-   * The minimum allowed precision parameter.
+   * The maximum allowed precision parameter.
    *
    * <p>This maximum ensures that the number of leading zeros (6 bits) and the register address (26
    * bits) can be packed into a 32-bit integer, which could be useful for future sparse
