@@ -19,6 +19,7 @@ from os import listdir
 from os.path import basename, getsize, isfile, join
 from pathlib import Path
 
+import click
 import git
 import pandas as pd
 
@@ -29,8 +30,12 @@ import matplotlib.pyplot as plt
 
 
 def get_commit_date(commit, git_repo):
-    return time.strftime(
-        "%Y-%m-%d %H:%M:%S", time.localtime(git_repo.commit(commit).committed_date)
+    return (
+        time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.localtime(git_repo.commit(commit).committed_date)
+        )
+        if git_repo
+        else None
     )
 
 
@@ -77,7 +82,7 @@ def read_data_files_json_df(benchmark_result_path, benchmark_result_files, git_r
 
 
 def read_data(benchmark_result_path, git_repo_path="."):
-    git_repo = git.Repo(git_repo_path)
+    git_repo = git.Repo(git_repo_path) if git_repo_path else None
 
     benchmark_result_files = [
         f
@@ -118,7 +123,7 @@ def get_plot_linestyles(algorithm):
     return styles
 
 
-def make_chart(df, output_path, name, scoreUnit, mode):
+def make_chart(df, output_path, name, scoreUnit, mode, show_confidence_interval):
     df["revision"] = "\n" + df["revision"]  # add a line break to the xlabels
 
     df_plot = df.pivot(
@@ -134,14 +139,18 @@ def make_chart(df, output_path, name, scoreUnit, mode):
             ax=ax,
             marker="o",
             ylabel=f"score ({mode}) in {scoreUnit}",
-            yerr=[
-                df_plot["primaryMetric.score"][algorithm]
-                - df_plot["primaryMetric.scoreConfidence.lower"][algorithm],
-                df_plot["primaryMetric.scoreConfidence.upper"][algorithm]
-                - df_plot["primaryMetric.score"][algorithm],
-            ],
-            elinewidth=0.5,
-            capsize=4,
+            **{
+                "yerr": [
+                    df_plot["primaryMetric.score"][algorithm]
+                    - df_plot["primaryMetric.scoreConfidence.lower"][algorithm],
+                    df_plot["primaryMetric.scoreConfidence.upper"][algorithm]
+                    - df_plot["primaryMetric.score"][algorithm],
+                ],
+                "linewidth": 0.5,
+                "capsize": 4,
+            }
+            if show_confidence_interval
+            else {},
             **get_plot_linestyles(algorithm),
         )
 
@@ -161,9 +170,38 @@ def make_chart(df, output_path, name, scoreUnit, mode):
     plt.close(fig)
 
 
-def main():
+@click.command()
+@click.option(
+    "--in-path",
+    default="./benchmark-results/",
+    help="Input folder, should contain the JSON files.",
+    show_default=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
+@click.option(
+    "--out-path",
+    default="./benchmark-results/",
+    help="Output folder, will contain the plots.",
+    show_default=True,
+    type=click.Path(exists=True, file_okay=False, path_type=Path),
+)
+@click.option(
+    "--git-path",
+    default=".",
+    help="Set this to an empty string to disable fetching of commit date.",
+    show_default=True,
+    type=click.Path(exists=False, file_okay=False),
+)
+@click.option(
+    "--show-confidence-interval",
+    default=False,
+    help="Add the confidence interval from the JMH results to the plots.",
+    is_flag=True,
+    show_default=True,
+)
+def main(in_path, out_path, git_path, show_confidence_interval):
     # load all .json benchmark result files to a single pandas.DataFrame
-    df = read_data(Path("./benchmark-results/"))
+    df = read_data(in_path, git_path)
 
     # group by test and params (and more, but we expect this to be unique, otherwise the output file would be overwritten)
     # create and save plot for each group
@@ -175,7 +213,7 @@ def main():
             if len(params) > 0
             else ""
         )
-        make_chart(data, Path("./benchmark-results/"), name, scoreUnit, mode)
+        make_chart(data, out_path, name, scoreUnit, mode, show_confidence_interval)
 
 
 if __name__ == "__main__":
