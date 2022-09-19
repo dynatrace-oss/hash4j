@@ -1,0 +1,5 @@
+black==22.8.0
+click
+gitpython
+matplotlib
+pandas
