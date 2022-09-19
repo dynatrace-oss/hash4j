@@ -106,6 +106,7 @@ dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.9.0'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.23.1'
     testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '2.2'
+    testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '2.2'
     testImplementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
     testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.15'
     testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
@@ -134,6 +135,7 @@ jmh {
     warmupBatchSize = 1
     warmup = '1s'
     iterations = 20
+    includes = ['UltraLogLogPerformanceTest.*']
 }
 
 task evaluateBenchmarks(type:Exec) {
@@ -160,6 +162,13 @@ tasks.register('checkStatusForBenchmarks') {
         def status_text = "git status --porcelain".execute().text
         if(status_text?.trim()) {
             throw new GradleException('There are uncommitted changes:\n' + status_text)
+        }
+        def powercfg_query_text = "powercfg -query".execute().text
+        def i = powercfg_query_text.indexOf("Processor performance boost mode")
+        def s = "Current AC Power Setting Index: "
+        def j = powercfg_query_text.indexOf(s, i)
+        if(!powercfg_query_text.substring(j + s.length(), j + s.length() + 10).equals("0x00000000")) {
+            throw new GradleException('Boost mode must be switched off!\nUse the commands\n    \'Powercfg -setacvalueindex scheme_current sub_processor PERFBOOSTMODE 0;Powercfg -setactive scheme_current\'')
         }
     }
 }
