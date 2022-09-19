@@ -129,3 +129,11 @@ $\sqrt{\frac{\frac{8317}{3528}\ln(2)-1}{m}}\approx \frac{0.796}{\sqrt{m}}$. This
 | 7              | <img src="test-results/estimation-error-p7.png" width="250">  | 14       | <img src="test-results/estimation-error-p14.png" width="250">  |
 | 8              | <img src="test-results/estimation-error-p8.png" width="250">  | 15       | <img src="test-results/estimation-error-p15.png" width="250">  |
 | 9              | <img src="test-results/estimation-error-p9.png" width="250">  | 16       | <img src="test-results/estimation-error-p16.png" width="250">  |
+
+## Contribution FAQ
+
+### Python
+
+This project contains python code. We recommend using a python virtual environment in a `.venv` directory. If your are new, please follow the steps outlined
+in the [official Python documentation](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) for creation and activation.
+To install the required dependencies including black, please execute `pip install -r requirements.txt`.
