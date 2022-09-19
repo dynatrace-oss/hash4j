@@ -134,18 +134,19 @@ jmh {
     warmupBatchSize = 1
     warmup = '1s'
     iterations = 20
+    resultFormat = "JSON"
 }
 
 task evaluateBenchmarks(type:Exec) {
     group "evaluation"
     workingDir '.'
-    commandLine 'python3', 'python/benchmark_evaluation.py'
+    commandLine 'python', 'python/benchmark_evaluation.py'
 }
 
 task evaluateEstimationErrors(type:Exec) {
     group "evaluation"
     workingDir '.'
-    commandLine 'python3', 'python/estimation_error_evaluation.py'
+    commandLine 'python', 'python/estimation_error_evaluation.py'
 }
 
 task simulateEstimationErrors(type: JavaExec) {
@@ -167,9 +168,11 @@ tasks.register('checkStatusForBenchmarks') {
 tasks.register('copyBenchmarkReport', Copy) {
     def proc = "git rev-parse HEAD".execute()
     def revision = proc.text.trim()
-    rename ('results.txt', new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision + '.txt')
-    from file('build/results/jmh/results.txt')
-    into file('benchmark-results/')
+    from('build/results/jmh/') {
+        include 'results.*'
+        rename 'results', new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision
+    }
+    into 'benchmark-results'
 }
 
 tasks.register('deleteBenchmarkReport', Delete) {
