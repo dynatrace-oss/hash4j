@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import math
 import time
 from collections import defaultdict, namedtuple
 from os import listdir
@@ -63,7 +64,10 @@ def read_data_files_json_df(benchmark_result_path, benchmark_result_files, git_r
     # add params column if missing
     if "params" not in df:
         df["params"] = None
-    df["params"] = [{} if x is None else x for x in df["params"]]
+    df["params"] = [
+        {} if x is None or (isinstance(x, float) and math.isnan(x)) else x
+        for x in df["params"]
+    ]
 
     # make the params column hashable (necessary for groupby,...)
     df["params"] = df["params"].apply(lambda mydict: frozenset(mydict.items()))
