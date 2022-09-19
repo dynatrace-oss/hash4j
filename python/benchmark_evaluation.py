@@ -142,7 +142,6 @@ def make_chart(df, output_path, name, scoreUnit, mode, show_confidence_interval)
         df_plot["primaryMetric.score"][algorithm].plot(
             ax=ax,
             marker="o",
-            ylabel=f"score ({mode}) in {scoreUnit}",
             **{
                 "yerr": [
                     df_plot["primaryMetric.score"][algorithm]
@@ -158,6 +157,11 @@ def make_chart(df, output_path, name, scoreUnit, mode, show_confidence_interval)
             **get_plot_linestyles(algorithm),
         )
 
+    xlabels = [",".join(i) for i in df_plot.index.to_flat_index()]
+    ax.set_xticks(range(0, len(xlabels)))
+    ax.set_xticklabels(xlabels)
+
+    ax.set_ylabel(f"score ({mode}) in {scoreUnit}")
     ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.37), ncol=4, handlelength=8)
 
     fig.subplots_adjust(top=0.95, bottom=0.27, left=0.05, right=0.95)
@@ -213,7 +217,7 @@ def main(in_path, out_path, git_path, show_confidence_interval):
         ["test", "params", "primaryMetric.scoreUnit", "mode"]
     ):
         name = test + (
-            " (" + ";".join([f"{i[0]}={i[1]}" for i in params]) + ")"
+            " (" + ";".join([f"{i[0]}={i[1]}" for i in sorted(params)]) + ")"
             if len(params) > 0
             else ""
         )
