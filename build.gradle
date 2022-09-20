@@ -89,11 +89,11 @@ spotless {
 }
 
 sonarqube {
-  properties {
-    property 'sonar.projectKey', 'dynatrace-oss_hash4j'
-    property 'sonar.organization', 'dynatrace-oss'
-    property 'sonar.host.url', 'https://sonarcloud.io'
-  }
+    properties {
+        property 'sonar.projectKey', 'dynatrace-oss_hash4j'
+        property 'sonar.organization', 'dynatrace-oss'
+        property 'sonar.host.url', 'https://sonarcloud.io'
+    }
 }
 
 repositories {
@@ -134,7 +134,7 @@ jmh {
     warmupBatchSize = 1
     warmup = '1s'
     iterations = 20
-    resultFormat = "JSON"
+    resultFormat = 'JSON'
 }
 
 task evaluateBenchmarks(type:Exec) {
@@ -176,7 +176,7 @@ tasks.register('copyBenchmarkReport', Copy) {
 }
 
 tasks.register('deleteBenchmarkReport', Delete) {
-    delete 'build/results/jmh/results.txt'
+    delete 'build/results/jmh/results.json'
 }
 
 tasks.test.finalizedBy jacocoTestReport

@@ -49,7 +49,7 @@ public class UltraLogLogPerformanceTest {
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
-  public void testAdd(AddState addState, RandomState randomState, Blackhole blackhole) {
+  public void distinctCountAdd(AddState addState, RandomState randomState, Blackhole blackhole) {
     final UltraLogLog ultraLogLog = UltraLogLog.create(addState.precision);
     for (int i = 0; i < addState.numElements; ++i) {
       ultraLogLog.add(randomState.random.nextLong());
@@ -89,7 +89,7 @@ public class UltraLogLogPerformanceTest {
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
-  public void testEstimation(EstimationState estimationState, Blackhole blackhole) {
+  public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
     double sum = 0;
     for (UltraLogLog ultraLogLog : estimationState.ultraLogLogs) {
       sum += ultraLogLog.getDistinctCountEstimate();
@@ -139,7 +139,8 @@ public class UltraLogLogPerformanceTest {
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
-  public void testMerge(MergeState mergeState, RandomState randomState, Blackhole blackhole) {
+  public void distinctCountMerge(
+      MergeState mergeState, RandomState randomState, Blackhole blackhole) {
     long sum = 0;
     for (int i = 0; i < mergeState.NUM_EXAMPLES; ++i) {
       UltraLogLog mergedUltraLogLog =
