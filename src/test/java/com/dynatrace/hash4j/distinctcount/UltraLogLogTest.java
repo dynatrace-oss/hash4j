@@ -15,19 +15,28 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static java.lang.Math.exp;
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.data.Percentage.withPercentage;
+import static org.hipparchus.special.Gamma.gamma;
 
+import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.zip.Deflater;
 import org.assertj.core.data.Offset;
-import org.assertj.core.data.Percentage;
+import org.hipparchus.optim.MaxEval;
+import org.hipparchus.optim.nonlinear.scalar.GoalType;
+import org.hipparchus.optim.univariate.*;
 import org.junit.jupiter.api.Test;
 
 public class UltraLogLogTest {
+
+  private static final int MIN_P = 3;
+  private static final int MAX_P = 26;
 
   @Test
   void testEmpty() {
@@ -49,66 +58,71 @@ public class UltraLogLogTest {
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
+    assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(2))
+        .isCloseTo(0.3927434419174421, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(3))
-        .isCloseTo(0.2815233995369789, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.27771155104636824, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(4))
-        .isCloseTo(0.19906710487528756, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.19637172095872105, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(5))
-        .isCloseTo(0.14076169976848946, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.13885577552318412, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(6))
-        .isCloseTo(0.09953355243764378, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.09818586047936052, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(7))
-        .isCloseTo(0.07038084988424473, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.06942788776159206, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(8))
-        .isCloseTo(0.04976677621882189, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.04909293023968026, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(9))
-        .isCloseTo(0.035190424942122364, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.03471394388079603, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(10))
-        .isCloseTo(0.024883388109410945, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.02454646511984013, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(11))
-        .isCloseTo(0.017595212471061182, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.017356971940398015, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(12))
-        .isCloseTo(0.012441694054705472, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.012273232559920065, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(13))
-        .isCloseTo(0.008797606235530591, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.008678485970199008, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(14))
-        .isCloseTo(0.006220847027352736, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.006136616279960033, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(15))
-        .isCloseTo(0.0043988031177652955, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.004339242985099504, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(16))
-        .isCloseTo(0.003110423513676368, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.0030683081399800164, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(17))
-        .isCloseTo(0.0021994015588826478, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.002169621492549752, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(18))
-        .isCloseTo(0.001555211756838184, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.0015341540699900082, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(19))
-        .isCloseTo(0.0010997007794413239, Percentage.withPercentage(1e-8));
+        .isCloseTo(0.001084810746274876, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(20))
-        .isCloseTo(7.77605878419092E-4, Percentage.withPercentage(1e-8));
+        .isCloseTo(7.670770349950041E-4, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(21))
-        .isCloseTo(5.498503897206619E-4, Percentage.withPercentage(1e-8));
+        .isCloseTo(5.42405373137438E-4, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(22))
-        .isCloseTo(3.88802939209546E-4, Percentage.withPercentage(1e-8));
+        .isCloseTo(3.8353851749750204E-4, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(23))
-        .isCloseTo(2.7492519486033097E-4, Percentage.withPercentage(1e-8));
+        .isCloseTo(2.71202686568719E-4, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(24))
-        .isCloseTo(1.94401469604773E-4, Percentage.withPercentage(1e-8));
+        .isCloseTo(1.9176925874875102E-4, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(25))
-        .isCloseTo(1.3746259743016549E-4, Percentage.withPercentage(1e-8));
+        .isCloseTo(1.356013432843595E-4, withPercentage(1e-8));
     assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(26))
-        .isCloseTo(9.72007348023865E-5, Percentage.withPercentage(1e-8));
+        .isCloseTo(9.588462937437551E-5, withPercentage(1e-8));
   }
 
   @Test
   void testRelativeStandardErrorAgainstFormula() {
-    for (int p = 3; p <= 26; ++p) {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
       assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(p))
-          .isCloseTo(calculateRelativeStandardError(p), Percentage.withPercentage(1e-8));
+          .isCloseTo(calculateRelativeStandardError(p), withPercentage(1e-8));
     }
   }
 
   private static double calculateRelativeStandardError(int p) {
-    double s = 0;
+    int numberOfRegisters = 1 << p;
+    return Math.sqrt(
+        calculateStorageFactor(UltraLogLog.TAU) / (BITS_PER_REGISTER * numberOfRegisters));
+    /*double s = 0;
     double z = 5. / 4.;
     for (int t = 1; t <= 2; ++t) {
       s += 2. * Math.log(2) * Math.pow(z, 2) * Math.pow(2., -t) / Math.pow(z + Math.pow(2., -t), 2);
@@ -116,7 +130,7 @@ public class UltraLogLogTest {
     s += 2 * Math.log(2.) * Math.pow(2., -2);
     s += Math.log(2);
     s -= 1;
-    return Math.sqrt(s * Math.pow(2., -p));
+    return Math.sqrt(s * Math.pow(2., -p));*/
   }
 
   private void testDistinctCountEstimation(int p, long seed, long[] distinctCounts) {
@@ -176,80 +190,60 @@ public class UltraLogLogTest {
         // size) given by (1 << p)
         // observed root mean square error should be approximately equal to the standard error
         assertThat(relativeRootMeanSquareError)
-            .isCloseTo(relativeStandardError, Percentage.withPercentage(15));
+            .isCloseTo(relativeStandardError, withPercentage(15));
       }
     }
   }
 
   @Test
   void testPrefixConversion() {
-    assertEquals((byte) 8, UltraLogLog.hashPrefixToRegister(0x4L));
-    assertEquals((byte) 9, UltraLogLog.hashPrefixToRegister(0x5L));
-    assertEquals((byte) 10, UltraLogLog.hashPrefixToRegister(0x6L));
-    assertEquals((byte) 11, UltraLogLog.hashPrefixToRegister(0x7L));
-    assertEquals((byte) 12, UltraLogLog.hashPrefixToRegister(0x8L));
-    assertEquals((byte) 12, UltraLogLog.hashPrefixToRegister(0x9L));
-    assertEquals((byte) 13, UltraLogLog.hashPrefixToRegister(0xAL));
-    assertEquals((byte) 13, UltraLogLog.hashPrefixToRegister(0xBL));
-    assertEquals((byte) 14, UltraLogLog.hashPrefixToRegister(12));
-    assertEquals((byte) 44, UltraLogLog.hashPrefixToRegister(1L << (12 - 1)));
-    assertEquals((byte) 48, UltraLogLog.hashPrefixToRegister(1L << 12));
-    assertEquals((byte) 50, UltraLogLog.hashPrefixToRegister((1L << (12 - 1)) | (1L << (12))));
-    assertEquals((byte) 52, UltraLogLog.hashPrefixToRegister(1L << (12 + 1)));
-    assertEquals((byte) 252, UltraLogLog.hashPrefixToRegister(0x8000000000000000L));
-    assertEquals((byte) 255, UltraLogLog.hashPrefixToRegister(0xFFFFFFFFFFFFFFFFL));
+    assertThat(UltraLogLog.hashPrefixToRegister(0x4L)).isEqualTo((byte) 8);
+    assertThat(UltraLogLog.hashPrefixToRegister(0x5L)).isEqualTo((byte) 9);
+    assertThat(UltraLogLog.hashPrefixToRegister(0x6L)).isEqualTo((byte) 10);
+    assertThat(UltraLogLog.hashPrefixToRegister(0x7L)).isEqualTo((byte) 11);
+    assertThat(UltraLogLog.hashPrefixToRegister(0x8L)).isEqualTo((byte) 12);
+    assertThat(UltraLogLog.hashPrefixToRegister(0x9L)).isEqualTo((byte) 12);
+    assertThat(UltraLogLog.hashPrefixToRegister(0xAL)).isEqualTo((byte) 13);
+    assertThat(UltraLogLog.hashPrefixToRegister(0xBL)).isEqualTo((byte) 13);
+    assertThat(UltraLogLog.hashPrefixToRegister(12)).isEqualTo((byte) 14);
+    assertThat(UltraLogLog.hashPrefixToRegister(1L << (12 - 1))).isEqualTo((byte) 44);
+    assertThat(UltraLogLog.hashPrefixToRegister(1L << 12)).isEqualTo((byte) 48);
+    assertThat(UltraLogLog.hashPrefixToRegister((1L << (12 - 1)) | (1L << (12))))
+        .isEqualTo((byte) 50);
+    assertThat(UltraLogLog.hashPrefixToRegister(1L << (12 + 1))).isEqualTo((byte) 52);
+    assertThat(UltraLogLog.hashPrefixToRegister(0x8000000000000000L)).isEqualTo((byte) 252);
+    assertThat(UltraLogLog.hashPrefixToRegister(0xFFFFFFFFFFFFFFFFL)).isEqualTo((byte) 255);
 
-    assertEquals(0, UltraLogLog.registerToHashPrefix((byte) 0));
-    assertEquals(0, UltraLogLog.registerToHashPrefix((byte) 4));
-    assertEquals(5, UltraLogLog.registerToHashPrefix((byte) 9));
-    assertEquals(6, UltraLogLog.registerToHashPrefix((byte) 10));
-    assertEquals(7, UltraLogLog.registerToHashPrefix((byte) 11));
-    assertEquals(8, UltraLogLog.registerToHashPrefix((byte) 12));
-    assertEquals(10, UltraLogLog.registerToHashPrefix((byte) 13));
-    assertEquals(12, UltraLogLog.registerToHashPrefix((byte) 14));
-    assertEquals(1L << (12 - 1), UltraLogLog.registerToHashPrefix((byte) 44));
-    assertEquals((1L << (12 - 1)) + (1L << (12 - 3)), UltraLogLog.registerToHashPrefix((byte) 45));
-    assertEquals((1L << (12 - 1)) + (1L << (12 - 2)), UltraLogLog.registerToHashPrefix((byte) 46));
-    assertEquals(
-        (1L << (12 - 1)) + (1L << (12 - 2)) + (1L << (12 - 3)),
-        UltraLogLog.registerToHashPrefix((byte) 47));
-    assertEquals(0xE000000000000000L, UltraLogLog.registerToHashPrefix((byte) 255));
-    for (int i = 8; i < 256; i += 1) {
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 0)).isEqualTo(0);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 4)).isEqualTo(0);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 8)).isEqualTo(4);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 9)).isEqualTo(5);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 10)).isEqualTo(6);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 11)).isEqualTo(7);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 12)).isEqualTo(8);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 13)).isEqualTo(10);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 14)).isEqualTo(12);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 44)).isEqualTo(1L << (12 - 1));
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 45))
+        .isEqualTo((1L << (12 - 1)) + (1L << (12 - 3)));
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 46))
+        .isEqualTo((1L << (12 - 1)) + (1L << (12 - 2)));
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 47))
+        .isEqualTo((1L << (12 - 1)) + (1L << (12 - 2)) + (1L << (12 - 3)));
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 255)).isEqualTo(0xE000000000000000L);
+
+    int smallestRegisterValue = (MIN_P << 2) - 4;
+    for (int i = smallestRegisterValue; i < 256; i += 1) {
       byte b = (byte) i;
-      assertEquals(b, UltraLogLog.hashPrefixToRegister(UltraLogLog.registerToHashPrefix(b)));
-    }
-  }
-
-  @Test
-  void testCalculateRegisterContribution() {
-
-    for (int i = 8; i < 256; i += 1) {
-      double actual = UltraLogLog.calculateRegisterContribution((byte) i);
-      double expected = Double.NaN;
-      switch (i & 3) {
-        case 0:
-          expected = (1. / 1 + 1. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
-          break;
-        case 1:
-          expected = (0. / 1 + 1. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
-          break;
-        case 2:
-          expected = (1. / 1 + 0. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
-          break;
-        case 3:
-          expected = (0. / 1 + 0. / 2 + 1. / 4) * Math.pow(0.5, i / 4);
-          break;
-        default:
-          fail();
-      }
-      assertEquals(expected, actual);
+      assertThat(UltraLogLog.hashPrefixToRegister(UltraLogLog.registerToHashPrefix(b)))
+          .isEqualTo(b);
     }
   }
 
   @Test
   void testAddAndMerge() {
     SplittableRandom random = new SplittableRandom(0x11a73f21bb8ad8f6L);
-    int[] pVals = {3, 4, 5, 6, 7, 8, 9, 10};
+    int[] pVals = IntStream.range(MIN_P, 10).toArray();
     long[] distinctCounts = {
       0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
     };
@@ -267,7 +261,7 @@ public class UltraLogLogTest {
   @Test
   void testDownsize() {
     SplittableRandom random = new SplittableRandom(0x237846c7b27df6b4L);
-    int[] pVals = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+    int[] pVals = IntStream.range(MIN_P, 16).toArray();
     long[] distinctCounts = {
       0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
     };
@@ -333,28 +327,30 @@ public class UltraLogLogTest {
   @Test
   void testIsUnsignedPowerOfTwo() {
     for (int exponent = 0; exponent < 32; exponent++) {
-      assertTrue(UltraLogLog.isUnsignedPowerOfTwo(1 << exponent));
+      assertThat(UltraLogLog.isUnsignedPowerOfTwo(1 << exponent)).isTrue();
     }
-    assertTrue(UltraLogLog.isUnsignedPowerOfTwo(0));
+    assertThat(UltraLogLog.isUnsignedPowerOfTwo(0)).isTrue();
     for (int i = -1000; i < 0; ++i) {
-      assertFalse(UltraLogLog.isUnsignedPowerOfTwo(i));
+      assertThat(UltraLogLog.isUnsignedPowerOfTwo(i)).isFalse();
     }
-    assertTrue(UltraLogLog.isUnsignedPowerOfTwo(Integer.MIN_VALUE));
-    assertFalse(UltraLogLog.isUnsignedPowerOfTwo(Integer.MAX_VALUE));
+    assertThat(UltraLogLog.isUnsignedPowerOfTwo(Integer.MIN_VALUE)).isTrue();
+    assertThat(UltraLogLog.isUnsignedPowerOfTwo(Integer.MAX_VALUE)).isFalse();
   }
 
   @Test
   void testXi() {
-    assertThat(UltraLogLog.xi(0.)).isEqualTo(0.);
-    assertThat(UltraLogLog.xi(0.5)).isCloseTo(1.2814941480755806, Percentage.withPercentage(1e-8));
-    assertThat(UltraLogLog.xi(1.)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(UltraLogLog.xi(Double.NEGATIVE_INFINITY)).isEqualTo(0);
-    assertThat(UltraLogLog.xi(Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
-    assertThat(UltraLogLog.xi(Double.MAX_VALUE)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(UltraLogLog.xi(-Double.MIN_VALUE)).isEqualTo(0.);
-    assertThat(UltraLogLog.xi(Double.NaN)).isNaN();
-    assertThat(UltraLogLog.xi(Math.nextDown(1.)))
-        .isCloseTo(1.2994724158464226E16, Percentage.withPercentage(1e-8));
+    assertThat(UltraLogLog.xi(2, 0.)).isEqualTo(0.);
+    assertThat(UltraLogLog.xi(2, 0.5)).isCloseTo(1.2814941480755806, withPercentage(1e-8));
+    assertThat(UltraLogLog.xi(2, 1.)).isEqualTo(Double.POSITIVE_INFINITY);
+    assertThat(UltraLogLog.xi(2, Double.NEGATIVE_INFINITY)).isEqualTo(0);
+    assertThat(UltraLogLog.xi(2, Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
+    assertThat(UltraLogLog.xi(2, Double.MAX_VALUE)).isEqualTo(Double.POSITIVE_INFINITY);
+    assertThat(UltraLogLog.xi(2, -Double.MIN_VALUE)).isEqualTo(0.);
+    assertThat(UltraLogLog.xi(2, Double.NaN)).isNaN();
+    assertThat(UltraLogLog.xi(Double.NaN, 0.5)).isNaN();
+    assertThat(UltraLogLog.xi(Double.NaN, Double.NaN)).isNaN();
+    assertThat(UltraLogLog.xi(2, Math.nextDown(1.)))
+        .isCloseTo(1.2994724158464226E16, withPercentage(1e-8));
   }
 
   @Test
@@ -367,7 +363,7 @@ public class UltraLogLogTest {
   @Test
   void testRandomStates() {
     int numCycles = 1000000;
-    int minP = 3;
+    int minP = MIN_P;
     int maxP = 8;
     SplittableRandom random = new SplittableRandom(0x822fa1dcf86f953eL);
     for (int i = 0; i < numCycles; ++i) {
@@ -379,84 +375,69 @@ public class UltraLogLogTest {
       UltraLogLog sketch2 = UltraLogLog.wrap(state2);
       int newP1 = random.nextInt(minP, maxP + 1);
       int newP2 = random.nextInt(minP, maxP + 1);
-      assertDoesNotThrow(() -> sketch1.getDistinctCountEstimate());
-      assertDoesNotThrow(() -> sketch2.getDistinctCountEstimate());
-      assertDoesNotThrow(() -> sketch1.copy());
-      assertDoesNotThrow(() -> sketch2.copy());
-      assertDoesNotThrow(() -> sketch1.downsize(newP1));
-      assertDoesNotThrow(() -> sketch2.downsize(newP2));
-      assertDoesNotThrow(() -> UltraLogLog.merge(sketch1, sketch2));
+      assertThatNoException().isThrownBy(sketch1::getDistinctCountEstimate);
+      assertThatNoException().isThrownBy(sketch2::getDistinctCountEstimate);
+      assertThatNoException().isThrownBy(sketch1::copy);
+      assertThatNoException().isThrownBy(sketch2::copy);
+      assertThatNoException().isThrownBy(() -> sketch1.downsize(newP1));
+      assertThatNoException().isThrownBy(() -> sketch2.downsize(newP2));
+      assertThatNoException().isThrownBy(() -> UltraLogLog.merge(sketch1, sketch2));
       if (sketch1.getP() <= sketch2.getP()) {
-        assertDoesNotThrow(() -> sketch1.add(sketch2));
+        assertThatNoException().isThrownBy(() -> sketch1.add(sketch2));
       } else {
-        assertDoesNotThrow(() -> sketch2.add(sketch1));
+        assertThatNoException().isThrownBy(() -> sketch2.add(sketch1));
       }
     }
   }
 
   @Test
   void testCreateIllegalArguments() {
-    assertThatThrownBy(() -> UltraLogLog.create(-1)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.create(0)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.create(1)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.create(2)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.create(27)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.create(28)).isInstanceOf(IllegalArgumentException.class);
+    for (int p = MIN_P - 100; p < MAX_P + 100; ++p) {
+      int pFinal = p;
+      if (p >= MIN_P && p <= MAX_P) {
+        assertThatNoException().isThrownBy(() -> UltraLogLog.create(pFinal));
+      } else {
+        assertThatThrownBy(() -> UltraLogLog.create(pFinal))
+            .isInstanceOf(IllegalArgumentException.class);
+      }
+    }
   }
 
   @Test
   void testDownsizeIllegalArguments() {
     UltraLogLog sketch = UltraLogLog.create(8);
-    assertThatThrownBy(() -> sketch.downsize(-1)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> sketch.downsize(0)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> sketch.downsize(1)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> sketch.downsize(2)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> sketch.downsize(27)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> sketch.downsize(28)).isInstanceOf(IllegalArgumentException.class);
+    for (int p = MIN_P - 100; p < MAX_P + 100; ++p) {
+      int pFinal = p;
+      if (p >= MIN_P && p <= MAX_P) {
+        assertThatNoException().isThrownBy(() -> sketch.downsize(pFinal));
+      } else {
+        assertThatThrownBy(() -> sketch.downsize(pFinal))
+            .isInstanceOf(IllegalArgumentException.class);
+      }
+    }
   }
 
   @Test
   void testWrapIllegalArguments() {
+    Set<Integer> validLengths =
+        IntStream.range(MIN_P, MAX_P + 1).map(p -> 1 << p).boxed().collect(Collectors.toSet());
+    Set<Integer> testLengths =
+        IntStream.range(MIN_P, MAX_P + 1)
+            .map(p -> 1 << p)
+            .flatMap(p -> IntStream.of(p - 3, p - 2, p - 1, p, p + 1, p + 2, p + 3))
+            .boxed()
+            .collect(Collectors.toCollection(HashSet::new));
+
+    for (int len : validLengths) {
+      assertThatNoException().isThrownBy(() -> UltraLogLog.wrap(new byte[len]));
+    }
+
+    for (int len : Sets.difference(testLengths, validLengths)) {
+      assertThatThrownBy(() -> UltraLogLog.wrap(new byte[len]))
+          .isInstanceOf(IllegalArgumentException.class);
+    }
+
     assertThatThrownBy(() -> UltraLogLog.wrap(null)).isInstanceOf(NullPointerException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[0]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[1]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[2]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[3]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[4]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[5]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[6]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[7]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertDoesNotThrow(() -> UltraLogLog.wrap(new byte[8]));
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[9]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[10]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[11]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[12]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[13]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[14]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[15]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertDoesNotThrow(() -> UltraLogLog.wrap(new byte[16]));
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[17]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[(1 << 26) - 1]))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertDoesNotThrow(() -> UltraLogLog.wrap(new byte[(1 << 26)]));
-    assertThatThrownBy(() -> UltraLogLog.wrap(new byte[(1 << 26) + 1]))
-        .isInstanceOf(IllegalArgumentException.class);
   }
 
   private static byte[] compress(byte[] data) throws IOException {
@@ -496,8 +477,7 @@ public class UltraLogLogTest {
     double storageFactorUltraLogLog =
         8. * sumSizeUltraLogLog * expectedVarianceUltraLogLog / numCycles;
 
-    assertThat(storageFactorUltraLogLog)
-        .isCloseTo(2.9694654659811044, Percentage.withPercentage(1));
+    assertThat(storageFactorUltraLogLog).isCloseTo(2.8895962872532435, withPercentage(1));
   }
 
   @Test
@@ -514,7 +494,6 @@ public class UltraLogLogTest {
   }
 
   private static void testErrorOfDistinctCountEqualOne(int p) {
-    double m = 1 << p;
     UltraLogLog sketch = UltraLogLog.create(p);
     double sumProbabiltiy = 0;
     double averageEstimate = 0;
@@ -579,7 +558,7 @@ public class UltraLogLogTest {
         UltraLogLog.calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.3);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
+    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.71);
   }
 
   private static void testErrorOfDistinctCountEqualThree(int p) {
@@ -636,142 +615,236 @@ public class UltraLogLogTest {
         UltraLogLog.calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.3);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.8);
+    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.81);
   }
 
   @Test
   void testVarianceOfDistinctCountEqualOne() {
-    testErrorOfDistinctCountEqualOne(3);
-    testErrorOfDistinctCountEqualOne(4);
-    testErrorOfDistinctCountEqualOne(5);
-    testErrorOfDistinctCountEqualOne(6);
-    testErrorOfDistinctCountEqualOne(7);
-    testErrorOfDistinctCountEqualOne(8);
-    testErrorOfDistinctCountEqualOne(9);
-    testErrorOfDistinctCountEqualOne(10);
-    testErrorOfDistinctCountEqualOne(11);
-    testErrorOfDistinctCountEqualOne(12);
-    testErrorOfDistinctCountEqualOne(13);
-    testErrorOfDistinctCountEqualOne(14);
-    testErrorOfDistinctCountEqualOne(15);
-    testErrorOfDistinctCountEqualOne(16);
-    testErrorOfDistinctCountEqualOne(17);
-    testErrorOfDistinctCountEqualOne(18);
-    testErrorOfDistinctCountEqualOne(19);
-    testErrorOfDistinctCountEqualOne(20);
-    testErrorOfDistinctCountEqualOne(21);
-    testErrorOfDistinctCountEqualOne(22);
-    testErrorOfDistinctCountEqualOne(23);
-    testErrorOfDistinctCountEqualOne(24);
-    testErrorOfDistinctCountEqualOne(25);
-    testErrorOfDistinctCountEqualOne(26);
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      testErrorOfDistinctCountEqualOne(p);
+    }
   }
 
   @Test
   void testVarianceOfDistinctCountEqualTwo() {
-    testErrorOfDistinctCountEqualTwo(3);
-    testErrorOfDistinctCountEqualTwo(4);
-    testErrorOfDistinctCountEqualTwo(5);
-    testErrorOfDistinctCountEqualTwo(6);
-    testErrorOfDistinctCountEqualTwo(7);
-    testErrorOfDistinctCountEqualTwo(8);
-    testErrorOfDistinctCountEqualTwo(9);
-    testErrorOfDistinctCountEqualTwo(10);
-    testErrorOfDistinctCountEqualTwo(11);
-    testErrorOfDistinctCountEqualTwo(12);
-    testErrorOfDistinctCountEqualTwo(13);
-    testErrorOfDistinctCountEqualTwo(14);
-    testErrorOfDistinctCountEqualTwo(15);
-    testErrorOfDistinctCountEqualTwo(16);
-    testErrorOfDistinctCountEqualTwo(17);
-    testErrorOfDistinctCountEqualTwo(18);
-    testErrorOfDistinctCountEqualTwo(19);
-    testErrorOfDistinctCountEqualTwo(20);
+    for (int p = MIN_P; p <= 20; ++p) {
+      testErrorOfDistinctCountEqualTwo(p);
+    }
   }
 
   @Test
   void testVarianceOfDistinctCountEqualThree() {
-    testErrorOfDistinctCountEqualThree(3);
-    testErrorOfDistinctCountEqualThree(4);
-    testErrorOfDistinctCountEqualThree(5);
-    testErrorOfDistinctCountEqualThree(6);
-    testErrorOfDistinctCountEqualThree(7);
-    testErrorOfDistinctCountEqualThree(8);
-    testErrorOfDistinctCountEqualThree(9);
-    testErrorOfDistinctCountEqualThree(10);
-    testErrorOfDistinctCountEqualThree(11);
-    testErrorOfDistinctCountEqualThree(12);
-    testErrorOfDistinctCountEqualThree(13);
-    testErrorOfDistinctCountEqualThree(14);
-  }
-
-  private static strictfp int xiIterations(double x) {
-    if (x <= 0.) return 0;
-    if (x >= 1.) return 0;
-    if (Double.isNaN(x)) return 0;
-    double sum = x;
-    double y = 2;
-    double oldSum;
-    int counter = 0;
-    while (true) {
-      oldSum = sum;
-      x *= x;
-      sum += x * y;
-      counter += 1;
-      if (oldSum == sum) return counter;
-      y += y;
+    for (int p = MIN_P; p <= 14; ++p) {
+      testErrorOfDistinctCountEqualThree(p);
     }
   }
 
-  private static double calculateX(int m, int h0, int h1, int h2, int h3) {
+  private static strictfp int xiIterations(double x, double y) {
+    int counter = 0;
+    if (y <= 0.) return 0;
+    if (y >= 1.) return 0;
+    double z = x;
+    double sum = y;
+    double oldSum;
+    do {
+      counter += 1;
+      y *= y;
+      oldSum = sum;
+      sum += y * z;
+      z *= x;
+    } while (oldSum < sum);
+    return counter;
+  }
+
+  private static double calculateZ(int m, int h0, int h1, int h2, int h3) {
     int alpha = h0 + h1;
     int beta = alpha + h2 + h3;
     int gamma = beta + alpha + ((h0 + h2) << 1);
-    return UltraLogLog.calculateX(m, alpha, beta, gamma);
+    return UltraLogLog.calculateZ(m, alpha, beta, gamma);
   }
 
   @Test
   void testXiIterations() {
-    assertThat(xiIterations(0.)).isEqualTo(0);
-    assertThat(xiIterations(Double.POSITIVE_INFINITY)).isEqualTo(0);
-    assertThat(xiIterations(1.)).isEqualTo(0);
-    assertThat(xiIterations(Math.nextDown(1.))).isEqualTo(59);
-    assertThat(xiIterations(Math.nextUp(0.))).isEqualTo(1);
-    int minPrecision = 3;
-    int maxPrecision = 26;
+
+    double x = Math.pow(2., UltraLogLog.TAU);
+
+    assertThat(xiIterations(x, 0.)).isEqualTo(0);
+    assertThat(xiIterations(x, Double.POSITIVE_INFINITY)).isEqualTo(0);
+    assertThat(xiIterations(x, 1.)).isEqualTo(0);
+    assertThat(xiIterations(x, Math.nextDown(1.))).isEqualTo(59);
+    assertThat(xiIterations(x, Math.nextUp(0.))).isEqualTo(1);
     int maxNumIterations =
-        31; // 30 should be enough, but let's take 31 to encounter potential platform dependencies
-    for (int p = minPrecision; p <= maxPrecision; ++p) {
+        30; // 29 should be enough, but let's take 30 to encounter potential platform dependencies
+    for (int p = MIN_P; p <= MAX_P; ++p) {
       int m = 1 << p;
       {
         // case h0 = m - 1, h1 = 1, h2 = 0, h3 = 0
-        double x = calculateX(m, m - 1, 1, 0, 0);
-        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+        double z = calculateZ(m, m - 1, 1, 0, 0);
+        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       {
         // case h0 = m - 1, h1 = 0, h2 = 1, h3 = 0
-        double x = calculateX(m, m - 1, 0, 1, 0);
-        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+        double z = calculateZ(m, m - 1, 0, 1, 0);
+        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       {
         // case h0 = m - 1, h1 = 0, h2 = 0, h3 = 1
-        double x = calculateX(m, m - 1, 0, 0, 1);
-        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+        double z = calculateZ(m, m - 1, 0, 0, 1);
+        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       {
         // case h0 = m - 1, h1 = 0, h2 = 0, h3 = 0
-        double x = calculateX(m, m - 1, 0, 0, 0);
-        assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+        double z = calculateZ(m, m - 1, 0, 0, 0);
+        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       // further cases
       for (int h1 = 0; h1 <= 2; ++h1) {
         for (int h2 = 0; h2 <= 2; ++h2) {
           for (int h3 = 0; h3 <= 2; ++h3) {
-            double x = calculateX(m, m - h1 - h2 - h3, h1, h2, h3);
-            assertThat(xiIterations(Math.pow(x, 5))).isLessThanOrEqualTo(maxNumIterations);
+            double z = calculateZ(m, m - h1 - h2 - h3, h1, h2, h3);
+            assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
           }
         }
       }
     }
+  }
+
+  private static final double LOG_2 = Math.log(2);
+  private static final double LOG_4 = Math.log(4);
+  private static final double LOG_3_92 = Math.log(3.92);
+  private static final double LOG_5_76 = Math.log(5.76);
+  private static final double LOG_1_25 = Math.log(1.25);
+
+  private static final int BITS_PER_REGISTER = Byte.SIZE;
+
+  private static double calculateStorageFactor(double tau) {
+    double gamma2tauP1 = gamma(2 * tau + 1);
+    double gammaTauP1 = gamma(tau + 1);
+    double sum =
+        0.5
+            + exp(-tau * LOG_4) / Math.expm1(tau * LOG_2)
+            + exp(-tau * LOG_3_92)
+            + exp(-tau * LOG_5_76);
+
+    sum *= LOG_2 * gamma2tauP1 * tau / (gammaTauP1 * gammaTauP1);
+    sum -= 1;
+    sum /= (tau * tau);
+    return sum * BITS_PER_REGISTER;
+  }
+
+  private static final double EPS = 1e-10;
+
+  @Test
+  void testOptimalTau() {
+    UnivariateObjectiveFunction f =
+        new UnivariateObjectiveFunction(UltraLogLogTest::calculateStorageFactor);
+    final MaxEval maxEval = new MaxEval(Integer.MAX_VALUE);
+    UnivariateOptimizer optimizer = new BrentOptimizer(2 * Math.ulp(1d), Double.MIN_VALUE);
+    SearchInterval searchInterval = new SearchInterval(0, 5, 1);
+    UnivariatePointValuePair result =
+        optimizer.optimize(GoalType.MINIMIZE, f, searchInterval, maxEval);
+
+    double optimalTau = result.getPoint();
+
+    assertThat(UltraLogLog.TAU).isCloseTo(optimalTau, withPercentage(EPS));
+  }
+
+  private static double calculateRegisterContribution(byte x) {
+    int i = x & 0xFF;
+    switch (i & 3) {
+      case 0:
+        return (1.
+                + Math.pow(2., -UltraLogLog.TAU)
+                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
+            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+      case 1:
+        return (0.
+                + Math.pow(2., -UltraLogLog.TAU)
+                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
+            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+      case 2:
+        return (1.
+                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
+            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+      default:
+        return (0.
+                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
+            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+    }
+  }
+
+  @Test
+  void testConstants() {
+
+    double expectedEstimationFactor =
+        gamma(UltraLogLog.TAU) / (LOG_2 * exp(LOG_1_25 * UltraLogLog.TAU));
+    double expectedVarianceFactor = calculateStorageFactor(UltraLogLog.TAU) / BITS_PER_REGISTER;
+
+    assertThat(UltraLogLog.ESTIMATION_FACTOR)
+        .isCloseTo(expectedEstimationFactor, withPercentage(EPS));
+    assertThat(UltraLogLog.VARIANCE_FACTOR).isCloseTo(expectedVarianceFactor, withPercentage(EPS));
+
+    double[] contributions = UltraLogLog.getRegisterContributions();
+
+    for (int i = 0; i < 252; ++i) {
+      assertThat(contributions[i])
+          .isCloseTo(calculateRegisterContribution((byte) (i + 4)), withPercentage(EPS));
+    }
+  }
+
+  @Test
+  void testWrappingOfPotentiallyInvalidByteArrays() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      byte[] b = new byte[1 << p];
+      int c = 0;
+      while (c < 256) {
+        for (int k = 0; k < b.length; ++k) {
+          b[k] = (byte) c;
+          c += 1;
+        }
+        assertThatNoException().isThrownBy(() -> UltraLogLog.wrap(b).getDistinctCountEstimate());
+      }
+    }
+  }
+
+  @Test
+  void testEmptyMerge() {
+    UltraLogLog ultraLogLog1 = UltraLogLog.create(12);
+    UltraLogLog ultraLogLog2 = UltraLogLog.create(12);
+    UltraLogLog ultraLogLogMerged = UltraLogLog.merge(ultraLogLog1, ultraLogLog2);
+    assertThat(ultraLogLogMerged.getDistinctCountEstimate()).isEqualTo(0.);
+  }
+
+  @Test
+  void testSmallestRegisterValues() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      long hashPrefix1 = 1L << (p - 1);
+      long hashPrefix2 = 2L << (p - 1);
+      long hashPrefix3 = 3L << (p - 1);
+      long hashPrefix4 = 4L << (p - 1);
+      long hashPrefix5 = 5L << (p - 1);
+      long hashPrefix6 = 6L << (p - 1);
+      long hashPrefix7 = 7L << (p - 1);
+
+      byte register1 = UltraLogLog.hashPrefixToRegister(hashPrefix1);
+      byte register2 = UltraLogLog.hashPrefixToRegister(hashPrefix2);
+      byte register3 = UltraLogLog.hashPrefixToRegister(hashPrefix3);
+      byte register4 = UltraLogLog.hashPrefixToRegister(hashPrefix4);
+      byte register5 = UltraLogLog.hashPrefixToRegister(hashPrefix5);
+      byte register6 = UltraLogLog.hashPrefixToRegister(hashPrefix6);
+      byte register7 = UltraLogLog.hashPrefixToRegister(hashPrefix7);
+
+      assertThat(register1).isEqualTo((byte) ((p << 2) - 4));
+      assertThat(register2).isEqualTo((byte) (p << 2));
+      assertThat(register3).isEqualTo((byte) ((p << 2) + 2));
+      assertThat(register4).isEqualTo((byte) ((p << 2) + 4));
+      assertThat(register5).isEqualTo((byte) ((p << 2) + 5));
+      assertThat(register6).isEqualTo((byte) ((p << 2) + 6));
+      assertThat(register7).isEqualTo((byte) ((p << 2) + 7));
+    }
+
+    long hashPrefixLargest = 0xFFFFFFFFFFFFFFFFL;
+    byte registerLargest = UltraLogLog.hashPrefixToRegister(hashPrefixLargest);
+    assertThat(registerLargest).isEqualTo((byte) 255);
   }
 }
