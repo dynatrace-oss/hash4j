@@ -579,54 +579,45 @@ public final class UltraLogLog {
    */
   public double getDistinctCountEstimate() {
     final int m = state.length;
-    final int off = (getP() << 2) + 4;
-    int c0 = 0;
-    int c1 = 0;
-    int c2 = 0;
-    int c3 = 0;
+    final int p = getP();
+    final int off = (p << 2) + 4;
+    final int[] c = new int[4];
     double sum = 0;
 
     for (byte x : state) {
-      int t = (x & 0xFF) - off;
+      int y = x & 0xFF;
+      int t = y - off;
       if (t >= 0) {
         sum += REGISTER_CONTRIBUTIONS[t];
       } else {
-        switch (t) {
-          case -8:
-            c1 += 1;
-            break;
-          case -4:
-            c2 += 1;
-            break;
-          case -2:
-            c3 += 1;
-            break;
-          default:
-            c0 += 1;
-        }
+        int l = (2 | ((x >>> 1) & 1)) >>> (p - (y >>> 2));
+        // optimized version of
+        // int l =  (int) (registerToHashPrefix(x) >>> (p - 1));
+        // for s <= p
+        c[l] += 1;
       }
     }
 
-    int alpha = c0 + c1;
-    int beta = alpha + c2 + c3;
+    int alpha = c[0] + c[1];
+    int beta = alpha + c[2] + c[3];
 
     if (beta > 0) {
-      int gamma = beta + alpha + ((c0 + c2) << 1);
+      int gamma = beta + alpha + ((c[0] + c[2]) << 1);
       double z = calculateZ(m, alpha, beta, gamma);
       if (alpha > 0) {
         double z2 = z * z;
-        if (c0 > 0) {
-          sum += c0 * (C0 + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
+        if (c[0] > 0) {
+          sum += c[0] * (C0 + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
         }
-        if (c1 > 0) {
-          sum += c1 * (C1 + z + CA * z2);
+        if (c[1] > 0) {
+          sum += c[1] * (C1 + z + CA * z2);
         }
       }
-      if (c2 > 0) {
-        sum += c2 * (C2 + z);
+      if (c[2] > 0) {
+        sum += c[2] * (C2 + z);
       }
-      if (c3 > 0) {
-        sum += c3 * (C3 + z);
+      if (c[3] > 0) {
+        sum += c[3] * (C3 + z);
       }
     }
 
