@@ -23,6 +23,7 @@ import com.dynatrace.hash4j.hashing.Hashing;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
+import org.hipparchus.distribution.continuous.ExponentialDistribution;
 import org.hipparchus.distribution.continuous.UniformRealDistribution;
 import org.hipparchus.stat.inference.ChiSquareTest;
 import org.hipparchus.stat.inference.KolmogorovSmirnovTest;
@@ -113,7 +114,7 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   }
 
   @Test
-  public void testGetUniformDouble() {
+  public void testUniformDouble() {
 
     int dataSize = 1000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
@@ -122,6 +123,19 @@ public abstract class AbstractPseudoRandomGeneratorTest {
 
     assertThat(
             new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new UniformRealDistribution(), data))
+        .isGreaterThan(0.01);
+  }
+
+  @Test
+  public void testExponential() {
+
+    int dataSize = 1000000;
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(0xf6f4612e7fa10323L);
+    double[] data = DoubleStream.generate(prg::exponential).limit(dataSize).toArray();
+
+    assertThat(
+            new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new ExponentialDistribution(1), data))
         .isGreaterThan(0.01);
   }
 

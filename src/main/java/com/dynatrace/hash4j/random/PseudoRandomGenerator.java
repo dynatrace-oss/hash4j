@@ -56,4 +56,11 @@ public interface PseudoRandomGenerator {
    * @return a random value
    */
   double uniformDouble();
+
+  /**
+   * Returns an exponentially distributed {@code double} value with mean 1.
+   *
+   * @return a random value
+   */
+  double exponential();
 }

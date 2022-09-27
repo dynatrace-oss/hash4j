@@ -72,8 +72,11 @@ public class DistinctElementHashProviderTest {
   void testCollidingNullConstant() {
     DistinctElementHashProvider distinctElementHashProvider =
         new DistinctElementHashProvider(
-            createWithPredefinedLeadingSequence(
-                0x0dc70133dcf3c1f4L, 0x335bf97fcd04ad02L, 0xb252396aeda53915L));
+            withFirstLongsDefined(
+                PseudoRandomGeneratorProvider.splitMix64_V1(),
+                0x0dc70133dcf3c1f4L,
+                0x335bf97fcd04ad02L,
+                0xb252396aeda53915L));
 
     long[] input = {
       0xb252396aeda53915L, 0x335bf97fcd04ad02L, 0x0dc70133dcf3c1f4L, 0xb252396aeda53915L
@@ -91,11 +94,11 @@ public class DistinctElementHashProviderTest {
     assertArrayEquals(expectedDistinctSorted, actualDistinctSorted);
   }
 
-  private static PseudoRandomGeneratorProvider createWithPredefinedLeadingSequence(
-      long... firstRandomLongs) {
+  private static PseudoRandomGeneratorProvider withFirstLongsDefined(
+      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider, long... firstRandomLongs) {
     return () ->
         new PseudoRandomGenerator() {
-          private SplittableRandom random;
+          private final PseudoRandomGenerator prg = pseudoRandomGeneratorProvider.create();
           private int count;
 
           @Override
@@ -104,7 +107,7 @@ public class DistinctElementHashProviderTest {
             if (count < firstRandomLongs.length) {
               result = firstRandomLongs[count];
             } else {
-              result = random.nextLong();
+              result = prg.nextLong();
             }
             count += 1;
             return result;
@@ -112,23 +115,28 @@ public class DistinctElementHashProviderTest {
 
           @Override
           public int nextInt() {
-            return random.nextInt();
+            return prg.nextInt();
           }
 
           @Override
           public int uniformInt(int exclusiveBound) {
-            return random.nextInt(exclusiveBound);
+            return prg.uniformInt(exclusiveBound);
           }
 
           @Override
           public void reset(long seed) {
-            random = new SplittableRandom(seed);
+            prg.reset(seed);
             count = 0;
           }
 
           @Override
           public double uniformDouble() {
-            return random.nextDouble();
+            return prg.uniformDouble();
+          }
+
+          @Override
+          public double exponential() {
+            return prg.exponential();
           }
         };
   }
@@ -137,8 +145,11 @@ public class DistinctElementHashProviderTest {
   void testSameNullConstant() {
     DistinctElementHashProvider distinctElementHashProvider =
         new DistinctElementHashProvider(
-            createWithPredefinedLeadingSequence(
-                0x0fbbba603712dd2aL, 0x0fbbba603712dd2aL, 0xa20e5521a1bcde58L));
+            withFirstLongsDefined(
+                PseudoRandomGeneratorProvider.splitMix64_V1(),
+                0x0fbbba603712dd2aL,
+                0x0fbbba603712dd2aL,
+                0xa20e5521a1bcde58L));
     long[] input = {0x0fbbba603712dd2aL};
 
     distinctElementHashProvider.reset(ElementHashProvider.ofFunction(i -> input[i], input.length));
