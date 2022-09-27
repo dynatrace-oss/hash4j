@@ -49,4 +49,11 @@ public interface PseudoRandomGenerator {
    * @param seed the seed value
    */
   void reset(long seed);
+
+  /**
+   * Returns a random uniformly distributed {@code double} value in the range [0, 1).
+   *
+   * @return a random value
+   */
+  double uniformDouble();
 }

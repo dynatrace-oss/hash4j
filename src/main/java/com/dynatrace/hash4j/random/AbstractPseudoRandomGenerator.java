@@ -40,4 +40,9 @@ abstract class AbstractPseudoRandomGenerator implements PseudoRandomGenerator {
     }
     return (int) (m >>> 32);
   }
+
+  @Override
+  public double uniformDouble() {
+    return (nextLong() >>> 11) * 0x1.0p-53;
+  }
 }

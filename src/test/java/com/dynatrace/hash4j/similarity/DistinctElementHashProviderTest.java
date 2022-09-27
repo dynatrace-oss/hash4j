@@ -125,6 +125,11 @@ public class DistinctElementHashProviderTest {
             random = new SplittableRandom(seed);
             count = 0;
           }
+
+          @Override
+          public double uniformDouble() {
+            return random.nextDouble();
+          }
         };
   }
 
