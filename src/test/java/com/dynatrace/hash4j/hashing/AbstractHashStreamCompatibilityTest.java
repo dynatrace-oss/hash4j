@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -44,8 +44,8 @@ public class AbstractHashStreamCompatibilityTest {
           }
         };
 
-    assertEquals(hash128.getAsInt(), calculator.getAsInt());
-    assertEquals(hash128.getAsLong(), calculator.getAsLong());
-    assertEquals(hash128, calculator.get());
+    assertThat(calculator.getAsInt()).isEqualTo(hash128.getAsInt());
+    assertThat(calculator.getAsLong()).isEqualTo(hash128.getAsLong());
+    assertThat(calculator.get()).isEqualTo(hash128);
   }
 }

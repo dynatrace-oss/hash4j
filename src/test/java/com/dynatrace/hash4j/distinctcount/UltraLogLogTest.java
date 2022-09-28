@@ -41,7 +41,7 @@ public class UltraLogLogTest {
   @Test
   void testEmpty() {
     UltraLogLog sketch = UltraLogLog.create(10);
-    assertThat(sketch.getDistinctCountEstimate()).isEqualTo(0.);
+    assertThat(sketch.getDistinctCountEstimate()).isZero();
   }
 
   @Test
@@ -214,8 +214,8 @@ public class UltraLogLogTest {
     assertThat(UltraLogLog.hashPrefixToRegister(0x8000000000000000L)).isEqualTo((byte) 252);
     assertThat(UltraLogLog.hashPrefixToRegister(0xFFFFFFFFFFFFFFFFL)).isEqualTo((byte) 255);
 
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 0)).isEqualTo(0);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 4)).isEqualTo(0);
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 0)).isZero();
+    assertThat(UltraLogLog.registerToHashPrefix((byte) 4)).isZero();
     assertThat(UltraLogLog.registerToHashPrefix((byte) 8)).isEqualTo(4);
     assertThat(UltraLogLog.registerToHashPrefix((byte) 9)).isEqualTo(5);
     assertThat(UltraLogLog.registerToHashPrefix((byte) 10)).isEqualTo(6);
@@ -339,13 +339,13 @@ public class UltraLogLogTest {
 
   @Test
   void testXi() {
-    assertThat(UltraLogLog.xi(2, 0.)).isEqualTo(0.);
+    assertThat(UltraLogLog.xi(2, 0.)).isZero();
     assertThat(UltraLogLog.xi(2, 0.5)).isCloseTo(1.2814941480755806, withPercentage(1e-8));
     assertThat(UltraLogLog.xi(2, 1.)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(UltraLogLog.xi(2, Double.NEGATIVE_INFINITY)).isEqualTo(0);
+    assertThat(UltraLogLog.xi(2, Double.NEGATIVE_INFINITY)).isZero();
     assertThat(UltraLogLog.xi(2, Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
     assertThat(UltraLogLog.xi(2, Double.MAX_VALUE)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(UltraLogLog.xi(2, -Double.MIN_VALUE)).isEqualTo(0.);
+    assertThat(UltraLogLog.xi(2, -Double.MIN_VALUE)).isZero();
     assertThat(UltraLogLog.xi(2, Double.NaN)).isNaN();
     assertThat(UltraLogLog.xi(Double.NaN, 0.5)).isNaN();
     assertThat(UltraLogLog.xi(Double.NaN, Double.NaN)).isNaN();
@@ -356,7 +356,7 @@ public class UltraLogLogTest {
   @Test
   void testWrapZeros() {
     for (int len = 8; len <= 1 << 26; len *= 2) {
-      assertThat(UltraLogLog.wrap(new byte[len]).getDistinctCountEstimate()).isEqualTo(0.);
+      assertThat(UltraLogLog.wrap(new byte[len]).getDistinctCountEstimate()).isZero();
     }
   }
 
@@ -489,7 +489,7 @@ public class UltraLogLogTest {
     }
     assertThat(sketch.getDistinctCountEstimate()).isGreaterThan(1000);
     sketch.reset();
-    assertThat(sketch.getDistinctCountEstimate()).isEqualTo(0.);
+    assertThat(sketch.getDistinctCountEstimate()).isZero();
     assertThat(sketch.getState()).containsOnly(0);
   }
 
@@ -668,9 +668,9 @@ public class UltraLogLogTest {
 
     double x = Math.pow(2., UltraLogLog.TAU);
 
-    assertThat(xiIterations(x, 0.)).isEqualTo(0);
-    assertThat(xiIterations(x, Double.POSITIVE_INFINITY)).isEqualTo(0);
-    assertThat(xiIterations(x, 1.)).isEqualTo(0);
+    assertThat(xiIterations(x, 0.)).isZero();
+    assertThat(xiIterations(x, Double.POSITIVE_INFINITY)).isZero();
+    assertThat(xiIterations(x, 1.)).isZero();
     assertThat(xiIterations(x, Math.nextDown(1.))).isEqualTo(59);
     assertThat(xiIterations(x, Math.nextUp(0.))).isEqualTo(1);
     int maxNumIterations =
@@ -812,7 +812,7 @@ public class UltraLogLogTest {
     UltraLogLog ultraLogLog1 = UltraLogLog.create(12);
     UltraLogLog ultraLogLog2 = UltraLogLog.create(12);
     UltraLogLog ultraLogLogMerged = UltraLogLog.merge(ultraLogLog1, ultraLogLog2);
-    assertThat(ultraLogLogMerged.getDistinctCountEstimate()).isEqualTo(0.);
+    assertThat(ultraLogLogMerged.getDistinctCountEstimate()).isZero();
   }
 
   @Test

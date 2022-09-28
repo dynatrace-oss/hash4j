@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +52,7 @@ public class AbstractHasher32Test {
 
     byte[] b = {};
 
-    assertEquals(hash, hasher.hashBytesToInt(b));
-    assertEquals(hash, hasher.hashBytesToInt(b, 0, 0));
+    assertThat(hasher.hashBytesToInt(b)).isEqualTo(hash);
+    assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo(hash);
   }
 }

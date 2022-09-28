@@ -16,7 +16,8 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -221,8 +222,8 @@ abstract class AbstractHashStreamTest {
       byte[] dataHash = getBytesAndVerifyRepetitiveGetCalls(dataHashStream);
       byte[] nonOptimizedHash = getBytesAndVerifyRepetitiveGetCalls(nonOptimizedHashStream);
 
-      assertArrayEquals(rawBytesHash, dataHash);
-      assertArrayEquals(rawBytesHash, nonOptimizedHash);
+      assertThat(dataHash).isEqualTo(rawBytesHash);
+      assertThat(nonOptimizedHash).isEqualTo(rawBytesHash);
     }
   }
 
@@ -244,7 +245,7 @@ abstract class AbstractHashStreamTest {
         HashStream hashStream = hasher.hashStream();
         hashStream.putBytes(data, 0, k);
         hashStream.putBytes(data, k, size - k);
-        assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashStream));
+        assertThat(getBytesAndVerifyRepetitiveGetCalls(hashStream)).isEqualTo(expected);
       }
 
       for (int j = 0; j < size; ++j) {
@@ -253,7 +254,7 @@ abstract class AbstractHashStreamTest {
           hashStream.putBytes(data, 0, j);
           hashStream.putBytes(data, j, k - j);
           hashStream.putBytes(data, k, size - k);
-          assertArrayEquals(expected, getBytesAndVerifyRepetitiveGetCalls(hashStream));
+          assertThat(getBytesAndVerifyRepetitiveGetCalls(hashStream)).isEqualTo(expected);
         }
       }
     }
@@ -272,9 +273,9 @@ abstract class AbstractHashStreamTest {
     int intHash = intHashStream.getAsInt();
     try {
       long longHash = longHashStream.getAsLong();
-      assertEquals(intHash, (int) longHash);
+      assertThat((int) longHash).isEqualTo(intHash);
       HashValue128 hash128Hash = hash128Calculator.get();
-      assertEquals(longHash, hash128Hash.getAsLong());
+      assertThat(hash128Hash.getAsLong()).isEqualTo(longHash);
     } catch (UnsupportedOperationException e) {
       // no compatibility check necessary, if 128-bit hash value is not supported
     }
@@ -304,16 +305,16 @@ abstract class AbstractHashStreamTest {
         long hash32Reference = hasher32.hashToInt(data, BYTES_FUNNEL_1);
         long hash32 = hasher32.hashBytesToInt(data);
         long hash32WithOffset = hasher32.hashBytesToInt(dataWithOffset, offset, length);
-        assertEquals(hash32Reference, hash32);
-        assertEquals(hash32Reference, hash32WithOffset);
+        assertThat(hash32).isEqualTo(hash32Reference);
+        assertThat(hash32WithOffset).isEqualTo(hash32Reference);
       }
       if (hasher instanceof Hasher64) {
         Hasher64 hasher64 = (Hasher64) hasher;
         long hash64Reference = hasher64.hashToLong(data, BYTES_FUNNEL_1);
         long hash64 = hasher64.hashBytesToLong(data);
         long hash64WithOffset = hasher64.hashBytesToLong(dataWithOffset, offset, length);
-        assertEquals(hash64Reference, hash64);
-        assertEquals(hash64Reference, hash64WithOffset);
+        assertThat(hash64).isEqualTo(hash64Reference);
+        assertThat(hash64WithOffset).isEqualTo(hash64Reference);
       }
       if (hasher instanceof Hasher128) {
         Hasher128 hasher128 = (Hasher128) hasher;
@@ -321,8 +322,8 @@ abstract class AbstractHashStreamTest {
         HashValue128 hash128 = hasher128.hashBytesTo128Bits(data);
         HashValue128 hash128WithOffset =
             hasher128.hashBytesTo128Bits(dataWithOffset, offset, length);
-        assertEquals(hash128Reference, hash128);
-        assertEquals(hash128Reference, hash128WithOffset);
+        assertThat(hash128).isEqualTo(hash128Reference);
+        assertThat(hash128WithOffset).isEqualTo(hash128Reference);
       }
     }
   }
@@ -348,7 +349,7 @@ abstract class AbstractHashStreamTest {
         result[j] = (byte) ((x.getLeastSignificantBits() >>> i) & 0xFFL);
       }
     } else {
-      fail();
+      fail("hash stream has unexpected bit size");
     }
     return result;
   }
@@ -358,7 +359,7 @@ abstract class AbstractHashStreamTest {
 
     int numRecalculations = 5;
     for (int i = 0; i < numRecalculations; ++i) {
-      assertArrayEquals(result, getBytes(hashStream));
+      assertThat(getBytes(hashStream)).isEqualTo(result);
     }
     return result;
   }
@@ -399,16 +400,16 @@ abstract class AbstractHashStreamTest {
 
   private static void assertHashStreamEquals(
       HashStream hashStreamExpected, HashStream hashStreamActual) {
-    assertEquals(hashStreamExpected.getHashBitSize(), hashStreamActual.getHashBitSize());
+    assertThat(hashStreamActual.getHashBitSize()).isEqualTo(hashStreamExpected.getHashBitSize());
     int hashBitSize = hashStreamExpected.getHashBitSize();
     if (hashBitSize >= 128) {
-      assertEquals(hashStreamExpected.get(), hashStreamActual.get());
+      assertThat(hashStreamActual.get()).isEqualTo(hashStreamExpected.get());
     }
     if (hashBitSize >= 64) {
-      assertEquals(hashStreamExpected.getAsLong(), hashStreamActual.getAsLong());
+      assertThat(hashStreamActual.getAsLong()).isEqualTo(hashStreamExpected.getAsLong());
     }
     if (hashBitSize >= 32) {
-      assertEquals(hashStreamExpected.getAsInt(), hashStreamActual.getAsInt());
+      assertThat(hashStreamActual.getAsInt()).isEqualTo(hashStreamExpected.getAsInt());
     }
   }
 

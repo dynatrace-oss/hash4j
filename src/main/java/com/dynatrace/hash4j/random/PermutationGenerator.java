@@ -22,7 +22,7 @@ import java.util.Arrays;
 // based on Fisher-Yates shuffling, see https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 public final class PermutationGenerator {
 
-  private final int[] permutation; // permutation[idx] is consdidered as initialized, if and only if
+  private final int[] permutation; // permutation[idx] is considered as initialized, if and only if
   // currentVersion[idx] == versionCounter
   private final int[] currentVersion;
   private int idx;

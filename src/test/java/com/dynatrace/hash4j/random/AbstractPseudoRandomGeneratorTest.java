@@ -21,97 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import com.dynatrace.hash4j.hashing.HashStream;
 import com.dynatrace.hash4j.hashing.Hashing;
 import java.util.Arrays;
+import java.util.stream.DoubleStream;
 import java.util.stream.LongStream;
+import org.hipparchus.distribution.continuous.ExponentialDistribution;
+import org.hipparchus.distribution.continuous.UniformRealDistribution;
 import org.hipparchus.stat.inference.ChiSquareTest;
+import org.hipparchus.stat.inference.KolmogorovSmirnovTest;
 import org.junit.jupiter.api.Test;
 
 public abstract class AbstractPseudoRandomGeneratorTest {
 
   protected abstract PseudoRandomGenerator createPseudoRandomGenerator();
-  /*
-    @Test
-    void testCompatibility() {
 
-      // byte[] data = {(byte) 0x4c, (byte) 0x50, (byte) 0xeb, (byte) 0xc4};
-
-      long data = 0x684419835ea4ec8dL;
-      PseudoRandomGenerator prg1 = createPseudoRandomGenerator();
-      prg1.reset(data);
-      PseudoRandomGenerator prg2 = createPseudoRandomGenerator();
-      prg2.reset(data);
-
-      int n = 100000;
-      Random rnd = new Random(0);
-      for (int i = 0; i < n; ++i) {
-        int numBits = rnd.nextInt(65);
-
-        long r1 = 0;
-        for (int j = 0; j < numBits; ++j) {
-          r1 <<= 1;
-          if (prg1.nextBit()) {
-            r1 |= 1;
-          }
-        }
-
-        long r2 = prg2.nextBits(numBits);
-        assertEquals(r1, r2);
-      }
-    }
-
-    @Test
-    void testUniformity() {
-
-      long data = 0x67d8835e206dd94dL;
-
-      int numBits = 4;
-      long n = 100000;
-
-      int numDifferentValues = 1 << numBits;
-      long[] counts = new long[numDifferentValues];
-      double[] expectedCounts = new double[numDifferentValues];
-      Arrays.fill(expectedCounts, n / (double) numDifferentValues);
-
-      PseudoRandomGenerator prg = createPseudoRandomGenerator();
-      prg.reset(data);
-      for (long i = 0; i < n; ++i) {
-        counts[(int) prg.nextBits(numBits)] += 1;
-      }
-
-      assertThat(new GTest().gTest(expectedCounts, counts)).isGreaterThan(0.01);
-    }
-
-    @Test
-    void testBias() {
-
-      long data = 0xbb0bc9ae3999000fL;
-
-      int n = 100000;
-      int c = 0;
-      PseudoRandomGenerator prg = createPseudoRandomGenerator();
-      prg.reset(data);
-      for (int i = 0; i < n; ++i) {
-        if (prg.nextBit()) {
-          c += 1;
-        }
-      }
-
-      assertThat(new BinomialTest().binomialTest(n, c, 0.5, AlternativeHypothesis.TWO_SIDED))
-          .isGreaterThan(0.01);
-    }
-
-    @Test
-    void testZeroBits() {
-
-      long data = 0xbb0bc9ae3999000fL;
-      PseudoRandomGenerator prg = createPseudoRandomGenerator();
-      prg.reset(data);
-
-      for (int i = 0; i < 200; ++i) {
-        assertThat(prg.nextBits(0)).isEqualTo(0);
-        prg.nextBit();
-      }
-    }
-  */
   @Test
   void testReproducibility() {
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
@@ -130,8 +51,8 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   void testUniformIntWithExclusiveBound(int bucketSize, int numBuckets, long seed) {
     long avgValuesPerBucket = 10000;
 
-    PseudoRandomGenerator rng = createPseudoRandomGenerator();
-    rng.reset(seed);
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(seed);
 
     long numValues = avgValuesPerBucket * numBuckets;
     long[] counts1 = new long[numBuckets];
@@ -140,11 +61,11 @@ public abstract class AbstractPseudoRandomGeneratorTest {
     Arrays.fill(expected, 1);
 
     int upperBound = bucketSize * numBuckets;
-    assertThat(upperBound).isGreaterThanOrEqualTo(0);
+    assertThat(upperBound).isNotNegative();
 
     for (int i = 0; i < numValues; ++i) {
-      int value = rng.uniformInt(upperBound);
-      assertThat(value).isGreaterThanOrEqualTo(0);
+      int value = prg.uniformInt(upperBound);
+      assertThat(value).isNotNegative();
       assertThat(value).isLessThan(upperBound);
       counts1[value % numBuckets] += 1;
       counts2[value / bucketSize] += 1;
@@ -161,13 +82,13 @@ public abstract class AbstractPseudoRandomGeneratorTest {
 
   @Test
   void testUniformIntWithSpecialParameters() {
-    PseudoRandomGenerator rng = createPseudoRandomGenerator();
-    rng.reset(0x674b0446e48aa471L);
-    assertThat(rng.uniformInt(0)).isEqualTo(0);
-    assertThat(rng.uniformInt(1)).isEqualTo(0);
-    assertThat(rng.uniformInt(-1)).isLessThan(0);
-    assertThat(rng.uniformInt(-2)).isLessThan(0);
-    assertThat(rng.uniformInt(Integer.MIN_VALUE)).isLessThan(0);
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(0x674b0446e48aa471L);
+    assertThat(prg.uniformInt(0)).isZero();
+    assertThat(prg.uniformInt(1)).isZero();
+    assertThat(prg.uniformInt(-1)).isNegative();
+    assertThat(prg.uniformInt(-2)).isNegative();
+    assertThat(prg.uniformInt(Integer.MIN_VALUE)).isNegative();
   }
 
   @Test
@@ -190,6 +111,32 @@ public abstract class AbstractPseudoRandomGeneratorTest {
       }
       assertThat(hashStream.getAsLong()).isEqualTo(getExpectedStabilityCheckSum());
     }
+  }
+
+  @Test
+  public void testNextDouble() {
+
+    int dataSize = 1000000;
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(0xf6f4612e7fa10323L);
+    double[] data = DoubleStream.generate(prg::nextDouble).limit(dataSize).toArray();
+
+    assertThat(
+            new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new UniformRealDistribution(), data))
+        .isGreaterThan(0.01);
+  }
+
+  @Test
+  public void testNextExponential() {
+
+    int dataSize = 1000000;
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(0xf6f4612e7fa10323L);
+    double[] data = DoubleStream.generate(prg::nextExponential).limit(dataSize).toArray();
+
+    assertThat(
+            new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new ExponentialDistribution(1), data))
+        .isGreaterThan(0.01);
   }
 
   protected abstract long getExpectedStabilityCheckSum();

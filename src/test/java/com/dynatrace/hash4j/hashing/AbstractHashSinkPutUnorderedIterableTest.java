@@ -18,7 +18,6 @@ package com.dynatrace.hash4j.hashing;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -59,13 +58,13 @@ class AbstractHashSinkPutUnorderedIterableTest {
     long hash2b = Hashing.murmur3_128().hashToLong(set2, funnelB);
     long hash3b = Hashing.murmur3_128().hashToLong(set3, funnelB);
 
-    assertEquals(hash1a, hash1b);
-    assertEquals(hash2a, hash2b);
-    assertEquals(hash3a, hash3b);
+    assertThat(hash1a).isEqualTo(hash1b);
+    assertThat(hash2a).isEqualTo(hash2b);
+    assertThat(hash3a).isEqualTo(hash3b);
 
-    assertEquals(hash1a, hash2a);
-    assertNotEquals(hash1a, hash3a);
-    assertNotEquals(hash2a, hash3a);
+    assertThat(hash1a).isEqualTo(hash2a);
+    assertThat(hash1a).isNotEqualTo(hash3a);
+    assertThat(hash2a).isNotEqualTo(hash3a);
   }
 
   private static <T> Iterable<T> asIterable(Collection<T> collection) {
@@ -135,9 +134,9 @@ class AbstractHashSinkPutUnorderedIterableTest {
         long hashIterable = Hashing.murmur3_128().hashToLong(asIterable(data), funnel);
         long hashRandomAccessList =
             Hashing.murmur3_128().hashToLong(asRandomAccessList(data), funnel);
-        assertEquals(hashCollection, hashIterable);
-        assertEquals(hashCollection, hashRandomAccessList);
-        assertEquals(hashCollection, hashRandomAccessCollection);
+        assertThat(hashIterable).isEqualTo(hashCollection);
+        assertThat(hashRandomAccessList).isEqualTo(hashCollection);
+        assertThat(hashRandomAccessCollection).isEqualTo(hashCollection);
       }
     }
   }
@@ -164,13 +163,13 @@ class AbstractHashSinkPutUnorderedIterableTest {
     long hash2b = Hashing.murmur3_128().hashToLong(list2, funnelB);
     long hash3b = Hashing.murmur3_128().hashToLong(list3, funnelB);
 
-    assertEquals(hash1a, hash1b);
-    assertEquals(hash2a, hash2b);
-    assertEquals(hash3a, hash3b);
+    assertThat(hash1a).isEqualTo(hash1b);
+    assertThat(hash2a).isEqualTo(hash2b);
+    assertThat(hash3a).isEqualTo(hash3b);
 
-    assertEquals(hash1a, hash2a);
-    assertNotEquals(hash1a, hash3a);
-    assertNotEquals(hash2a, hash3a);
+    assertThat(hash1a).isEqualTo(hash2a);
+    assertThat(hash1a).isNotEqualTo(hash3a);
+    assertThat(hash2a).isNotEqualTo(hash3a);
   }
 
   @Test
@@ -198,9 +197,9 @@ class AbstractHashSinkPutUnorderedIterableTest {
         sinkCollection.putUnorderedIterable(asCollection(longList), v -> v);
         sinkIterable.putUnorderedIterable(longList::iterator, v -> v);
 
-        assertArrayEquals(expected, sinkRandomAccessList.getData());
-        assertArrayEquals(expected, sinkCollection.getData());
-        assertArrayEquals(expected, sinkIterable.getData());
+        assertThat(sinkRandomAccessList.getData()).isEqualTo(expected);
+        assertThat(sinkCollection.getData()).isEqualTo(expected);
+        assertThat(sinkIterable.getData()).isEqualTo(expected);
       }
     }
   }
@@ -209,7 +208,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
     return new AbstractList<>() {
       @Override
       public Long get(int index) {
-        return Long.valueOf(array[index]);
+        return (long) array[index];
       }
 
       @Override

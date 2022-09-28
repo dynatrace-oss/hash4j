@@ -16,7 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,14 +44,14 @@ public abstract class AbstractHashStream32Test extends AbstractHashStreamTest {
   @MethodSource("getReferenceTestRecords")
   void testAgainstReference(ReferenceTestRecord32 r) {
 
-    assertEquals(r.getExpectedHash(), r.getHasher().hashToInt(r.getData(), BYTES_FUNNEL_1));
-    assertEquals(r.getExpectedHash(), r.getHasher().hashToInt(r.getData(), BYTES_FUNNEL_2));
-    assertEquals(r.getExpectedHash(), r.getHasher().hashBytesToInt(r.getData()));
+    assertThat(r.getHasher().hashToInt(r.getData(), BYTES_FUNNEL_1)).isEqualTo(r.getExpectedHash());
+    assertThat(r.getHasher().hashToInt(r.getData(), BYTES_FUNNEL_2)).isEqualTo(r.getExpectedHash());
+    assertThat(r.getHasher().hashBytesToInt(r.getData())).isEqualTo(r.getExpectedHash());
 
     if (r.getData().length % 2 == 0) {
       CharSequence charSequence = byteArrayToCharSequence(r.getData());
-      assertEquals(r.getExpectedHash(), r.getHasher().hashCharsToInt(charSequence));
-      assertEquals(r.getExpectedHash(), r.getHasher().hashToInt(charSequence, CHAR_FUNNEL));
+      assertThat(r.getHasher().hashCharsToInt(charSequence)).isEqualTo(r.getExpectedHash());
+      assertThat(r.getHasher().hashToInt(charSequence, CHAR_FUNNEL)).isEqualTo(r.getExpectedHash());
     }
   }
 }

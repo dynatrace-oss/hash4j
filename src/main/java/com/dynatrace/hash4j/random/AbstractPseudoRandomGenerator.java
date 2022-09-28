@@ -40,4 +40,14 @@ abstract class AbstractPseudoRandomGenerator implements PseudoRandomGenerator {
     }
     return (int) (m >>> 32);
   }
+
+  @Override
+  public double nextDouble() {
+    return (nextLong() >>> 11) * 0x1.0p-53;
+  }
+
+  @Override
+  public double nextExponential() {
+    return RandomExponentialUtil.exponential(this);
+  }
 }
