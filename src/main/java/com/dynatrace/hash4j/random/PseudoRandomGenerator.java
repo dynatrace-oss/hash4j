@@ -55,12 +55,12 @@ public interface PseudoRandomGenerator {
    *
    * @return a random value
    */
-  double nextDouble(); // TODO rename to nextUniformDouble
+  double nextDouble();
 
   /**
    * Returns an exponentially distributed {@code double} value with mean 1.
    *
    * @return a random value
    */
-  double nextExponential(); // TODO rename to nextExponential
+  double nextExponential();
 }
