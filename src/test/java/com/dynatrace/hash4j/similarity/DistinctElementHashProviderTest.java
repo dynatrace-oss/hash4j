@@ -130,13 +130,13 @@ public class DistinctElementHashProviderTest {
           }
 
           @Override
-          public double uniformDouble() {
-            return prg.uniformDouble();
+          public double nextDouble() {
+            return prg.nextDouble();
           }
 
           @Override
-          public double exponential() {
-            return prg.exponential();
+          public double nextExponential() {
+            return prg.nextExponential();
           }
         };
   }

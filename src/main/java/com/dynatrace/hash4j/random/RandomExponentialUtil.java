@@ -66,7 +66,7 @@ final class RandomExponentialUtil {
 
   private RandomExponentialUtil() {}
 
-  private static final double[] EXPONENTIAL_TABLE_X = {
+  private static final double[] X = {
     8.6971174701310497140,
     7.6971174701310497140,
     6.9410336293772123602,
@@ -326,7 +326,7 @@ final class RandomExponentialUtil {
     0
   };
 
-  private static final double[] EXPONENTIAL_TABLE_Y = {
+  private static final double[] Y = {
     0,
     0.00045413435384149675545,
     0.00096726928232717452884,
@@ -591,33 +591,24 @@ final class RandomExponentialUtil {
     double shift = 0;
     for (; ; ) {
       long randomLong = prg.nextLong();
-      double valsFirst = (randomLong >>> 11) * 0x1.0p-53;
-      int valsSecond = (int) randomLong & 0xFF;
-      int i = valsSecond;
-      double x = valsFirst * (EXPONENTIAL_TABLE_X[i]);
-      if (x < (EXPONENTIAL_TABLE_X[i + 1])) {
+      int i = (int) randomLong & 0xFF;
+      double x = (randomLong >>> 11) * 0x1.0p-53 * X[i];
+      if (x < X[i + 1]) {
         return shift + x;
       }
       // For i=0 we need to generate from the tail, but because this is an exponential
       // distribution, the tail looks exactly like the body, so we can simply repeat with a
       // shift:
       if (i == 0) {
-        shift += (EXPONENTIAL_TABLE_X[1]);
+        shift += X[1];
       } else {
-        double y01 = prg.uniformDouble();
-        double y =
-            (EXPONENTIAL_TABLE_Y[i]) + y01 * (EXPONENTIAL_TABLE_Y[i + 1] - EXPONENTIAL_TABLE_Y[i]);
+        double y01 = prg.nextDouble();
+        double y = Y[i] + y01 * (Y[i + 1] - Y[i]);
 
         // All we care about is whether these are < or > 0; these values are equal to
         // (lbound) or proportional to (ubound) `y` minus the lower/upper bound.
-        double
-            y_above_ubound =
-                (EXPONENTIAL_TABLE_X[i] - EXPONENTIAL_TABLE_X[i + 1]) * y01
-                    - ((EXPONENTIAL_TABLE_X[i]) - x),
-            y_above_lbound =
-                y
-                    - ((EXPONENTIAL_TABLE_Y[i + 1])
-                        + ((EXPONENTIAL_TABLE_X[i + 1]) - x) * (EXPONENTIAL_TABLE_Y[i + 1]));
+        double y_above_ubound = (X[i] - X[i + 1]) * y01 - (X[i] - x),
+            y_above_lbound = y - (Y[i + 1] + (X[i + 1] - x) * Y[i + 1]);
 
         if (y_above_ubound < 0 // if above the upper bound reject immediately
             && (y_above_lbound < 0 // If below the lower bound accept immediately
@@ -630,5 +621,15 @@ final class RandomExponentialUtil {
         }
       }
     }
+  }
+
+  // visible for testing
+  static double getX(int i) {
+    return X[i];
+  }
+
+  // visible for testing
+  static double getY(int i) {
+    return Y[i];
   }
 }

@@ -47,9 +47,4 @@ final class SplitMix64V1 extends AbstractPseudoRandomGenerator {
   public void reset(long seed) {
     this.state = seed;
   }
-
-  @Override
-  public double exponential() {
-    return RandomExponentialUtil.exponential(this);
-  }
 }

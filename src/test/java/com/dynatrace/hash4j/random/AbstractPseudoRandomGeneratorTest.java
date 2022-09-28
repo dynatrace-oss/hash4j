@@ -114,12 +114,12 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   }
 
   @Test
-  public void testUniformDouble() {
+  public void testNextDouble() {
 
     int dataSize = 1000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     prg.reset(0xf6f4612e7fa10323L);
-    double[] data = DoubleStream.generate(prg::uniformDouble).limit(dataSize).toArray();
+    double[] data = DoubleStream.generate(prg::nextDouble).limit(dataSize).toArray();
 
     assertThat(
             new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new UniformRealDistribution(), data))
@@ -127,12 +127,12 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   }
 
   @Test
-  public void testExponential() {
+  public void testNextExponential() {
 
     int dataSize = 1000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     prg.reset(0xf6f4612e7fa10323L);
-    double[] data = DoubleStream.generate(prg::exponential).limit(dataSize).toArray();
+    double[] data = DoubleStream.generate(prg::nextExponential).limit(dataSize).toArray();
 
     assertThat(
             new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new ExponentialDistribution(1), data))
