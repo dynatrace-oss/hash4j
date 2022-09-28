@@ -18,9 +18,7 @@
  * This file includes a Java port of an algorithm for the generation of
  * exponentially distributed random values which is based on
  *
- * https://github.com/boostorg/random/blob/
- * 18999b33d9a64b574435668541a37ddefb2851df/include/
- * boost/random/exponential_distribution.hpp
+ * https://github.com/boostorg/random/blob/18999b33d9a64b574435668541a37ddefb2851df/include/boost/random/exponential_distribution.hpp
  *
  * and which was published with following copyright notes and under the
  * license given below:
