@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.TAU;
 import static java.lang.Math.exp;
+import static java.lang.Math.pow;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 import static org.hipparchus.special.Gamma.gamma;
@@ -120,17 +122,7 @@ public class UltraLogLogTest {
 
   private static double calculateRelativeStandardError(int p) {
     int numberOfRegisters = 1 << p;
-    return Math.sqrt(
-        calculateStorageFactor(UltraLogLog.TAU) / (BITS_PER_REGISTER * numberOfRegisters));
-    /*double s = 0;
-    double z = 5. / 4.;
-    for (int t = 1; t <= 2; ++t) {
-      s += 2. * Math.log(2) * Math.pow(z, 2) * Math.pow(2., -t) / Math.pow(z + Math.pow(2., -t), 2);
-    }
-    s += 2 * Math.log(2.) * Math.pow(2., -2);
-    s += Math.log(2);
-    s -= 1;
-    return Math.sqrt(s * Math.pow(2., -p));*/
+    return Math.sqrt(calculateVarianceFactor(TAU) / numberOfRegisters);
   }
 
   private void testDistinctCountEstimation(int p, long seed, long[] distinctCounts) {
@@ -472,10 +464,10 @@ public class UltraLogLogTest {
     }
 
     double expectedVarianceUltraLogLog =
-        Math.pow(UltraLogLog.calculateTheoreticalRelativeStandardError(p), 2);
+        pow(UltraLogLog.calculateTheoreticalRelativeStandardError(p), 2);
 
     double storageFactorUltraLogLog =
-        8. * sumSizeUltraLogLog * expectedVarianceUltraLogLog / numCycles;
+        Byte.SIZE * sumSizeUltraLogLog * expectedVarianceUltraLogLog / numCycles;
 
     assertThat(storageFactorUltraLogLog).isCloseTo(2.8895962872532435, withPercentage(1));
   }
@@ -502,11 +494,11 @@ public class UltraLogLogTest {
     for (int nlz = 0; nlz < 64 - p; ++nlz) {
       long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz;
       sketch.reset().add(hash1);
-      double probability = Math.pow(0.5, nlz + 1);
+      double probability = pow(0.5, nlz + 1);
       sumProbabiltiy += probability;
       double estimate = sketch.getDistinctCountEstimate();
       averageEstimate += probability * estimate;
-      averageRMSE += probability * Math.pow(estimate - trueDistinctCount, 2);
+      averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
     }
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
@@ -514,7 +506,7 @@ public class UltraLogLogTest {
     double theoreticalRelativeStandardError =
         UltraLogLog.calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
-    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.3);
+    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
   }
 
@@ -533,21 +525,21 @@ public class UltraLogLogTest {
         long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
         {
           sketch.reset().add(hash1 | regMask1).add(hash2 | regMask1);
-          double probability = 1. / m * Math.pow(0.5, nlz1 + nlz2 + 2);
+          double probability = 1. / m * pow(0.5, nlz1 + nlz2 + 2);
           if (nlz1 != nlz2) probability *= 2;
           sumProbabiltiy += probability;
           double estimate = sketch.getDistinctCountEstimate();
           averageEstimate += probability * estimate;
-          averageRMSE += probability * Math.pow(estimate - trueDistinctCount, 2);
+          averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
         }
         {
           sketch.reset().add(hash1 | regMask1).add(hash2 | regMask2);
-          double probability = (m - 1) / m * Math.pow(0.5, nlz1 + nlz2 + 2);
+          double probability = (m - 1) / m * pow(0.5, nlz1 + nlz2 + 2);
           if (nlz1 != nlz2) probability *= 2;
           sumProbabiltiy += probability;
           double estimate = sketch.getDistinctCountEstimate();
           averageEstimate += probability * estimate;
-          averageRMSE += probability * Math.pow(estimate - trueDistinctCount, 2);
+          averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
         }
       }
     }
@@ -557,8 +549,8 @@ public class UltraLogLogTest {
     double theoreticalRelativeStandardError =
         UltraLogLog.calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
-    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.3);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.71);
+    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
+    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
   }
 
   private static void testErrorOfDistinctCountEqualThree(int p) {
@@ -579,31 +571,30 @@ public class UltraLogLogTest {
           long hash3 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz3;
           {
             sketch.reset().add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask1);
-            double probability = 1. / (m * m) * Math.pow(0.5, nlz1 + nlz2 + nlz3 + 3);
+            double probability = 1. / (m * m) * pow(0.5, nlz1 + nlz2 + nlz3 + 3);
             if (nlz1 != nlz2) probability *= 2;
             sumProbabiltiy += probability;
             double estimate = sketch.getDistinctCountEstimate();
             averageEstimate += probability * estimate;
-            averageRMSE += probability * Math.pow(estimate - trueDistinctCount, 2);
+            averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
           }
           {
             sketch.reset().add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask2);
-            double probability = 3. * (m - 1) / (m * m) * Math.pow(0.5, nlz1 + nlz2 + nlz3 + 3);
+            double probability = 3. * (m - 1) / (m * m) * pow(0.5, nlz1 + nlz2 + nlz3 + 3);
             if (nlz1 != nlz2) probability *= 2;
             sumProbabiltiy += probability;
             double estimate = sketch.getDistinctCountEstimate();
             averageEstimate += probability * estimate;
-            averageRMSE += probability * Math.pow(estimate - trueDistinctCount, 2);
+            averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
           }
           {
             sketch.reset().add(hash1 | regMask1).add(hash2 | regMask2).add(hash3 | regMask3);
-            double probability =
-                (m - 1) * (m - 2) / (m * m) * Math.pow(0.5, nlz1 + nlz2 + nlz3 + 3);
+            double probability = (m - 1) * (m - 2) / (m * m) * pow(0.5, nlz1 + nlz2 + nlz3 + 3);
             if (nlz1 != nlz2) probability *= 2;
             sumProbabiltiy += probability;
             double estimate = sketch.getDistinctCountEstimate();
             averageEstimate += probability * estimate;
-            averageRMSE += probability * Math.pow(estimate - trueDistinctCount, 2);
+            averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
           }
         }
       }
@@ -614,8 +605,8 @@ public class UltraLogLogTest {
     double theoreticalRelativeStandardError =
         UltraLogLog.calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
-    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.3);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.81);
+    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
+    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.75);
   }
 
   @Test
@@ -666,7 +657,7 @@ public class UltraLogLogTest {
   @Test
   void testXiIterations() {
 
-    double x = Math.pow(2., UltraLogLog.TAU);
+    double x = pow(2., TAU);
 
     assertThat(xiIterations(x, 0.)).isZero();
     assertThat(xiIterations(x, Double.POSITIVE_INFINITY)).isZero();
@@ -680,29 +671,29 @@ public class UltraLogLogTest {
       {
         // case h0 = m - 1, h1 = 1, h2 = 0, h3 = 0
         double z = calculateZ(m, m - 1, 1, 0, 0);
-        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
+        assertThat(xiIterations(x, pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       {
         // case h0 = m - 1, h1 = 0, h2 = 1, h3 = 0
         double z = calculateZ(m, m - 1, 0, 1, 0);
-        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
+        assertThat(xiIterations(x, pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       {
         // case h0 = m - 1, h1 = 0, h2 = 0, h3 = 1
         double z = calculateZ(m, m - 1, 0, 0, 1);
-        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
+        assertThat(xiIterations(x, pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       {
         // case h0 = m - 1, h1 = 0, h2 = 0, h3 = 0
         double z = calculateZ(m, m - 1, 0, 0, 0);
-        assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
+        assertThat(xiIterations(x, pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
       }
       // further cases
       for (int h1 = 0; h1 <= 2; ++h1) {
         for (int h2 = 0; h2 <= 2; ++h2) {
           for (int h3 = 0; h3 <= 2; ++h3) {
             double z = calculateZ(m, m - h1 - h2 - h3, h1, h2, h3);
-            assertThat(xiIterations(x, Math.pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
+            assertThat(xiIterations(x, pow(z, 5))).isLessThanOrEqualTo(maxNumIterations);
           }
         }
       }
@@ -715,9 +706,7 @@ public class UltraLogLogTest {
   private static final double LOG_5_76 = Math.log(5.76);
   private static final double LOG_1_25 = Math.log(1.25);
 
-  private static final int BITS_PER_REGISTER = Byte.SIZE;
-
-  private static double calculateStorageFactor(double tau) {
+  private static double calculateVarianceFactor(double tau) {
     double gamma2tauP1 = gamma(2 * tau + 1);
     double gammaTauP1 = gamma(tau + 1);
     double sum =
@@ -729,7 +718,7 @@ public class UltraLogLogTest {
     sum *= LOG_2 * gamma2tauP1 * tau / (gammaTauP1 * gammaTauP1);
     sum -= 1;
     sum /= (tau * tau);
-    return sum * BITS_PER_REGISTER;
+    return sum;
   }
 
   private static final double EPS = 1e-10;
@@ -737,7 +726,7 @@ public class UltraLogLogTest {
   @Test
   void testOptimalTau() {
     UnivariateObjectiveFunction f =
-        new UnivariateObjectiveFunction(UltraLogLogTest::calculateStorageFactor);
+        new UnivariateObjectiveFunction(UltraLogLogTest::calculateVarianceFactor);
     final MaxEval maxEval = new MaxEval(Integer.MAX_VALUE);
     UnivariateOptimizer optimizer = new BrentOptimizer(2 * Math.ulp(1d), Double.MIN_VALUE);
     SearchInterval searchInterval = new SearchInterval(0, 5, 1);
@@ -746,48 +735,43 @@ public class UltraLogLogTest {
 
     double optimalTau = result.getPoint();
 
-    assertThat(UltraLogLog.TAU).isCloseTo(optimalTau, withPercentage(EPS));
+    //    System.out.println(optimalTau);
+    assertThat(TAU).isCloseTo(optimalTau, withPercentage(EPS));
   }
 
   private static double calculateRegisterContribution(byte x) {
     int i = x & 0xFF;
     switch (i & 3) {
       case 0:
-        return (1.
-                + Math.pow(2., -UltraLogLog.TAU)
-                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
-            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+        return (1. + pow(2., -TAU) + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
+            * pow(2., -TAU * (double) (i / 4));
       case 1:
-        return (0.
-                + Math.pow(2., -UltraLogLog.TAU)
-                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
-            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+        return (0. + pow(2., -TAU) + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
+            * pow(2., -TAU * (double) (i / 4));
       case 2:
-        return (1.
-                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
-            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+        return (1. + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
+            * pow(2., -TAU * (double) (i / 4));
       default:
-        return (0.
-                + 1. / (Math.pow(2., 2 * UltraLogLog.TAU) * (Math.pow(2., UltraLogLog.TAU) - 1.)))
-            * Math.pow(2., -UltraLogLog.TAU * (double) (i / 4));
+        return (0. + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
+            * pow(2., -TAU * (double) (i / 4));
     }
-  }
-
-  private static double calculateEstimationFactor(int p) {
-    int m = 1 << p;
-    double expectedEstimationFactor =
-        gamma(UltraLogLog.TAU) / (LOG_2 * exp(LOG_1_25 * UltraLogLog.TAU));
-    return m * Math.pow((expectedEstimationFactor * m), 1. / UltraLogLog.TAU);
   }
 
   @Test
   void testVarianceFactor() {
-    double expectedVarianceFactor = calculateStorageFactor(UltraLogLog.TAU) / BITS_PER_REGISTER;
-    assertThat(UltraLogLog.VARIANCE_FACTOR).isCloseTo(expectedVarianceFactor, withPercentage(EPS));
+    //    System.out.println(calculateVarianceFactor(TAU));
+    assertThat(UltraLogLog.VARIANCE_FACTOR)
+        .isCloseTo(calculateVarianceFactor(TAU), withPercentage(EPS));
   }
 
   @Test
   void testRegisterContributions() {
+    //        double[] expectedContributions = new double[252];
+    //        for (int i = 0; i < 252; ++i) {
+    //          expectedContributions[i] = calculateRegisterContribution((byte) (i + 4));
+    //        }
+    //        System.out.println(Arrays.toString(expectedContributions));
+
     double[] contributions = UltraLogLog.getRegisterContributions();
     for (int i = 0; i < 252; ++i) {
       assertThat(contributions[i])
@@ -795,16 +779,22 @@ public class UltraLogLogTest {
     }
   }
 
+  private static double calculateEstimationFactor(int p) {
+    int m = 1 << p;
+    double biasCorrectionFactor = 1. / (1. + calculateVarianceFactor(TAU) * (1. + TAU) / (2. * m));
+    return m * pow(m * gamma(TAU) / (LOG_2 * exp(LOG_1_25 * TAU)), 1. / TAU) * biasCorrectionFactor;
+  }
+
   @Test
   void testEstimationFactors() {
-    // double[] expectedEstimationFactors = new double[MAX_P + 1];
-    // for(int p = MIN_P; p <= MAX_P; ++p) {
-    //  expectedEstimationFactors[p] = calculateEstimationFactor(p);
-    // }
-    // System.out.println(Arrays.toString(expectedEstimationFactors));
+    //    double[] expectedEstimationFactors = new double[MAX_P + 1];
+    //    for (int p = MIN_P; p <= MAX_P; ++p) {
+    //      expectedEstimationFactors[p] = calculateEstimationFactor(p);
+    //    }
+    //    System.out.println(Arrays.toString(expectedEstimationFactors));
 
     double[] estimationFactors = UltraLogLog.getEstimationFactors();
-    assertThat(estimationFactors.length).isEqualTo(MAX_P + 1);
+    assertThat(estimationFactors).hasSize(MAX_P + 1);
     for (int p = 0; p < MIN_P; ++p) {
       assertThat(estimationFactors[p]).isZero();
     }
