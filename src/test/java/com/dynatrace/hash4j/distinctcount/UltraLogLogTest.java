@@ -773,22 +773,43 @@ public class UltraLogLogTest {
     }
   }
 
-  @Test
-  void testConstants() {
-
+  private static double calculateEstimationFactor(int p) {
+    int m = 1 << p;
     double expectedEstimationFactor =
         gamma(UltraLogLog.TAU) / (LOG_2 * exp(LOG_1_25 * UltraLogLog.TAU));
+    return m * Math.pow((expectedEstimationFactor * m), 1. / UltraLogLog.TAU);
+  }
+
+  @Test
+  void testVarianceFactor() {
     double expectedVarianceFactor = calculateStorageFactor(UltraLogLog.TAU) / BITS_PER_REGISTER;
-
-    assertThat(UltraLogLog.ESTIMATION_FACTOR)
-        .isCloseTo(expectedEstimationFactor, withPercentage(EPS));
     assertThat(UltraLogLog.VARIANCE_FACTOR).isCloseTo(expectedVarianceFactor, withPercentage(EPS));
+  }
 
+  @Test
+  void testRegisterContributions() {
     double[] contributions = UltraLogLog.getRegisterContributions();
-
     for (int i = 0; i < 252; ++i) {
       assertThat(contributions[i])
           .isCloseTo(calculateRegisterContribution((byte) (i + 4)), withPercentage(EPS));
+    }
+  }
+
+  @Test
+  void testEstimationFactors() {
+    // double[] expectedEstimationFactors = new double[MAX_P + 1];
+    // for(int p = MIN_P; p <= MAX_P; ++p) {
+    //  expectedEstimationFactors[p] = calculateEstimationFactor(p);
+    // }
+    // System.out.println(Arrays.toString(expectedEstimationFactors));
+
+    double[] estimationFactors = UltraLogLog.getEstimationFactors();
+    assertThat(estimationFactors.length).isEqualTo(MAX_P + 1);
+    for (int p = 0; p < MIN_P; ++p) {
+      assertThat(estimationFactors[p]).isZero();
+    }
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      assertThat(estimationFactors[p]).isCloseTo(calculateEstimationFactor(p), withPercentage(EPS));
     }
   }
 
