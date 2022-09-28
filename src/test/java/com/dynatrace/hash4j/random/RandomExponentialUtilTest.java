@@ -22,7 +22,7 @@ import static org.assertj.core.data.Percentage.withPercentage;
 
 import org.junit.jupiter.api.Test;
 
-public class RandomExponentialUtilTest {
+class RandomExponentialUtilTest {
 
   @Test
   void testSpecialValues() {

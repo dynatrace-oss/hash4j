@@ -61,11 +61,11 @@ public abstract class AbstractPseudoRandomGeneratorTest {
     Arrays.fill(expected, 1);
 
     int upperBound = bucketSize * numBuckets;
-    assertThat(upperBound).isGreaterThanOrEqualTo(0);
+    assertThat(upperBound).isNotNegative();
 
     for (int i = 0; i < numValues; ++i) {
       int value = prg.uniformInt(upperBound);
-      assertThat(value).isGreaterThanOrEqualTo(0);
+      assertThat(value).isNotNegative();
       assertThat(value).isLessThan(upperBound);
       counts1[value % numBuckets] += 1;
       counts2[value / bucketSize] += 1;
@@ -84,11 +84,11 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   void testUniformIntWithSpecialParameters() {
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     prg.reset(0x674b0446e48aa471L);
-    assertThat(prg.uniformInt(0)).isEqualTo(0);
-    assertThat(prg.uniformInt(1)).isEqualTo(0);
-    assertThat(prg.uniformInt(-1)).isLessThan(0);
-    assertThat(prg.uniformInt(-2)).isLessThan(0);
-    assertThat(prg.uniformInt(Integer.MIN_VALUE)).isLessThan(0);
+    assertThat(prg.uniformInt(0)).isZero();
+    assertThat(prg.uniformInt(1)).isZero();
+    assertThat(prg.uniformInt(-1)).isNegative();
+    assertThat(prg.uniformInt(-2)).isNegative();
+    assertThat(prg.uniformInt(Integer.MIN_VALUE)).isNegative();
   }
 
   @Test

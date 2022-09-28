@@ -16,7 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,14 +45,17 @@ public abstract class AbstractHashStream64Test extends AbstractHashStreamTest {
   @MethodSource("getReferenceTestRecords")
   void testAgainstReference(ReferenceTestRecord64 r) {
 
-    assertEquals(r.getExpectedHash(), r.getHasher().hashToLong(r.getData(), BYTES_FUNNEL_1));
-    assertEquals(r.getExpectedHash(), r.getHasher().hashToLong(r.getData(), BYTES_FUNNEL_2));
-    assertEquals(r.getExpectedHash(), r.getHasher().hashBytesToLong(r.getData()));
+    assertThat(r.getHasher().hashToLong(r.getData(), BYTES_FUNNEL_1))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(r.getHasher().hashToLong(r.getData(), BYTES_FUNNEL_2))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(r.getHasher().hashBytesToLong(r.getData())).isEqualTo(r.getExpectedHash());
 
     if (r.getData().length % 2 == 0) {
       CharSequence charSequence = byteArrayToCharSequence(r.getData());
-      assertEquals(r.getExpectedHash(), r.getHasher().hashCharsToLong(charSequence));
-      assertEquals(r.getExpectedHash(), r.getHasher().hashToLong(charSequence, CHAR_FUNNEL));
+      assertThat(r.getHasher().hashCharsToLong(charSequence)).isEqualTo(r.getExpectedHash());
+      assertThat(r.getHasher().hashToLong(charSequence, CHAR_FUNNEL))
+          .isEqualTo(r.getExpectedHash());
     }
   }
 }

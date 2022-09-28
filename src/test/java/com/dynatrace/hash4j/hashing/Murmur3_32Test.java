@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +56,6 @@ class Murmur3_32Test extends AbstractHashStream32Test {
     long len = 1L + Integer.MAX_VALUE;
     HashStream stream = Hashing.murmur3_32().hashStream();
     LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
-    int expected = 0x0038818d;
-    assertEquals(expected, stream.getAsInt());
+    assertThat(stream.getAsInt()).isEqualTo(0x0038818d);
   }
 }

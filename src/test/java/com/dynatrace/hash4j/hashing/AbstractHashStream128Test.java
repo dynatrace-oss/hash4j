@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
 import static com.dynatrace.hash4j.testutils.TestUtils.hash128ToByteArray;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,22 +46,19 @@ public abstract class AbstractHashStream128Test extends AbstractHashStreamTest {
   @MethodSource("getReferenceTestRecords")
   void testAgainstReference(AbstractHashStream128Test.ReferenceTestRecord128 r) {
 
-    assertArrayEquals(
-        r.getExpectedHash(),
-        hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_1)));
-    assertArrayEquals(
-        r.getExpectedHash(),
-        hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_2)));
-    assertArrayEquals(
-        r.getExpectedHash(), hash128ToByteArray(r.getHasher().hashBytesTo128Bits(r.getData())));
+    assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_1)))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_2)))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(hash128ToByteArray(r.getHasher().hashBytesTo128Bits(r.getData())))
+        .isEqualTo(r.getExpectedHash());
 
     if (r.getData().length % 2 == 0) {
       CharSequence charSequence = byteArrayToCharSequence(r.getData());
-      assertArrayEquals(
-          r.getExpectedHash(), hash128ToByteArray(r.getHasher().hashCharsTo128Bits(charSequence)));
-      assertArrayEquals(
-          r.getExpectedHash(),
-          hash128ToByteArray(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL)));
+      assertThat(hash128ToByteArray(r.getHasher().hashCharsTo128Bits(charSequence)))
+          .isEqualTo(r.getExpectedHash());
+      assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL)))
+          .isEqualTo(r.getExpectedHash());
     }
   }
 }

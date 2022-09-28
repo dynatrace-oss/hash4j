@@ -15,8 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,31 +24,31 @@ class HashValue128Test {
   @Test
   void testGetAsInt() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
-    assertEquals(0x290066d3, hash.getAsInt());
+    assertThat(hash.getAsInt()).isEqualTo(0x290066d3);
   }
 
   @Test
   void testGetLeastSignificantBits() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
-    assertEquals(0xf91ca468290066d3L, hash.getLeastSignificantBits());
+    assertThat(hash.getLeastSignificantBits()).isEqualTo(0xf91ca468290066d3L);
   }
 
   @Test
   void testGetAsLong() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
-    assertEquals(0xf91ca468290066d3L, hash.getAsLong());
+    assertThat(hash.getAsLong()).isEqualTo(0xf91ca468290066d3L);
   }
 
   @Test
   void testHashCode() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
-    assertEquals(0x290066d3, hash.hashCode());
+    assertThat(hash.hashCode()).isEqualTo(0x290066d3);
   }
 
   @Test
   void testGetMostSignificantBits() {
     HashValue128 hash = new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L);
-    assertEquals(0x3b373969bb1aa907L, hash.getMostSignificantBits());
+    assertThat(hash.getMostSignificantBits()).isEqualTo(0x3b373969bb1aa907L);
   }
 
   @Test
@@ -60,12 +59,12 @@ class HashValue128Test {
     HashValue128 hash3 = new HashValue128(0x3b373969bb1aa907L, 0x9f3dc05b33bfb73eL);
     HashValue128 hash4 = new HashValue128(0x587b9c8a695ef518L, 0xf91ca468290066d3L);
 
-    assertNotEquals(hash1a, null);
-    assertEquals(hash1a, hash1b);
-    assertEquals(hash1a, hash1a);
-    assertNotEquals(hash1a, hash2);
-    assertNotEquals(hash1a, hash3);
-    assertNotEquals(hash1a, hash4);
-    assertNotEquals(hash1a, new Object());
+    assertThat(hash1a.equals(null)).isFalse();
+    assertThat(hash1a.equals(hash1b)).isTrue();
+    assertThat(hash1a.equals(hash1a)).isTrue();
+    assertThat(hash1a.equals(hash2)).isFalse();
+    assertThat(hash1a.equals(hash3)).isFalse();
+    assertThat(hash1a.equals(hash4)).isFalse();
+    assertThat(hash1a.equals((new Object()))).isFalse();
   }
 }

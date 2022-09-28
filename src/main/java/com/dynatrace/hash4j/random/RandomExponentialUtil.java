@@ -605,11 +605,11 @@ final class RandomExponentialUtil {
 
         // All we care about is whether these are < or > 0; these values are equal to
         // (lbound) or proportional to (ubound) `y` minus the lower/upper bound.
-        double y_above_ubound = (X[i] - X[i + 1]) * y01 - (X[i] - x),
-            y_above_lbound = y - (Y[i + 1] + (X[i + 1] - x) * Y[i + 1]);
+        double yAboveUbound = (X[i] - X[i + 1]) * y01 - (X[i] - x);
+        double yAboveLbound = y - (Y[i + 1] + (X[i + 1] - x) * Y[i + 1]);
 
-        if (y_above_ubound < 0 // if above the upper bound reject immediately
-            && (y_above_lbound < 0 // If below the lower bound accept immediately
+        if (yAboveUbound < 0 // if above the upper bound reject immediately
+            && (yAboveLbound < 0 // If below the lower bound accept immediately
                 || y
                     < StrictMath.exp(
                         -x) // Otherwise it's between the bounds and we need a full check, use

@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +52,7 @@ public class AbstractHasher128Test {
 
     byte[] b = {};
 
-    assertEquals(hash, hasher.hashBytesTo128Bits(b));
-    assertEquals(hash, hasher.hashBytesTo128Bits(b, 0, 0));
+    assertThat(hasher.hashBytesTo128Bits(b)).isEqualTo(hash);
+    assertThat(hasher.hashBytesTo128Bits(b, 0, 0)).isEqualTo(hash);
   }
 }

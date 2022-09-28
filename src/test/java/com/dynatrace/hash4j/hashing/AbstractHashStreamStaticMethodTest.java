@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,14 +23,14 @@ public class AbstractHashStreamStaticMethodTest {
 
   @Test
   void testIncreaseArraySize() {
-    assertEquals(2, AbstractHashStream.increaseArraySize(1));
-    assertEquals(4, AbstractHashStream.increaseArraySize(2));
-    assertEquals(6, AbstractHashStream.increaseArraySize(3));
-    assertEquals(
-        Integer.MAX_VALUE - 1, AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2));
-    assertEquals(
-        Integer.MAX_VALUE, AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2 + 1));
-    assertEquals(
-        Integer.MAX_VALUE, AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2 + 2));
+    assertThat(AbstractHashStream.increaseArraySize(1)).isEqualTo(2);
+    assertThat(AbstractHashStream.increaseArraySize(2)).isEqualTo(4);
+    assertThat(AbstractHashStream.increaseArraySize(3)).isEqualTo(6);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2))
+        .isEqualTo(Integer.MAX_VALUE - 1);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2 + 1))
+        .isEqualTo(Integer.MAX_VALUE);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2 + 2))
+        .isEqualTo(Integer.MAX_VALUE);
   }
 }

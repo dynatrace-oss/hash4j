@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -44,8 +44,8 @@ class HashingDemo {
     long hash2 = hasher.hashToLong(obj, funnel);
 
     // both variants lead to the same hash value
-    assertEquals(0x2cf18e9ee8fd3546L, hash1);
-    assertEquals(0x2cf18e9ee8fd3546L, hash2);
+    assertThat(hash1).isEqualTo(0x2cf18e9ee8fd3546L);
+    assertThat(hash2).isEqualTo(0x2cf18e9ee8fd3546L);
   }
 
   // Some class with two string fields.
@@ -187,13 +187,13 @@ class HashingDemo {
   @Test
   void demoHashPerson() {
     long hashValue = HASHER.hashToLong(PERSON_BOB_SMITH, Person::put);
-    assertEquals(-7660042399124123136L, hashValue);
+    assertThat(hashValue).isEqualTo(0x95b21005cbc69200L);
   }
 
   @Test
   void demoHashInformation() {
     long hashValue = HASHER.hashToLong(INFO_BOB_SMITH, INFORMATION_HASH_FUNNEL);
-    assertEquals(-7923957321699133338L, hashValue);
+    assertThat(hashValue).isEqualTo(0x920872cc80c47866L);
   }
 
   @Test
@@ -213,6 +213,6 @@ class HashingDemo {
     DataBase dataBase = new DataBase(personList, infoMap);
 
     long hashValue = HASHER.hashToLong(dataBase, DataBase::put);
-    assertEquals(5410597687054228776L, hashValue);
+    assertThat(hashValue).isEqualTo(0x4b164dee076add28L);
   }
 }
