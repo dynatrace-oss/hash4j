@@ -26,9 +26,9 @@ class RandomExponentialUtilTest {
 
   @Test
   void testSpecialValues() {
-    assertThat(getX(256)).isEqualTo(0);
-    assertThat(getY(256)).isEqualTo(1);
-    assertThat(getY(0)).isEqualTo(0);
+    assertThat(getX(256)).isZero();
+    assertThat(getY(256)).isOne();
+    assertThat(getY(0)).isZero();
   }
 
   @Test
