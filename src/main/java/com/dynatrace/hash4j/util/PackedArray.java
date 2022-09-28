@@ -121,11 +121,11 @@ public final class PackedArray {
     protected final int bitSize;
     protected final long mask;
 
-    protected void checkArrayLength(int length) {
+    private void checkArrayLength(int length) {
       PackedArray.checkArrayLength(length, bitSize);
     }
 
-    protected AbstractPackedArrayHandler(int bitSize) {
+    private AbstractPackedArrayHandler(int bitSize) {
       this.bitSize = bitSize;
       this.mask = (1L << 1 << (bitSize - 1)) - 1;
     }
@@ -394,7 +394,7 @@ public final class PackedArray {
     }
   }
 
-  protected abstract static class AbstractPackedArrayHandlerPeriod1
+  private abstract static class AbstractPackedArrayHandlerPeriod1
       extends AbstractPackedArrayHandler {
 
     public AbstractPackedArrayHandlerPeriod1(int bitSize) {
@@ -407,7 +407,7 @@ public final class PackedArray {
     }
   }
 
-  protected abstract static class AbstractPackedArrayHandlerPeriod2
+  private abstract static class AbstractPackedArrayHandlerPeriod2
       extends AbstractPackedArrayHandler {
 
     public AbstractPackedArrayHandlerPeriod2(int bitSize) {
@@ -420,7 +420,7 @@ public final class PackedArray {
     }
   }
 
-  protected abstract static class AbstractPackedArrayHandlerPeriod4
+  private abstract static class AbstractPackedArrayHandlerPeriod4
       extends AbstractPackedArrayHandler {
 
     public AbstractPackedArrayHandlerPeriod4(int bitSize) {
@@ -433,7 +433,7 @@ public final class PackedArray {
     }
   }
 
-  protected abstract static class AbstractPackedArrayHandlerPeriod8
+  private abstract static class AbstractPackedArrayHandlerPeriod8
       extends AbstractPackedArrayHandler {
 
     public AbstractPackedArrayHandlerPeriod8(int bitSize) {
