@@ -84,16 +84,14 @@ import java.util.Arrays;
  */
 public final class UltraLogLog {
 
-  // visible for testing
-
-  static final double ESTIMATION_FACTOR = 1.4855685837734152;
-  // visible for testing
   static final double VARIANCE_FACTOR = 0.6169896446766369;
+
+  static final double[] ESTIMATION_FACTORS = getEstimationFactors();
 
   // visible for testing
   static final double TAU = 0.7550966382001302;
 
-  private static final double TAU_INV = 1. / TAU;
+  private static final double MINUS_TAU_INV = -1. / TAU;
 
   private static final double CA = Math.pow(2., TAU);
 
@@ -128,6 +126,38 @@ public final class UltraLogLog {
   private static final int MAX_STATE_SIZE = 1 << MAX_P;
 
   private static final double[] REGISTER_CONTRIBUTIONS = getRegisterContributions();
+
+  static double[] getEstimationFactors() {
+    return new double[] {
+      0.0,
+      0.0,
+      0.0,
+      198.73981665391307,
+      1027.9377396749687,
+      5233.925351968596,
+      26433.204636982657,
+      132944.2295453946,
+      667235.7546841304,
+      3345276.669622828,
+      1.6763152109693771E7,
+      8.3977830384224E7,
+      4.2064549352151704E8,
+      2.1068767734342608E9,
+      1.0552313382074574E10,
+      5.285049385375066E10,
+      2.6469566663317316E11,
+      1.3256925604422827E12,
+      6.639538747664201E12,
+      3.3253131662557207E13,
+      1.6654322482669144E14,
+      8.34106058225079E14,
+      4.177491022408221E15,
+      2.0922315506308388E16,
+      1.04786167024773856E17,
+      5.2480523101070317E17,
+      2.628405409742423E18
+    };
+  }
 
   // visible for testing
   static double[] getRegisterContributions() {
@@ -621,7 +651,7 @@ public final class UltraLogLog {
       }
     }
 
-    return m * Math.pow((ESTIMATION_FACTOR * m) / sum, TAU_INV);
+    return ESTIMATION_FACTORS[p] * Math.pow(sum, MINUS_TAU_INV);
   }
 
   // visible for testing

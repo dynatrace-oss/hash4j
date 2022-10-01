@@ -51,6 +51,10 @@ def read_data(data_file):
     return info, data, size
 
 
+def to_percent(values):
+    return [100.0 * v for v in values]
+
+
 def plot_charts(filename):
     d = read_data(filename)
 
@@ -60,23 +64,53 @@ def plot_charts(filename):
     fig, ax = plt.subplots(1, 1, sharey="row", sharex=True)
     fig.set_size_inches(6, 3)
 
-    ax.set_title("p = " + headers["p"] + ", sample size = " + headers["num_cycles"])
+    p = int(headers["p"])
+
+    state_size_unit = "B"
+    state_size = 2**p
+    if state_size % 1024 == 0:
+        state_size //= 1024
+        state_size_unit = "kB"
+    if state_size % 1024 == 0:
+        state_size //= 1024
+        state_size_unit = "MB"
+
+    num_simulation_runs_unit = ""
+    num_simulation_runs = int(headers["num_cycles"])
+    if num_simulation_runs % 1000 == 0:
+        num_simulation_runs //= 1000
+        num_simulation_runs_unit = "k"
+    if num_simulation_runs % 1000 == 0:
+        num_simulation_runs //= 1000
+        num_simulation_runs_unit = "M"
+
+    ax.set_title(
+        "p = "
+        + str(p)
+        + ", state size = "
+        + str(state_size)
+        + state_size_unit
+        + ", #simulation runs = "
+        + str(num_simulation_runs)
+        + num_simulation_runs_unit
+    )
     ax.set_xscale("log", base=10)
-    theory = values["theoretical relative standard error"][0]
-    ax.set_ylim([-theory * 0.05, theory * 1.25])
+    theory = to_percent(values["theoretical relative standard error"])[0]
+    ax.set_ylim([-theory * 0.1, theory * 1.15])
     ax.set_xlim([1, values["distinct count"][-1]])
     ax.xaxis.grid(True)
     ax.set_xlabel("distinct count")
     ax.yaxis.grid(True)
-    ax.set_ylabel("relative error")
-    ax.plot(values["distinct count"], values["relative bias"], label="bias")
-    ax.plot(values["distinct count"], values["relative rmse"], label="rmse")
+    ax.set_ylabel("relative error (%)")
+    ax.plot(values["distinct count"], to_percent(values["relative bias"]), label="bias")
+    ax.plot(values["distinct count"], to_percent(values["relative rmse"]), label="rmse")
     ax.plot(
         values["distinct count"],
-        values["theoretical relative standard error"],
+        to_percent(values["theoretical relative standard error"]),
         label="theory",
     )
-    fig.legend(loc="center right")
+    # fig.legend(loc="center right")
+    ax.legend(loc="center right")
     fig.savefig(
         "test-results/estimation-error-p" + headers["p"] + ".png",
         format="png",

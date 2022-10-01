@@ -118,17 +118,9 @@ See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount
 ### Estimation error
 
 The state of an UltraLogLog sketch with precision parameter $p$ requires $m = 2^p$ bytes. The expected relative standard error is approximately given by 
-$\frac{0.785}{\sqrt{m}}$. This is a good approximation for all $p\geq 6$ and large distinct counts. However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller. The bias is always much smaller than the root-mean-square error (rmse) and can therefore be neglected. The following charts show the empirically evaluated relative error as a function of the true distinct count for various precision parameters based on 100k simulation runs.
+$\frac{0.785}{\sqrt{m}}$. This is a good approximation for all $p\geq 6$ and large distinct counts. However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller. The bias is always much smaller than the root-mean-square error (rmse) and can therefore be neglected. The following charts show the empirically evaluated relative error as a function of the true distinct count for various precision parameters $p$ based on 100k simulation runs:
 
-| precision | error chart | precision | error chart |
-| -------------:  | :------------- | -------------:  | :------------- |
-| 3              | <img src="test-results/estimation-error-p3.png" width="250">  | 10       | <img src="test-results/estimation-error-p10.png" width="250">  |
-| 4              | <img src="test-results/estimation-error-p4.png" width="250">  | 11       | <img src="test-results/estimation-error-p11.png" width="250">  |
-| 5              | <img src="test-results/estimation-error-p5.png" width="250">  | 12       | <img src="test-results/estimation-error-p12.png" width="250">  |
-| 6              | <img src="test-results/estimation-error-p6.png" width="250">  | 13       | <img src="test-results/estimation-error-p13.png" width="250">  |
-| 7              | <img src="test-results/estimation-error-p7.png" width="250">  | 14       | <img src="test-results/estimation-error-p14.png" width="250">  |
-| 8              | <img src="test-results/estimation-error-p8.png" width="250">  | 15       | <img src="test-results/estimation-error-p15.png" width="250">  |
-| 9              | <img src="test-results/estimation-error-p9.png" width="250">  | 16       | <img src="test-results/estimation-error-p16.png" width="250">  |
+<img src="test-results/estimation-error-p3.png" width="400"><img src="test-results/estimation-error-p4.png" width="400"><img src="test-results/estimation-error-p5.png" width="400"><img src="test-results/estimation-error-p6.png" width="400"><img src="test-results/estimation-error-p7.png" width="400"><img src="test-results/estimation-error-p8.png" width="400"><img src="test-results/estimation-error-p9.png" width="400"><img src="test-results/estimation-error-p10.png" width="400"><img src="test-results/estimation-error-p11.png" width="400"><img src="test-results/estimation-error-p12.png" width="400"><img src="test-results/estimation-error-p13.png" width="400"><img src="test-results/estimation-error-p14.png" width="400"><img src="test-results/estimation-error-p15.png" width="400"><img src="test-results/estimation-error-p16.png" width="400">
 
 ## Contribution FAQ
 
