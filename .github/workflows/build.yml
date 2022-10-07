@@ -37,3 +37,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew build sonarqube --info
+      - name: Run Test Coverage
+        run: ./gradlew jacocoTestReport
+      - name: Generate JaCoCo Badge
+        uses: cicirello/jacoco-badge-generator@v2.7.0
+        with:
+          generate-branches-badge: true
+          fail-if-coverage-less-than: 1.0
+          jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv

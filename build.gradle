@@ -121,7 +121,7 @@ dependencies {
     testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 }
 
-jacocoTestReport { // necessary for sonarcloud coverage
+jacocoTestReport {
     reports {
         xml.required = true
         csv.required = true
