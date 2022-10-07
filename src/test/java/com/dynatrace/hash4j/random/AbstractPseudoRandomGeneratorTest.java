@@ -114,7 +114,7 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   }
 
   @Test
-  public void testNextDouble() {
+  void testNextDouble() {
 
     int dataSize = 1000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
@@ -127,7 +127,7 @@ public abstract class AbstractPseudoRandomGeneratorTest {
   }
 
   @Test
-  public void testNextExponential() {
+  void testNextExponential() {
 
     int dataSize = 1000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
@@ -137,6 +137,30 @@ public abstract class AbstractPseudoRandomGeneratorTest {
     assertThat(
             new KolmogorovSmirnovTest().kolmogorovSmirnovTest(new ExponentialDistribution(1), data))
         .isGreaterThan(0.01);
+  }
+
+  @Test
+  void testNextExponentialCompatibility() {
+    int numIterations = 10000000;
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(0xb9db9b9308cda722L);
+    HashStream hashStream = Hashing.komihash4_3().hashStream();
+    for (int i = 0; i < numIterations; ++i) {
+      hashStream.putDouble(prg.nextExponential());
+    }
+    assertThat(hashStream.getAsLong()).isEqualTo(0x6e6ef62c10ced900L);
+  }
+
+  @Test
+  void testNextDoubleCompatibility() {
+    int numIterations = 10000000;
+    PseudoRandomGenerator prg = createPseudoRandomGenerator();
+    prg.reset(0x908c971030cd9247L);
+    HashStream hashStream = Hashing.komihash4_3().hashStream();
+    for (int i = 0; i < numIterations; ++i) {
+      hashStream.putDouble(prg.nextDouble());
+    }
+    assertThat(hashStream.getAsLong()).isEqualTo(0x9d4e4697cc4853f1L);
   }
 
   protected abstract long getExpectedStabilityCheckSum();
