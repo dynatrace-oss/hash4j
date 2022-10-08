@@ -7,8 +7,6 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dynatrace-oss_hash4j&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dynatrace-oss_hash4j)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=dynatrace-oss_hash4j&metric=coverage)](https://sonarcloud.io/summary/new_code?id=dynatrace-oss_hash4j)
 [![Java 11 or higher](https://img.shields.io/badge/JDK-11%2B-007396)](https://docs.oracle.com/javase/11/)
-[![Coverage](.github/badges/jacoco.svg)](https://github.com/dynatrace-oss/hash4j/actions/workflows/build.yml)
-[![Coverage](.github/badges/branches.svg)](https://github.com/dynatrace-oss/hash4j/actions/workflows/build.yml)
 
 hash4j is a Java library by Dynatrace that includes various non-cryptographic hash algorithms and data structures that are based on high-quality hash functions.
 
