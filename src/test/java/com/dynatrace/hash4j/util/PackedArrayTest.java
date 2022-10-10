@@ -16,12 +16,10 @@
 package com.dynatrace.hash4j.util;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayHandler;
 import java.util.*;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -42,7 +40,7 @@ public class PackedArrayTest {
     for (int i = 0; i < expected.length; ++i) {
       long expectedValue = expected[i] & mask;
       long actualValue = handler.get(actual, i);
-      Assertions.assertEquals(actualValue, expectedValue);
+      assertThat(actualValue).isEqualTo(expectedValue);
     }
   }
 
@@ -52,7 +50,7 @@ public class PackedArrayTest {
     SplittableRandom random = new SplittableRandom(0L);
     PackedArrayHandler handler = PackedArray.getHandler(bitSize);
     int maxLength = 200;
-    int numCycles1 = 3;
+    int numCycles1 = 100;
     int numCycles2 = 100;
     int numRandomValues = 10;
     for (int len = 1; len < maxLength; ++len) {
@@ -64,7 +62,7 @@ public class PackedArrayTest {
           expected[i] = value;
           long oldValue1 = handler.get(actual, i);
           long oldValue2 = handler.set(actual, i, value);
-          Assertions.assertEquals(oldValue1, oldValue2);
+          assertThat(oldValue2).isEqualTo(oldValue1);
         }
         assertEquals(expected, actual, handler);
       }
@@ -75,7 +73,7 @@ public class PackedArrayTest {
           expected[idx] = value;
           long oldValue1 = handler.get(actual, idx);
           long oldValue2 = handler.set(actual, idx, value);
-          Assertions.assertEquals(oldValue1, oldValue2);
+          assertThat(oldValue2).isEqualTo(oldValue1);
         }
         assertEquals(expected, actual, handler);
       }
@@ -106,7 +104,7 @@ public class PackedArrayTest {
             numEquals += 1;
           }
         }
-        Assertions.assertEquals(numEquals, handler.numEqualComponents(array1, array2, len));
+        assertThat(handler.numEqualComponents(array1, array2, len)).isEqualTo(numEquals);
       }
     }
   }
@@ -171,82 +169,82 @@ public class PackedArrayTest {
     {
       byte[] array = handler.create(16);
       handler.set(array, 0, 0xf);
-      Assertions.assertEquals("0f00000000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("0f00000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 1, 0xf);
-      Assertions.assertEquals("f000000000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("f000000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 2, 0xf);
-      Assertions.assertEquals("000f000000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("000f000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 3, 0xf);
-      Assertions.assertEquals("00f0000000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("00f0000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 4, 0xf);
-      Assertions.assertEquals("00000f0000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("00000f0000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 5, 0xf);
-      Assertions.assertEquals("0000f00000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000f00000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 6, 0xf);
-      Assertions.assertEquals("0000000f00000000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000000f00000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 7, 0xf);
-      Assertions.assertEquals("000000f000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("000000f000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 8, 0xf);
-      Assertions.assertEquals("000000000f000000", TestUtils.byteArrayToHexString(array));
+      assertThat("000000000f000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 9, 0xf);
-      Assertions.assertEquals("00000000f0000000", TestUtils.byteArrayToHexString(array));
+      assertThat("00000000f0000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 10, 0xf);
-      Assertions.assertEquals("00000000000f0000", TestUtils.byteArrayToHexString(array));
+      assertThat("00000000000f0000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 11, 0xf);
-      Assertions.assertEquals("0000000000f00000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000000000f00000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 12, 0xf);
-      Assertions.assertEquals("0000000000000f00", TestUtils.byteArrayToHexString(array));
+      assertThat("0000000000000f00").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 13, 0xf);
-      Assertions.assertEquals("000000000000f000", TestUtils.byteArrayToHexString(array));
+      assertThat("000000000000f000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 14, 0xf);
-      Assertions.assertEquals("000000000000000f", TestUtils.byteArrayToHexString(array));
+      assertThat("000000000000000f").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 15, 0xf);
-      Assertions.assertEquals("00000000000000f0", TestUtils.byteArrayToHexString(array));
+      assertThat("00000000000000f0").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
   }
 
@@ -256,38 +254,38 @@ public class PackedArrayTest {
     {
       byte[] array = handler.create(4);
       handler.set(array, 0, 0x3FFL);
-      Assertions.assertEquals("ff03000000", TestUtils.byteArrayToHexString(array));
+      assertThat("ff03000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(4);
       handler.set(array, 1, 0x3FFL);
-      Assertions.assertEquals("00fc0f0000", TestUtils.byteArrayToHexString(array));
+      assertThat("00fc0f0000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(4);
       handler.set(array, 2, 0x3FFL);
-      Assertions.assertEquals("0000f03f00", TestUtils.byteArrayToHexString(array));
+      assertThat("0000f03f00").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(4);
       handler.set(array, 3, 0x3FFL);
-      Assertions.assertEquals("000000c0ff", TestUtils.byteArrayToHexString(array));
+      assertThat("000000c0ff").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 0) ? 0x3FFL : 0L, 4);
-      Assertions.assertEquals("ff03000000", TestUtils.byteArrayToHexString(array));
+      assertThat("ff03000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 1) ? 0x3FFL : 0L, 4);
-      Assertions.assertEquals("00fc0f0000", TestUtils.byteArrayToHexString(array));
+      assertThat("00fc0f0000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 2) ? 0x3FFL : 0L, 4);
-      Assertions.assertEquals("0000f03f00", TestUtils.byteArrayToHexString(array));
+      assertThat("0000f03f00").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 3) ? 0x3FFL : 0L, 4);
-      Assertions.assertEquals("000000c0ff", TestUtils.byteArrayToHexString(array));
+      assertThat("000000c0ff").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
   }
 
@@ -297,38 +295,38 @@ public class PackedArrayTest {
     {
       byte[] array = handler.create(4);
       handler.set(array, 0, 0x3FF77L);
-      Assertions.assertEquals("77ff03000000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("77ff03000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(4);
       handler.set(array, 1, 0x3FF77L);
-      Assertions.assertEquals("0000dcfd0f00000000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000dcfd0f00000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(4);
       handler.set(array, 2, 0x3FF77L);
-      Assertions.assertEquals("0000000070f73f0000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000000070f73f0000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(4);
       handler.set(array, 3, 0x3FF77L);
-      Assertions.assertEquals("000000000000c0ddff", TestUtils.byteArrayToHexString(array));
+      assertThat("000000000000c0ddff").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 0) ? 0x3FF77L : 0L, 4);
-      Assertions.assertEquals("77ff03000000000000", TestUtils.byteArrayToHexString(array));
+      assertThat("77ff03000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 1) ? 0x3FF77L : 0L, 4);
-      Assertions.assertEquals("0000dcfd0f00000000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000dcfd0f00000000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 2) ? 0x3FF77L : 0L, 4);
-      Assertions.assertEquals("0000000070f73f0000", TestUtils.byteArrayToHexString(array));
+      assertThat("0000000070f73f0000").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
     {
       byte[] array = handler.create(i -> (i == 3) ? 0x3FF77L : 0L, 4);
-      Assertions.assertEquals("000000000000c0ddff", TestUtils.byteArrayToHexString(array));
+      assertThat("000000000000c0ddff").isEqualTo(TestUtils.byteArrayToHexString(array));
     }
   }
 
@@ -341,7 +339,7 @@ public class PackedArrayTest {
       byte[] data = handler.create(len);
       Arrays.fill(data, (byte) 0xFF);
       handler.clear(data);
-      assertArrayEquals(new byte[(bitSize * len + 7) / 8], data);
+      assertThat(data).isEqualTo(new byte[(bitSize * len + 7) / 8]);
     }
   }
 
@@ -351,7 +349,7 @@ public class PackedArrayTest {
     PackedArrayHandler handler = PackedArray.getHandler(bitSize);
     int maxLength = 200;
     for (int len = 0; len < maxLength; ++len) {
-      Assertions.assertEquals((bitSize * len + 7) / 8, handler.numBytes(len));
+      assertThat((bitSize * len + 7) / 8).isEqualTo(handler.numBytes(len));
     }
   }
 }

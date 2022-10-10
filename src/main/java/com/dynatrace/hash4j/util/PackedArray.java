@@ -168,11 +168,12 @@ public final class PackedArray {
     }
 
     protected long set1(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get1(array, idx, off, shift);
       int offset = getOffset(idx) + off;
-      long shiftedMask = mask << shift;
-      array[offset] = (byte) ((array[offset] & ~shiftedMask) | ((value << shift) & shiftedMask));
-      return ret;
+      long current = array[offset];
+      long ret = current >>> shift;
+      current ^= (((ret ^ value) & mask) << shift);
+      array[offset] = (byte) current;
+      return ret & mask;
     }
 
     protected long get2(byte[] array, int idx, int off, int shift) {
@@ -181,14 +182,12 @@ public final class PackedArray {
     }
 
     protected long set2(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get2(array, idx, off, shift);
       int offset = getOffset(idx) + off;
-      long shiftedMask = mask << shift;
-      setShort(
-          array,
-          offset,
-          (short) ((getShort(array, offset) & ~shiftedMask) | ((value << shift) & shiftedMask)));
-      return ret;
+      long current = getShort(array, offset);
+      long ret = current >>> shift;
+      current ^= ((ret ^ value) & mask) << shift;
+      setShort(array, offset, (short) current);
+      return ret & mask;
     }
 
     protected long get3(byte[] array, int idx, int off, int shift) {
@@ -201,18 +200,18 @@ public final class PackedArray {
     }
 
     protected long set3(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get3(array, idx, off, shift);
       if (idx > 0) {
         return set4(array, idx, off - 1, shift + 8, value);
       } else {
+        // shift is always equal to 0 in this case
         int offset = getOffset(idx) + off;
-        long shiftedMask = mask << shift;
-        long shiftedValue = (value & mask) << shift;
-        setShort(array, offset, (short) ((getShort(array, offset) & ~shiftedMask) | shiftedValue));
-        array[offset + 2] =
-            (byte) ((array[offset + 2] & ~(shiftedMask >>> 16)) | (shiftedValue >>> 16));
+        long current = ((getShort(array, offset) & 0xFFFFL) | (array[offset + 2] << 16));
+        long ret = current >>> shift;
+        current ^= ((ret ^ value) & mask) << shift;
+        setShort(array, offset, (short) current);
+        array[offset + 2] = (byte) (current >>> 16);
+        return ret & mask;
       }
-      return ret;
     }
 
     protected long get4(byte[] array, int idx, int off, int shift) {
@@ -221,14 +220,12 @@ public final class PackedArray {
     }
 
     protected long set4(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get4(array, idx, off, shift);
       int offset = getOffset(idx) + off;
-      long shiftedMask = mask << shift;
-      setInt(
-          array,
-          offset,
-          (int) ((getInt(array, offset) & ~shiftedMask) | ((value << shift) & shiftedMask)));
-      return ret;
+      long current = getInt(array, offset);
+      long ret = current >>> shift;
+      current ^= ((ret ^ value) & mask) << shift;
+      setInt(array, offset, (int) current);
+      return ret & mask;
     }
 
     protected long get5(byte[] array, int idx, int off, int shift) {
@@ -243,18 +240,18 @@ public final class PackedArray {
     }
 
     protected long set5(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get5(array, idx, off, shift);
       if (idx > 0) {
         return set8(array, idx, off - 3, shift + 24, value);
       } else {
+        // shift is always equal to 0 in this case
         int offset = getOffset(idx) + off;
-        long shiftedMask = mask << shift;
-        long shiftedValue = (value & mask) << shift;
-        setInt(array, offset, (int) ((getInt(array, offset) & ~shiftedMask) | shiftedValue));
-        array[offset + 4] =
-            (byte) ((array[offset + 4] & ~(shiftedMask >>> 32)) | (shiftedValue >>> 32));
+        long current = ((getInt(array, offset) & 0xFFFFFFFFL) | ((long) array[offset + 4] << 32));
+        long ret = current >>> shift;
+        current ^= ((ret ^ value) & mask) << shift;
+        setInt(array, offset, (int) current);
+        array[offset + 4] = (byte) (current >>> 32);
+        return ret & mask;
       }
-      return ret;
     }
 
     protected long get6(byte[] array, int idx, int off, int shift) {
@@ -269,21 +266,19 @@ public final class PackedArray {
     }
 
     protected long set6(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get6(array, idx, off, shift);
       if (idx > 0) {
         return set8(array, idx, off - 2, shift + 16, value);
       } else {
+        // shift is always equal to 0 in this case
         int offset = getOffset(idx) + off;
-        long shiftedMask = mask << shift;
-        long shiftedValue = (value & mask) << shift;
-        setInt(array, offset, (int) ((getInt(array, offset) & ~shiftedMask) | shiftedValue));
-        setShort(
-            array,
-            offset + 4,
-            (short)
-                ((getShort(array, offset + 4) & ~(shiftedMask >>> 32)) | (shiftedValue >>> 32)));
+        long current =
+            ((getInt(array, offset) & 0xFFFFFFFFL) | (((long) getShort(array, offset + 4)) << 32));
+        long ret = current >>> shift;
+        current ^= ((ret ^ value) & mask) << shift;
+        setInt(array, offset, (int) current);
+        setShort(array, offset + 4, (short) (current >>> 32));
+        return ret & mask;
       }
-      return ret;
     }
 
     protected long get7(byte[] array, int idx, int off, int shift) {
@@ -300,23 +295,22 @@ public final class PackedArray {
     }
 
     protected long set7(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get7(array, idx, off, shift);
       if (idx > 0) {
         return set8(array, idx, off - 1, shift + 8, value);
       } else {
+        // shift is always equal to 0 in this case
         int offset = getOffset(idx) + off;
-        long shiftedMask = mask << shift;
-        long shiftedValue = (value & mask) << shift;
-        setInt(array, offset, (int) ((getInt(array, offset) & ~shiftedMask) | shiftedValue));
-        setShort(
-            array,
-            offset + 4,
-            (short)
-                ((getShort(array, offset + 4) & ~(shiftedMask >>> 32)) | (shiftedValue >>> 32)));
-        array[offset + 6] =
-            (byte) ((array[offset + 6] & ~(shiftedMask >>> 48)) | (shiftedValue >>> 48));
+        long current =
+            ((getInt(array, offset) & 0xFFFFFFFFL)
+                | ((getShort(array, offset + 4) & 0xFFFFL) << 32)
+                | ((long) array[offset + 6] << 48));
+        long ret = current >>> shift;
+        current ^= ((ret ^ value) & mask) << shift;
+        setInt(array, offset, (int) current);
+        setShort(array, offset + 4, (short) (current >>> 32));
+        array[offset + 6] = (byte) (current >>> 48);
+        return ret & mask;
       }
-      return ret;
     }
 
     protected long get8(byte[] array, int idx, int off, int shift) {
@@ -325,14 +319,12 @@ public final class PackedArray {
     }
 
     protected long set8(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get8(array, idx, off, shift);
       int offset = getOffset(idx) + off;
-      long shiftedMask = mask << shift;
-      setLong(
-          array,
-          offset,
-          (getLong(array, offset) & ~shiftedMask) | ((value << shift) & shiftedMask));
-      return ret;
+      long current = getLong(array, offset);
+      long ret = current >>> shift;
+      current ^= ((ret ^ value) & mask) << shift;
+      setLong(array, offset, current);
+      return ret & mask;
     }
 
     protected long get9(byte[] array, int idx, int off, int shift) {
@@ -341,17 +333,14 @@ public final class PackedArray {
     }
 
     protected long set9(byte[] array, int idx, int off, int shift, long value) {
-      long ret = get9(array, idx, off, shift);
       int offset = getOffset(idx) + off;
-      long shiftedMask1 = mask << shift;
-      setLong(
-          array,
-          offset,
-          (getLong(array, offset) & ~shiftedMask1) | ((value << shift) & shiftedMask1));
-      long shiftedMask2 = mask >>> -shift;
-      array[offset + 8] =
-          (byte) ((array[offset + 8] & ~shiftedMask2) | ((value >>> -shift) & shiftedMask2));
-      return ret;
+      long currentLong = getLong(array, offset);
+      long currentByte = array[offset + 8];
+      long ret = ((currentLong >>> shift) | (currentByte << -shift));
+      long changeMask = (ret ^ value) & mask;
+      setLong(array, offset, currentLong ^ (changeMask << shift));
+      array[offset + 8] = (byte) (currentByte ^ (changeMask >>> -shift));
+      return ret & mask;
     }
 
     @Override
