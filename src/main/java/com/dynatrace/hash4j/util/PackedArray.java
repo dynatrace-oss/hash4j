@@ -19,7 +19,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.function.LongBinaryOperator;
 
+/** A utility class for compactly storing fixed bit size components in a byte array. */
 public final class PackedArray {
 
   private PackedArray() {}
@@ -71,15 +73,80 @@ public final class PackedArray {
 
   public interface PackedArrayHandler {
 
+    /**
+     * Returns the number of bytes needed to store a packed array having the given number of
+     * components.
+     *
+     * @param length the length of the packed array
+     * @return the number of bytes
+     */
     int numBytes(int length);
 
+    /**
+     * Creates a {@code byte} array that can store a packed array having the given number of
+     * components.
+     *
+     * <p>All components of the byte array are initially 0, which also corresponds to 0 values in
+     * the packed array.
+     *
+     * @param length the length of the packed array
+     * @return a byte array representing the packed array
+     */
     byte[] create(int length);
 
+    /**
+     * Returns a {@code byte} array that represents a packed array having the given number of
+     * components. The initial values are taken from the given {@link IndexedLongValueProvider}.
+     *
+     * @param valueProvider a value provider
+     * @param length the length of the packed array
+     * @return a byte array representing the packed array
+     */
     byte[] create(IndexedLongValueProvider valueProvider, int length);
 
+    /**
+     * Returns the value of a component in a packed array.
+     *
+     * <p>If the given index is not valid, the behavior of this function is undefined.
+     *
+     * @param array a byte array representing the packed array
+     * @param idx the index of the component
+     * @return the value of the component
+     */
     long get(byte[] array, int idx);
 
+    /**
+     * Sets a component in a packed array to the given value and returns the previous value.
+     *
+     * <p>Only the lowest {@link #getBitSize()} bits of the given value are used for setting the new
+     * value.
+     *
+     * <p>If the given index is not valid, the behavior of this function is undefined.
+     *
+     * @param array a byte array representing the packed array
+     * @param idx the index of the component
+     * @param value the new value
+     * @return the previous value of the component
+     */
     long set(byte[] array, int idx, long value);
+
+    /**
+     * Updates a component in a packed array using the given value and a binary operator that
+     * computes the update value from the previous value and the given value.
+     *
+     * <p>The given operator will get the old value of the component as first argument and the given
+     * value as second argument. Only the lowest {@link #getBitSize()} bits of the result are used
+     * for setting the new value.
+     *
+     * <p>If the given index is not valid, the behavior of this function is undefined.
+     *
+     * @param array a byte array representing the packed array
+     * @param idx the index of the component
+     * @param value a value
+     * @param operator a binary operator
+     * @return the previous value of the component
+     */
+    long update(byte[] array, int idx, long value, LongBinaryOperator operator);
 
     /**
      * The number of bits of a single component.
@@ -176,6 +243,16 @@ public final class PackedArray {
       return ret & mask;
     }
 
+    protected long update1(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      int offset = getOffset(idx) + off;
+      long current = array[offset];
+      long ret = (current >>> shift) & mask;
+      current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+      array[offset] = (byte) current;
+      return ret;
+    }
+
     protected long get2(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (getShort(array, offset) >>> shift) & mask;
@@ -188,6 +265,16 @@ public final class PackedArray {
       current ^= ((ret ^ value) & mask) << shift;
       setShort(array, offset, (short) current);
       return ret & mask;
+    }
+
+    protected long update2(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      int offset = getOffset(idx) + off;
+      long current = getShort(array, offset);
+      long ret = (current >>> shift) & mask;
+      current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+      setShort(array, offset, (short) current);
+      return ret;
     }
 
     protected long get3(byte[] array, int idx, int off, int shift) {
@@ -214,6 +301,22 @@ public final class PackedArray {
       }
     }
 
+    protected long update3(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      if (idx > 0) {
+        return update4(array, idx, off - 1, shift + 8, value, operator);
+      } else {
+        // shift is always equal to 0 in this case
+        int offset = getOffset(idx) + off;
+        long current = ((getShort(array, offset) & 0xFFFFL) | (array[offset + 2] << 16));
+        long ret = (current >>> shift) & mask;
+        current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+        setShort(array, offset, (short) current);
+        array[offset + 2] = (byte) (current >>> 16);
+        return ret;
+      }
+    }
+
     protected long get4(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (getInt(array, offset) >>> shift) & mask;
@@ -226,6 +329,16 @@ public final class PackedArray {
       current ^= ((ret ^ value) & mask) << shift;
       setInt(array, offset, (int) current);
       return ret & mask;
+    }
+
+    protected long update4(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      int offset = getOffset(idx) + off;
+      long current = getInt(array, offset);
+      long ret = (current >>> shift) & mask;
+      current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+      setInt(array, offset, (int) current);
+      return ret;
     }
 
     protected long get5(byte[] array, int idx, int off, int shift) {
@@ -254,6 +367,22 @@ public final class PackedArray {
       }
     }
 
+    protected long update5(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      if (idx > 0) {
+        return update8(array, idx, off - 3, shift + 24, value, operator);
+      } else {
+        // shift is always equal to 0 in this case
+        int offset = getOffset(idx) + off;
+        long current = ((getInt(array, offset) & 0xFFFFFFFFL) | ((long) array[offset + 4] << 32));
+        long ret = (current >>> shift) & mask;
+        current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+        setInt(array, offset, (int) current);
+        array[offset + 4] = (byte) (current >>> 32);
+        return ret;
+      }
+    }
+
     protected long get6(byte[] array, int idx, int off, int shift) {
       if (idx > 0) {
         return get8(array, idx, off - 2, shift + 16);
@@ -278,6 +407,23 @@ public final class PackedArray {
         setInt(array, offset, (int) current);
         setShort(array, offset + 4, (short) (current >>> 32));
         return ret & mask;
+      }
+    }
+
+    protected long update6(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      if (idx > 0) {
+        return update8(array, idx, off - 2, shift + 16, value, operator);
+      } else {
+        // shift is always equal to 0 in this case
+        int offset = getOffset(idx) + off;
+        long current =
+            ((getInt(array, offset) & 0xFFFFFFFFL) | (((long) getShort(array, offset + 4)) << 32));
+        long ret = (current >>> shift) & mask;
+        current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+        setInt(array, offset, (int) current);
+        setShort(array, offset + 4, (short) (current >>> 32));
+        return ret;
       }
     }
 
@@ -313,6 +459,26 @@ public final class PackedArray {
       }
     }
 
+    protected long update7(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      if (idx > 0) {
+        return update8(array, idx, off - 1, shift + 8, value, operator);
+      } else {
+        // shift is always equal to 0 in this case
+        int offset = getOffset(idx) + off;
+        long current =
+            ((getInt(array, offset) & 0xFFFFFFFFL)
+                | ((getShort(array, offset + 4) & 0xFFFFL) << 32)
+                | ((long) array[offset + 6] << 48));
+        long ret = (current >>> shift) & mask;
+        current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+        setInt(array, offset, (int) current);
+        setShort(array, offset + 4, (short) (current >>> 32));
+        array[offset + 6] = (byte) (current >>> 48);
+        return ret;
+      }
+    }
+
     protected long get8(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (getLong(array, offset) >>> shift) & mask;
@@ -325,6 +491,16 @@ public final class PackedArray {
       current ^= ((ret ^ value) & mask) << shift;
       setLong(array, offset, current);
       return ret & mask;
+    }
+
+    protected long update8(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      int offset = getOffset(idx) + off;
+      long current = getLong(array, offset);
+      long ret = (current >>> shift) & mask;
+      current ^= ((ret ^ (operator.applyAsLong(ret, value) & mask)) << shift);
+      setLong(array, offset, current);
+      return ret;
     }
 
     protected long get9(byte[] array, int idx, int off, int shift) {
@@ -341,6 +517,18 @@ public final class PackedArray {
       setLong(array, offset, currentLong ^ (changeMask << shift));
       array[offset + 8] = (byte) (currentByte ^ (changeMask >>> -shift));
       return ret & mask;
+    }
+
+    protected long update9(
+        byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
+      int offset = getOffset(idx) + off;
+      long currentLong = getLong(array, offset);
+      long currentByte = array[offset + 8];
+      long ret = ((currentLong >>> shift) | (currentByte << -shift)) & mask;
+      long changeMask = ret ^ (operator.applyAsLong(ret, value) & mask);
+      setLong(array, offset, currentLong ^ (changeMask << shift));
+      array[offset + 8] = (byte) (currentByte ^ (changeMask >>> -shift));
+      return ret;
     }
 
     @Override
@@ -465,6 +653,11 @@ public final class PackedArray {
         }
 
         @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return 0;
+        }
+
+        @Override
         public int getBitSize() {
           return 0;
         }
@@ -491,6 +684,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set1(array, idx, 0, idx & 0x7, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update1(array, idx, 0, idx & 0x7, value, operator);
         }
 
         @Override
@@ -546,6 +744,11 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           return set1(array, idx, 0, ((idx & 3) << 1), value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update1(array, idx, 0, ((idx & 3) << 1), value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_3 =
@@ -594,6 +797,28 @@ public final class PackedArray {
               return set1(array, idx, 2, 5, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update1(array, idx, 0, 0, value, operator);
+            case 1:
+              return update1(array, idx, 0, 3, value, operator);
+            case 2:
+              return update2(array, idx, 0, 6, value, operator);
+            case 3:
+              return update1(array, idx, 1, 1, value, operator);
+            case 4:
+              return update1(array, idx, 1, 4, value, operator);
+            case 5:
+              return update2(array, idx, 1, 7, value, operator);
+            case 6:
+              return update1(array, idx, 2, 2, value, operator);
+            default:
+              return update1(array, idx, 2, 5, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_4 =
@@ -609,6 +834,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set1(array, idx, 0, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update1(array, idx, 0, k << 2, value, operator);
         }
       };
 
@@ -658,6 +889,28 @@ public final class PackedArray {
               return set1(array, idx, 4, 3, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update1(array, idx, 0, 0, value, operator);
+            case 1:
+              return update2(array, idx, 0, 5, value, operator);
+            case 2:
+              return update1(array, idx, 1, 2, value, operator);
+            case 3:
+              return update2(array, idx, 1, 7, value, operator);
+            case 4:
+              return update2(array, idx, 2, 4, value, operator);
+            case 5:
+              return update1(array, idx, 3, 1, value, operator);
+            case 6:
+              return update2(array, idx, 3, 6, value, operator);
+            default:
+              return update1(array, idx, 4, 3, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_6 =
@@ -688,6 +941,20 @@ public final class PackedArray {
               return set2(array, idx, 1, 4, value);
             default:
               return set1(array, idx, 2, 2, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update1(array, idx, 0, 0, value, operator);
+            case 1:
+              return update2(array, idx, 0, 6, value, operator);
+            case 2:
+              return update2(array, idx, 1, 4, value, operator);
+            default:
+              return update1(array, idx, 2, 2, value, operator);
           }
         }
       };
@@ -738,6 +1005,28 @@ public final class PackedArray {
               return set1(array, idx, 6, 1, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update1(array, idx, 0, 0, value, operator);
+            case 1:
+              return update2(array, idx, 0, 7, value, operator);
+            case 2:
+              return update2(array, idx, 1, 6, value, operator);
+            case 3:
+              return update2(array, idx, 2, 5, value, operator);
+            case 4:
+              return update2(array, idx, 3, 4, value, operator);
+            case 5:
+              return update2(array, idx, 4, 3, value, operator);
+            case 6:
+              return update2(array, idx, 5, 2, value, operator);
+            default:
+              return update1(array, idx, 6, 1, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_8 =
@@ -751,6 +1040,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set1(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update1(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -768,6 +1062,12 @@ public final class PackedArray {
           int off = idx & 0x7;
           return set2(array, idx, off, off, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int off = idx & 0x7;
+          return update2(array, idx, off, off, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_10 =
@@ -783,6 +1083,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int off = idx & 0x3;
           return set2(array, idx, off, off << 1, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int off = idx & 0x3;
+          return update2(array, idx, off, off << 1, value, operator);
         }
       };
 
@@ -832,6 +1138,28 @@ public final class PackedArray {
               return set2(array, idx, 9, 5, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update2(array, idx, 0, 0, value, operator);
+            case 1:
+              return update2(array, idx, 1, 3, value, operator);
+            case 2:
+              return update4(array, idx, 1, 14, value, operator);
+            case 3:
+              return update2(array, idx, 4, 1, value, operator);
+            case 4:
+              return update2(array, idx, 5, 4, value, operator);
+            case 5:
+              return update4(array, idx, 5, 15, value, operator);
+            case 6:
+              return update2(array, idx, 8, 2, value, operator);
+            default:
+              return update2(array, idx, 9, 5, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_12 =
@@ -847,6 +1175,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set2(array, idx, k, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update2(array, idx, k, k << 2, value, operator);
         }
       };
 
@@ -896,6 +1230,28 @@ public final class PackedArray {
               return set2(array, idx, 11, 3, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update2(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 0, 13, value, operator);
+            case 2:
+              return update2(array, idx, 3, 2, value, operator);
+            case 3:
+              return update4(array, idx, 3, 15, value, operator);
+            case 4:
+              return update4(array, idx, 5, 12, value, operator);
+            case 5:
+              return update2(array, idx, 8, 1, value, operator);
+            case 6:
+              return update4(array, idx, 8, 14, value, operator);
+            default:
+              return update2(array, idx, 11, 3, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_14 =
@@ -926,6 +1282,20 @@ public final class PackedArray {
               return set4(array, idx, 2, 12, value);
             default:
               return set2(array, idx, 5, 2, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update2(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 0, 14, value, operator);
+            case 2:
+              return update4(array, idx, 2, 12, value, operator);
+            default:
+              return update2(array, idx, 5, 2, value, operator);
           }
         }
       };
@@ -976,6 +1346,28 @@ public final class PackedArray {
               return set2(array, idx, 13, 1, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update2(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 0, 15, value, operator);
+            case 2:
+              return update4(array, idx, 2, 14, value, operator);
+            case 3:
+              return update4(array, idx, 4, 13, value, operator);
+            case 4:
+              return update4(array, idx, 6, 12, value, operator);
+            case 5:
+              return update4(array, idx, 8, 11, value, operator);
+            case 6:
+              return update4(array, idx, 10, 10, value, operator);
+            default:
+              return update2(array, idx, 13, 1, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_16 =
@@ -989,6 +1381,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set2(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update2(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -1006,6 +1403,12 @@ public final class PackedArray {
           int k = idx & 0x7;
           return set3(array, idx, k << 1, k, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x7;
+          return update3(array, idx, k << 1, k, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_18 =
@@ -1021,6 +1424,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = (idx & 0x3) << 1;
           return set3(array, idx, k, k, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = (idx & 0x3) << 1;
+          return update3(array, idx, k, k, value, operator);
         }
       };
 
@@ -1070,6 +1479,28 @@ public final class PackedArray {
               return set4(array, idx, 15, 13, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update3(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 1, 11, value, operator);
+            case 2:
+              return update4(array, idx, 4, 6, value, operator);
+            case 3:
+              return update4(array, idx, 6, 9, value, operator);
+            case 4:
+              return update4(array, idx, 8, 12, value, operator);
+            case 5:
+              return update4(array, idx, 11, 7, value, operator);
+            case 6:
+              return update4(array, idx, 13, 10, value, operator);
+            default:
+              return update4(array, idx, 15, 13, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_20 =
@@ -1085,6 +1516,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set3(array, idx, k << 1, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update3(array, idx, k << 1, k << 2, value, operator);
         }
       };
 
@@ -1134,6 +1571,28 @@ public final class PackedArray {
               return set4(array, idx, 17, 11, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update3(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 2, 5, value, operator);
+            case 2:
+              return update4(array, idx, 4, 10, value, operator);
+            case 3:
+              return update4(array, idx, 7, 7, value, operator);
+            case 4:
+              return update4(array, idx, 10, 4, value, operator);
+            case 5:
+              return update4(array, idx, 12, 9, value, operator);
+            case 6:
+              return update4(array, idx, 15, 6, value, operator);
+            default:
+              return update4(array, idx, 17, 11, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_22 =
@@ -1164,6 +1623,20 @@ public final class PackedArray {
               return set4(array, idx, 5, 4, value);
             default:
               return set4(array, idx, 7, 10, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update3(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 2, 6, value, operator);
+            case 2:
+              return update4(array, idx, 5, 4, value, operator);
+            default:
+              return update4(array, idx, 7, 10, value, operator);
           }
         }
       };
@@ -1214,6 +1687,28 @@ public final class PackedArray {
               return set4(array, idx, 19, 9, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update3(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 2, 7, value, operator);
+            case 2:
+              return update4(array, idx, 5, 6, value, operator);
+            case 3:
+              return update4(array, idx, 8, 5, value, operator);
+            case 4:
+              return update4(array, idx, 11, 4, value, operator);
+            case 5:
+              return update4(array, idx, 14, 3, value, operator);
+            case 6:
+              return update4(array, idx, 17, 2, value, operator);
+            default:
+              return update4(array, idx, 19, 9, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_24 =
@@ -1227,6 +1722,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set3(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update3(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -1244,6 +1744,12 @@ public final class PackedArray {
           int k = idx & 0x7;
           return set4(array, idx, 3 * k, k, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x7;
+          return update4(array, idx, 3 * k, k, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_26 =
@@ -1259,6 +1765,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x3;
           return set4(array, idx, 3 * k, k << 1, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x3;
+          return update4(array, idx, 3 * k, k << 1, value, operator);
         }
       };
 
@@ -1308,6 +1820,28 @@ public final class PackedArray {
               return set4(array, idx, 23, 5, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update4(array, idx, 0, 0, value, operator);
+            case 1:
+              return update4(array, idx, 3, 3, value, operator);
+            case 2:
+              return update8(array, idx, 3, 30, value, operator);
+            case 3:
+              return update4(array, idx, 10, 1, value, operator);
+            case 4:
+              return update4(array, idx, 13, 4, value, operator);
+            case 5:
+              return update8(array, idx, 13, 31, value, operator);
+            case 6:
+              return update4(array, idx, 20, 2, value, operator);
+            default:
+              return update4(array, idx, 23, 5, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_28 =
@@ -1323,6 +1857,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set4(array, idx, 3 * k, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update4(array, idx, 3 * k, k << 2, value, operator);
         }
       };
 
@@ -1372,6 +1912,28 @@ public final class PackedArray {
               return set4(array, idx, 25, 3, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update4(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 0, 29, value, operator);
+            case 2:
+              return update4(array, idx, 7, 2, value, operator);
+            case 3:
+              return update8(array, idx, 7, 31, value, operator);
+            case 4:
+              return update8(array, idx, 11, 28, value, operator);
+            case 5:
+              return update4(array, idx, 18, 1, value, operator);
+            case 6:
+              return update8(array, idx, 18, 30, value, operator);
+            default:
+              return update4(array, idx, 25, 3, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_30 =
@@ -1402,6 +1964,20 @@ public final class PackedArray {
               return set8(array, idx, 4, 28, value);
             default:
               return set4(array, idx, 11, 2, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update4(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 0, 30, value, operator);
+            case 2:
+              return update8(array, idx, 4, 28, value, operator);
+            default:
+              return update4(array, idx, 11, 2, value, operator);
           }
         }
       };
@@ -1452,6 +2028,28 @@ public final class PackedArray {
               return set4(array, idx, 27, 1, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update4(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 0, 31, value, operator);
+            case 2:
+              return update8(array, idx, 4, 30, value, operator);
+            case 3:
+              return update8(array, idx, 8, 29, value, operator);
+            case 4:
+              return update8(array, idx, 12, 28, value, operator);
+            case 5:
+              return update8(array, idx, 16, 27, value, operator);
+            case 6:
+              return update8(array, idx, 20, 26, value, operator);
+            default:
+              return update4(array, idx, 27, 1, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_32 =
@@ -1465,6 +2063,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set4(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update4(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -1482,6 +2085,12 @@ public final class PackedArray {
           int k = (idx & 0x7);
           return set5(array, idx, k << 2, k, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = (idx & 0x7);
+          return update5(array, idx, k << 2, k, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_34 =
@@ -1497,6 +2106,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = (idx & 0x3);
           return set5(array, idx, k << 2, k << 1, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = (idx & 0x3);
+          return update5(array, idx, k << 2, k << 1, value, operator);
         }
       };
 
@@ -1546,6 +2161,28 @@ public final class PackedArray {
               return set8(array, idx, 27, 29, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update5(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 1, 27, value, operator);
+            case 2:
+              return update8(array, idx, 6, 22, value, operator);
+            case 3:
+              return update8(array, idx, 10, 25, value, operator);
+            case 4:
+              return update8(array, idx, 14, 28, value, operator);
+            case 5:
+              return update8(array, idx, 19, 23, value, operator);
+            case 6:
+              return update8(array, idx, 23, 26, value, operator);
+            default:
+              return update8(array, idx, 27, 29, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_36 =
@@ -1561,6 +2198,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = (idx & 0x1) << 2;
           return set5(array, idx, k, k, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = (idx & 0x1) << 2;
+          return update5(array, idx, k, k, value, operator);
         }
       };
 
@@ -1610,6 +2253,28 @@ public final class PackedArray {
               return set8(array, idx, 29, 27, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update5(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 2, 21, value, operator);
+            case 2:
+              return update8(array, idx, 6, 26, value, operator);
+            case 3:
+              return update8(array, idx, 11, 23, value, operator);
+            case 4:
+              return update8(array, idx, 16, 20, value, operator);
+            case 5:
+              return update8(array, idx, 20, 25, value, operator);
+            case 6:
+              return update8(array, idx, 25, 22, value, operator);
+            default:
+              return update8(array, idx, 29, 27, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_38 =
@@ -1640,6 +2305,20 @@ public final class PackedArray {
               return set8(array, idx, 7, 20, value);
             default:
               return set8(array, idx, 11, 26, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update5(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 2, 22, value, operator);
+            case 2:
+              return update8(array, idx, 7, 20, value, operator);
+            default:
+              return update8(array, idx, 11, 26, value, operator);
           }
         }
       };
@@ -1690,6 +2369,28 @@ public final class PackedArray {
               return set8(array, idx, 31, 25, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update5(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 2, 23, value, operator);
+            case 2:
+              return update8(array, idx, 7, 22, value, operator);
+            case 3:
+              return update8(array, idx, 12, 21, value, operator);
+            case 4:
+              return update8(array, idx, 17, 20, value, operator);
+            case 5:
+              return update8(array, idx, 22, 19, value, operator);
+            case 6:
+              return update8(array, idx, 27, 18, value, operator);
+            default:
+              return update8(array, idx, 31, 25, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_40 =
@@ -1703,6 +2404,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set5(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update5(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -1720,6 +2426,12 @@ public final class PackedArray {
           int k = idx & 0x7;
           return set6(array, idx, 5 * k, k, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x7;
+          return update6(array, idx, 5 * k, k, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_42 =
@@ -1735,6 +2447,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x3;
           return set6(array, idx, 5 * k, k << 1, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x3;
+          return update6(array, idx, 5 * k, k << 1, value, operator);
         }
       };
 
@@ -1784,6 +2502,28 @@ public final class PackedArray {
               return set8(array, idx, 35, 21, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update6(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 3, 19, value, operator);
+            case 2:
+              return update8(array, idx, 9, 14, value, operator);
+            case 3:
+              return update8(array, idx, 14, 17, value, operator);
+            case 4:
+              return update8(array, idx, 19, 20, value, operator);
+            case 5:
+              return update8(array, idx, 25, 15, value, operator);
+            case 6:
+              return update8(array, idx, 30, 18, value, operator);
+            default:
+              return update8(array, idx, 35, 21, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_44 =
@@ -1799,6 +2539,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set6(array, idx, 5 * k, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update6(array, idx, 5 * k, k << 2, value, operator);
         }
       };
 
@@ -1848,6 +2594,28 @@ public final class PackedArray {
               return set8(array, idx, 37, 19, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update6(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 4, 13, value, operator);
+            case 2:
+              return update8(array, idx, 9, 18, value, operator);
+            case 3:
+              return update8(array, idx, 15, 15, value, operator);
+            case 4:
+              return update8(array, idx, 21, 12, value, operator);
+            case 5:
+              return update8(array, idx, 26, 17, value, operator);
+            case 6:
+              return update8(array, idx, 32, 14, value, operator);
+            default:
+              return update8(array, idx, 37, 19, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_46 =
@@ -1878,6 +2646,20 @@ public final class PackedArray {
               return set8(array, idx, 10, 12, value);
             default:
               return set8(array, idx, 15, 18, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update6(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 4, 14, value, operator);
+            case 2:
+              return update8(array, idx, 10, 12, value, operator);
+            default:
+              return update8(array, idx, 15, 18, value, operator);
           }
         }
       };
@@ -1928,6 +2710,28 @@ public final class PackedArray {
               return set8(array, idx, 39, 17, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update6(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 4, 15, value, operator);
+            case 2:
+              return update8(array, idx, 10, 14, value, operator);
+            case 3:
+              return update8(array, idx, 16, 13, value, operator);
+            case 4:
+              return update8(array, idx, 22, 12, value, operator);
+            case 5:
+              return update8(array, idx, 28, 11, value, operator);
+            case 6:
+              return update8(array, idx, 34, 10, value, operator);
+            default:
+              return update8(array, idx, 39, 17, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_48 =
@@ -1941,6 +2745,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set6(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update6(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -1958,6 +2767,12 @@ public final class PackedArray {
           int k = idx & 0x7;
           return set7(array, idx, 6 * k, k, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x7;
+          return update7(array, idx, 6 * k, k, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_50 =
@@ -1973,6 +2788,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x3;
           return set7(array, idx, 6 * k, k << 1, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x3;
+          return update7(array, idx, 6 * k, k << 1, value, operator);
         }
       };
 
@@ -2022,6 +2843,28 @@ public final class PackedArray {
               return set8(array, idx, 43, 13, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update7(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 5, 11, value, operator);
+            case 2:
+              return update8(array, idx, 12, 6, value, operator);
+            case 3:
+              return update8(array, idx, 18, 9, value, operator);
+            case 4:
+              return update8(array, idx, 24, 12, value, operator);
+            case 5:
+              return update8(array, idx, 31, 7, value, operator);
+            case 6:
+              return update8(array, idx, 37, 10, value, operator);
+            default:
+              return update8(array, idx, 43, 13, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_52 =
@@ -2037,6 +2880,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set7(array, idx, 6 * k, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update7(array, idx, 6 * k, k << 2, value, operator);
         }
       };
 
@@ -2086,6 +2935,28 @@ public final class PackedArray {
               return set8(array, idx, 45, 11, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update7(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 6, 5, value, operator);
+            case 2:
+              return update8(array, idx, 12, 10, value, operator);
+            case 3:
+              return update8(array, idx, 19, 7, value, operator);
+            case 4:
+              return update8(array, idx, 26, 4, value, operator);
+            case 5:
+              return update8(array, idx, 32, 9, value, operator);
+            case 6:
+              return update8(array, idx, 39, 6, value, operator);
+            default:
+              return update8(array, idx, 45, 11, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_54 =
@@ -2116,6 +2987,20 @@ public final class PackedArray {
               return set8(array, idx, 13, 4, value);
             default:
               return set8(array, idx, 19, 10, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update7(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 6, 6, value, operator);
+            case 2:
+              return update8(array, idx, 13, 4, value, operator);
+            default:
+              return update8(array, idx, 19, 10, value, operator);
           }
         }
       };
@@ -2166,6 +3051,28 @@ public final class PackedArray {
               return set8(array, idx, 47, 9, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update7(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 6, 7, value, operator);
+            case 2:
+              return update8(array, idx, 13, 6, value, operator);
+            case 3:
+              return update8(array, idx, 20, 5, value, operator);
+            case 4:
+              return update8(array, idx, 27, 4, value, operator);
+            case 5:
+              return update8(array, idx, 34, 3, value, operator);
+            case 6:
+              return update8(array, idx, 41, 2, value, operator);
+            default:
+              return update8(array, idx, 47, 9, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_56 =
@@ -2179,6 +3086,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set7(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update7(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -2196,6 +3108,12 @@ public final class PackedArray {
           int k = idx & 0x7;
           return set8(array, idx, 7 * k, k, value);
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x7;
+          return update8(array, idx, 7 * k, k, value, operator);
+        }
       };
 
   private static final PackedArrayHandler HANDLER_58 =
@@ -2211,6 +3129,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x3;
           return set8(array, idx, 7 * k, k << 1, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x3;
+          return update8(array, idx, 7 * k, k << 1, value, operator);
         }
       };
 
@@ -2260,6 +3184,28 @@ public final class PackedArray {
               return set8(array, idx, 51, 5, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update8(array, idx, 0, 0, value, operator);
+            case 1:
+              return update8(array, idx, 7, 3, value, operator);
+            case 2:
+              return update9(array, idx, 14, 6, value, operator);
+            case 3:
+              return update8(array, idx, 22, 1, value, operator);
+            case 4:
+              return update8(array, idx, 29, 4, value, operator);
+            case 5:
+              return update9(array, idx, 36, 7, value, operator);
+            case 6:
+              return update8(array, idx, 44, 2, value, operator);
+            default:
+              return update8(array, idx, 51, 5, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_60 =
@@ -2275,6 +3221,12 @@ public final class PackedArray {
         public long set(byte[] array, int idx, long value) {
           int k = idx & 0x1;
           return set8(array, idx, 7 * k, k << 2, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          int k = idx & 0x1;
+          return update8(array, idx, 7 * k, k << 2, value, operator);
         }
       };
 
@@ -2324,6 +3276,28 @@ public final class PackedArray {
               return set8(array, idx, 53, 3, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update8(array, idx, 0, 0, value, operator);
+            case 1:
+              return update9(array, idx, 7, 5, value, operator);
+            case 2:
+              return update8(array, idx, 15, 2, value, operator);
+            case 3:
+              return update9(array, idx, 22, 7, value, operator);
+            case 4:
+              return update9(array, idx, 30, 4, value, operator);
+            case 5:
+              return update8(array, idx, 38, 1, value, operator);
+            case 6:
+              return update9(array, idx, 45, 6, value, operator);
+            default:
+              return update8(array, idx, 53, 3, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_62 =
@@ -2354,6 +3328,20 @@ public final class PackedArray {
               return set9(array, idx, 15, 4, value);
             default:
               return set8(array, idx, 23, 2, value);
+          }
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x3) {
+            case 0:
+              return update8(array, idx, 0, 0, value, operator);
+            case 1:
+              return update9(array, idx, 7, 6, value, operator);
+            case 2:
+              return update9(array, idx, 15, 4, value, operator);
+            default:
+              return update8(array, idx, 23, 2, value, operator);
           }
         }
       };
@@ -2404,6 +3392,28 @@ public final class PackedArray {
               return set8(array, idx, 55, 1, value);
           }
         }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          switch (idx & 0x7) {
+            case 0:
+              return update8(array, idx, 0, 0, value, operator);
+            case 1:
+              return update9(array, idx, 7, 7, value, operator);
+            case 2:
+              return update9(array, idx, 15, 6, value, operator);
+            case 3:
+              return update9(array, idx, 23, 5, value, operator);
+            case 4:
+              return update9(array, idx, 31, 4, value, operator);
+            case 5:
+              return update9(array, idx, 39, 3, value, operator);
+            case 6:
+              return update9(array, idx, 47, 2, value, operator);
+            default:
+              return update8(array, idx, 55, 1, value, operator);
+          }
+        }
       };
 
   private static final PackedArrayHandler HANDLER_64 =
@@ -2417,6 +3427,11 @@ public final class PackedArray {
         @Override
         public long set(byte[] array, int idx, long value) {
           return set8(array, idx, 0, 0, value);
+        }
+
+        @Override
+        public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          return update8(array, idx, 0, 0, value, operator);
         }
       };
 
@@ -2492,6 +3507,13 @@ public final class PackedArray {
     return instances;
   }
 
+  /**
+   * Returns a packed array handler that provides methods for compactly storing fixed bit size
+   * components in a byte array.
+   *
+   * @param bitSize the bit size
+   * @return a handler
+   */
   public static PackedArrayHandler getHandler(int bitSize) {
     return HANDLER_INSTANCES[bitSize];
   }

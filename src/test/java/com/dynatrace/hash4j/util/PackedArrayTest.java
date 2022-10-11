@@ -57,12 +57,19 @@ public class PackedArrayTest {
       long[] expected = new long[len];
       byte[] actual = handler.create(len);
       for (int c = 0; c < numCycles1; ++c) {
-        for (int i = 0; i < len; ++i) {
+        for (int idx = 0; idx < len; ++idx) {
           long value = random.nextLong();
-          expected[i] = value;
-          long oldValue1 = handler.get(actual, i);
-          long oldValue2 = handler.set(actual, i, value);
-          assertThat(oldValue2).isEqualTo(oldValue1);
+          if (random.nextBoolean()) {
+            expected[idx] = value;
+            long oldValue1 = handler.get(actual, idx);
+            long oldValue2 = handler.set(actual, idx, value);
+            assertThat(oldValue2).isEqualTo(oldValue1);
+          } else {
+            expected[idx] -= value;
+            long oldValue1 = handler.get(actual, idx);
+            long oldValue2 = handler.update(actual, idx, value, (o, n) -> o - n);
+            assertThat(oldValue2).isEqualTo(oldValue1);
+          }
         }
         assertEquals(expected, actual, handler);
       }
@@ -70,10 +77,17 @@ public class PackedArrayTest {
         for (int j = 0; j < numRandomValues; ++j) {
           int idx = random.nextInt(len);
           long value = random.nextLong();
-          expected[idx] = value;
-          long oldValue1 = handler.get(actual, idx);
-          long oldValue2 = handler.set(actual, idx, value);
-          assertThat(oldValue2).isEqualTo(oldValue1);
+          if (random.nextBoolean()) {
+            expected[idx] = value;
+            long oldValue1 = handler.get(actual, idx);
+            long oldValue2 = handler.set(actual, idx, value);
+            assertThat(oldValue2).isEqualTo(oldValue1);
+          } else {
+            expected[idx] -= value;
+            long oldValue1 = handler.get(actual, idx);
+            long oldValue2 = handler.update(actual, idx, value, (o, n) -> o - n);
+            assertThat(oldValue2).isEqualTo(oldValue1);
+          }
         }
         assertEquals(expected, actual, handler);
       }
