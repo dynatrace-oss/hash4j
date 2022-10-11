@@ -177,6 +177,37 @@ public final class PackedArray {
      * @param array a packed array
      */
     void clear(byte[] array);
+
+    /**
+     * Returns a {@link PackedArrayReadIterator} to read the values of all components in sequential
+     * order.
+     *
+     * @param array the packed array
+     * @param length the number of components of the packed array
+     * @return a read iterator
+     * @throws NullPointerException if array is null
+     */
+    PackedArrayReadIterator readIterator(byte[] array, int length);
+  }
+
+  /** A read iterator to read the values of all components in sequential order. */
+  public interface PackedArrayReadIterator {
+
+    /**
+     * Returns {@code true} if the iteration has more components.
+     *
+     * @return {@code true} if the iteration has more components
+     */
+    boolean hasNext();
+
+    /**
+     * Returns the value of the next component in the iteration.
+     *
+     * <p>The behavior is undefined if there are no further components.
+     *
+     * @return the value of the next component in the iteration
+     */
+    long next();
   }
 
   private static final long MAX_NUM_BITS = Integer.MAX_VALUE * 8L;
@@ -213,11 +244,20 @@ public final class PackedArray {
 
     @Override
     public int numEqualComponents(byte[] array1, byte[] array2, int length) {
+      PackedArrayReadIterator it1 = readIterator(array1, length);
+      PackedArrayReadIterator it2 = readIterator(array2, length);
       int c = 0;
+      for (int i = 0; i < length; ++i) {
+        if (it1.next() == it2.next()) c += 1;
+      }
+      return c;
+
+      /*int c = 0;
       for (int i = 0; i < length; ++i) {
         if (get(array1, i) == get(array2, i)) c += 1;
       }
-      return c;
+      return c;*/
+
     }
 
     @Override
@@ -572,6 +612,76 @@ public final class PackedArray {
       }
       return array;
     }
+
+    private class PackedArrayReadIteratorImpl implements PackedArrayReadIterator {
+      private int idx = 0;
+      private long buffer;
+      private int availableBits;
+
+      private int readPos;
+
+      private final int length;
+
+      private final byte[] array;
+
+      public PackedArrayReadIteratorImpl(byte[] array, int length) {
+        requireNonNull(array);
+
+        this.length = length;
+        this.array = array;
+        int remainingBytes = numBytes(length) & 0x7;
+        this.availableBits = remainingBytes << 3;
+
+        if (array.length >= 8) {
+          buffer = (long) LONG_HANDLE.get(array, 0);
+          readPos = remainingBytes;
+        } else {
+          readPos = 0;
+          buffer = 0;
+          if (remainingBytes >= 4) {
+            buffer |= (int) INT_HANDLE.get(array, readPos) & 0xFFFFFFFFL;
+            readPos += 4;
+            remainingBytes -= 4;
+          }
+          if (remainingBytes >= 2) {
+            buffer |= ((short) SHORT_HANDLE.get(array, readPos) & 0xFFFFL) << (readPos << 3);
+            readPos += 2;
+            remainingBytes -= 2;
+          }
+          if (remainingBytes >= 1) {
+            buffer |= (array[readPos] & 0xFFL) << (readPos << 3);
+            readPos += 1;
+          }
+        }
+      }
+
+      @Override
+      public boolean hasNext() {
+        return idx < length;
+      }
+
+      @Override
+      public long next() {
+        idx += 1;
+        long result = buffer;
+        buffer >>>= bitSize;
+        if (availableBits < bitSize) {
+          buffer = (long) LONG_HANDLE.get(array, readPos);
+          result |= buffer << availableBits;
+          buffer >>>= 1;
+          buffer >>>= ~(availableBits - bitSize);
+          readPos += 8;
+          availableBits += 64;
+        }
+        availableBits -= bitSize;
+        return result & mask;
+      }
+    }
+
+    @Override
+    public PackedArrayReadIterator readIterator(byte[] array, int length) {
+      return new PackedArrayReadIteratorImpl(array, length);
+    }
   }
 
   private abstract static class AbstractPackedArrayHandlerPeriod1
@@ -674,6 +784,26 @@ public final class PackedArray {
         @Override
         public void clear(byte[] array) {
           // do nothing
+        }
+
+        @Override
+        public PackedArrayReadIterator readIterator(byte[] array, int length) {
+          requireNonNull(array);
+          return new PackedArrayReadIterator() {
+
+            private int idx = 0;
+
+            @Override
+            public boolean hasNext() {
+              return idx < length;
+            }
+
+            @Override
+            public long next() {
+              idx += 1;
+              return 0;
+            }
+          };
         }
       };
 

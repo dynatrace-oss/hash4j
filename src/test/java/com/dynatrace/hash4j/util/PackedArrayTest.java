@@ -19,6 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.*;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayHandler;
+import com.dynatrace.hash4j.util.PackedArray.PackedArrayReadIterator;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -374,5 +375,31 @@ public class PackedArrayTest {
     byte[] data = handler.create(1);
     assertThatExceptionOfType(NullPointerException.class)
         .isThrownBy(() -> handler.update(data, 0, 0, null));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getBitSizes")
+  void testReadIterator(int bitSize) {
+    PackedArrayHandler handler = PackedArray.getHandler(bitSize);
+    int maxLength = 200;
+    SplittableRandom random = new SplittableRandom(0L);
+    for (int len = 0; len < maxLength; ++len) {
+      byte[] array = handler.create(len);
+      random.nextBytes(array);
+      PackedArrayReadIterator iterator = handler.readIterator(array, len);
+      for (int k = 0; k < len; ++k) {
+        assertThat(iterator.hasNext()).isTrue();
+        assertThat(iterator.next()).isEqualTo(handler.get(array, k));
+      }
+      assertThat(iterator.hasNext()).isFalse();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getBitSizes")
+  void testReadIteratorNullArray(int bitSize) {
+    PackedArrayHandler handler = PackedArray.getHandler(bitSize);
+    assertThatExceptionOfType(NullPointerException.class)
+        .isThrownBy(() -> handler.readIterator(null, 1));
   }
 }
