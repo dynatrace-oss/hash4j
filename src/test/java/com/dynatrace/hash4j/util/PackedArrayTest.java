@@ -366,4 +366,13 @@ public class PackedArrayTest {
       assertThat((bitSize * len + 7) / 8).isEqualTo(handler.numBytes(len));
     }
   }
+
+  @ParameterizedTest
+  @MethodSource("getBitSizes")
+  void testNullBinaryOperator(int bitSize) {
+    PackedArrayHandler handler = PackedArray.getHandler(bitSize);
+    byte[] data = handler.create(1);
+    assertThatExceptionOfType(NullPointerException.class)
+        .isThrownBy(() -> handler.update(data, 0, 0, null));
+  }
 }

@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.util;
 
+import static java.util.Objects.requireNonNull;
+
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
@@ -145,6 +147,7 @@ public final class PackedArray {
      * @param value a value
      * @param operator a binary operator
      * @return the previous value of the component
+     * @throws NullPointerException if operator is {@code null}
      */
     long update(byte[] array, int idx, long value, LongBinaryOperator operator);
 
@@ -654,6 +657,7 @@ public final class PackedArray {
 
         @Override
         public long update(byte[] array, int idx, long value, LongBinaryOperator operator) {
+          requireNonNull(operator);
           return 0;
         }
 
