@@ -215,4 +215,50 @@ class HashingDemo {
     long hashValue = HASHER.hashToLong(dataBase, DataBase::put);
     assertThat(hashValue).isEqualTo(0x4b164dee076add28L);
   }
+
+  @Test
+  void demoHashStringsWithPotentialCollision() {
+
+    // create a hasher instance
+    Hasher64 hasher = Komihash4_3.create();
+
+    // hash multiple variable length fields together
+    long hash1 = hasher.hashStream().putString("ANDRE").putString("WRIGHT").getAsLong();
+    long hash2 = hasher.hashStream().putString("ANDREW").putString("RIGHT").getAsLong();
+
+    // results in two distinct hash values
+    assertThat(hash1).isEqualTo(0xd9487d7de24d45c4L);
+    assertThat(hash2).isEqualTo(0x857e9c731b0dceeaL);
+  }
+
+  @Test
+  void demoHashOrderedListOfStrings() {
+
+    // create a hasher instance
+    Hasher64 hasher = Komihash4_3.create();
+
+    // three ways to compute a hash value of the character sequence "a", "b", "c",
+    // by grouping them differently in strings and lists
+    long hash1 =
+        hasher
+            .hashStream()
+            .putOrderedIterable(Arrays.asList("a", "b", "c"), HashFunnel.forString())
+            .getAsLong();
+    long hash2 =
+        hasher
+            .hashStream()
+            .putOrderedIterable(Arrays.asList("a", "b"), HashFunnel.forString())
+            .putOrderedIterable(Arrays.asList("c"), HashFunnel.forString())
+            .getAsLong();
+    long hash3 =
+        hasher
+            .hashStream()
+            .putOrderedIterable(Arrays.asList("a", "bc"), HashFunnel.forString())
+            .getAsLong();
+
+    // all three hash values are distinct
+    assertThat(hash1).isEqualTo(0x5bbdc52a39f21acbL);
+    assertThat(hash2).isEqualTo(0xa8069bae9bd4c64aL);
+    assertThat(hash3).isEqualTo(0x17e66fda426a8246L);
+  }
 }
