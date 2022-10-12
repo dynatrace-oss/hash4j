@@ -1,4 +1,4 @@
-p=15; num_cycles=100000
+sketch_name=ultraloglog; p=15; num_cycles=100000
 distinct count; relative bias; relative rmse; theoretical relative standard error
 0.0;NaN;NaN;0.004339242985099504
 1.0;1.154112480396887E-6;9.056169362829934E-6;0.004339242985099504

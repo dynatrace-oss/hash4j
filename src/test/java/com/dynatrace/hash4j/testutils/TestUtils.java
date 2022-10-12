@@ -16,6 +16,7 @@
 package com.dynatrace.hash4j.testutils;
 
 import com.dynatrace.hash4j.hashing.HashValue128;
+import java.util.Comparator;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
@@ -144,6 +145,20 @@ public final class TestUtils {
       @Override
       public String toString() {
         return new StringBuilder(length()).append(this).toString();
+      }
+    };
+  }
+
+  public static Comparator<Double> compareWithMaxRelativeError(double relativeError) {
+    return (d1, d2) -> {
+      double absMax = Math.max(Math.abs(d1), Math.abs(d2));
+      double absDiff = Math.abs(d1 - d2);
+      if (absDiff <= absMax * relativeError) {
+        return 0;
+      } else if (d1 < d2) {
+        return -1;
+      } else {
+        return 1;
       }
     };
   }

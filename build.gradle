@@ -157,10 +157,17 @@ task evaluateEstimationErrors(type:Exec) {
     commandLine 'python', 'python/estimation_error_evaluation.py'
 }
 
-task simulateEstimationErrors(type: JavaExec) {
+task simulateUltraLogLogEstimationErrors(type: JavaExec) {
     group "evaluation"
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.dynatrace.hash4j.distinctcount.UltraLogLogEstimationErrorSimulation'
+}
+
+
+task simulateHyperLogLogEstimationErrors(type: JavaExec) {
+    group "evaluation"
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dynatrace.hash4j.distinctcount.HyperLogLogEstimationErrorSimulation'
 }
 
 tasks.register('checkStatusForBenchmarks') {
@@ -194,7 +201,8 @@ tasks.deleteBenchmarkReport.finalizedBy evaluateBenchmarks
 check.dependsOn jacocoTestCoverageVerification
 tasks.jmh.dependsOn checkStatusForBenchmarks
 tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
-tasks.simulateEstimationErrors.finalizedBy evaluateEstimationErrors
+tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
+tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
 sourceSets {
     jmh

@@ -67,7 +67,13 @@ def plot_charts(filename):
     p = int(headers["p"])
 
     state_size_unit = "B"
-    state_size = 2**p
+    if headers["sketch_name"] == "ultraloglog":
+        state_size = 2**p
+    elif headers["sketch_name"] == "hyperloglog":
+        state_size = 2**p * 6 // 8
+    else:
+        assert False
+
     if state_size % 1024 == 0:
         state_size //= 1024
         state_size_unit = "kB"
@@ -96,7 +102,13 @@ def plot_charts(filename):
     )
     ax.set_xscale("log", base=10)
     theory = to_percent(values["theoretical relative standard error"])[0]
-    ax.set_ylim([-theory * 0.1, theory * 1.15])
+
+    if headers["sketch_name"] == "ultraloglog":
+        ax.set_ylim([-theory * 0.1, theory * 1.15])
+    elif headers["sketch_name"] == "hyperloglog":
+        ax.set_ylim([-theory * 0.25, theory * 1.55])
+    else:
+        assert False
     ax.set_xlim([1, values["distinct count"][-1]])
     ax.xaxis.grid(True)
     ax.set_xlabel("distinct count")
@@ -112,7 +124,11 @@ def plot_charts(filename):
     # fig.legend(loc="center right")
     ax.legend(loc="center right")
     fig.savefig(
-        "test-results/estimation-error-p" + headers["p"] + ".png",
+        "test-results/"
+        + headers["sketch_name"]
+        + "-estimation-error-p"
+        + headers["p"]
+        + ".png",
         format="png",
         dpi=300,
         metadata={"creationDate": None},
@@ -121,7 +137,7 @@ def plot_charts(filename):
     plt.close(fig)
 
 
-filenames = glob.glob("test-results/estimation-error-p*.csv")
+filenames = glob.glob("test-results/*loglog-estimation-error-p*.csv")
 
 for filename in filenames:
     plot_charts(filename)
