@@ -86,7 +86,7 @@ public final class UltraLogLog {
 
   static final double VARIANCE_FACTOR = 0.6169896446766369;
 
-  static final double[] ESTIMATION_FACTORS = getEstimationFactors();
+  private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
 
   // visible for testing
   static final double TAU = 0.7550966382001302;
@@ -489,7 +489,7 @@ public final class UltraLogLog {
    */
   public UltraLogLog downsize(int p) {
     checkPrecisionParameter(p);
-    if (p >= this.getP()) {
+    if ((1 << p) >= state.length) {
       return copy();
     } else {
       return new UltraLogLog(p).add(this);
@@ -509,7 +509,7 @@ public final class UltraLogLog {
   public static UltraLogLog merge(UltraLogLog sketch1, UltraLogLog sketch2) {
     requireNonNull(sketch1, "first sketch was null");
     requireNonNull(sketch2, "second sketch was null");
-    if (sketch1.getP() <= sketch2.getP()) {
+    if (sketch1.state.length <= sketch2.state.length) {
       return sketch1.copy().add(sketch2);
     } else {
       return sketch2.copy().add(sketch1);
@@ -548,9 +548,7 @@ public final class UltraLogLog {
   public UltraLogLog add(long hashValue) {
     int q = Long.numberOfLeadingZeros(state.length - 1L); // q = 64 - p
     int idx = (int) (hashValue >>> q);
-    int nlz =
-        Long.numberOfLeadingZeros(
-            (hashValue << (-q)) | (state.length - 1)); // nlz in {0, 1, ..., 64-p}
+    int nlz = Long.numberOfLeadingZeros(~(~hashValue << (-q))); // nlz in {0, 1, ..., 64-p}
     long hashPrefix = registerToHashPrefix(state[idx]);
     hashPrefix |= 1L << (nlz + (~q)); // nlz + p - 1 in {p-1, ... 63}
     state[idx] = hashPrefixToRegister(hashPrefix);

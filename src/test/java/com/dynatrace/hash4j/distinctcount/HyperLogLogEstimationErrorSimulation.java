@@ -24,10 +24,10 @@ import java.util.SplittableRandom;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
-public class UltraLogLogEstimationErrorSimulation {
+public class HyperLogLogEstimationErrorSimulation {
 
   public static void main(String[] args) {
-    int minP = 3;
+    int minP = 2;
     int maxP = 16;
     int numCycles = 100000;
     String resultFolder = "test-results/";
@@ -43,17 +43,17 @@ public class UltraLogLogEstimationErrorSimulation {
         estimatedDistinctCounts[pIdx][i] = new double[numCycles];
       }
     }
-    ThreadLocal<List<UltraLogLog>> sketches =
+    ThreadLocal<List<HyperLogLog>> sketches =
         ThreadLocal.withInitial(
-            () -> IntStream.of(pVals).mapToObj(UltraLogLog::create).collect(toList()));
+            () -> IntStream.of(pVals).mapToObj(HyperLogLog::create).collect(toList()));
 
     IntStream.range(0, numCycles)
         .parallel()
         .forEach(
             i -> {
               SplittableRandom random = new SplittableRandom(seeds[i]);
-              List<UltraLogLog> sketchesRef = sketches.get();
-              UltraLogLog sketch = sketchesRef.get(sketchesRef.size() - 1).reset();
+              List<HyperLogLog> sketchesRef = sketches.get();
+              HyperLogLog sketch = sketchesRef.get(sketchesRef.size() - 1).reset();
               long trueDistinctCount = 0;
               int distinctCountIndex = 0;
               while (distinctCountIndex < trueDistinctCounts.length) {
@@ -61,7 +61,7 @@ public class UltraLogLogEstimationErrorSimulation {
                   int pIdx = pVals.length - 1;
                   estimatedDistinctCounts[pIdx][distinctCountIndex][i] =
                       sketch.getDistinctCountEstimate();
-                  UltraLogLog sketchCopy = sketch;
+                  HyperLogLog sketchCopy = sketch;
                   while (pIdx > 0) {
                     pIdx -= 1;
                     sketchCopy = sketchesRef.get(pIdx).reset().add(sketchCopy);
@@ -76,11 +76,11 @@ public class UltraLogLogEstimationErrorSimulation {
             });
     for (int pIdx = 0; pIdx < pVals.length; ++pIdx) {
       int p = pVals[pIdx];
-      String fileName = resultFolder + "ultraloglog-estimation-error-p" + p + ".csv";
+      String fileName = resultFolder + "hyperloglog-estimation-error-p" + p + ".csv";
       double theoreticalRelativeStandardError =
-          UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+          HyperLogLog.calculateTheoreticalRelativeStandardError(p);
       try (FileWriter writer = new FileWriter(fileName)) {
-        writer.write("sketch_name=ultraloglog; p=" + p + "; num_cycles=" + numCycles + "\n");
+        writer.write("sketch_name=hyperloglog; p=" + p + "; num_cycles=" + numCycles + "\n");
         writer.write(
             "distinct count; relative bias; relative rmse; theoretical relative standard error\n");
         for (int distinctCountIndex = 0;
