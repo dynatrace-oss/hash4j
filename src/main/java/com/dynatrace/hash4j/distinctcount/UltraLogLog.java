@@ -574,13 +574,15 @@ public final class UltraLogLog {
     final int p = getP();
     final int otherP = other.getP();
     final int deltaP = otherP - p;
-    for (int i = 0, j = 0; i < state.length; ++i, ++j) {
+    int j = 0;
+    for (int i = 0; i < state.length; ++i) {
       long hashPrefix = registerToHashPrefix(state[i]) | registerToHashPrefix(otherData[j]);
+      j += 1;
       for (long k = 1; k < 1L << deltaP; ++k) {
-        j += 1;
         if (otherData[j] != 0) {
           hashPrefix |= 1L << (Long.numberOfLeadingZeros(k) + otherP - 1);
         }
+        j += 1;
       }
       if (hashPrefix != 0) {
         state[i] = hashPrefixToRegister(hashPrefix);

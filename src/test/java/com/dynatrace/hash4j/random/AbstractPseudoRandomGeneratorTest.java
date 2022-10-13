@@ -16,7 +16,6 @@
 package com.dynatrace.hash4j.random;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import com.dynatrace.hash4j.hashing.HashStream;
 import com.dynatrace.hash4j.hashing.Hashing;
@@ -29,7 +28,7 @@ import org.hipparchus.stat.inference.ChiSquareTest;
 import org.hipparchus.stat.inference.KolmogorovSmirnovTest;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractPseudoRandomGeneratorTest {
+abstract class AbstractPseudoRandomGeneratorTest {
 
   protected abstract PseudoRandomGenerator createPseudoRandomGenerator();
 
@@ -44,8 +43,7 @@ public abstract class AbstractPseudoRandomGeneratorTest {
     prg.reset(0xa4acac19eed0e757L);
     long[] data3 = LongStream.generate(prg::nextLong).limit(numValues).toArray();
 
-    assertArrayEquals(data1, data2);
-    assertArrayEquals(data1, data3);
+    assertThat(data1).isEqualTo(data2).isEqualTo(data3);
   }
 
   void testUniformIntWithExclusiveBound(int bucketSize, int numBuckets, long seed) {

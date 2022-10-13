@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class WyhashFinal3ReferenceData {
+final class WyhashFinal3ReferenceData {
 
   private WyhashFinal3ReferenceData() {}
 

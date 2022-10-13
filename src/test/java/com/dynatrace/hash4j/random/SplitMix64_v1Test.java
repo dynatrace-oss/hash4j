@@ -15,14 +15,14 @@
  */
 package com.dynatrace.hash4j.random;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.SplittableRandom;
 import org.hipparchus.random.RandomGenerator;
 import org.hipparchus.random.Well1024a;
 import org.junit.jupiter.api.Test;
 
-public class SplitMix64_v1Test extends AbstractPseudoRandomGeneratorTest {
+class SplitMix64_v1Test extends AbstractPseudoRandomGeneratorTest {
 
   @Test
   public void testConsistency() {
@@ -42,7 +42,7 @@ public class SplitMix64_v1Test extends AbstractPseudoRandomGeneratorTest {
       for (int j = 0; j < numValuesPerIterations; ++j) {
         long actual = pseudoRandomGenerator.nextLong();
         long expected = splittableRandom.nextLong();
-        assertEquals(expected, actual);
+        assertThat(actual).isEqualTo(expected);
       }
     }
   }

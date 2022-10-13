@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public abstract class AbstractHashStream32Test extends AbstractHashStreamTest {
+abstract class AbstractHashStream32Test extends AbstractHashStreamTest {
 
   public static class ReferenceTestRecord32 extends ReferenceTestRecord<Hasher32> {
 

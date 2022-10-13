@@ -15,11 +15,11 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-public class AbstractHasher32Test {
+class AbstractHasher32Test {
 
   @Test
   void testHashBytesToInt() {

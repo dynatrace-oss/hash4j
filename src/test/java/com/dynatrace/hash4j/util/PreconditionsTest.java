@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.util;
 
 import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.util.Preconditions.checkState;
-import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,16 +26,16 @@ class PreconditionsTest {
   @Test
   void testCheckArgument() {
     assertThatNoException().isThrownBy(() -> checkArgument(true));
-    assertThatThrownBy(() -> checkArgument(false)).isInstanceOf(IllegalArgumentException.class);
+    assertThatIllegalArgumentException().isThrownBy(() -> checkArgument(false));
   }
 
   @Test
   void testCheckArgumentWithErrorMessage() {
     String msg = "msg";
     assertThatNoException().isThrownBy(() -> checkArgument(true, msg));
-    assertThatThrownBy(() -> checkArgument(false, msg))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage(msg);
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> checkArgument(false, msg))
+        .withMessage(msg);
   }
 
   @Test
@@ -44,16 +44,16 @@ class PreconditionsTest {
     String msgPrefix = "abc";
     String msgPostfix = "xyz";
     String msgFormatString = msgPrefix + "%d" + msgPostfix;
-    String expectedMsg = msgPrefix + Long.toString(value) + msgPostfix;
+    String expectedMsg = msgPrefix + value + msgPostfix;
     assertThatNoException().isThrownBy(() -> checkArgument(true, msgFormatString, value));
-    assertThatThrownBy(() -> checkArgument(false, msgFormatString, value))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage(expectedMsg);
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> checkArgument(false, msgFormatString, value))
+        .withMessage(expectedMsg);
   }
 
   @Test
   void testCheckState() {
     assertThatNoException().isThrownBy(() -> checkState(true));
-    assertThatThrownBy(() -> checkState(false)).isInstanceOf(IllegalStateException.class);
+    assertThatIllegalStateException().isThrownBy(() -> checkState(false));
   }
 }

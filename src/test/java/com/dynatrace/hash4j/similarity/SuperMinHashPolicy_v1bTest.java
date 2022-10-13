@@ -15,12 +15,12 @@
  */
 package com.dynatrace.hash4j.similarity;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import org.junit.jupiter.api.Test;
 
-public class SuperMinHashPolicy_v1bTest extends AbstractSuperMinHashPolicyTest {
+class SuperMinHashPolicy_v1bTest extends AbstractSuperMinHashPolicyTest {
 
   @Override
   protected SimilarityHashPolicy getSimilarityHashPolicy(

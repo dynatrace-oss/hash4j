@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Komihash4_3Test extends AbstractHashStream64Test {
+class Komihash4_3Test extends AbstractHashStream64Test {
 
   private static final List<Hasher64> HASHERS =
       Arrays.asList(Hashing.komihash4_3(), Hashing.komihash4_3(0x1b5af6b8376953d2L));

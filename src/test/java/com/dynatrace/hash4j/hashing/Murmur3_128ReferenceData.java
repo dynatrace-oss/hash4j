@@ -19,7 +19,7 @@ import com.dynatrace.hash4j.testutils.TestUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Murmur3_128ReferenceData {
+final class Murmur3_128ReferenceData {
 
   private Murmur3_128ReferenceData() {}
 

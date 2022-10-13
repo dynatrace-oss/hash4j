@@ -15,12 +15,12 @@
  */
 package com.dynatrace.hash4j.similarity;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractMinHashPolicyTest extends AbstractSimilarityHasherPolicyTest {
+abstract class AbstractMinHashPolicyTest extends AbstractSimilarityHasherPolicyTest {
 
   @Override
   protected final SimilarityHashPolicy getSimilarityHashPolicy(int numberOfComponents) {
@@ -32,12 +32,9 @@ public abstract class AbstractMinHashPolicyTest extends AbstractSimilarityHasher
 
   @Test
   void testInvalidBitsPerComponent() {
-    assertThatThrownBy(() -> getSimilarityHashPolicy(5, -1))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> getSimilarityHashPolicy(5, 0))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> getSimilarityHashPolicy(5, 65))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatIllegalArgumentException().isThrownBy(() -> getSimilarityHashPolicy(5, -1));
+    assertThatIllegalArgumentException().isThrownBy(() -> getSimilarityHashPolicy(5, 0));
+    assertThatIllegalArgumentException().isThrownBy(() -> getSimilarityHashPolicy(5, 65));
   }
 
   @Test

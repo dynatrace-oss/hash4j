@@ -25,7 +25,7 @@ import java.util.function.ToLongFunction;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
-public class SimilarityHashingDemo {
+class SimilarityHashingDemo {
 
   @Test
   void demoBasicUsage() {

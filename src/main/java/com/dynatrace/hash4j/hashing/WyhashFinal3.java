@@ -78,7 +78,8 @@ class WyhashFinal3 extends AbstractHashStream {
     @Override
     public long hashBytesToLong(byte[] input, int off, int len) {
       long seed = this.seed;
-      long a, b;
+      long a;
+      long b;
       if (len <= 16) {
         if (len >= 4) {
           a = (wyr4(input, off) << 32) | wyr4(input, off + ((len >>> 3) << 2));
@@ -251,7 +252,12 @@ class WyhashFinal3 extends AbstractHashStream {
       }
       if (offset == 0) {
         if (remainingChars > 24) {
-          long b0, b1, b2, b3, b4, b5;
+          long b0;
+          long b1;
+          long b2;
+          long b3;
+          long b4;
+          long b5;
           do {
             b0 = getLong(s, off);
             b1 = getLong(s, off + 4);
@@ -348,7 +354,8 @@ class WyhashFinal3 extends AbstractHashStream {
 
   @Override
   public long getAsLong() {
-    long a, b;
+    long a;
+    long b;
     long s = seed;
     if (byteCount <= 16) {
       if (byteCount >= 4) {

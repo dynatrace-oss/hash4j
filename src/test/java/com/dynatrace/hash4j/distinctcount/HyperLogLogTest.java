@@ -39,7 +39,7 @@ import java.util.zip.Deflater;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
-public class HyperLogLogTest {
+class HyperLogLogTest {
   private static final int MIN_P = 2;
   private static final int MAX_P = 26;
 
@@ -231,11 +231,11 @@ public class HyperLogLogTest {
     assertThat(HyperLogLog.merge(sketch1a, sketch2a).getState()).isEqualTo(sketchTotal.getState());
     if (p1 < p2) {
       sketch1a.add(sketch2a);
-      assertThatThrownBy(() -> sketch2b.add(sketch1b)).isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException().isThrownBy(() -> sketch2b.add(sketch1b));
       assertThat(sketch1a.getState()).isEqualTo(sketchTotal.getState());
     } else if (p1 > p2) {
       sketch2a.add(sketch1a);
-      assertThatThrownBy(() -> sketch1b.add(sketch2b)).isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException().isThrownBy(() -> sketch1b.add(sketch2b));
       assertThat(sketch2a.getState()).isEqualTo(sketchTotal.getState());
     } else {
       sketch1a.add(sketch2a);
@@ -329,8 +329,7 @@ public class HyperLogLogTest {
       if (p >= MIN_P && p <= MAX_P) {
         assertThatNoException().isThrownBy(() -> HyperLogLog.create(pFinal));
       } else {
-        assertThatThrownBy(() -> HyperLogLog.create(pFinal))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatIllegalArgumentException().isThrownBy(() -> HyperLogLog.create(pFinal));
       }
     }
   }
@@ -343,8 +342,7 @@ public class HyperLogLogTest {
       if (p >= MIN_P && p <= MAX_P) {
         assertThatNoException().isThrownBy(() -> sketch.downsize(pFinal));
       } else {
-        assertThatThrownBy(() -> sketch.downsize(pFinal))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatIllegalArgumentException().isThrownBy(() -> sketch.downsize(pFinal));
       }
     }
   }
@@ -368,11 +366,10 @@ public class HyperLogLogTest {
     }
 
     for (int len : Sets.difference(testLengths, validLengths)) {
-      assertThatThrownBy(() -> HyperLogLog.wrap(new byte[len]))
-          .isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException().isThrownBy(() -> HyperLogLog.wrap(new byte[len]));
     }
 
-    assertThatThrownBy(() -> HyperLogLog.wrap(null)).isInstanceOf(NullPointerException.class);
+    assertThatNullPointerException().isThrownBy(() -> HyperLogLog.wrap(null));
   }
 
   private static byte[] compress(byte[] data) throws IOException {

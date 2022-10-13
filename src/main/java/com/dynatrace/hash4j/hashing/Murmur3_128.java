@@ -56,7 +56,6 @@ class Murmur3_128 extends AbstractHashStream {
 
     @Override
     public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-      long seed = this.seed;
       int nblocks = len >>> 4;
       long h1 = seed;
       long h2 = seed;

@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -689,7 +688,6 @@ abstract class AbstractHashStreamTest {
         return data[off + index];
       }
 
-      @NotNull
       @Override
       public CharSequence subSequence(int start, int end) {
         return asCharSequence(data, off + start, end - start);

@@ -15,12 +15,12 @@
  */
 package com.dynatrace.hash4j.similarity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractSuperMinHashPolicyTest extends AbstractMinHashPolicyTest {
+abstract class AbstractSuperMinHashPolicyTest extends AbstractMinHashPolicyTest {
 
   @Test
   public void testStability() {
@@ -30,36 +30,36 @@ public abstract class AbstractSuperMinHashPolicyTest extends AbstractMinHashPoli
     SimilarityHashPolicy policy = getSimilarityHashPolicy(numberOfComponents, 3);
     SimilarityHasher hasher = policy.createHasher();
 
-    assertEquals(
-        "bf5716cc30f0b18cb0095d01",
-        TestUtils.byteArrayToHexString(
-            hasher.compute(ElementHashProvider.ofValues(0xb8583da3ea9931faL))));
-    assertEquals(
-        "5a356a62b741525834a89e02",
-        TestUtils.byteArrayToHexString(
-            hasher.compute(ElementHashProvider.ofValues(0x5b6acf5022cfa644L))));
-    assertEquals(
-        "1eb3af955701ebbcd88b0d02",
-        TestUtils.byteArrayToHexString(
-            hasher.compute(
-                ElementHashProvider.ofValues(0x14fccc4459b81a17L, 0x6540fea72ebf8598L))));
-    assertEquals(
-        "1eb3af955701ebbcd88b0d02",
-        TestUtils.byteArrayToHexString(
-            hasher.compute(
-                ElementHashProvider.ofValues(
-                    0x14fccc4459b81a17L, 0x6540fea72ebf8598L, 0x14fccc4459b81a17L))));
-    assertEquals(
-        "ed3991e6ac15ba594972f402",
-        TestUtils.byteArrayToHexString(
-            hasher.compute(
-                ElementHashProvider.ofValues(
-                    0x1f3271beee750ae1L,
-                    0x9f8aaaec2d1dad05L,
-                    0x42c23a533205bdafL,
-                    0x1b990d3329aa0644L,
-                    0xe7b85af3207824f8L,
-                    0x2b6d7cc88681f07bL))));
+    assertThat(
+            TestUtils.byteArrayToHexString(
+                hasher.compute(ElementHashProvider.ofValues(0xb8583da3ea9931faL))))
+        .isEqualTo("bf5716cc30f0b18cb0095d01");
+    assertThat(
+            TestUtils.byteArrayToHexString(
+                hasher.compute(ElementHashProvider.ofValues(0x5b6acf5022cfa644L))))
+        .isEqualTo("5a356a62b741525834a89e02");
+    assertThat(
+            TestUtils.byteArrayToHexString(
+                hasher.compute(
+                    ElementHashProvider.ofValues(0x14fccc4459b81a17L, 0x6540fea72ebf8598L))))
+        .isEqualTo("1eb3af955701ebbcd88b0d02");
+    assertThat(
+            TestUtils.byteArrayToHexString(
+                hasher.compute(
+                    ElementHashProvider.ofValues(
+                        0x14fccc4459b81a17L, 0x6540fea72ebf8598L, 0x14fccc4459b81a17L))))
+        .isEqualTo("1eb3af955701ebbcd88b0d02");
+    assertThat(
+            TestUtils.byteArrayToHexString(
+                hasher.compute(
+                    ElementHashProvider.ofValues(
+                        0x1f3271beee750ae1L,
+                        0x9f8aaaec2d1dad05L,
+                        0x42c23a533205bdafL,
+                        0x1b990d3329aa0644L,
+                        0xe7b85af3207824f8L,
+                        0x2b6d7cc88681f07bL))))
+        .isEqualTo("ed3991e6ac15ba594972f402");
   }
 
   @Override

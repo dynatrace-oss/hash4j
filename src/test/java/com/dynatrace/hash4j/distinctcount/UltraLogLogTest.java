@@ -40,7 +40,7 @@ import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.hipparchus.optim.univariate.*;
 import org.junit.jupiter.api.Test;
 
-public class UltraLogLogTest {
+class UltraLogLogTest {
 
   private static final int MIN_P = 3;
   private static final int MAX_P = 26;
@@ -277,11 +277,11 @@ public class UltraLogLogTest {
     assertThat(UltraLogLog.merge(sketch1a, sketch2a).getState()).isEqualTo(sketchTotal.getState());
     if (p1 < p2) {
       sketch1a.add(sketch2a);
-      assertThatThrownBy(() -> sketch2b.add(sketch1b)).isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException().isThrownBy(() -> sketch2b.add(sketch1b));
       assertThat(sketch1a.getState()).isEqualTo(sketchTotal.getState());
     } else if (p1 > p2) {
       sketch2a.add(sketch1a);
-      assertThatThrownBy(() -> sketch1b.add(sketch2b)).isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException().isThrownBy(() -> sketch1b.add(sketch2b));
       assertThat(sketch2a.getState()).isEqualTo(sketchTotal.getState());
     } else {
       sketch1a.add(sketch2a);
@@ -377,8 +377,7 @@ public class UltraLogLogTest {
       if (p >= MIN_P && p <= MAX_P) {
         assertThatNoException().isThrownBy(() -> UltraLogLog.create(pFinal));
       } else {
-        assertThatThrownBy(() -> UltraLogLog.create(pFinal))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatIllegalArgumentException().isThrownBy(() -> UltraLogLog.create(pFinal));
       }
     }
   }
@@ -391,8 +390,7 @@ public class UltraLogLogTest {
       if (p >= MIN_P && p <= MAX_P) {
         assertThatNoException().isThrownBy(() -> sketch.downsize(pFinal));
       } else {
-        assertThatThrownBy(() -> sketch.downsize(pFinal))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatIllegalArgumentException().isThrownBy(() -> sketch.downsize(pFinal));
       }
     }
   }
@@ -413,11 +411,10 @@ public class UltraLogLogTest {
     }
 
     for (int len : Sets.difference(testLengths, validLengths)) {
-      assertThatThrownBy(() -> UltraLogLog.wrap(new byte[len]))
-          .isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException().isThrownBy(() -> UltraLogLog.wrap(new byte[len]));
     }
 
-    assertThatThrownBy(() -> UltraLogLog.wrap(null)).isInstanceOf(NullPointerException.class);
+    assertThatNullPointerException().isThrownBy(() -> UltraLogLog.wrap(null));
   }
 
   private static byte[] compress(byte[] data) throws IOException {
