@@ -18,7 +18,6 @@ package com.dynatrace.hash4j.testutils;
 import com.dynatrace.hash4j.hashing.HashValue128;
 import java.util.Comparator;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 public final class TestUtils {
 
@@ -134,7 +133,6 @@ public final class TestUtils {
             ((((int) (b[2 * index + 1] & 0xFF)) << 8) | (((int) b[2 * index + 0]) & 0xFF));
       }
 
-      @NotNull
       @Override
       public CharSequence subSequence(int start, int end) {
         byte[] y = new byte[2 * (end - start)];

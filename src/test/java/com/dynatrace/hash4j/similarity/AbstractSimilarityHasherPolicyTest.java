@@ -16,8 +16,7 @@
 package com.dynatrace.hash4j.similarity;
 
 import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.assertj.core.api.Assertions.*;
 
 import com.dynatrace.hash4j.hashing.HashStream;
 import com.dynatrace.hash4j.hashing.Hashing;
@@ -27,7 +26,7 @@ import org.hipparchus.stat.inference.AlternativeHypothesis;
 import org.hipparchus.stat.inference.BinomialTest;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractSimilarityHasherPolicyTest {
+abstract class AbstractSimilarityHasherPolicyTest {
 
   protected abstract double calculateExpectedMatchProbability(
       long intersectionSize, long difference1Size, long difference2Size);
@@ -169,36 +168,35 @@ public abstract class AbstractSimilarityHasherPolicyTest {
   void testInvalidNumberOfElements() {
     int numberOfComponents = 11;
     SimilarityHashPolicy policy = getSimilarityHashPolicy(numberOfComponents);
-    assertThatThrownBy(
-        () ->
-            policy
-                .createHasher()
-                .compute(
-                    new ElementHashProvider() {
-                      @Override
-                      public long getElementHash(int elementIndex) {
-                        return 0;
-                      }
+    assertThatIllegalArgumentException()
+        .isThrownBy(
+            () ->
+                policy
+                    .createHasher()
+                    .compute(
+                        new ElementHashProvider() {
+                          @Override
+                          public long getElementHash(int elementIndex) {
+                            return 0;
+                          }
 
-                      @Override
-                      public int getNumberOfElements() {
-                        return 0;
-                      }
-                    }));
+                          @Override
+                          public int getNumberOfElements() {
+                            return 0;
+                          }
+                        }));
   }
 
   @Test
   void testNullElementHashProvider() {
     int numberOfComponents = 11;
     SimilarityHashPolicy policy = getSimilarityHashPolicy(numberOfComponents);
-    assertThatThrownBy(() -> policy.createHasher().compute(null))
-        .isInstanceOf(NullPointerException.class);
+    assertThatNullPointerException().isThrownBy(() -> policy.createHasher().compute(null));
   }
 
   @Test
   void testInvalidNumberOfComponents() {
-    assertThatThrownBy(() -> getSimilarityHashPolicy(-1))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatIllegalArgumentException().isThrownBy(() -> getSimilarityHashPolicy(-1));
   }
 
   @Test
@@ -216,10 +214,8 @@ public abstract class AbstractSimilarityHasherPolicyTest {
   @Test
   void testGetComponentSizeWithInvalidParameters() {
     SimilarityHashPolicy policy = getSimilarityHashPolicy(12);
-    assertThatThrownBy(() -> policy.getComponent(new byte[8], 4))
-        .isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> policy.getComponent(new byte[2], 12))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatIllegalArgumentException().isThrownBy(() -> policy.getComponent(new byte[8], 4));
+    assertThatIllegalArgumentException().isThrownBy(() -> policy.getComponent(new byte[2], 12));
   }
 
   protected abstract long getCheckSum();

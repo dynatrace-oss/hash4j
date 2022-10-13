@@ -251,13 +251,6 @@ public final class PackedArray {
         if (it1.next() == it2.next()) c += 1;
       }
       return c;
-
-      /*int c = 0;
-      for (int i = 0; i < length; ++i) {
-        if (get(array1, i) == get(array2, i)) c += 1;
-      }
-      return c;*/
-
     }
 
     @Override

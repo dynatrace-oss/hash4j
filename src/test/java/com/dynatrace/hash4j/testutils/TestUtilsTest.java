@@ -15,15 +15,14 @@
  */
 package com.dynatrace.hash4j.testutils;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 
-public class TestUtilsTest {
+class TestUtilsTest {
 
   private static final VarHandle CHAR_HANDLE =
       MethodHandles.byteArrayViewVarHandle(char[].class, ByteOrder.LITTLE_ENDIAN);
@@ -41,24 +40,18 @@ public class TestUtilsTest {
       (byte) 0xef
     };
     CharSequence charSequence = TestUtils.byteArrayToCharSequence(expected);
-    assertEquals((char) (0x2301), charSequence.charAt(0));
-    assertEquals((char) (0x6745), charSequence.charAt(1));
-    assertEquals((char) (0xab89), charSequence.charAt(2));
-    assertEquals((char) (0xefcd), charSequence.charAt(3));
-    assertEquals(
-        charSequence.toString(),
-        new StringBuilder()
-            .append((char) 0x2301)
-            .append((char) 0x6745)
-            .append((char) 0xab89)
-            .append((char) 0xefcd)
-            .toString());
+    assertThat(charSequence.charAt(0)).isEqualTo((char) (0x2301));
+    assertThat(charSequence.charAt(1)).isEqualTo((char) (0x6745));
+    assertThat(charSequence.charAt(2)).isEqualTo((char) (0xab89));
+    assertThat(charSequence.charAt(3)).isEqualTo((char) (0xefcd));
+    assertThat(charSequence.toString())
+        .isEqualTo(String.valueOf((char) 0x2301) + (char) 0x6745 + (char) 0xab89 + (char) 0xefcd);
 
     byte[] actual = new byte[expected.length];
     for (int i = 0; i < charSequence.length(); ++i) {
       char c = charSequence.charAt(i);
       CHAR_HANDLE.set(actual, 2 * i, c);
     }
-    assertArrayEquals(expected, actual);
+    assertThat(actual).isEqualTo(expected);
   }
 }

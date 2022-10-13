@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class WyhashFinal3Test extends AbstractHashStream64Test {
+class WyhashFinal3Test extends AbstractHashStream64Test {
 
   private static final List<Hasher64> HASHERS =
       Arrays.asList(

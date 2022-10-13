@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.util;
 
-import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.assertj.core.api.Assertions.*;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayHandler;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class PackedArrayTest {
+class PackedArrayTest {
 
   private static List<Integer> getBitSizes() {
     List<Integer> bitSizes = new ArrayList<>();
@@ -158,23 +158,23 @@ public class PackedArrayTest {
   @ParameterizedTest
   @MethodSource("getBitSizes")
   void testNegativeArraySize(int bitSize) {
-    assertThatThrownBy(() -> PackedArray.getHandler(bitSize).create(-1))
-        .isInstanceOf(IllegalArgumentException.class);
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> PackedArray.getHandler(bitSize).create(-1));
   }
 
   @ParameterizedTest
   @MethodSource("getBitSizes")
   void testTooLargeArraySize(int bitSize) {
     if (bitSize >= 8) {
-      assertThatThrownBy(
+      assertThatIllegalArgumentException()
+          .isThrownBy(
               () ->
                   PackedArray.getHandler(bitSize)
-                      .create((int) (((Integer.MAX_VALUE * 8L) / bitSize) + 1)))
-          .isInstanceOf(IllegalArgumentException.class);
+                      .create((int) (((Integer.MAX_VALUE * 8L) / bitSize) + 1)));
     }
     if (bitSize > 8) {
-      assertThatThrownBy(() -> PackedArray.getHandler(bitSize).create(Integer.MAX_VALUE))
-          .isInstanceOf(IllegalArgumentException.class);
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> PackedArray.getHandler(bitSize).create(Integer.MAX_VALUE));
     }
   }
 
@@ -373,8 +373,7 @@ public class PackedArrayTest {
   void testNullBinaryOperator(int bitSize) {
     PackedArrayHandler handler = PackedArray.getHandler(bitSize);
     byte[] data = handler.create(1);
-    assertThatExceptionOfType(NullPointerException.class)
-        .isThrownBy(() -> handler.update(data, 0, 0, null));
+    assertThatNullPointerException().isThrownBy(() -> handler.update(data, 0, 0, null));
   }
 
   @ParameterizedTest
@@ -399,7 +398,6 @@ public class PackedArrayTest {
   @MethodSource("getBitSizes")
   void testReadIteratorNullArray(int bitSize) {
     PackedArrayHandler handler = PackedArray.getHandler(bitSize);
-    assertThatExceptionOfType(NullPointerException.class)
-        .isThrownBy(() -> handler.readIterator(null, 1));
+    assertThatNullPointerException().isThrownBy(() -> handler.readIterator(null, 1));
   }
 }

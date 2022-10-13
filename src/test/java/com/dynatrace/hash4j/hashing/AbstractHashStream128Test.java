@@ -24,7 +24,7 @@ import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public abstract class AbstractHashStream128Test extends AbstractHashStreamTest {
+abstract class AbstractHashStream128Test extends AbstractHashStreamTest {
 
   public static class ReferenceTestRecord128 extends ReferenceTestRecord<Hasher128> {
 

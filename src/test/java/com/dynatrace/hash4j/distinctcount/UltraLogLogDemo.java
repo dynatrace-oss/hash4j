@@ -22,7 +22,7 @@ import com.dynatrace.hash4j.hashing.Hashing;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.Test;
 
-public class UltraLogLogDemo {
+class UltraLogLogDemo {
 
   @Test
   void demoBasicUsage() {

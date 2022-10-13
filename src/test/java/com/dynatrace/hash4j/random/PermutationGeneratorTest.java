@@ -15,20 +15,19 @@
  */
 package com.dynatrace.hash4j.random;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import org.hipparchus.stat.inference.ChiSquareTest;
 import org.junit.jupiter.api.Test;
 
-public class PermutationGeneratorTest {
+class PermutationGeneratorTest {
 
   private static void verifyPermutation(int[] indices) {
     boolean[] b = new boolean[indices.length];
     for (int idx : indices) {
-      assertFalse(b[idx]);
+      assertThat(b[idx]).isFalse();
       b[idx] = true;
     }
   }
@@ -52,10 +51,10 @@ public class PermutationGeneratorTest {
       for (int i = 0; i < loops; ++i) {
 
         for (int j = 0; j < size; ++j) {
-          assertTrue(permutationGenerator.hasNext());
+          assertThat(permutationGenerator.hasNext()).isTrue();
           permutations[i][j] = permutationGenerator.next(pseudoRandomGenerator);
         }
-        assertFalse(permutationGenerator.hasNext());
+        assertThat(permutationGenerator.hasNext()).isFalse();
         permutationGenerator.reset();
       }
 
@@ -116,10 +115,10 @@ public class PermutationGeneratorTest {
     permutationGenerator.reset();
     int[] permutation = new int[size];
     for (int j = 0; j < size; ++j) {
-      assertTrue(permutationGenerator.hasNext());
+      assertThat(permutationGenerator.hasNext()).isTrue();
       permutation[j] = permutationGenerator.next(pseudoRandomGenerator);
     }
-    assertFalse(permutationGenerator.hasNext());
+    assertThat(permutationGenerator.hasNext()).isFalse();
     verifyPermutation(permutation);
   }
 }

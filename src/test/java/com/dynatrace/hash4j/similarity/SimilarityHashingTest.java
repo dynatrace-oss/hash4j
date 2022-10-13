@@ -16,12 +16,11 @@
 package com.dynatrace.hash4j.similarity;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 import com.dynatrace.hash4j.hashing.Hashing;
 import org.junit.jupiter.api.Test;
 
-public class SimilarityHashingTest {
+class SimilarityHashingTest {
 
   @Test
   void testMinHash() {
@@ -53,7 +52,7 @@ public class SimilarityHashingTest {
         SimilarityHashing.minHash(128, 64, MinHashVersion.DEFAULT)
             .createHasher()
             .compute(ELEMENT_HASH_PROVIDER);
-    assertArrayEquals(signatureV1, signatureDefault);
+    assertThat(signatureV1).isEqualTo(signatureDefault);
   }
 
   @Test
@@ -73,6 +72,6 @@ public class SimilarityHashingTest {
         SimilarityHashing.superMinHash(128, 64, SuperMinHashVersion.DEFAULT)
             .createHasher()
             .compute(ELEMENT_HASH_PROVIDER);
-    assertArrayEquals(signatureV1, signatureDefault);
+    assertThat(signatureV1).isEqualTo(signatureDefault);
   }
 }

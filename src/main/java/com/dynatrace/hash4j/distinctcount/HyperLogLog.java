@@ -288,7 +288,8 @@ final class HyperLogLog {
       throw new IllegalArgumentException("other has smaller precision");
     }
     final int deltaP = other.p - p;
-    for (int i = 0, j = 0; i < 1 << p; ++i, ++j) {
+    int j = 0;
+    for (int i = 0; i < 1 << p; ++i) {
       int oldR = (int) ARRAY_HANDLER.get(state, i);
       int r = oldR;
       int otherR = (int) ARRAY_HANDLER.get(otherData, j);
@@ -298,12 +299,13 @@ final class HyperLogLog {
           r = otherR;
         }
       }
+      j += 1;
       for (long k = 1; k < 1L << deltaP; ++k) {
-        j += 1;
         int nlz = Long.numberOfLeadingZeros(k) - 64 + deltaP;
         if (nlz >= r && ARRAY_HANDLER.get(otherData, j) != 0L) {
           r = nlz + 1;
         }
+        j += 1;
       }
       if (oldR < r) {
         ARRAY_HANDLER.set(state, i, r);

@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class FarmHashUoReferenceData {
+final class FarmHashUoReferenceData {
 
   private FarmHashUoReferenceData() {}
 

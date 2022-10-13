@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.similarity;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
 
-public class DistinctElementHashProviderTest {
+class DistinctElementHashProviderTest {
 
   @Test
   void testDeduplication() {
@@ -53,7 +53,7 @@ public class DistinctElementHashProviderTest {
               .mapToLong(distinctElementHashProvider::getElementHash)
               .sorted()
               .toArray();
-      assertArrayEquals(expectedDistinctSorted, actualDistinctSorted);
+      assertThat(actualDistinctSorted).isEqualTo(expectedDistinctSorted);
     }
   }
 
@@ -62,10 +62,11 @@ public class DistinctElementHashProviderTest {
     DistinctElementHashProvider distinctElementHashProvider =
         new DistinctElementHashProvider(PseudoRandomGeneratorProvider.splitMix64_V1());
 
-    assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            distinctElementHashProvider.reset(ElementHashProvider.ofFunction(i -> 0L, 0x40000001)));
+    assertThatIllegalArgumentException()
+        .isThrownBy(
+            () ->
+                distinctElementHashProvider.reset(
+                    ElementHashProvider.ofFunction(i -> 0L, 0x40000001)));
   }
 
   @Test
@@ -91,7 +92,7 @@ public class DistinctElementHashProviderTest {
             .mapToLong(distinctElementHashProvider::getElementHash)
             .sorted()
             .toArray();
-    assertArrayEquals(expectedDistinctSorted, actualDistinctSorted);
+    assertThat(actualDistinctSorted).isEqualTo(expectedDistinctSorted);
   }
 
   private static PseudoRandomGeneratorProvider withFirstLongsDefined(
@@ -161,6 +162,6 @@ public class DistinctElementHashProviderTest {
             .mapToLong(distinctElementHashProvider::getElementHash)
             .sorted()
             .toArray();
-    assertArrayEquals(expectedDistinctSorted, actualDistinctSorted);
+    assertThat(actualDistinctSorted).isEqualTo(expectedDistinctSorted);
   }
 }

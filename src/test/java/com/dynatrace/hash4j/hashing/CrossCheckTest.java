@@ -32,7 +32,7 @@ import org.greenrobot.essentials.hash.Murmur3F;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class CrossCheckTest {
+class CrossCheckTest {
 
   private static List<FarmHashNaReferenceData.ReferenceRecord> getFarmHashNaReferenceData() {
     return FarmHashNaReferenceData.get();

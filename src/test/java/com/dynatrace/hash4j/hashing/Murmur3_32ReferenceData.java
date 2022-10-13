@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class Murmur3_32ReferenceData {
+final class Murmur3_32ReferenceData {
 
   private Murmur3_32ReferenceData() {}
 
