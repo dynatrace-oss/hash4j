@@ -43,9 +43,8 @@ class HashingDemo {
     HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putString(o.c);
     long hash2 = hasher.hashToLong(obj, funnel);
 
-    // both variants lead to the same hash value
-    assertThat(hash1).isEqualTo(0x2cf18e9ee8fd3546L);
-    assertThat(hash2).isEqualTo(0x2cf18e9ee8fd3546L);
+    // both variants lead to same hash value
+    assertThat(hash1).isEqualTo(hash2).isEqualTo(0x2cf18e9ee8fd3546L);
   }
 
   // Some class with two string fields.
@@ -178,7 +177,7 @@ class HashingDemo {
       sink.putUnorderedIterable(
           informationMap.entrySet(),
           HashFunnel.forEntry(Person::put, INFORMATION_HASH_FUNNEL),
-          Hashing::murmur3_128);
+          Hashing.murmur3_128());
     }
   }
 
@@ -232,33 +231,54 @@ class HashingDemo {
   }
 
   @Test
-  void demoHashOrderedListOfStrings() {
+  void demoHashListOfStrings() {
 
     // create a hasher instance
     Hasher64 hasher = Komihash4_3.create();
 
-    // three ways to compute a hash value of the character sequence "a", "b", "c",
+    // three ways to compute a hash value of the character sequence "A", "B", "C",
     // by grouping them differently in strings and lists
     long hash1 =
         hasher
             .hashStream()
-            .putOrderedIterable(Arrays.asList("a", "b", "c"), HashFunnel.forString())
+            .putOrderedIterable(Arrays.asList("A", "B", "C"), HashFunnel.forString())
             .getAsLong();
     long hash2 =
         hasher
             .hashStream()
-            .putOrderedIterable(Arrays.asList("a", "b"), HashFunnel.forString())
-            .putOrderedIterable(Arrays.asList("c"), HashFunnel.forString())
+            .putOrderedIterable(Arrays.asList("A", "B"), HashFunnel.forString())
+            .putOrderedIterable(Arrays.asList("C"), HashFunnel.forString())
             .getAsLong();
     long hash3 =
         hasher
             .hashStream()
-            .putOrderedIterable(Arrays.asList("a", "bc"), HashFunnel.forString())
+            .putOrderedIterable(Arrays.asList("A", "bc"), HashFunnel.forString())
             .getAsLong();
 
     // all three hash values are distinct
-    assertThat(hash1).isEqualTo(0x5bbdc52a39f21acbL);
-    assertThat(hash2).isEqualTo(0xa8069bae9bd4c64aL);
-    assertThat(hash3).isEqualTo(0x17e66fda426a8246L);
+    assertThat(hash1).isEqualTo(0xc58cae21b767431eL);
+    assertThat(hash2).isEqualTo(0x7610ae48ecf3a5a3L);
+    assertThat(hash3).isEqualTo(0xa8051348e7b20545L);
+  }
+
+  @Test
+  void demoHashMultiSetOfStrings() {
+
+    // create a hasher instance
+    Hasher64 hasher = Komihash4_3.create();
+
+    long hash1 =
+        hasher
+            .hashStream()
+            .putUnorderedIterable(Arrays.asList("A", "A", "B"), hasher::hashCharsToLong)
+            .getAsLong();
+    long hash2 =
+        hasher
+            .hashStream()
+            .putUnorderedIterable(Arrays.asList("A", "B", "A"), hasher::hashCharsToLong)
+            .getAsLong();
+
+    // both hash values are equal
+    assertThat(hash1).isEqualTo(hash2).isEqualTo(0xef12d181ed93b2c7L);
   }
 }
