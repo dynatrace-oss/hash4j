@@ -39,7 +39,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putBytes}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putBytes(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -50,7 +51,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code byte} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putByte}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putByte(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -64,19 +65,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putByteArray}{@code (new byte[]{1, 2}).}{@link #putByteArray}{@code
-   * (new byte[]{3})}
+   * <p>{@code hashSink.putByteArray(new byte[]{1, 2}).putByteArray(new byte[]{3})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putByteArray}{@code (new byte[]{1}).}{@link #putByteArray}{@code
-   * (new byte[]{2, 3})}
+   * <p>{@code hashSink.putByteArray(new byte[]{1}).putByteArray(new byte[]{2, 3})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putBytes}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putBytes(x).putInt(x.length);}
    *
    * @param x the boolean array
    * @return this
@@ -87,7 +85,7 @@ public interface HashSink {
    * Adds a <code>boolean</code> value to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@link #putByte}{@code (v ? 1 : 0);}
+   * {@code putByte(v ? 1 : 0);}
    *
    * @param v the value
    * @return this
@@ -103,7 +101,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putBooleans}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putBooleans(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -114,7 +113,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code boolean} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putBoolean}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putBoolean(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -128,19 +127,18 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putBooleanArray}{@code (new boolean[]{true, false}).}{@link
-   * #putBooleanArray}{@code (new boolean[]{true})}
+   * <p>{@code hashSink.putBooleanArray(new boolean[]{true, false}).putBooleanArray(new
+   * boolean[]{true})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putBooleanArray}{@code (new boolean[]{true}).}{@link
-   * #putBooleanArray}{@code (new boolean[]{false, true})}
+   * <p>{@code hashSink.putBooleanArray(new boolean[]{true}).putBooleanArray(new boolean[]{false,
+   * true})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putBooleans}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putBooleans(x).putInt(x.length);}
    *
    * @param x the boolean array
    * @return this
@@ -164,7 +162,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putShorts}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putShorts(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -175,7 +174,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code short} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putShort}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putShort(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -189,19 +188,17 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putShortArray}{@code (new short[]{1, 2}).}{@link
-   * #putShortArray}{@code (new short[]{3})}
+   * <p>{@code hashSink.putShortArray(new short[]{1, 2}).putShortArray}{@code (new short[]{3})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putShortArray}{@code (new short[]{1}).}{@link #putShortArray}{@code
-   * (new short[]{2, 3})}
+   * <p>{@code hashSink.putShortArray}{@code (new short[]{1}).putShortArray}{@code (new short[]{2,
+   * 3})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putShorts}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putShorts(x).putInt(x.length);}
    *
    * @param x the short array
    * @return this
@@ -225,7 +222,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putChars}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putChars(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -236,7 +234,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code char} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putChar}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putChar(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -250,17 +248,16 @@ public interface HashSink {
    *
    * <p>This method does not include the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putChars}{@code ("AB").}{@link #putChars}{@code ("C")}
+   * <p>{@code hashSink.putChars}{@code ("AB").putChars}{@code ("C")}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putChars}{@code ("A").}{@link #putChars}{@code ("BC")}
+   * <p>{@code hashSink.putChars}{@code ("A").putChars}{@code ("BC")}
    *
    * <p>will be equivalent contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code for (int i = 0; i < s.length(); ++i) }{@link #putChar}{@code (s.charAt(i));}
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < s.length(); ++i) putChar(s.charAt(i));}
    *
    * @param c a char sequence
    * @return this
@@ -272,19 +269,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putCharArray}{@code (new char[]{'A', 'B'}).}{@link
-   * #putCharArray}{@code (new char[]{'C'})}
+   * <p>{@code hashSink.putCharArray(new char[]{'A', 'B'}).putCharArray(new char[]{'C'})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putCharArray}{@code (new char[]{'A'}).}{@link #putCharArray}{@code
-   * (new char[]{'B', 'C'})}
+   * <p>{@code hashSink.putCharArray(new char[]{'A'}).putCharArray(new char[]{'B', 'C'})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putChars}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putChars(x).putInt(x.length);}
    *
    * @param x the char array
    * @return this
@@ -296,17 +290,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putString}{@code ("AB").}{@link #putString}{@code ("C")}
+   * <p>{@code hashSink.putString}{@code ("AB").putString}{@code ("C")}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putString}{@code ("A").}{@link #putString}{@code ("BC")}
+   * <p>{@code hashSink.putString}{@code ("A").putString}{@code ("BC")}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putChars}{@code (s).}{@link #putInt}{@code (s.length());}
+   * <p>Equivalent to <br>
+   * {@code putChars(s).putInt(s.length());}
    *
    * @param s the string
    * @return this
@@ -330,7 +323,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putInts}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putInts(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -341,7 +335,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code int} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putInt}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putInt(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -355,19 +349,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putIntArray}{@code (new int[]{1, 2}).}{@link #putIntArray}{@code
-   * (new int[]{3})}
+   * <p>{@code hashSink.putIntArray}{@code (new int[]{1, 2}).putIntArray}{@code (new int[]{3})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putIntArray}{@code (new int[]{1}).}{@link #putIntArray}{@code (new
-   * int[]{2, 3})}
+   * <p>{@code hashSink.putIntArray}{@code (new int[]{1}).putIntArray}{@code (new int[]{2, 3})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putInts}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code }{@code putInts(x).putInt(x.length);}
    *
    * @param x the int array
    * @return this
@@ -391,7 +382,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putLongs}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putLongs(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -402,7 +394,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code long} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putLong}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putLong(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -416,19 +408,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putLongArray}{@code (new long[]{1, 2}).}{@link #putLongArray}{@code
-   * (new long[]{3})}
+   * <p>{@code hashSink.putLongArray}{@code (new long[]{1, 2}).putLongArray}{@code (new long[]{3})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putLongArray}{@code (new long[]{1}).}{@link #putLongArray}{@code
-   * (new long[]{2, 3})}
+   * <p>{@code hashSink.putLongArray}{@code (new long[]{1}).putLongArray}{@code (new long[]{2, 3})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putLongs}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putLongs(x).putInt(x.length);}
    *
    * @param x the int array
    * @return this
@@ -438,7 +427,8 @@ public interface HashSink {
   /**
    * Adds a <code>float</code> value to the hash computation using little-endian byte order.
    *
-   * <p>Equivalent to: {@link #putInt}{@code (Float.floatToRawIntBits(v));}
+   * <p>Equivalent to <br>
+   * {@code putInt(Float.floatToRawIntBits(v));}
    *
    * @param v the value
    * @return this
@@ -454,7 +444,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putFloats}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putFloats(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -465,7 +456,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code float} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putFloat}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putFloat(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -479,19 +470,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putFloatArray}{@code (new float[]{1, 2}).}{@link
-   * #putFloatArray}{@code (new float[]{3})}
+   * <p>{@code hashSink.putFloatArray(new float[]{1, 2}).putFloatArray(new float[]{3})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putFloatArray}{@code (new float[]{1}).}{@link #putFloatArray}{@code
-   * (new float[]{2, 3})}
+   * <p>{@code hashSink.putFloatArray(new float[]{1}).putFloatArray(new float[]{2, 3})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putFloats}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putFloats(x).putInt(x.length);}
    *
    * @param x the float array
    * @return this
@@ -501,7 +489,8 @@ public interface HashSink {
   /**
    * Adds a <code>double</code> value to the hash computation using little-endian byte order.
    *
-   * <p>Equivalent to: {@link #putLong}{@code (Double.doubleToRawLongBits(v));}
+   * <p>Equivalent to <br>
+   * {@code putLong(Double.doubleToRawLongBits(v));}
    *
    * @param v the value
    * @return this
@@ -517,7 +506,8 @@ public interface HashSink {
    * object for which a hash value is calculated, it is highly recommended to also incorporate the
    * length of the array to improve the hash quality and decrease the chance of hash collisions.
    *
-   * <p>Equivalent to {@link #putDoubles}{@code (x, 0, x.length);}
+   * <p>Equivalent to <br>
+   * {@code putDoubles(x, 0, x.length);}
    *
    * @param x the array
    * @return this
@@ -528,7 +518,7 @@ public interface HashSink {
    * Adds <code>len</code> elements of the given {@code double} array to the hash computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < len; i++) }{@link #putDouble}{@code (x[off + i]);}
+   * {@code for (int i = 0; i < len; i++) putDouble(x[off + i]);}
    *
    * @param x the array
    * @param off the start offset in the array
@@ -542,19 +532,16 @@ public interface HashSink {
    *
    * <p>This method includes the length information. In this way,
    *
-   * <p>{@code hashSink.}{@link #putDoubleArray}{@code (new double[]{1, 2}).}{@link
-   * #putDoubleArray}{@code (new double[]{3})}
+   * <p>{@code hashSink.putDoubleArray(new double[]{1, 2}).putDoubleArray(new double[]{3})}
    *
    * <p>and
    *
-   * <p>{@code hashSink.}{@link #putDoubleArray}{@code (new double[]{1}).}{@link
-   * #putDoubleArray}{@code (new double[]{2, 3})}
+   * <p>{@code hashSink.putDoubleArray(new double[]{1}).putDoubleArray(new double[]{2, 3})}
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to
-   *
-   * <p>{@code }{@link #putDoubles}{@code (x).}{@link #putInt}{@code (x.length);}
+   * <p>Equivalent to <br>
+   * {@code putDoubles(x).putInt(x.length);}
    *
    * @param x the double array
    * @return this
@@ -564,10 +551,8 @@ public interface HashSink {
   /**
    * Adds a {@link UUID} to the hash computation.
    *
-   * <p>Equivalent to:
-   *
-   * <p>{@link #putLong}{@code (uuid.getLeastSignificantBits()).}{@link #putLong}{@code
-   * (uuid.getMostSignificantBits());}
+   * <p>Equivalent to <br>
+   * {@code putLong(uuid.getLeastSignificantBits()).putLong(uuid.getMostSignificantBits());}
    *
    * @param uuid the UUID
    * @return this
@@ -618,14 +603,30 @@ public interface HashSink {
   /**
    * Adds an unordered {@link Iterable} (e.g. {@link Set}) to the hash computation.
    *
+   * @deprecated use {@link #putUnorderedIterable(Iterable, HashFunnel, Hasher64)} instead. Hasher
+   *     instances are immutable and can be reused. Therefore, it is preferable to use a statically
+   *     initalized instance.
    * @param data the iterable
    * @param funnel the funnel
    * @param hasherSupplier a supplier for a 64-bit hasher
    * @param <T> the element type
    * @return this
    */
+  @Deprecated
   <T> HashSink putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier);
+
+  /**
+   * Adds an unordered {@link Iterable} (e.g. {@link Set}) to the hash computation.
+   *
+   * @param data the iterable
+   * @param funnel the funnel
+   * @param hasher a 64-bit hasher
+   * @param <T> the element type
+   * @return this
+   */
+  <T> HashSink putUnorderedIterable(
+      Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher);
 
   /**
    * Adds an optional object to the hash computation using the given funnel.

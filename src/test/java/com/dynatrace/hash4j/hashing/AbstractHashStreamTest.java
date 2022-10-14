@@ -16,6 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
@@ -953,5 +954,30 @@ abstract class AbstractHashStreamTest {
         }
       }
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testPutUnorderedIterableConsistency(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) {
+      return;
+    }
+
+    SplittableRandom random = new SplittableRandom(0xb3998b48b526dc9cL);
+    List<Long> data = random.longs(200).boxed().collect(toList());
+
+    Hasher64 hasher64 = (Hasher64) hasher;
+
+    TestHashStream testHashStream1 = new TestHashStream();
+    TestHashStream testHashStream2 = new TestHashStream();
+    TestHashStream testHashStream3 = new TestHashStream();
+
+    testHashStream1.putUnorderedIterable(data, l -> hasher64.hashStream().putLong(l).getAsLong());
+    testHashStream2.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), () -> hasher64);
+    testHashStream3.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hasher64);
+
+    assertThat(testHashStream1.getData())
+        .isEqualTo(testHashStream2.getData())
+        .isEqualTo(testHashStream3.getData());
   }
 }
