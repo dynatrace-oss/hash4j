@@ -341,8 +341,8 @@ abstract class AbstractHashStream implements HashStream {
     return this;
   }
 
+  @Deprecated(since = "0.7.0", forRemoval = true)
   @Override
-  @Deprecated
   public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier) {
     return putUnorderedIterable(data, funnel, hasherSupplier.get());

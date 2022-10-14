@@ -179,7 +179,7 @@ public interface HashStream extends HashSink {
   <T> HashStream putUnorderedIterable(
       Iterable<T> data, ToLongFunction<? super T> elementHashFunction);
 
-  @Deprecated
+  @Deprecated(since = "0.7.0", forRemoval = true)
   @Override
   <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier);

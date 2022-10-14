@@ -612,7 +612,7 @@ public interface HashSink {
    * @param <T> the element type
    * @return this
    */
-  @Deprecated
+  @Deprecated(since = "0.7.0", forRemoval = true)
   <T> HashSink putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier);
 
