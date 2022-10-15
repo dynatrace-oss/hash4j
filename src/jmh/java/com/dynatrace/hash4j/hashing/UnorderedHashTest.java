@@ -51,8 +51,6 @@ public class UnorderedHashTest {
 
     List<Long> testData =
         TEST_DATA_LONG.get(ThreadLocalRandom.current().nextInt(NUM_TEST_DATA_SETS));
-    int offset = ThreadLocalRandom.current().nextInt(NUM_VALUES);
-
     long hash = Hashing.murmur3_128().hashToLong(testData, LIST_LONG_FUNNEL);
     blackhole.consume(hash);
   }
