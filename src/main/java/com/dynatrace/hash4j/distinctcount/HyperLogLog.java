@@ -45,6 +45,7 @@ final class HyperLogLog {
 
   private static final PackedArrayHandler ARRAY_HANDLER = PackedArray.getHandler(6);
 
+  // visible for testing
   static final double VARIANCE_FACTOR = 1.0794415416798357;
 
   private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
