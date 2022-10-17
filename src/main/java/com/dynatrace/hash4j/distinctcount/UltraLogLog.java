@@ -84,6 +84,7 @@ import java.util.Arrays;
  */
 public final class UltraLogLog {
 
+  // visible for testing
   static final double VARIANCE_FACTOR = 0.6169896446766369;
 
   private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
