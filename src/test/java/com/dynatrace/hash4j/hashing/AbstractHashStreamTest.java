@@ -175,6 +175,12 @@ abstract class AbstractHashStreamTest {
       }
 
       @Override
+      public HashStream reset() {
+        hashStream.reset();
+        return this;
+      }
+
+      @Override
       public int getHashBitSize() {
         return hashStream.getHashBitSize();
       }
@@ -204,7 +210,15 @@ abstract class AbstractHashStreamTest {
 
     SplittableRandom random = new SplittableRandom(0L);
 
+    HashStream resettedRawBytesHashStream = hasher.hashStream();
+    HashStream resettedDataHashStream = hasher.hashStream();
+    HashStream resettedNonOptimizedHashStream = asNonOptimizedHashStream(hasher.hashStream());
+
     for (int k = 0; k < numIterations; ++k) {
+
+      resettedRawBytesHashStream.reset();
+      resettedDataHashStream.reset();
+      resettedNonOptimizedHashStream.reset();
 
       HashStream rawBytesHashStream = hasher.hashStream();
       HashStream dataHashStream = hasher.hashStream();
@@ -217,13 +231,27 @@ abstract class AbstractHashStreamTest {
         for (byte b : tc.getExpected()) {
           rawBytesHashStream.putByte(b);
         }
+        tc.getSinkConsumer().accept(resettedDataHashStream);
+        tc.getSinkConsumer().accept(resettedNonOptimizedHashStream);
+        for (byte b : tc.getExpected()) {
+          resettedRawBytesHashStream.putByte(b);
+        }
       }
       byte[] rawBytesHash = getBytesAndVerifyRepetitiveGetCalls(rawBytesHashStream);
       byte[] dataHash = getBytesAndVerifyRepetitiveGetCalls(dataHashStream);
       byte[] nonOptimizedHash = getBytesAndVerifyRepetitiveGetCalls(nonOptimizedHashStream);
 
-      assertThat(dataHash).isEqualTo(rawBytesHash);
-      assertThat(nonOptimizedHash).isEqualTo(rawBytesHash);
+      byte[] resettedRawBytesHash = getBytesAndVerifyRepetitiveGetCalls(resettedRawBytesHashStream);
+      byte[] resettedDataHash = getBytesAndVerifyRepetitiveGetCalls(resettedDataHashStream);
+      byte[] resettedNonOptimizedHash =
+          getBytesAndVerifyRepetitiveGetCalls(resettedNonOptimizedHashStream);
+
+      assertThat(dataHash)
+          .isEqualTo(rawBytesHash)
+          .isEqualTo(nonOptimizedHash)
+          .isEqualTo(resettedRawBytesHash)
+          .isEqualTo(resettedDataHash)
+          .isEqualTo(resettedNonOptimizedHash);
     }
   }
 

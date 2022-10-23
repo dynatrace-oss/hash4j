@@ -17,71 +17,11 @@ package com.dynatrace.hash4j.hashing;
 
 import static java.util.Objects.requireNonNull;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
 abstract class AbstractHashStream implements HashStream {
-
-  private static final VarHandle LONG_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle SHORT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle CHAR_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(char[].class, ByteOrder.LITTLE_ENDIAN);
-
-  protected static final long unsignedMultiplyHigh(long a, long b) {
-    return Math.multiplyHigh(a, b) + ((a >> 63) & b) + ((b >> 63) & a);
-    // return Math.multiplyHigh(a, b) + ((a < 0) ? b : 0) + ((b < 0) ? a : 0);
-  }
-
-  protected static char getChar(byte[] b, int off) {
-    return (char) CHAR_HANDLE.get(b, off);
-  }
-
-  protected static short getShort(byte[] b, int off) {
-    return (short) SHORT_HANDLE.get(b, off);
-  }
-
-  protected static int getInt(byte[] b, int off) {
-    return (int) INT_HANDLE.get(b, off);
-  }
-
-  protected static long getLong(byte[] b, int off) {
-    return (long) LONG_HANDLE.get(b, off);
-  }
-
-  protected static void setLong(byte[] b, int off, long v) {
-    LONG_HANDLE.set(b, off, v);
-  }
-
-  protected static void setInt(byte[] b, int off, int v) {
-    INT_HANDLE.set(b, off, v);
-  }
-
-  protected static void setShort(byte[] b, int off, short v) {
-    SHORT_HANDLE.set(b, off, v);
-  }
-
-  protected static long getLong(CharSequence s, int off) {
-    return (long) s.charAt(off)
-        | ((long) s.charAt(off + 1) << 16)
-        | ((long) s.charAt(off + 2) << 32)
-        | ((long) s.charAt(off + 3) << 48);
-  }
-
-  protected static int getInt(CharSequence s, int off) {
-    return (int) s.charAt(off) | ((int) s.charAt(off + 1) << 16);
-  }
-
-  protected static void setChar(byte[] b, int off, char v) {
-    CHAR_HANDLE.set(b, off, v);
-  }
 
   @Override
   public int getAsInt() {
@@ -351,7 +291,8 @@ abstract class AbstractHashStream implements HashStream {
   @Override
   public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
-    return putUnorderedIterable(data, x -> hasher.hashToLong(x, funnel));
+    final HashStream hashStream = hasher.hashStream();
+    return putUnorderedIterable(data, x -> hashStream.reset().put(x, funnel).getAsLong());
   }
 
   @Override

@@ -199,4 +199,13 @@ public interface HashStream extends HashSink {
 
   @Override
   HashStream putOptionalDouble(OptionalDouble v);
+
+  /**
+   * Resets the hash stream.
+   *
+   * <p>This allows to reuse this instance for new hash computations.
+   *
+   * @return this
+   */
+  HashStream reset();
 }

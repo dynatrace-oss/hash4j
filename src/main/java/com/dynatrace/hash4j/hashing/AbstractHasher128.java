@@ -28,17 +28,12 @@ abstract class AbstractHasher128 extends AbstractHasher64 implements Hasher128 {
   }
 
   @Override
-  public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-    return hashTo128Bits(input, (b, f) -> f.putBytes(b, off, len));
-  }
-
-  @Override
   public long hashBytesToLong(byte[] input, int off, int len) {
     return hashBytesTo128Bits(input, off, len).getAsLong();
   }
 
   @Override
-  public HashValue128 hashCharsTo128Bits(CharSequence input) {
-    return hashTo128Bits(input, (c, f) -> f.putChars(c));
+  public long hashCharsToLong(CharSequence input) {
+    return hashCharsTo128Bits(input).getAsLong();
   }
 }

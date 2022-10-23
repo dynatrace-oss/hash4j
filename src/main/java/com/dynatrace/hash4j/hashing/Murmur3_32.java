@@ -15,164 +15,84 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_32 extends AbstractHashStream {
+class Murmur3_32 extends AbstractHasher32 {
 
   private static final int C1 = 0xcc9e2d51;
   private static final int C2 = 0x1b873593;
 
-  private int h1;
-  private long buffer;
-  private int shift;
-  private int length;
+  private final int seed;
 
-  private static final AbstractHasher32 DEFAULT_HASHER_INSTANCE = create(0);
+  private static final Hasher32 DEFAULT_HASHER_INSTANCE = create(0);
 
-  static AbstractHasher32 create() {
+  static Hasher32 create() {
     return DEFAULT_HASHER_INSTANCE;
   }
 
-  static AbstractHasher32 create(int seed) {
-    return new HasherImpl(seed);
+  static Hasher32 create(int seed) {
+    return new Murmur3_32(seed);
   }
 
-  private static class HasherImpl extends AbstractHasher32 {
+  private Murmur3_32(int seed) {
+    this.seed = seed;
+  }
 
-    private final int seed;
+  @Override
+  public HashStream hashStream() {
+    return new HashStreamImpl();
+  }
 
-    public HasherImpl(int seed) {
-      this.seed = seed;
+  @Override
+  public int hashBytesToInt(byte[] input, int off, int len) {
+    int nblocks = len >>> 2;
+    int h1 = seed;
+
+    for (int i = 0; i < nblocks; i++, off += 4) {
+      int k1 = getInt(input, off);
+      k1 = mixK1(k1);
+      h1 = mixH1(h1, k1);
     }
 
-    @Override
-    public HashStream hashStream() {
-      return new Murmur3_32(seed);
-    }
+    int k1 = 0;
 
-    @Override
-    public int hashBytesToInt(byte[] input, int off, int len) {
-      int nblocks = len >>> 2;
-      int h1 = seed;
-
-      for (int i = 0; i < nblocks; i++, off += 4) {
-        int k1 = getInt(input, off);
+    switch (len & 3) {
+      case 3:
+        k1 ^= (input[off + 2] & 0xFF) << 16;
+        // fallthrough
+      case 2:
+        k1 ^= (input[off + 1] & 0xFF) << 8;
+        // fallthrough
+      case 1:
+        k1 ^= (input[off] & 0xFF);
         k1 = mixK1(k1);
-        h1 = mixH1(k1, h1);
-      }
-
-      int k1 = 0;
-
-      switch (len & 3) {
-        case 3:
-          k1 ^= (input[off + 2] & 0xFF) << 16;
-          // fallthrough
-        case 2:
-          k1 ^= (input[off + 1] & 0xFF) << 8;
-          // fallthrough
-        case 1:
-          k1 ^= (input[off] & 0xFF);
-          k1 = mixK1(k1);
-          h1 ^= k1;
-          // fallthrough
-        default:
-          // do nothing
-      }
-
-      h1 ^= len;
-      return fmix32(h1);
+        h1 ^= k1;
+        // fallthrough
+      default:
+        // do nothing
     }
+
+    h1 ^= len;
+    return fmix32(h1);
   }
 
   @Override
-  public HashStream putByte(byte b) {
-    buffer |= ((b & 0xFFL) << shift);
-    shift += 8;
-    length += 1;
-    if (shift >= 32) {
-      processBuffer((int) buffer);
-      buffer >>>= 32;
-      shift -= 32;
-    }
-    return this;
-  }
-
-  @Override
-  public HashStream putShort(short v) {
-    buffer |= (v & 0xFFFFL) << shift;
-    shift += 16;
-    length += 2;
-    if (shift >= 32) {
-      processBuffer((int) buffer);
-      buffer >>>= 32;
-      shift -= 32;
-    }
-    return this;
-  }
-
-  @Override
-  public HashStream putInt(int v) {
-    buffer |= (v & 0xFFFFFFFFL) << shift;
-    length += 4;
-    processBuffer((int) buffer);
-    buffer >>>= 32;
-    return this;
-  }
-
-  @Override
-  public HashStream putLong(long l) {
-    processBuffer((int) (buffer | (l << shift)));
-    buffer = l >>> (32 - shift);
-    processBuffer((int) buffer);
-    buffer >>>= 32;
-    length += 8;
-    return this;
-  }
-
-  @Override
-  public HashStream putBytes(byte[] b, int off, int len) {
-    final int regularBlockStartIdx = (-length) & 0x3;
-    final int regularBlockEndIdx = len - ((len + length) & 0x3);
-    length += len;
-    if (regularBlockEndIdx < regularBlockStartIdx) {
-      if (0 < len) {
-        buffer |= (b[off] & 0xFFL) << shift;
-        shift += 8;
-        if (1 < len) {
-          buffer |= (b[off + 1] & 0xFFL) << shift;
-          shift += 8;
-        }
-      }
-      return this;
+  public int hashCharsToInt(CharSequence input) {
+    final int len = input.length();
+    final int nblocks = len >>> 1;
+    int h1 = seed;
+    for (int i = 0; i < nblocks; i++) {
+      int k1 = getInt(input, i << 1);
+      k1 = mixK1(k1);
+      h1 = mixH1(h1, k1);
     }
 
-    if (regularBlockStartIdx >= 1) {
-      if (regularBlockStartIdx >= 2) {
-        if (regularBlockStartIdx >= 3) {
-          buffer |= ((b[off + regularBlockStartIdx - 3] & 0xFFL) << 8);
-        }
-        buffer |= ((b[off + regularBlockStartIdx - 2] & 0xFFL) << 16);
-      }
-      buffer |= ((b[off + regularBlockStartIdx - 1] & 0xFFL) << 24);
-      processBuffer((int) buffer);
-      buffer = 0;
+    if ((len & 1) != 0) {
+      int k1 = input.charAt(len - 1);
+      k1 = mixK1(k1);
+      h1 ^= k1;
     }
 
-    for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 4) {
-      processBuffer(getInt(b, off + i));
-    }
-
-    int remainingBytes = len - regularBlockEndIdx;
-    shift = remainingBytes << 3;
-
-    if (remainingBytes >= 1) {
-      if (remainingBytes >= 2) {
-        if (remainingBytes >= 3) {
-          buffer |= (b[off + regularBlockEndIdx + 2] & 0xFFL) << 16;
-        }
-        buffer |= (b[off + regularBlockEndIdx + 1] & 0xFFL) << 8;
-      }
-      buffer |= (b[off + regularBlockEndIdx] & 0xFFL);
-    }
-    return this;
+    h1 ^= (len << 1);
+    return fmix32(h1);
   }
 
   private static int mixK1(int k1) {
@@ -198,65 +118,171 @@ class Murmur3_32 extends AbstractHashStream {
     return h;
   }
 
-  @Override
-  public int getAsInt() {
-    return fmix32(h1 ^ mixK1((int) (buffer)) ^ length);
-  }
+  class HashStreamImpl extends AbstractHashStream {
 
-  private Murmur3_32(int seed) {
-    this.h1 = seed;
-  }
+    private int h1 = seed;
+    private long buffer = 0;
+    private int shift = 0;
+    private int length = 0;
 
-  private void processBuffer(int x) {
-    h1 = mixH1(h1, mixK1(x));
-  }
-
-  @Override
-  public HashStream putChars(CharSequence s) {
-    int len = s.length();
-    if (len == 0) {
+    @Override
+    public HashStream reset() {
+      h1 = seed;
+      buffer = 0;
+      shift = 0;
+      length = 0;
       return this;
     }
-    final int regularBlockStartIdx = (length >>> 1) & 1;
-    final int regularBlockEndIdx = len - ((len & 1) ^ regularBlockStartIdx);
 
-    length += len << 1;
-
-    if ((length & 1) == 0) {
-      if (regularBlockStartIdx > 0) {
-        processBuffer(((int) buffer) | (s.charAt(0) << 16));
-        buffer = 0;
-        shift = 0;
-      }
-      for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
-        processBuffer((s.charAt(i) & 0xFFFF) | (s.charAt(i + 1) << 16));
-      }
-      if (regularBlockEndIdx < len) {
-        buffer = s.charAt(regularBlockEndIdx) & 0xFFFFL;
-        shift = 16;
-      }
-    } else {
-      if (regularBlockStartIdx > 0) {
-        buffer |= (s.charAt(0) & 0xFFFFL) << 24;
+    @Override
+    public HashStream putByte(byte b) {
+      buffer |= ((b & 0xFFL) << shift);
+      shift += 8;
+      length += 1;
+      if (shift >= 32) {
         processBuffer((int) buffer);
-        buffer >>= 32;
-        shift = 8;
+        buffer >>>= 32;
+        shift -= 32;
       }
-      for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
-        buffer |= ((s.charAt(i) & 0xFFFFL) << 8) | ((s.charAt(i + 1) & 0xFFFFL) << 24);
-        processBuffer((int) buffer);
-        buffer >>= 32;
-      }
-      if (regularBlockEndIdx < len) {
-        buffer |= (s.charAt(regularBlockEndIdx) & 0xFFFFL) << 8;
-        shift = 24;
-      }
+      return this;
     }
-    return this;
-  }
 
-  @Override
-  public int getHashBitSize() {
-    return 32;
+    @Override
+    public HashStream putShort(short v) {
+      buffer |= (v & 0xFFFFL) << shift;
+      shift += 16;
+      length += 2;
+      if (shift >= 32) {
+        processBuffer((int) buffer);
+        buffer >>>= 32;
+        shift -= 32;
+      }
+      return this;
+    }
+
+    @Override
+    public HashStream putInt(int v) {
+      buffer |= (v & 0xFFFFFFFFL) << shift;
+      length += 4;
+      processBuffer((int) buffer);
+      buffer >>>= 32;
+      return this;
+    }
+
+    @Override
+    public HashStream putLong(long l) {
+      processBuffer((int) (buffer | (l << shift)));
+      buffer = l >>> (32 - shift);
+      processBuffer((int) buffer);
+      buffer >>>= 32;
+      length += 8;
+      return this;
+    }
+
+    @Override
+    public HashStream putBytes(byte[] b, int off, int len) {
+      final int regularBlockStartIdx = (-length) & 0x3;
+      final int regularBlockEndIdx = len - ((len + length) & 0x3);
+      length += len;
+      if (regularBlockEndIdx < regularBlockStartIdx) {
+        if (0 < len) {
+          buffer |= (b[off] & 0xFFL) << shift;
+          shift += 8;
+          if (1 < len) {
+            buffer |= (b[off + 1] & 0xFFL) << shift;
+            shift += 8;
+          }
+        }
+        return this;
+      }
+
+      if (regularBlockStartIdx >= 1) {
+        if (regularBlockStartIdx >= 2) {
+          if (regularBlockStartIdx >= 3) {
+            buffer |= ((b[off + regularBlockStartIdx - 3] & 0xFFL) << 8);
+          }
+          buffer |= ((b[off + regularBlockStartIdx - 2] & 0xFFL) << 16);
+        }
+        buffer |= ((b[off + regularBlockStartIdx - 1] & 0xFFL) << 24);
+        processBuffer((int) buffer);
+        buffer = 0;
+      }
+
+      for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 4) {
+        processBuffer(getInt(b, off + i));
+      }
+
+      int remainingBytes = len - regularBlockEndIdx;
+      shift = remainingBytes << 3;
+
+      if (remainingBytes >= 1) {
+        if (remainingBytes >= 2) {
+          if (remainingBytes >= 3) {
+            buffer |= (b[off + regularBlockEndIdx + 2] & 0xFFL) << 16;
+          }
+          buffer |= (b[off + regularBlockEndIdx + 1] & 0xFFL) << 8;
+        }
+        buffer |= (b[off + regularBlockEndIdx] & 0xFFL);
+      }
+      return this;
+    }
+
+    @Override
+    public int getAsInt() {
+      return fmix32(h1 ^ mixK1((int) (buffer)) ^ length);
+    }
+
+    private void processBuffer(int x) {
+      h1 = mixH1(h1, mixK1(x));
+    }
+
+    @Override
+    public HashStream putChars(CharSequence s) {
+      int len = s.length();
+      if (len == 0) {
+        return this;
+      }
+      final int regularBlockStartIdx = (length >>> 1) & 1;
+      final int regularBlockEndIdx = len - ((len & 1) ^ regularBlockStartIdx);
+
+      length += len << 1;
+
+      if ((length & 1) == 0) {
+        if (regularBlockStartIdx > 0) {
+          processBuffer(((int) buffer) | (s.charAt(0) << 16));
+          buffer = 0;
+          shift = 0;
+        }
+        for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
+          processBuffer((s.charAt(i) & 0xFFFF) | (s.charAt(i + 1) << 16));
+        }
+        if (regularBlockEndIdx < len) {
+          buffer = s.charAt(regularBlockEndIdx) & 0xFFFFL;
+          shift = 16;
+        }
+      } else {
+        if (regularBlockStartIdx > 0) {
+          buffer |= (s.charAt(0) & 0xFFFFL) << 24;
+          processBuffer((int) buffer);
+          buffer >>= 32;
+          shift = 8;
+        }
+        for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
+          buffer |= ((s.charAt(i) & 0xFFFFL) << 8) | ((s.charAt(i + 1) & 0xFFFFL) << 24);
+          processBuffer((int) buffer);
+          buffer >>= 32;
+        }
+        if (regularBlockEndIdx < len) {
+          buffer |= (s.charAt(regularBlockEndIdx) & 0xFFFFL) << 8;
+          shift = 24;
+        }
+      }
+      return this;
+    }
+
+    @Override
+    public int getHashBitSize() {
+      return 32;
+    }
   }
 }
