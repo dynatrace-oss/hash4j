@@ -305,19 +305,6 @@ class UltraLogLogTest {
   }
 
   @Test
-  void testIsUnsignedPowerOfTwo() {
-    for (int exponent = 0; exponent < 32; exponent++) {
-      assertThat(UltraLogLog.isUnsignedPowerOfTwo(1 << exponent)).isTrue();
-    }
-    assertThat(UltraLogLog.isUnsignedPowerOfTwo(0)).isTrue();
-    for (int i = -1000; i < 0; ++i) {
-      assertThat(UltraLogLog.isUnsignedPowerOfTwo(i)).isFalse();
-    }
-    assertThat(UltraLogLog.isUnsignedPowerOfTwo(Integer.MIN_VALUE)).isTrue();
-    assertThat(UltraLogLog.isUnsignedPowerOfTwo(Integer.MAX_VALUE)).isFalse();
-  }
-
-  @Test
   void testXi() {
     assertThat(UltraLogLog.xi(2, 0.)).isZero();
     assertThat(UltraLogLog.xi(2, 0.5)).isCloseTo(1.2814941480755806, withPercentage(1e-8));

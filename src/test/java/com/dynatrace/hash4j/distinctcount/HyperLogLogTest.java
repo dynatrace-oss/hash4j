@@ -259,19 +259,6 @@ class HyperLogLogTest {
   }
 
   @Test
-  void testIsUnsignedPowerOfTwo() {
-    for (int exponent = 0; exponent < 32; exponent++) {
-      assertThat(HyperLogLog.isUnsignedPowerOfTwo(1 << exponent)).isTrue();
-    }
-    assertThat(HyperLogLog.isUnsignedPowerOfTwo(0)).isTrue();
-    for (int i = -1000; i < 0; ++i) {
-      assertThat(HyperLogLog.isUnsignedPowerOfTwo(i)).isFalse();
-    }
-    assertThat(HyperLogLog.isUnsignedPowerOfTwo(Integer.MIN_VALUE)).isTrue();
-    assertThat(HyperLogLog.isUnsignedPowerOfTwo(Integer.MAX_VALUE)).isFalse();
-  }
-
-  @Test
   void testSigma() {
     assertThat(HyperLogLog.sigma(0.)).isZero();
     assertThat(HyperLogLog.sigma(0.5)).isCloseTo(0.8907470740377903, withPercentage(1e-8));

@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.util.PackedArray;
@@ -338,11 +339,6 @@ final class HyperLogLog {
       sum += m * sigma(c0 / (double) m);
     }
     return ESTIMATION_FACTORS[p] / sum;
-  }
-
-  // visible for testing
-  static boolean isUnsignedPowerOfTwo(int x) {
-    return (x & (x - 1)) == 0;
   }
 
   // visible for testing
