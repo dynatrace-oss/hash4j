@@ -29,11 +29,26 @@ class AbstractHasher32Test {
     AbstractHasher32 hasher =
         new AbstractHasher32() {
           @Override
+          public int hashBytesToInt(byte[] input, int off, int len) {
+            return hash;
+          }
+
+          @Override
+          public int hashCharsToInt(CharSequence input) {
+            return hash;
+          }
+
+          @Override
           public HashStream hashStream() {
             return new AbstractHashStream() {
 
               @Override
               public HashStream putByte(byte v) {
+                return this;
+              }
+
+              @Override
+              public HashStream reset() {
                 return this;
               }
 
@@ -51,8 +66,10 @@ class AbstractHasher32Test {
         };
 
     byte[] b = {};
+    String s = "";
 
     assertThat(hasher.hashBytesToInt(b)).isEqualTo(hash);
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo(hash);
+    assertThat(hasher.hashCharsToInt(s)).isEqualTo(hash);
   }
 }

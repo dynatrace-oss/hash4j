@@ -34,6 +34,11 @@ class AbstractHashStreamCompatibilityTest {
           }
 
           @Override
+          public HashStream reset() {
+            return this;
+          }
+
+          @Override
           public int getHashBitSize() {
             return 128;
           }

@@ -33,6 +33,12 @@ class TestHashStream extends AbstractHashStream {
   }
 
   @Override
+  public HashStream reset() {
+    size = 0;
+    return this;
+  }
+
+  @Override
   public int getHashBitSize() {
     throw new UnsupportedOperationException();
   }

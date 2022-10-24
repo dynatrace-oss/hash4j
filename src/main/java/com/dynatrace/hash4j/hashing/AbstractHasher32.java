@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-abstract class AbstractHasher32 implements Hasher32 {
+abstract class AbstractHasher32 extends AbstractHasher implements Hasher32 {
 
   @Override
   public <T> int hashToInt(T data, HashFunnel<T> funnel) {
@@ -25,15 +25,5 @@ abstract class AbstractHasher32 implements Hasher32 {
   @Override
   public int hashBytesToInt(byte[] input) {
     return hashBytesToInt(input, 0, input.length);
-  }
-
-  @Override
-  public int hashBytesToInt(byte[] input, int off, int len) {
-    return hashToInt(input, (b, f) -> f.putBytes(b, off, len));
-  }
-
-  @Override
-  public int hashCharsToInt(CharSequence input) {
-    return hashToInt(input, (c, f) -> f.putChars(c));
   }
 }
