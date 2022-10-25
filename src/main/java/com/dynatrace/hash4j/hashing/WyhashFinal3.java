@@ -53,18 +53,16 @@ class WyhashFinal3 extends AbstractHasher64 {
     } else {
       int i = len;
       int p = off;
-      if (i > 48) {
-        long see1 = seed;
-        long see2 = seed;
-        do {
-          see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
-          see1 = wymix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
-          see2 = wymix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
-          p += 48;
-          i -= 48;
-        } while (i > 48);
-        see0 ^= see1 ^ see2;
+      long see1 = seed;
+      long see2 = seed;
+      while (i > 48) {
+        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
+        see1 = wymix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
+        see2 = wymix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
+        p += 48;
+        i -= 48;
       }
+      see0 ^= see1 ^ see2;
       while (i > 16) {
         see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
         i -= 16;
@@ -101,25 +99,23 @@ class WyhashFinal3 extends AbstractHasher64 {
     } else {
       int i = len;
       int p = 0;
-      if (i > 24) {
-        long see1 = seed;
-        long see2 = seed;
-        do {
-          see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
-          see1 = wymix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
-          see2 = wymix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
-          p += 24;
-          i -= 24;
-        } while (i > 24);
-        see0 ^= see1 ^ see2;
+      long see1 = seed;
+      long see2 = seed;
+      while (i > 24) {
+        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
+        see1 = wymix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
+        see2 = wymix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
+        p += 24;
+        i -= 24;
       }
+      see0 ^= see1 ^ see2;
       while (i > 8) {
         see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
         i -= 8;
         p += 8;
       }
-      a = getLong(input, p + i - 8);
-      b = getLong(input, p + i - 4);
+      a = getLong(input, len - 8);
+      b = getLong(input, len - 4);
     }
     return wymix(secret1 ^ (((long) len) << 1), wymix(a ^ secret1, b ^ see0));
   }

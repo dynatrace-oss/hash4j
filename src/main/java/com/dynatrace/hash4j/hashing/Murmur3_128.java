@@ -164,57 +164,61 @@ class Murmur3_128 extends AbstractHasher128 {
   }
 
   @Override
-  public HashValue128 hashCharsTo128Bits(CharSequence input) {
-    int len = input.length();
-    int off = 0;
-    int nblocks = len >>> 3;
+  public HashValue128 hashCharsTo128Bits(CharSequence s) {
     long h1 = seed;
     long h2 = seed;
 
-    for (int i = 0; i < nblocks; i++, off += 8) {
-      long k1 = getLong(input, off);
-      long k2 = getLong(input, off + 4);
+    final int len = s.length();
+    int i = 0;
+    for (; i + 8 <= len; i += 8) {
+      long b0 = getLong(s, i);
+      long b1 = getLong(s, i + 4);
 
-      h1 ^= mixK1(k1);
+      h1 ^= mixK1(b0);
       h1 = mixH1(h1, h2);
-      h2 ^= mixK2(k2);
+      h2 ^= mixK2(b1);
       h2 = mixH2(h1, h2);
     }
 
-    long k1 = 0;
-    long k2 = 0;
-
-    switch (len & 7) {
-      case 7:
-        k2 ^= (long) input.charAt(off + 6) << 32;
-        // fallthrough
-      case 6:
-        k2 ^= (long) input.charAt(off + 5) << 16;
-        // fallthrough
-      case 5:
-        k2 ^= input.charAt(off + 4);
-        h2 ^= mixK2(k2);
-        // fallthrough
-      case 4:
-        k1 ^= (long) input.charAt(off + 3) << 48;
-        // fallthrough
-      case 3:
-        k1 ^= (long) input.charAt(off + 2) << 32;
-        // fallthrough
-      case 2:
-        k1 ^= (long) input.charAt(off + 1) << 16;
-        // fallthrough
-      case 1:
-        k1 ^= input.charAt(off);
-        h1 ^= mixK1(k1);
-        // fallthrough
-      default:
-        // do nothing
+    long buffer0 = 0;
+    long buffer1 = 0;
+    if (i < len) {
+      buffer1 |= s.charAt(i);
+      if (i + 1 < len) {
+        buffer1 |= ((long) s.charAt(i + 1)) << 16;
+        if (i + 2 < len) {
+          buffer1 |= ((long) s.charAt(i + 2)) << 32;
+          if (i + 3 < len) {
+            buffer1 |= ((long) s.charAt(i + 3)) << 48;
+            buffer0 = buffer1;
+            buffer1 = 0;
+            if (i + 4 < len) {
+              buffer1 |= s.charAt(i + 4);
+              if (i + 5 < len) {
+                buffer1 |= ((long) s.charAt(i + 5)) << 16;
+                if (i + 6 < len) {
+                  buffer1 |= ((long) s.charAt(i + 6)) << 32;
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
-    long len2 = (long) len << 1;
-    h1 ^= len2;
-    h2 ^= len2;
+    if ((len & 0x7) != 0) {
+      buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -(len << 4));
+      if ((len & 0x4) == 0) {
+        h1 ^= mixK1(buffer1);
+      } else {
+        h1 ^= mixK1(buffer0);
+        h2 ^= mixK2(buffer1);
+      }
+    }
+
+    final long byteCount = ((long) len) << 1;
+    h1 ^= byteCount;
+    h2 ^= byteCount;
 
     h1 += h2;
     h2 += h1;
@@ -224,7 +228,6 @@ class Murmur3_128 extends AbstractHasher128 {
 
     h1 += h2;
     h2 += h1;
-
     return new HashValue128(h2, h1);
   }
 
