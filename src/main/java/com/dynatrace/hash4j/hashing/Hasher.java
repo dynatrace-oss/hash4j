@@ -29,4 +29,11 @@ public interface Hasher {
    * @return a new {@link HashStream} instance
    */
   HashStream hashStream();
+
+  /**
+   * The size of the hash value in bits.
+   *
+   * @return the size of the hash value in bits
+   */
+  int getHashBitSize();
 }

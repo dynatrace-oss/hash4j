@@ -36,4 +36,9 @@ abstract class AbstractHasher64 extends AbstractHasher32 implements Hasher64 {
   public int hashCharsToInt(CharSequence input) {
     return (int) hashCharsToLong(input);
   }
+
+  @Override
+  public int getHashBitSize() {
+    return 64;
+  }
 }

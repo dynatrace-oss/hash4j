@@ -595,6 +595,11 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
+    protected HashStream createHashStream64Bit() {
+      return hashStream();
+    }
+
+    @Override
     public long getAsLong() {
 
       long se5 = this.see5;

@@ -17,8 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -183,6 +182,11 @@ abstract class AbstractHashStreamTest {
       @Override
       public int getHashBitSize() {
         return hashStream.getHashBitSize();
+      }
+
+      @Override
+      protected HashStream createHashStream64Bit() {
+        throw new UnsupportedOperationException();
       }
 
       @Override
@@ -1007,5 +1011,36 @@ abstract class AbstractHashStreamTest {
     assertThat(testHashStream1.getData())
         .isEqualTo(testHashStream2.getData())
         .isEqualTo(testHashStream3.getData());
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testPutUnorderedIterableConsistency2(Hasher hasher) {
+    SplittableRandom random = new SplittableRandom(0xbfae2703ff6a9a24L);
+    List<Long> data = random.longs(200).boxed().collect(toList());
+
+    if (hasher instanceof Hasher64) {
+
+      Hasher64 hasher64 = (Hasher64) hasher;
+
+      HashStream hashStream1 = hasher.hashStream();
+      HashStream hashStream2 = hasher.hashStream();
+      HashStream hashStream3 = hasher.hashStream();
+      HashStream hashStream4 = hasher.hashStream();
+
+      hashStream1.putUnorderedIterable(data, l -> hasher64.hashStream().putLong(l).getAsLong());
+      hashStream2.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), () -> hasher64);
+      hashStream3.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hasher64);
+      hashStream4.putUnorderedIterable(data, (l, sink) -> sink.putLong(l));
+
+      assertThat(hashStream1.getAsLong())
+          .isEqualTo(hashStream2.getAsLong())
+          .isEqualTo(hashStream3.getAsLong())
+          .isEqualTo(hashStream4.getAsLong());
+    } else {
+      HashStream hashStream = hasher.hashStream();
+      assertThatRuntimeException()
+          .isThrownBy(() -> hashStream.putUnorderedIterable(data, (l, sink) -> sink.putLong(l)));
+    }
   }
 }

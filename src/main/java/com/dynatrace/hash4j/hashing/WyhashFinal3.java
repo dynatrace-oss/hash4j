@@ -499,6 +499,11 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
+    protected HashStream createHashStream64Bit() {
+      return hashStream();
+    }
+
+    @Override
     public long getAsLong() {
       long a;
       long b;

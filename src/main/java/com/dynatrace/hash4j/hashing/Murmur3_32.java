@@ -228,6 +228,12 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
+    protected HashStream createHashStream64Bit() {
+      throw new UnsupportedOperationException(
+          Murmur3_32.class.getSimpleName() + " is not able to compute 64-bit hashes.");
+    }
+
+    @Override
     public int getAsInt() {
       return fmix32(h1 ^ mixK1((int) (buffer)) ^ length);
     }

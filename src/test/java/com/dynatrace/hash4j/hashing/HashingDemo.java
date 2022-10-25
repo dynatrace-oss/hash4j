@@ -175,9 +175,7 @@ class HashingDemo {
     public void put(HashSink sink) {
       sink.putOrderedIterable(personList, Person::put);
       sink.putUnorderedIterable(
-          informationMap.entrySet(),
-          HashFunnel.forEntry(Person::put, INFORMATION_HASH_FUNNEL),
-          Hashing.murmur3_128());
+          informationMap.entrySet(), HashFunnel.forEntry(Person::put, INFORMATION_HASH_FUNNEL));
     }
   }
 
@@ -270,15 +268,15 @@ class HashingDemo {
     long hash1 =
         hasher
             .hashStream()
-            .putUnorderedIterable(Arrays.asList("A", "A", "B"), hasher::hashCharsToLong)
+            .putUnorderedIterable(Arrays.asList("A", "A", "B"), HashFunnel.forString())
             .getAsLong();
     long hash2 =
         hasher
             .hashStream()
-            .putUnorderedIterable(Arrays.asList("A", "B", "A"), hasher::hashCharsToLong)
+            .putUnorderedIterable(Arrays.asList("A", "B", "A"), HashFunnel.forString())
             .getAsLong();
 
     // both hash values are equal
-    assertThat(hash1).isEqualTo(hash2).isEqualTo(0xef12d181ed93b2c7L);
+    assertThat(hash1).isEqualTo(hash2).isEqualTo(0xd5331d5ca85d8c08L);
   }
 }

@@ -61,4 +61,9 @@ class TestHashStream extends AbstractHashStream {
     result = 31 * result + Arrays.hashCode(data);
     return result;
   }
+
+  @Override
+  protected HashStream createHashStream64Bit() {
+    throw new UnsupportedOperationException();
+  }
 }

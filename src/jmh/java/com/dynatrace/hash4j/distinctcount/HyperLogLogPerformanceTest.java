@@ -63,7 +63,7 @@ public class HyperLogLogPerformanceTest {
 
     private static final int NUM_EXAMPLES = 1000;
 
-    List<HyperLogLog> HyperLogLogs = null;
+    List<HyperLogLog> hyperLogLogs = null;
 
     @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
     public int numElements;
@@ -75,7 +75,7 @@ public class HyperLogLogPerformanceTest {
     @Setup
     public void init() {
       SplittableRandom random = new SplittableRandom(0xdf12f8a7a8569e6aL);
-      HyperLogLogs =
+      hyperLogLogs =
           Stream.generate(() -> generate(random, numElements, precision))
               .limit(NUM_EXAMPLES)
               .collect(toList());
@@ -83,7 +83,7 @@ public class HyperLogLogPerformanceTest {
 
     @TearDown
     public void finish() {
-      HyperLogLogs = null;
+      hyperLogLogs = null;
     }
   }
 
@@ -91,7 +91,7 @@ public class HyperLogLogPerformanceTest {
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
     double sum = 0;
-    for (HyperLogLog HyperLogLog : estimationState.HyperLogLogs) {
+    for (HyperLogLog HyperLogLog : estimationState.hyperLogLogs) {
       sum += HyperLogLog.getDistinctCountEstimate();
     }
     blackhole.consume(sum);
@@ -102,8 +102,8 @@ public class HyperLogLogPerformanceTest {
 
     static final int NUM_EXAMPLES = 1000;
 
-    List<HyperLogLog> HyperLogLogs1 = null;
-    List<HyperLogLog> HyperLogLogs2 = null;
+    List<HyperLogLog> hyperLogLogs1 = null;
+    List<HyperLogLog> hyperLogLogs2 = null;
 
     @Param({"30000"})
     public int numElements1;
@@ -120,11 +120,11 @@ public class HyperLogLogPerformanceTest {
     @Setup
     public void init() {
       SplittableRandom random = new SplittableRandom(0x247bb0c84ca4bf78L);
-      HyperLogLogs1 =
+      hyperLogLogs1 =
           Stream.generate(() -> generate(random, numElements1, precision1))
               .limit(NUM_EXAMPLES)
               .collect(toList());
-      HyperLogLogs2 =
+      hyperLogLogs2 =
           Stream.generate(() -> generate(random, numElements2, precision2))
               .limit(NUM_EXAMPLES)
               .collect(toList());
@@ -132,8 +132,8 @@ public class HyperLogLogPerformanceTest {
 
     @TearDown
     public void finish() {
-      HyperLogLogs1 = null;
-      HyperLogLogs2 = null;
+      hyperLogLogs1 = null;
+      hyperLogLogs2 = null;
     }
   }
 
@@ -144,7 +144,7 @@ public class HyperLogLogPerformanceTest {
     long sum = 0;
     for (int i = 0; i < mergeState.NUM_EXAMPLES; ++i) {
       HyperLogLog mergedHyperLogLog =
-          HyperLogLog.merge(mergeState.HyperLogLogs1.get(i), mergeState.HyperLogLogs2.get(i));
+          HyperLogLog.merge(mergeState.hyperLogLogs1.get(i), mergeState.hyperLogLogs2.get(i));
       sum +=
           mergedHyperLogLog
               .getState()[randomState.random.nextInt(mergedHyperLogLog.getState().length)];

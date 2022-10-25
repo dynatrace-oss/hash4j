@@ -53,6 +53,11 @@ class AbstractHasher64Test {
               }
 
               @Override
+              protected HashStream createHashStream64Bit() {
+                return hashStream();
+              }
+
+              @Override
               public long getAsLong() {
                 return hash;
               }
@@ -76,5 +81,7 @@ class AbstractHasher64Test {
 
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToInt(s)).isEqualTo((int) hash);
+
+    assertThat(hasher.getHashBitSize()).isEqualTo(64);
   }
 }

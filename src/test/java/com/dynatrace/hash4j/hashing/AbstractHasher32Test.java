@@ -53,6 +53,11 @@ class AbstractHasher32Test {
               }
 
               @Override
+              protected HashStream createHashStream64Bit() {
+                throw new UnsupportedOperationException();
+              }
+
+              @Override
               public int getAsInt() {
                 return hash;
               }
@@ -71,5 +76,6 @@ class AbstractHasher32Test {
     assertThat(hasher.hashBytesToInt(b)).isEqualTo(hash);
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo(hash);
     assertThat(hasher.hashCharsToInt(s)).isEqualTo(hash);
+    assertThat(hasher.getHashBitSize()).isEqualTo(32);
   }
 }

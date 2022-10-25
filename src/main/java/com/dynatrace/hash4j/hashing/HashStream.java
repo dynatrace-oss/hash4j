@@ -189,6 +189,9 @@ public interface HashStream extends HashSink {
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher);
 
   @Override
+  <T> HashStream putUnorderedIterable(Iterable<T> data, HashFunnel<? super T> funnel);
+
+  @Override
   <T> HashStream putOptional(Optional<T> obj, HashFunnel<? super T> funnel);
 
   @Override

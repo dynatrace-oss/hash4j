@@ -629,6 +629,16 @@ public interface HashSink {
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher);
 
   /**
+   * Adds an unordered {@link Iterable} (e.g. {@link Set}) to the hash computation.
+   *
+   * @param data the iterable
+   * @param funnel the funnel
+   * @param <T> the element type
+   * @return this
+   */
+  <T> HashSink putUnorderedIterable(Iterable<T> data, HashFunnel<? super T> funnel);
+
+  /**
    * Adds an optional object to the hash computation using the given funnel.
    *
    * @param obj the optional object

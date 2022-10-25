@@ -44,6 +44,11 @@ class AbstractHashStreamCompatibilityTest {
           }
 
           @Override
+          protected HashStream createHashStream64Bit() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
           public HashValue128 get() {
             return hash128;
           }

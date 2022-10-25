@@ -23,6 +23,8 @@ import java.util.function.ToLongFunction;
 
 abstract class AbstractHashStream implements HashStream {
 
+  protected abstract HashStream createHashStream64Bit();
+
   @Override
   public int getAsInt() {
     return (int) getAsLong();
@@ -291,8 +293,17 @@ abstract class AbstractHashStream implements HashStream {
   @Override
   public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
-    final HashStream hashStream = hasher.hashStream();
+    return putUnorderedIterable(data, funnel, hasher.hashStream());
+  }
+
+  private <T> HashStream putUnorderedIterable(
+      Iterable<T> data, HashFunnel<? super T> funnel, HashStream hashStream) {
     return putUnorderedIterable(data, x -> hashStream.reset().put(x, funnel).getAsLong());
+  }
+
+  @Override
+  public <T> HashStream putUnorderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
+    return putUnorderedIterable(data, funnel, createHashStream64Bit());
   }
 
   @Override

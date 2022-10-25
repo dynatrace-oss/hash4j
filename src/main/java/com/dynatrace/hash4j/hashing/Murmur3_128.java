@@ -446,6 +446,11 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
+    protected HashStream createHashStream64Bit() {
+      return hashStream();
+    }
+
+    @Override
     public long getAsLong() {
       long g1 = h1;
       long g2 = h2;

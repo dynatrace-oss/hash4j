@@ -53,6 +53,11 @@ class AbstractHasher128Test {
               }
 
               @Override
+              protected HashStream createHashStream64Bit() {
+                return hashStream();
+              }
+
+              @Override
               public HashValue128 get() {
                 return hash;
               }
@@ -79,5 +84,7 @@ class AbstractHasher128Test {
     assertThat(hasher.hashCharsTo128Bits(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash.getAsLong());
     assertThat(hasher.hashCharsToInt(s)).isEqualTo(hash.getAsInt());
+
+    assertThat(hasher.getHashBitSize()).isEqualTo(128);
   }
 }
