@@ -37,7 +37,7 @@ class Murmur3_32 extends AbstractHasher32 {
   }
 
   @Override
-  public HashStream hashStream() {
+  public HashStream32 hashStream() {
     return new HashStreamImpl();
   }
 
@@ -118,7 +118,7 @@ class Murmur3_32 extends AbstractHasher32 {
     return h;
   }
 
-  class HashStreamImpl extends AbstractHashStream {
+  class HashStreamImpl extends AbstractHashStream32 {
 
     private int h1 = seed;
     private long buffer = 0;
@@ -126,7 +126,7 @@ class Murmur3_32 extends AbstractHasher32 {
     private int length = 0;
 
     @Override
-    public HashStream reset() {
+    public HashStream32 reset() {
       h1 = seed;
       buffer = 0;
       shift = 0;
@@ -135,7 +135,7 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
-    public HashStream putByte(byte b) {
+    public HashStream32 putByte(byte b) {
       buffer |= ((b & 0xFFL) << shift);
       shift += 8;
       length += 1;
@@ -148,7 +148,7 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
-    public HashStream putShort(short v) {
+    public HashStream32 putShort(short v) {
       buffer |= (v & 0xFFFFL) << shift;
       shift += 16;
       length += 2;
@@ -161,7 +161,7 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
-    public HashStream putInt(int v) {
+    public HashStream32 putInt(int v) {
       buffer |= (v & 0xFFFFFFFFL) << shift;
       length += 4;
       processBuffer((int) buffer);
@@ -170,7 +170,7 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
-    public HashStream putLong(long l) {
+    public HashStream32 putLong(long l) {
       processBuffer((int) (buffer | (l << shift)));
       buffer = l >>> (32 - shift);
       processBuffer((int) buffer);
@@ -180,7 +180,7 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
-    public HashStream putBytes(byte[] b, int off, int len) {
+    public HashStream32 putBytes(byte[] b, int off, int len) {
       final int regularBlockStartIdx = (-length) & 0x3;
       final int regularBlockEndIdx = len - ((len + length) & 0x3);
       length += len;
@@ -237,7 +237,7 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
-    public HashStream putChars(CharSequence s) {
+    public HashStream32 putChars(CharSequence s) {
       int len = s.length();
       if (len == 0) {
         return this;

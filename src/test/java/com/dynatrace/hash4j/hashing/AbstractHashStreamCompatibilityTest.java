@@ -25,16 +25,16 @@ class AbstractHashStreamCompatibilityTest {
   void testHashCompatibility() {
 
     HashValue128 hash128 = new HashValue128(0x4cdfea92fccec3ffL, 0x85e6a3b83eb8873aL);
-    AbstractHashStream calculator =
-        new AbstractHashStream() {
+    AbstractHashStream128 calculator =
+        new AbstractHashStream128() {
 
           @Override
-          public HashStream putByte(byte v) {
+          public HashStream128 putByte(byte v) {
             return this;
           }
 
           @Override
-          public HashStream reset() {
+          public HashStream128 reset() {
             return this;
           }
 

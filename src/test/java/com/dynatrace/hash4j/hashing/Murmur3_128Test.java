@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
 
-class Murmur3_128Test extends AbstractHashStream128Test {
+class Murmur3_128Test extends AbstractHasher128Test {
 
   private static final List<Hasher128> HASHERS =
       Arrays.asList(Hashing.murmur3_128(), Hashing.murmur3_128(0xfc64a346));
@@ -44,7 +44,7 @@ class Murmur3_128Test extends AbstractHashStream128Test {
   @Test
   public void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
-    HashStream stream = Hashing.murmur3_128().hashStream();
+    HashStream128 stream = Hashing.murmur3_128().hashStream();
     LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
     byte[] hashValueBytes = hash128ToByteArray(stream.get());
     byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");

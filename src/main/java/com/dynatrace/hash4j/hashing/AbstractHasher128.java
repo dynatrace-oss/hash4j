@@ -36,4 +36,9 @@ abstract class AbstractHasher128 extends AbstractHasher64 implements Hasher128 {
   public long hashCharsToLong(CharSequence input) {
     return hashCharsTo128Bits(input).getAsLong();
   }
+
+  @Override
+  public int getHashBitSize() {
+    return 128;
+  }
 }

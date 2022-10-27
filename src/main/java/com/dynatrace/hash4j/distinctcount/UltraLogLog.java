@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
@@ -551,7 +552,7 @@ public final class UltraLogLog {
     int idx = (int) (hashValue >>> q);
     int nlz = Long.numberOfLeadingZeros(~(~hashValue << (-q))); // nlz in {0, 1, ..., 64-p}
     long hashPrefix = registerToHashPrefix(state[idx]);
-    hashPrefix |= 1L << (nlz + (~q)); // nlz + p - 1 in {p-1, ... 63}
+    hashPrefix |= 1L << (nlz + (~q)); // (nlz + (~q)) = (nlz + p - 1) in {p-1, ... 63}
     state[idx] = hashPrefixToRegister(hashPrefix);
     return this;
   }
@@ -666,11 +667,6 @@ public final class UltraLogLog {
     x *= x;
     x *= x;
     return x;
-  }
-
-  // visible for testing
-  static boolean isUnsignedPowerOfTwo(int x) {
-    return (x & (x - 1)) == 0;
   }
 
   // visible for testing

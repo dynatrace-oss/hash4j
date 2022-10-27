@@ -164,6 +164,8 @@ class HashingDemo {
 
   private static final class DataBase {
 
+    private static final Hasher128 INFORMATION_MAP_ENTRY_HASHER = Hashing.murmur3_128();
+
     private List<Person> personList;
     private Map<Person, Info> informationMap;
 
@@ -177,7 +179,7 @@ class HashingDemo {
       sink.putUnorderedIterable(
           informationMap.entrySet(),
           HashFunnel.forEntry(Person::put, INFORMATION_HASH_FUNNEL),
-          Hashing.murmur3_128());
+          INFORMATION_MAP_ENTRY_HASHER);
     }
   }
 

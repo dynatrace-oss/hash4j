@@ -15,11 +15,82 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
+import static com.dynatrace.hash4j.testutils.TestUtils.hash128ToByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.dynatrace.hash4j.testutils.TestUtils;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-class AbstractHasher128Test {
+abstract class AbstractHasher128Test extends AbstractHasherTest {
+
+  public static class ReferenceTestRecord128 extends ReferenceTestRecord<Hasher128> {
+
+    private final byte[] expectedHash;
+
+    public ReferenceTestRecord128(Hasher128 hashSupplier, byte[] input, byte[] expectedHash) {
+      super(hashSupplier, input);
+      this.expectedHash = Arrays.copyOf(expectedHash, expectedHash.length);
+    }
+
+    public byte[] getExpectedHash() {
+      return expectedHash;
+    }
+  }
+
+  protected abstract List<ReferenceTestRecord128> getReferenceTestRecords();
+
+  @Override
+  protected abstract List<? extends Hasher128> getHashers();
+
+  @Override
+  protected HashStream createNonOptimizedHashStream(Hasher hasher) {
+
+    HashStream hashStream = hasher.hashStream();
+    HashStream128 hashStream128 = (HashStream128) hashStream;
+    return new AbstractHashStream128() {
+      @Override
+      public HashValue128 get() {
+        return hashStream128.get();
+      }
+
+      @Override
+      public HashStream128 putByte(byte v) {
+        hashStream128.putByte(v);
+        return this;
+      }
+
+      @Override
+      public HashStream128 reset() {
+        hashStream128.reset();
+        return this;
+      }
+    };
+  }
+
+  @ParameterizedTest
+  @MethodSource("getReferenceTestRecords")
+  void testAgainstReference(AbstractHasher128Test.ReferenceTestRecord128 r) {
+
+    assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_1)))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_2)))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(hash128ToByteArray(r.getHasher().hashBytesTo128Bits(r.getData())))
+        .isEqualTo(r.getExpectedHash());
+
+    if (r.getData().length % 2 == 0) {
+      CharSequence charSequence = byteArrayToCharSequence(r.getData());
+      assertThat(hash128ToByteArray(r.getHasher().hashCharsTo128Bits(charSequence)))
+          .isEqualTo(r.getExpectedHash());
+      assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL)))
+          .isEqualTo(r.getExpectedHash());
+    }
+  }
 
   @Test
   void testHashBytesTo128Bits() {
@@ -39,16 +110,16 @@ class AbstractHasher128Test {
           }
 
           @Override
-          public HashStream hashStream() {
-            return new AbstractHashStream() {
+          public HashStream128 hashStream() {
+            return new AbstractHashStream128() {
 
               @Override
-              public HashStream putByte(byte v) {
+              public HashStream128 putByte(byte v) {
                 return this;
               }
 
               @Override
-              public HashStream reset() {
+              public HashStream128 reset() {
                 return this;
               }
 
@@ -79,5 +150,28 @@ class AbstractHasher128Test {
     assertThat(hasher.hashCharsTo128Bits(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash.getAsLong());
     assertThat(hasher.hashCharsToInt(s)).isEqualTo(hash.getAsInt());
+
+    assertThat(hasher.getHashBitSize()).isEqualTo(128);
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testGetCompatibility(Hasher128 hasher) {
+    byte[] data = TestUtils.hexStringToByteArray("3011498ecb9ca21b2f6260617b55f3a7");
+    HashStream128 intHashStream = hasher.hashStream();
+    HashStream128 longHashStream = hasher.hashStream();
+    HashStream128 hash128Calculator = hasher.hashStream();
+    intHashStream.putBytes(data);
+    longHashStream.putBytes(data);
+    hash128Calculator.putBytes(data);
+    int intHash = intHashStream.getAsInt();
+    try {
+      long longHash = longHashStream.getAsLong();
+      assertThat((int) longHash).isEqualTo(intHash);
+      HashValue128 hash128Hash = hash128Calculator.get();
+      assertThat(hash128Hash.getAsLong()).isEqualTo(longHash);
+    } catch (UnsupportedOperationException e) {
+      // no compatibility check necessary, if 128-bit hash value is not supported
+    }
   }
 }

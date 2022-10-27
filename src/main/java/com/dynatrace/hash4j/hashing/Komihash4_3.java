@@ -97,7 +97,7 @@ class Komihash4_3 extends AbstractHasher64 {
   }
 
   @Override
-  public HashStream hashStream() {
+  public HashStream64 hashStream() {
     return new HashStreamImpl();
   }
 
@@ -342,7 +342,7 @@ class Komihash4_3 extends AbstractHasher64 {
     return see1;
   }
 
-  private class HashStreamImpl extends AbstractHashStream {
+  private class HashStreamImpl extends AbstractHashStream64 {
 
     private final byte[] buffer = new byte[64 + 7];
     private long byteCount = 0;
@@ -357,7 +357,7 @@ class Komihash4_3 extends AbstractHasher64 {
     private long see8 = Komihash4_3.this.seed8;
 
     @Override
-    public HashStream reset() {
+    public HashStream64 reset() {
       see1 = Komihash4_3.this.seed1;
       see2 = Komihash4_3.this.seed2;
       see3 = Komihash4_3.this.seed3;
@@ -371,7 +371,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putByte(byte v) {
+    public HashStream64 putByte(byte v) {
       buffer[(int) (byteCount & 0x3FL)] = v;
       if ((byteCount & 0x3FL) >= 0x3FL) {
         processBuffer();
@@ -381,7 +381,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putShort(short v) {
+    public HashStream64 putShort(short v) {
       setShort(buffer, (int) (byteCount & 0x3FL), v);
       if ((byteCount & 0x3FL) >= 0x3EL) {
         processBuffer();
@@ -392,7 +392,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putChar(char v) {
+    public HashStream64 putChar(char v) {
       setChar(buffer, (int) (byteCount & 0x3FL), v);
       if ((byteCount & 0x3FL) >= 0x3EL) {
         processBuffer();
@@ -403,7 +403,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putInt(int v) {
+    public HashStream64 putInt(int v) {
       setInt(buffer, (int) (byteCount & 0x3FL), v);
       if ((byteCount & 0x3FL) >= 0x3CL) {
         processBuffer();
@@ -414,7 +414,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putLong(long v) {
+    public HashStream64 putLong(long v) {
       setLong(buffer, (int) (byteCount & 0x3FL), v);
       if ((byteCount & 0x3FL) >= 0x38L) {
         processBuffer();
@@ -425,7 +425,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putBytes(byte[] b, int off, int len) {
+    public HashStream64 putBytes(byte[] b, int off, int len) {
       int offset = ((int) byteCount) & 0x3F;
       byteCount += len;
       int x = 64 - offset;
@@ -459,7 +459,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putChars(CharSequence s) {
+    public HashStream64 putChars(CharSequence s) {
       int remainingChars = s.length();
       int offset = (int) byteCount & 0x3F;
       byteCount += ((long) remainingChars) << 1;

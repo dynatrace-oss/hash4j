@@ -18,25 +18,9 @@ package com.dynatrace.hash4j.hashing;
 import static java.util.Objects.requireNonNull;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
 abstract class AbstractHashStream implements HashStream {
-
-  @Override
-  public int getAsInt() {
-    return (int) getAsLong();
-  }
-
-  @Override
-  public long getAsLong() {
-    return get().getAsLong();
-  }
-
-  @Override
-  public HashValue128 get() {
-    throw new UnsupportedOperationException();
-  }
 
   @Override
   public HashStream putBoolean(boolean v) {
@@ -281,17 +265,14 @@ abstract class AbstractHashStream implements HashStream {
     return this;
   }
 
-  @Deprecated(since = "0.7.0", forRemoval = true)
-  @Override
-  public <T> HashStream putUnorderedIterable(
-      Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier) {
-    return putUnorderedIterable(data, funnel, hasherSupplier.get());
-  }
-
   @Override
   public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
-    final HashStream hashStream = hasher.hashStream();
+    return putUnorderedIterable(data, funnel, hasher.hashStream());
+  }
+
+  private <T> HashStream putUnorderedIterable(
+      Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream) {
     return putUnorderedIterable(data, x -> hashStream.reset().put(x, funnel).getAsLong());
   }
 

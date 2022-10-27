@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 import static org.hipparchus.special.Gamma.gamma;
 
-import com.dynatrace.hash4j.hashing.HashStream;
+import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
@@ -42,8 +42,8 @@ import org.junit.jupiter.api.Test;
 
 class UltraLogLogTest {
 
-  private static final int MIN_P = 3;
-  private static final int MAX_P = 26;
+  static final int MIN_P = 3;
+  static final int MAX_P = 26;
 
   @Test
   void testEmpty() {
@@ -302,19 +302,6 @@ class UltraLogLogTest {
       sketchDownsized.add(hashValue);
     }
     assertThat(sketchOrig.downsize(pDownsized).getState()).isEqualTo(sketchDownsized.getState());
-  }
-
-  @Test
-  void testIsUnsignedPowerOfTwo() {
-    for (int exponent = 0; exponent < 32; exponent++) {
-      assertThat(UltraLogLog.isUnsignedPowerOfTwo(1 << exponent)).isTrue();
-    }
-    assertThat(UltraLogLog.isUnsignedPowerOfTwo(0)).isTrue();
-    for (int i = -1000; i < 0; ++i) {
-      assertThat(UltraLogLog.isUnsignedPowerOfTwo(i)).isFalse();
-    }
-    assertThat(UltraLogLog.isUnsignedPowerOfTwo(Integer.MIN_VALUE)).isTrue();
-    assertThat(UltraLogLog.isUnsignedPowerOfTwo(Integer.MAX_VALUE)).isFalse();
   }
 
   @Test
@@ -839,7 +826,7 @@ class UltraLogLogTest {
   void testStateCompatibility() {
     PseudoRandomGenerator pseudoRandomGenerator =
         PseudoRandomGeneratorProvider.splitMix64_V1().create();
-    HashStream hashStream = Hashing.komihash4_3().hashStream();
+    HashStream64 hashStream = Hashing.komihash4_3().hashStream();
     long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
     int numCycles = 10;
     for (int p = MIN_P; p <= MAX_P; ++p) {
@@ -854,5 +841,18 @@ class UltraLogLogTest {
       }
     }
     assertThat(hashStream.getAsLong()).isEqualTo(0xfc124320345bd3b9L);
+  }
+
+  @Test
+  void testUpdateValues() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      for (int i = p; i <= 64; ++i) {
+        long hash = 0xFFFFFFFFFFFFFFFFL >>> 1 >>> (i - 1);
+        int nlz = Long.numberOfLeadingZeros(~((~hash) << p));
+        assertThat(i - p + 1).isEqualTo(nlz + 1);
+        assertThat(((UltraLogLog.create(p).add(hash).getState()[0] & 0xFF) >>> 2) + 2 - p)
+            .isEqualTo(nlz + 1);
+      }
+    }
   }
 }

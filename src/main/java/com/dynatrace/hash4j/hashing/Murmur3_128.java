@@ -66,6 +66,21 @@ class Murmur3_128 extends AbstractHasher128 {
     return h2 * 5 + 0x38495ab5;
   }
 
+  private static HashValue128 finalizeHash(long h1, long h2, long byteCount) {
+    h1 ^= byteCount;
+    h2 ^= byteCount;
+
+    h1 += h2;
+    h2 += h1;
+
+    h1 = fmix64(h1);
+    h2 = fmix64(h2);
+
+    h1 += h2;
+    h2 += h1;
+    return new HashValue128(h2, h1);
+  }
+
   private final long seed;
 
   public Murmur3_128(long seed) {
@@ -73,7 +88,7 @@ class Murmur3_128 extends AbstractHasher128 {
   }
 
   @Override
-  public HashStream hashStream() {
+  public HashStream128 hashStream() {
     return new HashStreamImpl();
   }
 
@@ -148,87 +163,54 @@ class Murmur3_128 extends AbstractHasher128 {
         // do nothing
     }
 
-    h1 ^= len;
-    h2 ^= len;
-
-    h1 += h2;
-    h2 += h1;
-
-    h1 = fmix64(h1);
-    h2 = fmix64(h2);
-
-    h1 += h2;
-    h2 += h1;
-
-    return new HashValue128(h2, h1);
+    return finalizeHash(h1, h2, len);
   }
 
   @Override
-  public HashValue128 hashCharsTo128Bits(CharSequence input) {
-    int len = input.length();
-    int off = 0;
-    int nblocks = len >>> 3;
+  public HashValue128 hashCharsTo128Bits(CharSequence s) {
     long h1 = seed;
     long h2 = seed;
 
-    for (int i = 0; i < nblocks; i++, off += 8) {
-      long k1 = getLong(input, off);
-      long k2 = getLong(input, off + 4);
+    final int len = s.length();
+    int i = 0;
+    for (; i + 8 <= len; i += 8) {
+      long b0 = getLong(s, i);
+      long b1 = getLong(s, i + 4);
 
-      h1 ^= mixK1(k1);
+      h1 ^= mixK1(b0);
       h1 = mixH1(h1, h2);
-      h2 ^= mixK2(k2);
+      h2 ^= mixK2(b1);
       h2 = mixH2(h1, h2);
     }
 
-    long k1 = 0;
-    long k2 = 0;
-
-    switch (len & 7) {
-      case 7:
-        k2 ^= (long) input.charAt(off + 6) << 32;
-        // fallthrough
-      case 6:
-        k2 ^= (long) input.charAt(off + 5) << 16;
-        // fallthrough
-      case 5:
-        k2 ^= input.charAt(off + 4);
-        h2 ^= mixK2(k2);
-        // fallthrough
-      case 4:
-        k1 ^= (long) input.charAt(off + 3) << 48;
-        // fallthrough
-      case 3:
-        k1 ^= (long) input.charAt(off + 2) << 32;
-        // fallthrough
-      case 2:
-        k1 ^= (long) input.charAt(off + 1) << 16;
-        // fallthrough
-      case 1:
-        k1 ^= input.charAt(off);
-        h1 ^= mixK1(k1);
-        // fallthrough
-      default:
-        // do nothing
+    if (i < len) {
+      long buffer0 = s.charAt(i);
+      if (i + 1 < len) {
+        buffer0 |= ((long) s.charAt(i + 1)) << 16;
+        if (i + 2 < len) {
+          buffer0 |= ((long) s.charAt(i + 2)) << 32;
+          if (i + 3 < len) {
+            buffer0 |= ((long) s.charAt(i + 3)) << 48;
+            if (i + 4 < len) {
+              long buffer1 = s.charAt(i + 4);
+              if (i + 5 < len) {
+                buffer1 |= ((long) s.charAt(i + 5)) << 16;
+                if (i + 6 < len) {
+                  buffer1 |= ((long) s.charAt(i + 6)) << 32;
+                }
+              }
+              h2 ^= mixK2(buffer1);
+            }
+          }
+        }
+      }
+      h1 ^= mixK1(buffer0);
     }
 
-    long len2 = (long) len << 1;
-    h1 ^= len2;
-    h2 ^= len2;
-
-    h1 += h2;
-    h2 += h1;
-
-    h1 = fmix64(h1);
-    h2 = fmix64(h2);
-
-    h1 += h2;
-    h2 += h1;
-
-    return new HashValue128(h2, h1);
+    return finalizeHash(h1, h2, ((long) len) << 1);
   }
 
-  private class HashStreamImpl extends AbstractHashStream {
+  private class HashStreamImpl extends AbstractHashStream128 {
 
     private long h1 = seed;
     private long h2 = seed;
@@ -237,7 +219,7 @@ class Murmur3_128 extends AbstractHasher128 {
     private long bitCount = 0;
 
     @Override
-    public HashStream reset() {
+    public HashStream128 reset() {
       h1 = seed;
       h2 = seed;
       buffer0 = 0;
@@ -247,7 +229,7 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
-    public HashStream putByte(byte b) {
+    public HashStream128 putByte(byte b) {
       buffer1 |= ((b & 0xFFL) << bitCount);
       if ((bitCount & 0x38L) == 0x38L) {
         if ((bitCount & 0x40L) != 0) {
@@ -261,7 +243,7 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
-    public HashStream putShort(short v) {
+    public HashStream128 putShort(short v) {
       final long l = v & 0xFFFFL;
       buffer1 |= l << bitCount;
       if ((bitCount & 0x30L) == 0x30L) {
@@ -276,7 +258,7 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
-    public HashStream putInt(int v) {
+    public HashStream128 putInt(int v) {
       final long l = v & 0xFFFFFFFFL;
       buffer1 |= l << bitCount;
       if ((bitCount & 0x20L) != 0) {
@@ -291,7 +273,7 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
-    public HashStream putLong(long l) {
+    public HashStream128 putLong(long l) {
       buffer1 |= (l << bitCount);
       if ((bitCount & 0x40L) != 0) {
         processBuffer(buffer0, buffer1);
@@ -303,7 +285,7 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
-    public HashStream putBytes(byte[] b, int off, int len) {
+    public HashStream128 putBytes(byte[] b, int off, int len) {
 
       final long oldBitCount = bitCount;
       final int numWrittenBytes = (int) bitCount >>> 3;
@@ -429,20 +411,7 @@ class Murmur3_128 extends AbstractHasher128 {
           g2 ^= mixK2(buffer1);
         }
       }
-
-      final long byteCount = bitCount >>> 3;
-      g1 ^= byteCount;
-      g2 ^= byteCount;
-
-      g1 += g2;
-      g2 += g1;
-
-      g1 = fmix64(g1);
-      g2 = fmix64(g2);
-
-      g1 += g2;
-      g2 += g1;
-      return new HashValue128(g2, g1);
+      return finalizeHash(g1, g2, bitCount >>> 3);
     }
 
     @Override
@@ -476,7 +445,7 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
-    public HashStream putChars(CharSequence s) {
+    public HashStream128 putChars(CharSequence s) {
       final int len = s.length();
       int i = ((8 - (int) (bitCount)) >>> 4) & 0x7;
       if (len < i) {

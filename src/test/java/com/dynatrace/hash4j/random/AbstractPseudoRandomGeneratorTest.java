@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.dynatrace.hash4j.hashing.HashStream;
+import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
@@ -93,7 +93,7 @@ abstract class AbstractPseudoRandomGeneratorTest {
   void testStability() {
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     for (int c = 0; c < 3; ++c) {
-      HashStream hashStream = Hashing.komihash4_3().hashStream();
+      HashStream64 hashStream = Hashing.komihash4_3().hashStream();
       prg.reset(0x2953eb15d353f9bdL);
       for (int i = 0; i < 1000; ++i) {
         hashStream.putLong(prg.nextLong());
@@ -142,7 +142,7 @@ abstract class AbstractPseudoRandomGeneratorTest {
     int numIterations = 10000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     prg.reset(0xb9db9b9308cda722L);
-    HashStream hashStream = Hashing.komihash4_3().hashStream();
+    HashStream64 hashStream = Hashing.komihash4_3().hashStream();
     for (int i = 0; i < numIterations; ++i) {
       hashStream.putDouble(prg.nextExponential());
     }
@@ -154,7 +154,7 @@ abstract class AbstractPseudoRandomGeneratorTest {
     int numIterations = 10000000;
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     prg.reset(0x908c971030cd9247L);
-    HashStream hashStream = Hashing.komihash4_3().hashStream();
+    HashStream64 hashStream = Hashing.komihash4_3().hashStream();
     for (int i = 0; i < numIterations; ++i) {
       hashStream.putDouble(prg.nextDouble());
     }
