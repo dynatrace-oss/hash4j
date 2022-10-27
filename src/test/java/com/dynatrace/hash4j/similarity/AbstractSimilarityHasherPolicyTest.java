@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.similarity;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.*;
 
-import com.dynatrace.hash4j.hashing.HashStream;
+import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import java.util.*;
 import java.util.stream.IntStream;
@@ -232,7 +232,7 @@ abstract class AbstractSimilarityHasherPolicyTest {
     int maxNumComponents = 100;
 
     SplittableRandom random = new SplittableRandom(0x1f5ecbf3549e200cL);
-    HashStream stream = Hashing.komihash4_3().hashStream();
+    HashStream64 stream = Hashing.komihash4_3().hashStream();
 
     for (int numComponents = 1; numComponents <= maxNumComponents; ++numComponents) {
       SimilarityHashPolicy policy = getSimilarityHashPolicy(numComponents);

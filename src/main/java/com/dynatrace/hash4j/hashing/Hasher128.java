@@ -28,6 +28,9 @@ package com.dynatrace.hash4j.hashing;
  */
 public interface Hasher128 extends Hasher64 {
 
+  @Override
+  HashStream128 hashStream();
+
   /**
    * Hashes an object to a 128-bit {@link HashValue128} value.
    *
@@ -41,7 +44,7 @@ public interface Hasher128 extends Hasher64 {
   /**
    * Hashes a byte array to a 128-bit {@link HashValue128} value.
    *
-   * <p>Equivalent to {@link #hashBytesTo128Bits}{@code (input, 0, input.length)}.
+   * <p>Equivalent to {@code hashBytesTo128Bits(input, 0, input.length)}.
    *
    * @param input the byte array
    * @return the hash value
@@ -63,7 +66,7 @@ public interface Hasher128 extends Hasher64 {
   /**
    * Hashes a {@link CharSequence} to a 128-bit {@link HashValue128} value.
    *
-   * <p>Equivalent to {@link #hashTo128Bits}{@code (input, (c, f) -> f.putChars(c))}.
+   * <p>Equivalent to {@code hashTo128Bits(input, (c, f) -> f.putChars(c))}.
    *
    * @param input the char sequence
    * @return the hash value

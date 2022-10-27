@@ -28,6 +28,9 @@ package com.dynatrace.hash4j.hashing;
  */
 public interface Hasher64 extends Hasher32 {
 
+  @Override
+  HashStream64 hashStream();
+
   /**
    * Hashes an object to a 64-bit {@code long} value.
    *
@@ -41,7 +44,7 @@ public interface Hasher64 extends Hasher32 {
   /**
    * Hashes a byte array to a 64-bit {@code long} value.
    *
-   * <p>Equivalent to {@link #hashBytesToLong}{@code (input, 0, input.length)}.
+   * <p>Equivalent to {@code hashBytesToLong(input, 0, input.length)}.
    *
    * @param input the byte array
    * @return the hash value
@@ -51,7 +54,7 @@ public interface Hasher64 extends Hasher32 {
   /**
    * Hashes a byte array to a 64-bit {@code long} value.
    *
-   * <p>Equivalent to {@link #hashToLong}{@code (input, (b, f) -> f.putBytes(b, off, len))}.
+   * <p>Equivalent to {@code hashToLong(input, (b, f) -> f.putBytes(b, off, len))}.
    *
    * @param input the byte array
    * @param off the offset
@@ -63,7 +66,7 @@ public interface Hasher64 extends Hasher32 {
   /**
    * Hashes a {@link CharSequence} to a 64-bit {@code long} value.
    *
-   * <p>Equivalent to {@link #hashToLong}{@code (input, (c, f) -> f.putChars(c))}.
+   * <p>Equivalent to {@code hashToLong(input, (c, f) -> f.putChars(c))}.
    *
    * @param input the char sequence
    * @return the hash value

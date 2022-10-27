@@ -13,27 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.hashing;
+package com.dynatrace.hash4j.distinctcount;
 
-/**
- * A hash function.
- *
- * <p>Instances are immutable. Therefore, it is safe to use a single instance across multiple
- * threads and for multiple hash calculations.
- */
-interface Hasher {
+class DistinctCountUtil {
 
-  /**
-   * Starts a hash stream.
-   *
-   * @return a new {@link HashStream} instance
-   */
-  HashStream hashStream();
+  private DistinctCountUtil() {}
+  // visible for testing
 
-  /**
-   * The size of the hash value in bits.
-   *
-   * @return the size of the hash value in bits
-   */
-  int getHashBitSize();
+  static boolean isUnsignedPowerOfTwo(int x) {
+    return (x & (x - 1)) == 0;
+  }
 }

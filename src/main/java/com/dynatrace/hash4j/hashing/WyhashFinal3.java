@@ -30,7 +30,7 @@ class WyhashFinal3 extends AbstractHasher64 {
   }
 
   @Override
-  public HashStream hashStream() {
+  public HashStream64 hashStream() {
     return new HashStreamImpl();
   }
 
@@ -53,18 +53,16 @@ class WyhashFinal3 extends AbstractHasher64 {
     } else {
       int i = len;
       int p = off;
-      if (i > 48) {
-        long see1 = seed;
-        long see2 = seed;
-        do {
-          see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
-          see1 = wymix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
-          see2 = wymix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
-          p += 48;
-          i -= 48;
-        } while (i > 48);
-        see0 ^= see1 ^ see2;
+      long see1 = seed;
+      long see2 = seed;
+      while (i > 48) {
+        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
+        see1 = wymix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
+        see2 = wymix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
+        p += 48;
+        i -= 48;
       }
+      see0 ^= see1 ^ see2;
       while (i > 16) {
         see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
         i -= 16;
@@ -101,25 +99,23 @@ class WyhashFinal3 extends AbstractHasher64 {
     } else {
       int i = len;
       int p = 0;
-      if (i > 24) {
-        long see1 = seed;
-        long see2 = seed;
-        do {
-          see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
-          see1 = wymix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
-          see2 = wymix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
-          p += 24;
-          i -= 24;
-        } while (i > 24);
-        see0 ^= see1 ^ see2;
+      long see1 = seed;
+      long see2 = seed;
+      while (i > 24) {
+        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
+        see1 = wymix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
+        see2 = wymix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
+        p += 24;
+        i -= 24;
       }
+      see0 ^= see1 ^ see2;
       while (i > 8) {
         see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
         i -= 8;
         p += 8;
       }
-      a = getLong(input, p + i - 8);
-      b = getLong(input, p + i - 4);
+      a = getLong(input, len - 8);
+      b = getLong(input, len - 4);
     }
     return wymix(secret1 ^ (((long) len) << 1), wymix(a ^ secret1, b ^ see0));
   }
@@ -269,7 +265,7 @@ class WyhashFinal3 extends AbstractHasher64 {
 
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);
 
-  private class HashStreamImpl extends AbstractHashStream {
+  private class HashStreamImpl extends AbstractHashStream64 {
 
     private final byte[] buffer = new byte[48 + 8];
     private long byteCount = 0;
@@ -280,7 +276,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     private long see2 = seed;
 
     @Override
-    public HashStream reset() {
+    public HashStream64 reset() {
       byteCount = 0;
       offset = 0;
       see0 = seed;
@@ -290,7 +286,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putByte(byte v) {
+    public HashStream64 putByte(byte v) {
       buffer[offset] = v;
       offset += 1;
       byteCount += 1;
@@ -303,7 +299,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putShort(short v) {
+    public HashStream64 putShort(short v) {
       setShort(buffer, offset, v);
       offset += 2;
       byteCount += 2;
@@ -316,7 +312,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putChar(char v) {
+    public HashStream64 putChar(char v) {
       setChar(buffer, offset, v);
       offset += 2;
       byteCount += 2;
@@ -329,7 +325,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putInt(int v) {
+    public HashStream64 putInt(int v) {
       setInt(buffer, offset, v);
       offset += 4;
       byteCount += 4;
@@ -342,7 +338,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putLong(long v) {
+    public HashStream64 putLong(long v) {
       setLong(buffer, offset, v);
       offset += 8;
       byteCount += 8;
@@ -355,7 +351,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putBytes(byte[] b, int off, int len) {
+    public HashStream64 putBytes(byte[] b, int off, int len) {
       byteCount += len;
       int x = 48 - offset;
       if (len > x) {
@@ -387,7 +383,7 @@ class WyhashFinal3 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream putChars(CharSequence s) {
+    public HashStream64 putChars(CharSequence s) {
       int remainingChars = s.length();
       byteCount += ((long) remainingChars) << 1;
       int off = 0;

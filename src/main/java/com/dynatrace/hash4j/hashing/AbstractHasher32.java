@@ -26,4 +26,9 @@ abstract class AbstractHasher32 extends AbstractHasher implements Hasher32 {
   public int hashBytesToInt(byte[] input) {
     return hashBytesToInt(input, 0, input.length);
   }
+
+  @Override
+  public int getHashBitSize() {
+    return 32;
+  }
 }

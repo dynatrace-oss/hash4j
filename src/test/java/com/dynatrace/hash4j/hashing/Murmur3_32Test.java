@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
 
-class Murmur3_32Test extends AbstractHashStream32Test {
+class Murmur3_32Test extends AbstractHasher32Test {
 
   private static final List<Hasher32> HASHERS =
       Arrays.asList(Hashing.murmur3_32(), Hashing.murmur3_32(0x43a3fb15));
@@ -54,7 +54,7 @@ class Murmur3_32Test extends AbstractHashStream32Test {
   @Test
   void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
-    HashStream stream = Hashing.murmur3_32().hashStream();
+    HashStream32 stream = Hashing.murmur3_32().hashStream();
     LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
     assertThat(stream.getAsInt()).isEqualTo(0x0038818d);
   }

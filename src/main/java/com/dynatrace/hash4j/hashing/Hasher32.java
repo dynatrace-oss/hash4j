@@ -23,6 +23,9 @@ package com.dynatrace.hash4j.hashing;
  */
 public interface Hasher32 extends Hasher {
 
+  @Override
+  HashStream32 hashStream();
+
   /**
    * Hashes an object to a 32-bit integer value.
    *
@@ -36,7 +39,7 @@ public interface Hasher32 extends Hasher {
   /**
    * Hashes a byte array to a 32-bit integer value.
    *
-   * <p>Equivalent to {@link #hashBytesToInt}{@code (input, 0, input.length)}.
+   * <p>Equivalent to {@code hashBytesToInt(input, 0, input.length)}.
    *
    * @param input the byte array
    * @return the hash value
@@ -46,7 +49,7 @@ public interface Hasher32 extends Hasher {
   /**
    * Hashes a byte array to a 32-bit integer value.
    *
-   * <p>Equivalent to {@link #hashToInt}{@code (input, (b, f) -> f.putBytes(b, off, len))}.
+   * <p>Equivalent to {@code hashToInt(input, (b, f) -> f.putBytes(b, off, len))}.
    *
    * @param input the byte array
    * @param off the offset
@@ -58,7 +61,7 @@ public interface Hasher32 extends Hasher {
   /**
    * Hashes a {@link CharSequence} to a 32-bit {@code int} value.
    *
-   * <p>Equivalent to {@link #hashCharsToInt}{@code (input, (c, f) -> f.putChars(c))}.
+   * <p>Equivalent to {@code hashToInt(input, (c, f) -> f.putChars(c))}.
    *
    * @param input the char sequence
    * @return the hash value

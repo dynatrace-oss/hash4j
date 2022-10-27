@@ -15,11 +15,78 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
-class AbstractHasher64Test {
+abstract class AbstractHasher64Test extends AbstractHasherTest {
+
+  public static class ReferenceTestRecord64
+      extends AbstractHasherTest.ReferenceTestRecord<Hasher64> {
+
+    private final long expectedHash;
+
+    public ReferenceTestRecord64(Hasher64 hashSupplier, byte[] input, long expectedHash) {
+      super(hashSupplier, input);
+      this.expectedHash = expectedHash;
+    }
+
+    public long getExpectedHash() {
+      return expectedHash;
+    }
+  }
+
+  protected abstract List<ReferenceTestRecord64> getReferenceTestRecords();
+
+  @Override
+  protected abstract List<? extends Hasher64> getHashers();
+
+  @Override
+  protected HashStream createNonOptimizedHashStream(Hasher hasher) {
+
+    HashStream hashStream = hasher.hashStream();
+    HashStream64 hashStream64 = (HashStream64) hashStream;
+    return new AbstractHashStream64() {
+      @Override
+      public long getAsLong() {
+        return hashStream64.getAsLong();
+      }
+
+      @Override
+      public HashStream64 putByte(byte v) {
+        hashStream64.putByte(v);
+        return this;
+      }
+
+      @Override
+      public HashStream64 reset() {
+        hashStream64.reset();
+        return this;
+      }
+    };
+  }
+
+  @ParameterizedTest
+  @MethodSource("getReferenceTestRecords")
+  void testAgainstReference(ReferenceTestRecord64 r) {
+
+    assertThat(r.getHasher().hashToLong(r.getData(), BYTES_FUNNEL_1))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(r.getHasher().hashToLong(r.getData(), BYTES_FUNNEL_2))
+        .isEqualTo(r.getExpectedHash());
+    assertThat(r.getHasher().hashBytesToLong(r.getData())).isEqualTo(r.getExpectedHash());
+
+    if (r.getData().length % 2 == 0) {
+      CharSequence charSequence = byteArrayToCharSequence(r.getData());
+      assertThat(r.getHasher().hashCharsToLong(charSequence)).isEqualTo(r.getExpectedHash());
+      assertThat(r.getHasher().hashToLong(charSequence, CHAR_FUNNEL))
+          .isEqualTo(r.getExpectedHash());
+    }
+  }
 
   @Test
   void testHashBytesToLong() {
@@ -39,16 +106,16 @@ class AbstractHasher64Test {
           }
 
           @Override
-          public HashStream hashStream() {
-            return new AbstractHashStream() {
+          public HashStream64 hashStream() {
+            return new AbstractHashStream64() {
 
               @Override
-              public HashStream putByte(byte v) {
+              public HashStream64 putByte(byte v) {
                 return this;
               }
 
               @Override
-              public HashStream reset() {
+              public HashStream64 reset() {
                 return this;
               }
 
@@ -76,5 +143,7 @@ class AbstractHasher64Test {
 
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToInt(s)).isEqualTo((int) hash);
+
+    assertThat(hasher.getHashBitSize()).isEqualTo(64);
   }
 }

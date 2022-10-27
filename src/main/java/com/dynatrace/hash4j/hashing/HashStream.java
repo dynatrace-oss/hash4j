@@ -16,43 +16,9 @@
 package com.dynatrace.hash4j.hashing;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
-public interface HashStream extends HashSink {
-
-  /**
-   * Returns a 32-bit hash value.
-   *
-   * <p>If {@link #getHashBitSize()} {@code >= 64}, the returned value will be the same as {@code
-   * (long)}{@link #getAsLong()}.
-   *
-   * @return a 32-bit hash value
-   * @throws UnsupportedOperationException if {@link #getHashBitSize()} returns a value smaller than
-   *     32
-   */
-  int getAsInt();
-
-  /**
-   * Returns a 64-bit hash value.
-   *
-   * <p>If {@link #getHashBitSize()} {@code >= 128}, the returned value will be the same as {@link
-   * #get()}{@code .getAsLong()}.
-   *
-   * @return a 64-bit hash value
-   * @throws UnsupportedOperationException if {@link #getHashBitSize()} returns a value smaller than
-   *     64
-   */
-  long getAsLong();
-
-  /**
-   * Returns a 128-bit hash value.
-   *
-   * @return a 128-bit hash value
-   * @throws UnsupportedOperationException if {@link #getHashBitSize()} returns a value smaller than
-   *     128
-   */
-  HashValue128 get();
+interface HashStream extends HashSink {
 
   /**
    * The size of the hash value in bits.
@@ -178,11 +144,6 @@ public interface HashStream extends HashSink {
   @Override
   <T> HashStream putUnorderedIterable(
       Iterable<T> data, ToLongFunction<? super T> elementHashFunction);
-
-  @Deprecated(since = "0.7.0", forRemoval = true)
-  @Override
-  <T> HashStream putUnorderedIterable(
-      Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier);
 
   @Override
   <T> HashStream putUnorderedIterable(

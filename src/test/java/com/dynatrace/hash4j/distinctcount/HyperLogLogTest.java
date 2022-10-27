@@ -21,7 +21,7 @@ import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
-import com.dynatrace.hash4j.hashing.HashStream;
+import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
@@ -256,19 +256,6 @@ class HyperLogLogTest {
       sketchDownsized.add(hashValue);
     }
     assertThat(sketchOrig.downsize(pDownsized).getState()).isEqualTo(sketchDownsized.getState());
-  }
-
-  @Test
-  void testIsUnsignedPowerOfTwo() {
-    for (int exponent = 0; exponent < 32; exponent++) {
-      assertThat(HyperLogLog.isUnsignedPowerOfTwo(1 << exponent)).isTrue();
-    }
-    assertThat(HyperLogLog.isUnsignedPowerOfTwo(0)).isTrue();
-    for (int i = -1000; i < 0; ++i) {
-      assertThat(HyperLogLog.isUnsignedPowerOfTwo(i)).isFalse();
-    }
-    assertThat(HyperLogLog.isUnsignedPowerOfTwo(Integer.MIN_VALUE)).isTrue();
-    assertThat(HyperLogLog.isUnsignedPowerOfTwo(Integer.MAX_VALUE)).isFalse();
   }
 
   @Test
@@ -694,7 +681,7 @@ class HyperLogLogTest {
   void testStateCompatibility() {
     PseudoRandomGenerator pseudoRandomGenerator =
         PseudoRandomGeneratorProvider.splitMix64_V1().create();
-    HashStream hashStream = Hashing.komihash4_3().hashStream();
+    HashStream64 hashStream = Hashing.komihash4_3().hashStream();
     long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
     int numCycles = 10;
     for (int p = MIN_P; p <= MAX_P; ++p) {
@@ -709,5 +696,29 @@ class HyperLogLogTest {
       }
     }
     assertThat(hashStream.getAsLong()).isEqualTo(0xbdaf1768adb7bd8bL);
+  }
+
+  @Test
+  void testCreateFromUltraLogLog() {
+    PseudoRandomGenerator pseudoRandomGenerator =
+        PseudoRandomGeneratorProvider.splitMix64_V1().create();
+    long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
+    int numCycles = 10;
+    for (int p = Math.max(MIN_P, UltraLogLogTest.MIN_P);
+        p <= Math.min(MAX_P, UltraLogLogTest.MAX_P);
+        ++p) {
+      for (long cardinality : cardinalities) {
+        for (int i = 0; i < numCycles; ++i) {
+          HyperLogLog hllSketch = HyperLogLog.create(p);
+          UltraLogLog ullSketch = UltraLogLog.create(p);
+          for (long c = 0; c < cardinality; ++c) {
+            long hash = pseudoRandomGenerator.nextLong();
+            hllSketch.add(hash);
+            ullSketch.add(hash);
+          }
+          assertThat(HyperLogLog.create(ullSketch).getState()).isEqualTo(hllSketch.getState());
+        }
+      }
+    }
   }
 }

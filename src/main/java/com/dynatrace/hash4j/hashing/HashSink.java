@@ -16,7 +16,6 @@
 package com.dynatrace.hash4j.hashing;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
 
 /** A sink that accepts various data types contributing to the hash computation. */
@@ -599,22 +598,6 @@ public interface HashSink {
    */
   <T> HashSink putUnorderedIterable(
       Iterable<T> data, ToLongFunction<? super T> elementHashFunction);
-
-  /**
-   * Adds an unordered {@link Iterable} (e.g. {@link Set}) to the hash computation.
-   *
-   * @deprecated use {@link #putUnorderedIterable(Iterable, HashFunnel, Hasher64)} instead. Hasher
-   *     instances are immutable and can be reused. Therefore, it is preferable to use a statically
-   *     initalized instance.
-   * @param data the iterable
-   * @param funnel the funnel
-   * @param hasherSupplier a supplier for a 64-bit hasher
-   * @param <T> the element type
-   * @return this
-   */
-  @Deprecated(since = "0.7.0", forRemoval = true)
-  <T> HashSink putUnorderedIterable(
-      Iterable<T> data, HashFunnel<? super T> funnel, Supplier<? extends Hasher64> hasherSupplier);
 
   /**
    * Adds an unordered {@link Iterable} (e.g. {@link Set}) to the hash computation.

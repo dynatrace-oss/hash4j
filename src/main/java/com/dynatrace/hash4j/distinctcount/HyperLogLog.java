@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.util.PackedArray;
@@ -24,8 +25,7 @@ import java.util.Arrays;
 /**
  * A HyperLogLog implementation for approximate distinct counting.
  *
- * <p>This implementation is just used for comparison with UltraLogLog which is more
- * space-efficient.
+ * <p>Prefer using {@link UltraLogLog} which is more space-efficient.
  *
  * <p>This HyperLogLog (Flajolet2007) uses 6 bits per register as proposed in (Heule2013) and the
  * estimation algorithm presented in (Ertl2017).
@@ -41,7 +41,7 @@ import java.util.Arrays;
  *       16th International Conference on Extending Database Technology. 2013.
  * </ul>
  */
-final class HyperLogLog {
+public final class HyperLogLog {
 
   private static final PackedArrayHandler ARRAY_HANDLER = PackedArray.getHandler(6);
 
@@ -54,7 +54,7 @@ final class HyperLogLog {
    * The minimum allowed precision parameter.
    *
    * <p>This is the smallest precision parameter p for which 6 * 2^p fits exactly into a byte array
-   * without having unused bits. Futhermore, if p >= 2 the maximum number of leading zeros (NLZ) is
+   * without having unused bits. Furthermore, if p >= 2 the maximum number of leading zeros (NLZ) is
    * limited to 62, and therefore the maximum (NLZ + 1) can be stored in 6 bits. Smaller precision
    * parameters hardly makes sense anyway.
    */
@@ -157,6 +157,23 @@ final class HyperLogLog {
   public static HyperLogLog create(int p) {
     checkPrecisionParameter(p);
     return new HyperLogLog(p);
+  }
+
+  /**
+   * Creates a {@link HyperLogLog} sketch from an {@link UltraLogLog} sketch with same precision.
+   *
+   * <p>The state of the resulting HyperLogLog sketch is the same as if all elements inserted into
+   * the UltraLogLog sketch had been inserted directly into the HyperLogLog sketch.
+   *
+   * @param ullSketch an UltraLogLog sketch
+   * @return a HyperLogLog sketch
+   */
+  public static HyperLogLog create(UltraLogLog ullSketch) {
+    int p = ullSketch.getP();
+    checkPrecisionParameter(p);
+    byte[] ullState = ullSketch.getState();
+    return new HyperLogLog(
+        ARRAY_HANDLER.create(i -> Math.max(0, ((ullState[i] & 0xFF) >>> 2) + 2 - p), 1 << p), p);
   }
 
   /**
@@ -338,11 +355,6 @@ final class HyperLogLog {
       sum += m * sigma(c0 / (double) m);
     }
     return ESTIMATION_FACTORS[p] / sum;
-  }
-
-  // visible for testing
-  static boolean isUnsignedPowerOfTwo(int x) {
-    return (x & (x - 1)) == 0;
   }
 
   // visible for testing
