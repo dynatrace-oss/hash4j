@@ -15,8 +15,9 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,5 +34,16 @@ class DistinctCountUtilTest {
     }
     assertThat(isUnsignedPowerOfTwo(Integer.MIN_VALUE)).isTrue();
     assertThat(isUnsignedPowerOfTwo(Integer.MAX_VALUE)).isFalse();
+  }
+
+  @Test
+  void testCheckPrecisionParameter() {
+    assertThatIllegalArgumentException().isThrownBy(() -> checkPrecisionParameter(1, 3, 5));
+    assertThatIllegalArgumentException().isThrownBy(() -> checkPrecisionParameter(2, 3, 5));
+    assertThatNoException().isThrownBy(() -> checkPrecisionParameter(3, 3, 5));
+    assertThatNoException().isThrownBy(() -> checkPrecisionParameter(4, 3, 5));
+    assertThatNoException().isThrownBy(() -> checkPrecisionParameter(5, 3, 5));
+    assertThatIllegalArgumentException().isThrownBy(() -> checkPrecisionParameter(6, 3, 5));
+    assertThatIllegalArgumentException().isThrownBy(() -> checkPrecisionParameter(7, 3, 5));
   }
 }

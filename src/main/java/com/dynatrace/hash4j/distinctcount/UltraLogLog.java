@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
 import static java.util.Objects.requireNonNull;
 
@@ -429,12 +430,6 @@ public final class UltraLogLog {
     this.state = state;
   }
 
-  private static void checkPrecisionParameter(int p) {
-    if (p < MIN_P || p > MAX_P) {
-      throw new IllegalArgumentException("illegal precision parameter");
-    }
-  }
-
   /**
    * Creates an empty {@link UltraLogLog} sketch with given precision.
    *
@@ -446,7 +441,7 @@ public final class UltraLogLog {
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
   public static UltraLogLog create(int p) {
-    checkPrecisionParameter(p);
+    checkPrecisionParameter(p, MIN_P, MAX_P);
     return new UltraLogLog(p);
   }
 
@@ -490,7 +485,7 @@ public final class UltraLogLog {
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
   public UltraLogLog downsize(int p) {
-    checkPrecisionParameter(p);
+    checkPrecisionParameter(p, MIN_P, MAX_P);
     if ((1 << p) >= state.length) {
       return copy();
     } else {
