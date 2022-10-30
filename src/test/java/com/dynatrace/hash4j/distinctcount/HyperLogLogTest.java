@@ -40,7 +40,7 @@ import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
 class HyperLogLogTest {
-  private static final int MIN_P = 2;
+  private static final int MIN_P = 3;
   private static final int MAX_P = 26;
 
   @Test
@@ -63,7 +63,6 @@ class HyperLogLogTest {
   @Test
   void testRelativeStandardErrorAgainstConstants() {
     double[] expected = {
-      0.5194808807068446,
       0.36732845344456977,
       0.2597404403534223,
       0.18366422672228488,
@@ -695,7 +694,7 @@ class HyperLogLogTest {
         }
       }
     }
-    assertThat(hashStream.getAsLong()).isEqualTo(0xbdaf1768adb7bd8bL);
+    assertThat(hashStream.getAsLong()).isEqualTo(0xac8fdde22c15315eL);
   }
 
   @Test

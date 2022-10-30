@@ -106,7 +106,7 @@ def plot_charts(filename):
     if headers["sketch_name"] == "ultraloglog":
         ax.set_ylim([-theory * 0.1, theory * 1.15])
     elif headers["sketch_name"] == "hyperloglog":
-        ax.set_ylim([-theory * 0.25, theory * 1.55])
+        ax.set_ylim([-theory * 0.2, theory * 1.25])
     else:
         assert False
     ax.set_xlim([1, values["distinct count"][-1]])

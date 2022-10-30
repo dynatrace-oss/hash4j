@@ -16,12 +16,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.6.2</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.6.2'
+implementation 'com.dynatrace.hash4j:hash4j:0.7.0'
 ```
 
 ## Hash algorithms
@@ -92,12 +92,32 @@ double estimatedJaccardSimilarity =
 
 See also [SimilarityHashingDemo.java](src/test/java/com/dynatrace/hash4j/similarity/SimilarityHashingDemo.java).
 
-## UltraLogLog
-UltraLogLog is a more space-efficient alternative to [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog) for approximate counting of distinct items. It has the following properties:
-* Constant-time and branch-free add-operation
+## Approximate distinct counting
+Counting the number of distinct elements exactly requires space that must increase linearly with the count. 
+However, there are algorithms that require much less space by counting just approximately.
+The space-efficiency of those algorithms can be compared by means of the storage factor which is defined as 
+the state size in bits multiplied by the squared relative standard error of the estimator
+
+$\text{storage factor} := (\text{relative standard error})^2 \times (\text{state size})$.
+
+This library implements two algorithms:
+* [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog): This implementation uses [6-bit registers](https://doi.org/10.1145/2452376.2452456) and
+an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). Its asymptotic storage factor 
+is 6.477. The state size is a function of the precision parameter $p$, which defines the number of 
+registers as $m = 2^p$ and results in a state size of $6m = 6\cdot 2^p$ bits. Using the definition of the storage factor, the
+relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$ as empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
+* UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper. It has an
+asymptotic storage factor of 4.936, which corresponds to a 24% reduction compared to HyperLogLog.
+UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers. Like for HyperLogLog,
+  the number of registers $m = 2^p$ depends on the chosen precision parameter $p$ and corresponds to the state size in bytes. The relative standard error 
+is approximately $\sqrt{\frac{4.936}{8 m}} = \frac{0.785}{\sqrt{m}}$ as confirmed by
+[simulation results](doc/ultraloglog-estimation-error.md).
+  
+Both algorithms share the following properties:
+* Constant-time (HyperLogLog) & branch-free (UltraLogLog) add-operations
 * Allocation-free updates
-* Adding items already inserted before will never change the internal state
-* Mergeability, support of merging sketches initialized with different precision parameters   
+* Idempotency, adding items already inserted before will never change the internal state
+* Mergeability, even for data structures initialized with different precision parameters   
 * Final state is independent of order of add- and merge-operations
 * Fast estimation algorithm that is fully backed by theory and does not rely on magic constants
 
@@ -114,13 +134,6 @@ sketch.add(hasher.hashCharsToLong("foo"));
 double distinctCountEstimate = sketch.getDistinctCountEstimate(); // gives a value close to 2
 ```
 See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/UltraLogLogDemo.java).
-
-### Estimation error
-
-The state of an UltraLogLog sketch with precision parameter $p$ requires $m = 2^p$ bytes. The expected relative standard error is approximately given by 
-$\frac{0.785}{\sqrt{m}}$. This is a good approximation for all $p\geq 6$ and large distinct counts. However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller. The bias is always much smaller than the root-mean-square error (rmse) and can therefore be neglected. The following charts show the empirically evaluated relative error as a function of the true distinct count for various precision parameters $p$ based on 100k simulation runs:
-
-<img src="test-results/ultraloglog-estimation-error-p3.png" width="400"><img src="test-results/ultraloglog-estimation-error-p4.png" width="400"><img src="test-results/ultraloglog-estimation-error-p5.png" width="400"><img src="test-results/ultraloglog-estimation-error-p6.png" width="400"><img src="test-results/ultraloglog-estimation-error-p7.png" width="400"><img src="test-results/ultraloglog-estimation-error-p8.png" width="400"><img src="test-results/ultraloglog-estimation-error-p9.png" width="400"><img src="test-results/ultraloglog-estimation-error-p10.png" width="400"><img src="test-results/ultraloglog-estimation-error-p11.png" width="400"><img src="test-results/ultraloglog-estimation-error-p12.png" width="400"><img src="test-results/ultraloglog-estimation-error-p13.png" width="400"><img src="test-results/ultraloglog-estimation-error-p14.png" width="400"><img src="test-results/ultraloglog-estimation-error-p15.png" width="400"><img src="test-results/ultraloglog-estimation-error-p16.png" width="400">
 
 ## Contribution FAQ
 

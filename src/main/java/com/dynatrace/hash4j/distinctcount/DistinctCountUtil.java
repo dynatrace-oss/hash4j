@@ -23,4 +23,10 @@ class DistinctCountUtil {
   static boolean isUnsignedPowerOfTwo(int x) {
     return (x & (x - 1)) == 0;
   }
+
+  static void checkPrecisionParameter(int p, int minP, int maxP) {
+    if (p < minP || p > maxP) {
+      throw new IllegalArgumentException("illegal precision parameter");
+    }
+  }
 }

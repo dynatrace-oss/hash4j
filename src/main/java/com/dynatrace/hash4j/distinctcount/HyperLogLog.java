@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
 import static java.util.Objects.requireNonNull;
 
@@ -53,12 +54,15 @@ public final class HyperLogLog {
   /**
    * The minimum allowed precision parameter.
    *
-   * <p>This is the smallest precision parameter p for which 6 * 2^p fits exactly into a byte array
-   * without having unused bits. Furthermore, if p >= 2 the maximum number of leading zeros (NLZ) is
-   * limited to 62, and therefore the maximum (NLZ + 1) can be stored in 6 bits. Smaller precision
-   * parameters hardly makes sense anyway.
+   * <p>The smallest precision parameter p for which 6 * 2^p fits exactly into a byte array without
+   * having unused bits is p = 2. Furthermore, if p >= 2 the maximum number of leading zeros (NLZ)
+   * is limited to 62, and therefore the maximum register state (NLZ + 1) is limited to 63 and can
+   * be stored in 6 bits. We choose p >= 3, because then the maximum NLZ is limited to 61 and the
+   * maximum register state will be 62, which means that the state value = 63 will not occur and
+   * could be used in future for indicating alternative state representations. Precisions with p < 3
+   * do not make much sense anyway.
    */
-  private static final int MIN_P = 2;
+  private static final int MIN_P = 3;
 
   /**
    * The maximum allowed precision parameter.
@@ -78,7 +82,7 @@ public final class HyperLogLog {
     return new double[] {
       0.0,
       0.0,
-      9.08884193855277,
+      0.0,
       40.67760431873907,
       172.99391414703106,
       714.5560640781132,
@@ -138,12 +142,6 @@ public final class HyperLogLog {
     this.p = p;
   }
 
-  private static void checkPrecisionParameter(int p) {
-    if (p < MIN_P || p > MAX_P) {
-      throw new IllegalArgumentException("illegal precision parameter");
-    }
-  }
-
   /**
    * Creates an empty {@link HyperLogLog} sketch with given precision.
    *
@@ -155,7 +153,7 @@ public final class HyperLogLog {
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
   public static HyperLogLog create(int p) {
-    checkPrecisionParameter(p);
+    checkPrecisionParameter(p, MIN_P, MAX_P);
     return new HyperLogLog(p);
   }
 
@@ -170,7 +168,7 @@ public final class HyperLogLog {
    */
   public static HyperLogLog create(UltraLogLog ullSketch) {
     int p = ullSketch.getP();
-    checkPrecisionParameter(p);
+    checkPrecisionParameter(p, MIN_P, MAX_P);
     byte[] ullState = ullSketch.getState();
     return new HyperLogLog(
         ARRAY_HANDLER.create(i -> Math.max(0, ((ullState[i] & 0xFF) >>> 2) + 2 - p), 1 << p), p);
@@ -220,7 +218,7 @@ public final class HyperLogLog {
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
   public HyperLogLog downsize(int p) {
-    checkPrecisionParameter(p);
+    checkPrecisionParameter(p, MIN_P, MAX_P);
     if (p >= this.p) {
       return copy();
     } else {

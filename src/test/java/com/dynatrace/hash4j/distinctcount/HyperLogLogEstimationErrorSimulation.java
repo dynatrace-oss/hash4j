@@ -27,7 +27,7 @@ import java.util.stream.IntStream;
 public class HyperLogLogEstimationErrorSimulation {
 
   public static void main(String[] args) {
-    int minP = 2;
+    int minP = 3;
     int maxP = 16;
     int numCycles = 100000;
     String resultFolder = "test-results/";
