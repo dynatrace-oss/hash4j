@@ -21,44 +21,19 @@ import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.google.common.collect.Sets;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SplittableRandom;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
-import java.util.zip.Deflater;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
-class HyperLogLogTest {
-  private static final int MIN_P = 3;
-  private static final int MAX_P = 26;
-
-  @Test
-  void testEmpty() {
-    HyperLogLog sketch = HyperLogLog.create(10);
-    assertThat(sketch.getDistinctCountEstimate()).isZero();
-  }
-
-  @Test
-  void testDistinctCountEstimation() {
-    int maxP = 14;
-    SplittableRandom random = new SplittableRandom(0x9511e2cda44e123dL);
-    long[] distinctCounts = TestUtils.getDistinctCountValues(0, 100000, 0.2);
-
-    for (int p = MIN_P; p <= maxP; ++p) {
-      testDistinctCountEstimation(p, random.nextLong(), distinctCounts);
-    }
-  }
+class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
@@ -97,164 +72,79 @@ class HyperLogLogTest {
         .isEqualTo(expected);
   }
 
-  @Test
-  void testRelativeStandardErrorAgainstFormula() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      assertThat(HyperLogLog.calculateTheoreticalRelativeStandardError(p))
-          .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-          .isEqualTo(calculateRelativeStandardError(p));
-    }
+  @Override
+  protected HyperLogLog create(int p) {
+    return HyperLogLog.create(p);
   }
 
-  private static double calculateRelativeStandardError(int p) {
-    int numberOfRegisters = 1 << p;
-    return Math.sqrt(calculateVarianceFactor() / numberOfRegisters);
+  @Override
+  protected double getDistinctCountEstimate(HyperLogLog sketch) {
+    return sketch.getDistinctCountEstimate();
   }
 
-  private void testDistinctCountEstimation(int p, long seed, long[] distinctCounts) {
-
-    double relativeStandardError = HyperLogLog.calculateTheoreticalRelativeStandardError(p);
-
-    double[] estimationErrorsMoment1 = new double[distinctCounts.length];
-    double[] estimationErrorsMoment2 = new double[distinctCounts.length];
-    int numIterations = 1000;
-    SplittableRandom random = new SplittableRandom(seed);
-    for (int i = 0; i < numIterations; ++i) {
-      HyperLogLog sketch = HyperLogLog.create(p);
-      long trueDistinctCount = 0;
-      int distinctCountIndex = 0;
-      while (distinctCountIndex < distinctCounts.length) {
-        if (trueDistinctCount == distinctCounts[distinctCountIndex]) {
-          double distinctCountEstimationErrror =
-              sketch.getDistinctCountEstimate() - trueDistinctCount;
-          estimationErrorsMoment1[distinctCountIndex] += distinctCountEstimationErrror;
-          estimationErrorsMoment2[distinctCountIndex] +=
-              distinctCountEstimationErrror * distinctCountEstimationErrror;
-          distinctCountIndex += 1;
-        }
-        sketch.add(random.nextLong());
-        trueDistinctCount += 1;
-      }
-    }
-
-    for (int distinctCountIndex = 0;
-        distinctCountIndex < distinctCounts.length;
-        ++distinctCountIndex) {
-      long trueDistinctCount = distinctCounts[distinctCountIndex];
-      double relativeBias =
-          estimationErrorsMoment1[distinctCountIndex]
-              / (trueDistinctCount * (double) numIterations);
-      double relativeRootMeanSquareError =
-          Math.sqrt(estimationErrorsMoment2[distinctCountIndex] / numIterations)
-              / trueDistinctCount;
-      //      System.out.println("p = " + p +
-      //              "; true distinct count = "
-      //                      + trueDistinctCount
-      //                      + "; relative bias = "
-      //                      + relativeBias
-      //                      + "; relative root mean square error = "
-      //                      + relativeRootMeanSquareError);
-
-      if (trueDistinctCount > 0) {
-        // verify bias to be significantly smaller than standard error
-        assertThat(relativeBias).isLessThan(relativeStandardError * 0.25);
-      }
-      if (trueDistinctCount > 0) {
-        // test if observed root mean square error is not much greater than relative standard error
-        assertThat(relativeRootMeanSquareError).isLessThan(relativeStandardError * 1.9);
-      }
-      if (trueDistinctCount > 10 * (1L << p)) {
-        // test asymptotic behavior (distinct count is much greater than number of registers (state
-        // size) given by (1 << p)
-        // observed root mean square error should be approximately equal to the standard error
-        assertThat(relativeRootMeanSquareError)
-            .isCloseTo(relativeStandardError, withPercentage(90));
-      }
-    }
+  @Override
+  protected HyperLogLog merge(HyperLogLog sketch1, HyperLogLog sketch2) {
+    return HyperLogLog.merge(sketch1, sketch2);
   }
 
-  @Test
-  void testAddAndMerge() {
-    SplittableRandom random = new SplittableRandom(0x11a73f21bb8ad8f6L);
-    int[] pVals = IntStream.range(MIN_P, 10).toArray();
-    long[] distinctCounts = {
-      0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
-    };
-    for (int p1 : pVals) {
-      for (int p2 : pVals) {
-        for (long distinctCount1 : distinctCounts) {
-          for (long distinctCount2 : distinctCounts) {
-            testAddAndMerge(p1, distinctCount1, p2, distinctCount2, random.nextLong());
-          }
-        }
-      }
-    }
+  @Override
+  protected HyperLogLog add(HyperLogLog sketch, long hashValue) {
+    return sketch.add(hashValue);
   }
 
-  @Test
-  void testDownsize() {
-    SplittableRandom random = new SplittableRandom(0x237846c7b27df6b4L);
-    int[] pVals = IntStream.range(MIN_P, 16).toArray();
-    long[] distinctCounts = {
-      0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
-    };
-    for (int pOriginalIdx = 0; pOriginalIdx < pVals.length; ++pOriginalIdx) {
-      for (int pDownsizedIdx = 0; pDownsizedIdx <= pOriginalIdx; ++pDownsizedIdx) {
-        for (long distinctCount : distinctCounts) {
-          testDownsize(pVals[pOriginalIdx], pVals[pDownsizedIdx], distinctCount, random.nextLong());
-        }
-      }
-    }
+  @Override
+  protected HyperLogLog add(HyperLogLog sketch, HyperLogLog otherSketch) {
+    return sketch.add(otherSketch);
   }
 
-  private static void testAddAndMerge(
-      int p1, long distinctCount1, int p2, long distinctCount2, long seed) {
-    HyperLogLog sketch1a = HyperLogLog.create(p1);
-    HyperLogLog sketch2a = HyperLogLog.create(p2);
-    HyperLogLog sketch1b = HyperLogLog.create(p1);
-    HyperLogLog sketch2b = HyperLogLog.create(p2);
-    HyperLogLog sketchTotal = HyperLogLog.create(Math.min(p1, p2));
-    SplittableRandom random = new SplittableRandom(seed);
-    for (long i = 0; i < distinctCount1; ++i) {
-      long hashValue = random.nextLong();
-      sketch1a.add(hashValue);
-      sketch1b.add(hashValue);
-      sketchTotal.add(hashValue);
-    }
-    for (long i = 0; i < distinctCount2; ++i) {
-      long hashValue = random.nextLong();
-      sketch2a.add(hashValue);
-      sketch2b.add(hashValue);
-      sketchTotal.add(hashValue);
-    }
-    assertThat(HyperLogLog.merge(sketch1a, sketch2a).getState()).isEqualTo(sketchTotal.getState());
-    if (p1 < p2) {
-      sketch1a.add(sketch2a);
-      assertThatIllegalArgumentException().isThrownBy(() -> sketch2b.add(sketch1b));
-      assertThat(sketch1a.getState()).isEqualTo(sketchTotal.getState());
-    } else if (p1 > p2) {
-      sketch2a.add(sketch1a);
-      assertThatIllegalArgumentException().isThrownBy(() -> sketch1b.add(sketch2b));
-      assertThat(sketch2a.getState()).isEqualTo(sketchTotal.getState());
-    } else {
-      sketch1a.add(sketch2a);
-      sketch2b.add(sketch1b);
-      assertThat(sketch1a.getState()).isEqualTo(sketchTotal.getState());
-      assertThat(sketch2b.getState()).isEqualTo(sketchTotal.getState());
-    }
+  @Override
+  protected HyperLogLog downsize(HyperLogLog sketch, int p) {
+    return sketch.downsize(p);
   }
 
-  private static void testDownsize(int pOriginal, int pDownsized, long distinctCount, long seed) {
-    SplittableRandom random = new SplittableRandom(seed);
-    HyperLogLog sketchOrig = HyperLogLog.create(pOriginal);
-    HyperLogLog sketchDownsized = HyperLogLog.create(pDownsized);
+  @Override
+  protected HyperLogLog copy(HyperLogLog sketch) {
+    return sketch.copy();
+  }
 
-    for (long i = 0; i < distinctCount; ++i) {
-      long hashValue = random.nextLong();
-      sketchOrig.add(hashValue);
-      sketchDownsized.add(hashValue);
-    }
-    assertThat(sketchOrig.downsize(pDownsized).getState()).isEqualTo(sketchDownsized.getState());
+  @Override
+  protected HyperLogLog reset(HyperLogLog sketch) {
+    return sketch.reset();
+  }
+
+  @Override
+  protected byte[] getState(HyperLogLog sketch) {
+    return sketch.getState();
+  }
+
+  @Override
+  protected double calculateTheoreticalRelativeStandardError(int p) {
+    return HyperLogLog.calculateTheoreticalRelativeStandardError(p);
+  }
+
+  @Override
+  protected long getCompatibilityFingerPrint() {
+    return 0xac8fdde22c15315eL;
+  }
+
+  @Override
+  protected int getStateLength(int p) {
+    return ((1 << p) * 6) / 8;
+  }
+
+  @Override
+  protected HyperLogLog wrap(byte[] state) {
+    return HyperLogLog.wrap(state);
+  }
+
+  @Override
+  protected double getApproximateStorageFactor() {
+    return 3.3741034021645766;
+  }
+
+  @Override
+  protected int getP(HyperLogLog sketch) {
+    return sketch.getP();
   }
 
   @Test
@@ -269,68 +159,6 @@ class HyperLogLogTest {
     assertThat(HyperLogLog.sigma(Double.NaN)).isNaN();
     assertThat(HyperLogLog.sigma(Math.nextDown(1.)))
         .isCloseTo(6.497362079232113E15, withPercentage(1e-8));
-  }
-
-  @Test
-  void testWrapZeros() {
-    for (int len = ((1 << MIN_P) * 6) / 8; len <= ((1 << MAX_P) * 6) / 8; len *= 2) {
-      assertThat(HyperLogLog.wrap(new byte[len]).getDistinctCountEstimate()).isZero();
-    }
-  }
-
-  @Test
-  void testRandomStates() {
-    int numCycles = 1000000;
-    int minP = MIN_P;
-    int maxP = 8;
-    SplittableRandom random = new SplittableRandom(0x822fa1dcf86f953eL);
-    for (int i = 0; i < numCycles; ++i) {
-      byte[] state1 = new byte[(6 << random.nextInt(minP, maxP + 1)) / 8];
-      byte[] state2 = new byte[(6 << random.nextInt(minP, maxP + 1)) / 8];
-      random.nextBytes(state1);
-      random.nextBytes(state2);
-      HyperLogLog sketch1 = HyperLogLog.wrap(state1);
-      HyperLogLog sketch2 = HyperLogLog.wrap(state2);
-      int newP1 = random.nextInt(minP, maxP + 1);
-      int newP2 = random.nextInt(minP, maxP + 1);
-      assertThatNoException().isThrownBy(sketch1::getDistinctCountEstimate);
-      assertThatNoException().isThrownBy(sketch2::getDistinctCountEstimate);
-      assertThatNoException().isThrownBy(sketch1::copy);
-      assertThatNoException().isThrownBy(sketch2::copy);
-      assertThatNoException().isThrownBy(() -> sketch1.downsize(newP1));
-      assertThatNoException().isThrownBy(() -> sketch2.downsize(newP2));
-      assertThatNoException().isThrownBy(() -> HyperLogLog.merge(sketch1, sketch2));
-      if (sketch1.getP() <= sketch2.getP()) {
-        assertThatNoException().isThrownBy(() -> sketch1.add(sketch2));
-      } else {
-        assertThatNoException().isThrownBy(() -> sketch2.add(sketch1));
-      }
-    }
-  }
-
-  @Test
-  void testCreateIllegalArguments() {
-    for (int p = MIN_P - 100; p < MAX_P + 100; ++p) {
-      int pFinal = p;
-      if (p >= MIN_P && p <= MAX_P) {
-        assertThatNoException().isThrownBy(() -> HyperLogLog.create(pFinal));
-      } else {
-        assertThatIllegalArgumentException().isThrownBy(() -> HyperLogLog.create(pFinal));
-      }
-    }
-  }
-
-  @Test
-  void testDownsizeIllegalArguments() {
-    HyperLogLog sketch = HyperLogLog.create(8);
-    for (int p = MIN_P - 100; p < MAX_P + 100; ++p) {
-      int pFinal = p;
-      if (p >= MIN_P && p <= MAX_P) {
-        assertThatNoException().isThrownBy(() -> sketch.downsize(pFinal));
-      } else {
-        assertThatIllegalArgumentException().isThrownBy(() -> sketch.downsize(pFinal));
-      }
-    }
   }
 
   @Test
@@ -356,60 +184,6 @@ class HyperLogLogTest {
     }
 
     assertThatNullPointerException().isThrownBy(() -> HyperLogLog.wrap(null));
-  }
-
-  private static byte[] compress(byte[] data) throws IOException {
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      Deflater deflater = new Deflater();
-      deflater.setInput(data);
-      deflater.finish();
-      byte[] buffer = new byte[1024];
-      while (!deflater.finished()) {
-        outputStream.write(buffer, 0, deflater.deflate(buffer));
-      }
-      return outputStream.toByteArray();
-    }
-  }
-
-  @Test
-  void testCompressedStorageFactors() throws IOException {
-    int numCycles = 100;
-    long trueDistinctCount = 100000;
-    int p = 12;
-    long sumSizeHyperLogLog = 0;
-    int bitsPerRegister = 6;
-
-    SplittableRandom random = new SplittableRandom(0L);
-    for (int i = 0; i < numCycles; ++i) {
-      HyperLogLog HyperLogLogSketch = HyperLogLog.create(p);
-
-      for (long k = 0; k < trueDistinctCount; ++k) {
-        long hash = random.nextLong();
-        HyperLogLogSketch.add(hash);
-      }
-      sumSizeHyperLogLog += compress(HyperLogLogSketch.getState()).length;
-    }
-
-    double expectedVarianceHyperLogLog =
-        pow(HyperLogLog.calculateTheoreticalRelativeStandardError(p), 2);
-
-    double storageFactorHyperLogLog =
-        bitsPerRegister * sumSizeHyperLogLog * expectedVarianceHyperLogLog / numCycles;
-
-    assertThat(storageFactorHyperLogLog).isCloseTo(3.3741034021645766, withPercentage(1));
-  }
-
-  @Test
-  void testReset() {
-    HyperLogLog sketch = HyperLogLog.create(12);
-    SplittableRandom random = new SplittableRandom(0L);
-    for (int i = 0; i < 10000; ++i) {
-      sketch.add(random.nextLong());
-    }
-    assertThat(sketch.getDistinctCountEstimate()).isGreaterThan(1000);
-    sketch.reset();
-    assertThat(sketch.getDistinctCountEstimate()).isZero();
-    assertThat(sketch.getState()).containsOnly(0);
   }
 
   private static void testErrorOfDistinctCountEqualOne(int p) {
@@ -592,7 +366,8 @@ class HyperLogLogTest {
 
   private static final double LOG_2 = Math.log(2);
 
-  private static double calculateVarianceFactor() {
+  @Override
+  protected double calculateVarianceFactor() {
     return 3. * LOG_2 - 1.;
   }
 
@@ -629,7 +404,7 @@ class HyperLogLogTest {
         .isEqualTo(expectedContributions);
   }
 
-  private static double calculateEstimationFactor(int p) {
+  private double calculateEstimationFactor(int p) {
     double m = 1 << p;
     return m * m / (2. * LOG_2 * (1. + calculateVarianceFactor() / m));
   }
@@ -661,14 +436,6 @@ class HyperLogLogTest {
   }
 
   @Test
-  void testEmptyMerge() {
-    HyperLogLog HyperLogLog1 = HyperLogLog.create(12);
-    HyperLogLog HyperLogLog2 = HyperLogLog.create(12);
-    HyperLogLog HyperLogLogMerged = HyperLogLog.merge(HyperLogLog1, HyperLogLog2);
-    assertThat(HyperLogLogMerged.getDistinctCountEstimate()).isZero();
-  }
-
-  @Test
   void testCalculateP() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       int stateLength = ((1 << p) * 6) / 8;
@@ -677,35 +444,12 @@ class HyperLogLogTest {
   }
 
   @Test
-  void testStateCompatibility() {
-    PseudoRandomGenerator pseudoRandomGenerator =
-        PseudoRandomGeneratorProvider.splitMix64_V1().create();
-    HashStream64 hashStream = Hashing.komihash4_3().hashStream();
-    long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
-    int numCycles = 10;
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      for (long cardinality : cardinalities) {
-        for (int i = 0; i < numCycles; ++i) {
-          HyperLogLog sketch = HyperLogLog.create(p);
-          for (long c = 0; c < cardinality; ++c) {
-            sketch.add(pseudoRandomGenerator.nextLong());
-          }
-          hashStream.putByteArray(sketch.getState());
-        }
-      }
-    }
-    assertThat(hashStream.getAsLong()).isEqualTo(0xac8fdde22c15315eL);
-  }
-
-  @Test
   void testCreateFromUltraLogLog() {
     PseudoRandomGenerator pseudoRandomGenerator =
         PseudoRandomGeneratorProvider.splitMix64_V1().create();
     long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
     int numCycles = 10;
-    for (int p = Math.max(MIN_P, UltraLogLogTest.MIN_P);
-        p <= Math.min(MAX_P, UltraLogLogTest.MAX_P);
-        ++p) {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
       for (long cardinality : cardinalities) {
         for (int i = 0; i < numCycles; ++i) {
           HyperLogLog hllSketch = HyperLogLog.create(p);

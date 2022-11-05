@@ -23,44 +23,17 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 import static org.hipparchus.special.Gamma.gamma;
 
-import com.dynatrace.hash4j.hashing.HashStream64;
-import com.dynatrace.hash4j.hashing.Hashing;
-import com.dynatrace.hash4j.random.PseudoRandomGenerator;
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.google.common.collect.Sets;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.zip.Deflater;
 import org.assertj.core.data.Offset;
 import org.hipparchus.optim.MaxEval;
 import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.hipparchus.optim.univariate.*;
 import org.junit.jupiter.api.Test;
 
-class UltraLogLogTest {
-
-  static final int MIN_P = 3;
-  static final int MAX_P = 26;
-
-  @Test
-  void testEmpty() {
-    UltraLogLog sketch = UltraLogLog.create(10);
-    assertThat(sketch.getDistinctCountEstimate()).isZero();
-  }
-
-  @Test
-  void testDistinctCountEstimation() {
-    int maxP = 14;
-    SplittableRandom random = new SplittableRandom(0xd77b9e4ea99553e0L);
-    long[] distinctCounts = TestUtils.getDistinctCountValues(0, 100000, 0.2);
-
-    for (int p = MIN_P; p <= maxP; ++p) {
-      testDistinctCountEstimation(p, random.nextLong(), distinctCounts);
-    }
-  }
+class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
@@ -97,82 +70,6 @@ class UltraLogLogTest {
     assertThat(actual)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expected);
-  }
-
-  @Test
-  void testRelativeStandardErrorAgainstFormula() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      assertThat(UltraLogLog.calculateTheoreticalRelativeStandardError(p))
-          .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-          .isEqualTo(calculateRelativeStandardError(p));
-    }
-  }
-
-  private static double calculateRelativeStandardError(int p) {
-    int numberOfRegisters = 1 << p;
-    return Math.sqrt(calculateVarianceFactor(TAU) / numberOfRegisters);
-  }
-
-  private void testDistinctCountEstimation(int p, long seed, long[] distinctCounts) {
-
-    double relativeStandardError = UltraLogLog.calculateTheoreticalRelativeStandardError(p);
-
-    double[] estimationErrorsMoment1 = new double[distinctCounts.length];
-    double[] estimationErrorsMoment2 = new double[distinctCounts.length];
-    int numIterations = 1000;
-    SplittableRandom random = new SplittableRandom(seed);
-    for (int i = 0; i < numIterations; ++i) {
-      UltraLogLog sketch = UltraLogLog.create(p);
-      long trueDistinctCount = 0;
-      int distinctCountIndex = 0;
-      while (distinctCountIndex < distinctCounts.length) {
-        if (trueDistinctCount == distinctCounts[distinctCountIndex]) {
-          double distinctCountEstimationErrror =
-              sketch.getDistinctCountEstimate() - trueDistinctCount;
-          estimationErrorsMoment1[distinctCountIndex] += distinctCountEstimationErrror;
-          estimationErrorsMoment2[distinctCountIndex] +=
-              distinctCountEstimationErrror * distinctCountEstimationErrror;
-          distinctCountIndex += 1;
-        }
-        sketch.add(random.nextLong());
-        trueDistinctCount += 1;
-      }
-    }
-
-    for (int distinctCountIndex = 0;
-        distinctCountIndex < distinctCounts.length;
-        ++distinctCountIndex) {
-      long trueDistinctCount = distinctCounts[distinctCountIndex];
-      double relativeBias =
-          estimationErrorsMoment1[distinctCountIndex]
-              / (trueDistinctCount * (double) numIterations);
-      double relativeRootMeanSquareError =
-          Math.sqrt(estimationErrorsMoment2[distinctCountIndex] / numIterations)
-              / trueDistinctCount;
-      //      System.out.println("p = " + p +
-      //              "; true distinct count = "
-      //                      + trueDistinctCount
-      //                      + "; relative bias = "
-      //                      + relativeBias
-      //                      + "; relative root mean square error = "
-      //                      + relativeRootMeanSquareError);
-
-      if (trueDistinctCount > 0) {
-        // verify bias to be significantly smaller than standard error
-        assertThat(relativeBias).isLessThan(relativeStandardError * 0.2);
-      }
-      if (trueDistinctCount > 0) {
-        // test if observed root mean square error is not much greater than relative standard error
-        assertThat(relativeRootMeanSquareError).isLessThan(relativeStandardError * 1.15);
-      }
-      if (trueDistinctCount > 10 * (1L << p)) {
-        // test asymptotic behavior (distinct count is much greater than number of registers (state
-        // size) given by (1 << p)
-        // observed root mean square error should be approximately equal to the standard error
-        assertThat(relativeRootMeanSquareError)
-            .isCloseTo(relativeStandardError, withPercentage(15));
-      }
-    }
   }
 
   @Test
@@ -221,90 +118,6 @@ class UltraLogLogTest {
   }
 
   @Test
-  void testAddAndMerge() {
-    SplittableRandom random = new SplittableRandom(0x11a73f21bb8ad8f6L);
-    int[] pVals = IntStream.range(MIN_P, 10).toArray();
-    long[] distinctCounts = {
-      0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
-    };
-    for (int p1 : pVals) {
-      for (int p2 : pVals) {
-        for (long distinctCount1 : distinctCounts) {
-          for (long distinctCount2 : distinctCounts) {
-            testAddAndMerge(p1, distinctCount1, p2, distinctCount2, random.nextLong());
-          }
-        }
-      }
-    }
-  }
-
-  @Test
-  void testDownsize() {
-    SplittableRandom random = new SplittableRandom(0x237846c7b27df6b4L);
-    int[] pVals = IntStream.range(MIN_P, 16).toArray();
-    long[] distinctCounts = {
-      0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384
-    };
-    for (int pOriginalIdx = 0; pOriginalIdx < pVals.length; ++pOriginalIdx) {
-      for (int pDownsizedIdx = 0; pDownsizedIdx <= pOriginalIdx; ++pDownsizedIdx) {
-        for (long distinctCount : distinctCounts) {
-          testDownsize(pVals[pOriginalIdx], pVals[pDownsizedIdx], distinctCount, random.nextLong());
-        }
-      }
-    }
-  }
-
-  private static void testAddAndMerge(
-      int p1, long distinctCount1, int p2, long distinctCount2, long seed) {
-    UltraLogLog sketch1a = UltraLogLog.create(p1);
-    UltraLogLog sketch2a = UltraLogLog.create(p2);
-    UltraLogLog sketch1b = UltraLogLog.create(p1);
-    UltraLogLog sketch2b = UltraLogLog.create(p2);
-    UltraLogLog sketchTotal = UltraLogLog.create(Math.min(p1, p2));
-    SplittableRandom random = new SplittableRandom(seed);
-    for (long i = 0; i < distinctCount1; ++i) {
-      long hashValue = random.nextLong();
-      sketch1a.add(hashValue);
-      sketch1b.add(hashValue);
-      sketchTotal.add(hashValue);
-    }
-    for (long i = 0; i < distinctCount2; ++i) {
-      long hashValue = random.nextLong();
-      sketch2a.add(hashValue);
-      sketch2b.add(hashValue);
-      sketchTotal.add(hashValue);
-    }
-    assertThat(UltraLogLog.merge(sketch1a, sketch2a).getState()).isEqualTo(sketchTotal.getState());
-    if (p1 < p2) {
-      sketch1a.add(sketch2a);
-      assertThatIllegalArgumentException().isThrownBy(() -> sketch2b.add(sketch1b));
-      assertThat(sketch1a.getState()).isEqualTo(sketchTotal.getState());
-    } else if (p1 > p2) {
-      sketch2a.add(sketch1a);
-      assertThatIllegalArgumentException().isThrownBy(() -> sketch1b.add(sketch2b));
-      assertThat(sketch2a.getState()).isEqualTo(sketchTotal.getState());
-    } else {
-      sketch1a.add(sketch2a);
-      sketch2b.add(sketch1b);
-      assertThat(sketch1a.getState()).isEqualTo(sketchTotal.getState());
-      assertThat(sketch2b.getState()).isEqualTo(sketchTotal.getState());
-    }
-  }
-
-  private static void testDownsize(int pOriginal, int pDownsized, long distinctCount, long seed) {
-    SplittableRandom random = new SplittableRandom(seed);
-    UltraLogLog sketchOrig = UltraLogLog.create(pOriginal);
-    UltraLogLog sketchDownsized = UltraLogLog.create(pDownsized);
-
-    for (long i = 0; i < distinctCount; ++i) {
-      long hashValue = random.nextLong();
-      sketchOrig.add(hashValue);
-      sketchDownsized.add(hashValue);
-    }
-    assertThat(sketchOrig.downsize(pDownsized).getState()).isEqualTo(sketchDownsized.getState());
-  }
-
-  @Test
   void testXi() {
     assertThat(UltraLogLog.xi(2, 0.)).isZero();
     assertThat(UltraLogLog.xi(2, 0.5)).isCloseTo(1.2814941480755806, withPercentage(1e-8));
@@ -318,68 +131,6 @@ class UltraLogLogTest {
     assertThat(UltraLogLog.xi(Double.NaN, Double.NaN)).isNaN();
     assertThat(UltraLogLog.xi(2, Math.nextDown(1.)))
         .isCloseTo(1.2994724158464226E16, withPercentage(1e-8));
-  }
-
-  @Test
-  void testWrapZeros() {
-    for (int len = 1 << MIN_P; len <= 1 << MAX_P; len *= 2) {
-      assertThat(UltraLogLog.wrap(new byte[len]).getDistinctCountEstimate()).isZero();
-    }
-  }
-
-  @Test
-  void testRandomStates() {
-    int numCycles = 1000000;
-    int minP = MIN_P;
-    int maxP = 8;
-    SplittableRandom random = new SplittableRandom(0x822fa1dcf86f953eL);
-    for (int i = 0; i < numCycles; ++i) {
-      byte[] state1 = new byte[1 << random.nextInt(minP, maxP + 1)];
-      byte[] state2 = new byte[1 << random.nextInt(minP, maxP + 1)];
-      random.nextBytes(state1);
-      random.nextBytes(state2);
-      UltraLogLog sketch1 = UltraLogLog.wrap(state1);
-      UltraLogLog sketch2 = UltraLogLog.wrap(state2);
-      int newP1 = random.nextInt(minP, maxP + 1);
-      int newP2 = random.nextInt(minP, maxP + 1);
-      assertThatNoException().isThrownBy(sketch1::getDistinctCountEstimate);
-      assertThatNoException().isThrownBy(sketch2::getDistinctCountEstimate);
-      assertThatNoException().isThrownBy(sketch1::copy);
-      assertThatNoException().isThrownBy(sketch2::copy);
-      assertThatNoException().isThrownBy(() -> sketch1.downsize(newP1));
-      assertThatNoException().isThrownBy(() -> sketch2.downsize(newP2));
-      assertThatNoException().isThrownBy(() -> UltraLogLog.merge(sketch1, sketch2));
-      if (sketch1.getP() <= sketch2.getP()) {
-        assertThatNoException().isThrownBy(() -> sketch1.add(sketch2));
-      } else {
-        assertThatNoException().isThrownBy(() -> sketch2.add(sketch1));
-      }
-    }
-  }
-
-  @Test
-  void testCreateIllegalArguments() {
-    for (int p = MIN_P - 100; p < MAX_P + 100; ++p) {
-      int pFinal = p;
-      if (p >= MIN_P && p <= MAX_P) {
-        assertThatNoException().isThrownBy(() -> UltraLogLog.create(pFinal));
-      } else {
-        assertThatIllegalArgumentException().isThrownBy(() -> UltraLogLog.create(pFinal));
-      }
-    }
-  }
-
-  @Test
-  void testDownsizeIllegalArguments() {
-    UltraLogLog sketch = UltraLogLog.create(8);
-    for (int p = MIN_P - 100; p < MAX_P + 100; ++p) {
-      int pFinal = p;
-      if (p >= MIN_P && p <= MAX_P) {
-        assertThatNoException().isThrownBy(() -> sketch.downsize(pFinal));
-      } else {
-        assertThatIllegalArgumentException().isThrownBy(() -> sketch.downsize(pFinal));
-      }
-    }
   }
 
   @Test
@@ -402,60 +153,6 @@ class UltraLogLogTest {
     }
 
     assertThatNullPointerException().isThrownBy(() -> UltraLogLog.wrap(null));
-  }
-
-  private static byte[] compress(byte[] data) throws IOException {
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      Deflater deflater = new Deflater();
-      deflater.setInput(data);
-      deflater.finish();
-      byte[] buffer = new byte[1024];
-      while (!deflater.finished()) {
-        outputStream.write(buffer, 0, deflater.deflate(buffer));
-      }
-      return outputStream.toByteArray();
-    }
-  }
-
-  @Test
-  void testCompressedStorageFactors() throws IOException {
-    int numCycles = 100;
-    long trueDistinctCount = 100000;
-    int p = 12;
-    long sumSizeUltraLogLog = 0;
-    int bitsPerRegister = Byte.SIZE;
-
-    SplittableRandom random = new SplittableRandom(0L);
-    for (int i = 0; i < numCycles; ++i) {
-      UltraLogLog ultraLogLogSketch = UltraLogLog.create(p);
-
-      for (long k = 0; k < trueDistinctCount; ++k) {
-        long hash = random.nextLong();
-        ultraLogLogSketch.add(hash);
-      }
-      sumSizeUltraLogLog += compress(ultraLogLogSketch.getState()).length;
-    }
-
-    double expectedVarianceUltraLogLog =
-        pow(UltraLogLog.calculateTheoreticalRelativeStandardError(p), 2);
-
-    double storageFactorUltraLogLog =
-        bitsPerRegister * sumSizeUltraLogLog * expectedVarianceUltraLogLog / numCycles;
-
-    assertThat(storageFactorUltraLogLog).isCloseTo(2.8895962872532435, withPercentage(1));
-  }
-
-  @Test
-  void testReset() {
-    UltraLogLog sketch = UltraLogLog.create(12);
-    SplittableRandom random = new SplittableRandom(0L);
-    for (int i = 0; i < 10000; ++i) {
-      sketch.add(random.nextLong());
-    }
-    assertThat(sketch.getDistinctCountEstimate()).isGreaterThan(1000);
-    sketch.reset();
-    assertThat(sketch.getDistinctCountEstimate()).isZero();
-    assertThat(sketch.getState()).containsOnly(0);
   }
 
   private static void testErrorOfDistinctCountEqualOne(int p) {
@@ -679,8 +376,6 @@ class UltraLogLogTest {
   private static final double LOG_5_76 = Math.log(5.76);
   private static final double LOG_1_25 = Math.log(1.25);
 
-  private static final double RELATIVE_ERROR = 1e-10;
-
   private static double calculateVarianceFactor(double tau) {
     double gamma2tauP1 = gamma(2 * tau + 1);
     double gammaTauP1 = gamma(tau + 1);
@@ -782,14 +477,6 @@ class UltraLogLogTest {
   }
 
   @Test
-  void testEmptyMerge() {
-    UltraLogLog ultraLogLog1 = UltraLogLog.create(12);
-    UltraLogLog ultraLogLog2 = UltraLogLog.create(12);
-    UltraLogLog ultraLogLogMerged = UltraLogLog.merge(ultraLogLog1, ultraLogLog2);
-    assertThat(ultraLogLogMerged.getDistinctCountEstimate()).isZero();
-  }
-
-  @Test
   void testSmallestRegisterValues() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       long hashPrefix1 = 1L << (p - 1);
@@ -823,27 +510,6 @@ class UltraLogLogTest {
   }
 
   @Test
-  void testStateCompatibility() {
-    PseudoRandomGenerator pseudoRandomGenerator =
-        PseudoRandomGeneratorProvider.splitMix64_V1().create();
-    HashStream64 hashStream = Hashing.komihash4_3().hashStream();
-    long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
-    int numCycles = 10;
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      for (long cardinality : cardinalities) {
-        for (int i = 0; i < numCycles; ++i) {
-          UltraLogLog sketch = UltraLogLog.create(p);
-          for (long c = 0; c < cardinality; ++c) {
-            sketch.add(pseudoRandomGenerator.nextLong());
-          }
-          hashStream.putByteArray(sketch.getState());
-        }
-      }
-    }
-    assertThat(hashStream.getAsLong()).isEqualTo(0xfc124320345bd3b9L);
-  }
-
-  @Test
   void testUpdateValues() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       for (int i = p; i <= 64; ++i) {
@@ -854,5 +520,85 @@ class UltraLogLogTest {
             .isEqualTo(nlz + 1);
       }
     }
+  }
+
+  @Override
+  protected UltraLogLog create(int p) {
+    return UltraLogLog.create(p);
+  }
+
+  @Override
+  protected double getDistinctCountEstimate(UltraLogLog sketch) {
+    return sketch.getDistinctCountEstimate();
+  }
+
+  @Override
+  protected UltraLogLog merge(UltraLogLog sketch1, UltraLogLog sketch2) {
+    return UltraLogLog.merge(sketch1, sketch2);
+  }
+
+  @Override
+  protected UltraLogLog add(UltraLogLog sketch, long hashValue) {
+    return sketch.add(hashValue);
+  }
+
+  @Override
+  protected UltraLogLog add(UltraLogLog sketch, UltraLogLog otherSketch) {
+    return sketch.add(otherSketch);
+  }
+
+  @Override
+  protected UltraLogLog downsize(UltraLogLog sketch, int p) {
+    return sketch.downsize(p);
+  }
+
+  @Override
+  protected UltraLogLog copy(UltraLogLog sketch) {
+    return sketch.copy();
+  }
+
+  @Override
+  protected UltraLogLog reset(UltraLogLog sketch) {
+    return sketch.reset();
+  }
+
+  @Override
+  protected byte[] getState(UltraLogLog sketch) {
+    return sketch.getState();
+  }
+
+  @Override
+  protected double calculateTheoreticalRelativeStandardError(int p) {
+    return UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+  }
+
+  @Override
+  protected long getCompatibilityFingerPrint() {
+    return 0xfc124320345bd3b9L;
+  }
+
+  @Override
+  protected double calculateVarianceFactor() {
+    return calculateVarianceFactor(TAU);
+  }
+
+  @Override
+  protected int getStateLength(int p) {
+    return 1 << p;
+  }
+
+  @Override
+  protected UltraLogLog wrap(byte[] state) {
+    return UltraLogLog.wrap(state);
+  }
+
+  @Override
+  protected double getApproximateStorageFactor() {
+    return 2.8895962872532435;
+  }
+
+  @Override
+  protected int getP(UltraLogLog sketch) {
+    return sketch.getP();
   }
 }
