@@ -128,26 +128,22 @@ class Komihash4_3 extends AbstractHasher64 {
         long tmp7 = see4 ^ getLong(input, off + 48);
         long tmp8 = see8 ^ getLong(input, off + 56);
 
-        long r1l = tmp1 * tmp2;
-        long r1h = unsignedMultiplyHigh(tmp1, tmp2);
-        long r2l = tmp3 * tmp4;
-        long r2h = unsignedMultiplyHigh(tmp3, tmp4);
-        long r3l = tmp5 * tmp6;
-        long r3h = unsignedMultiplyHigh(tmp5, tmp6);
-        long r4l = tmp7 * tmp8;
-        long r4h = unsignedMultiplyHigh(tmp7, tmp8);
+        see1 = tmp1 * tmp2;
+        see5 += unsignedMultiplyHigh(tmp1, tmp2);
+        see2 = tmp3 * tmp4;
+        see6 += unsignedMultiplyHigh(tmp3, tmp4);
+        see3 = tmp5 * tmp6;
+        see7 += unsignedMultiplyHigh(tmp5, tmp6);
+        see4 = tmp7 * tmp8;
+        see8 += unsignedMultiplyHigh(tmp7, tmp8);
+
+        see2 ^= see5;
+        see3 ^= see6;
+        see4 ^= see7;
+        see1 ^= see8;
 
         off += 64;
         len -= 64;
-
-        see5 += r1h;
-        see6 += r2h;
-        see7 += r3h;
-        see8 += r4h;
-        see2 = see5 ^ r2l;
-        see3 = see6 ^ r3l;
-        see4 = see7 ^ r4l;
-        see1 = see8 ^ r1l;
 
       } while (len > 63);
 
@@ -158,17 +154,15 @@ class Komihash4_3 extends AbstractHasher64 {
     if (len > 31) {
       long tmp1 = see1 ^ getLong(input, off);
       long tmp2 = see5 ^ getLong(input, off + 8);
-      long r1l = tmp1 * tmp2;
-      long r1h = unsignedMultiplyHigh(tmp1, tmp2);
-      see5 += r1h;
-      see1 = see5 ^ r1l;
+      see1 = tmp1 * tmp2;
+      see5 += unsignedMultiplyHigh(tmp1, tmp2);
+      see1 ^= see5;
 
       long tmp3 = see1 ^ getLong(input, off + 16);
       long tmp4 = see5 ^ getLong(input, off + 24);
-      r1l = tmp3 * tmp4;
-      r1h = unsignedMultiplyHigh(tmp3, tmp4);
-      see5 += r1h;
-      see1 = see5 ^ r1l;
+      see1 = tmp3 * tmp4;
+      see5 += unsignedMultiplyHigh(tmp3, tmp4);
+      see1 ^= see5;
       off += 32;
       len -= 32;
     }
@@ -176,10 +170,9 @@ class Komihash4_3 extends AbstractHasher64 {
     if (len > 15) {
       long tmp1 = see1 ^ getLong(input, off);
       long tmp2 = see5 ^ getLong(input, off + 8);
-      long r1l = tmp1 * tmp2;
-      long r1h = unsignedMultiplyHigh(tmp1, tmp2);
-      see5 += r1h;
-      see1 = see5 ^ r1l;
+      see1 = tmp1 * tmp2;
+      see5 += unsignedMultiplyHigh(tmp1, tmp2);
+      see1 ^= see5;
 
       off += 16;
       len -= 16;
@@ -213,10 +206,10 @@ class Komihash4_3 extends AbstractHasher64 {
     see5 += unsignedMultiplyHigh(r2l, r2h);
     see1 = see5 ^ (r2l * r2h);
 
-    r2l = see1 * see5;
     r2h = unsignedMultiplyHigh(see1, see5);
+    see1 *= see5;
     see5 += r2h;
-    see1 = see5 ^ r2l;
+    see1 ^= see5;
 
     return see1;
   }
