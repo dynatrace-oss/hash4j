@@ -334,9 +334,9 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
     assertThat(xiIterations(x, 1.)).isZero();
     assertThat(xiIterations(x, Math.nextDown(1.))).isEqualTo(59);
     assertThat(xiIterations(x, Math.nextUp(0.))).isEqualTo(1);
-    int maxNumIterations =
-        30; // 29 should be enough, but let's take 30 to encounter potential platform dependencies
     for (int p = MIN_P; p <= MAX_P; ++p) {
+      int maxNumIterations =
+          p + 4; // p + 3 should be enough, +1 more to encounter potential platform dependencies
       int m = 1 << p;
       {
         // case h0 = m - 1, h1 = 1, h2 = 0, h3 = 0
