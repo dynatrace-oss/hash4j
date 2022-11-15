@@ -352,9 +352,9 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
     assertThat(sigmaIterations(1.)).isZero();
     assertThat(sigmaIterations(Math.nextDown(1.))).isEqualTo(59);
     assertThat(sigmaIterations(Math.nextUp(0.))).isEqualTo(1);
-    int maxNumIterations =
-        33; // 32 should be enough, but let's take 33 to encounter potential platform dependencies
     for (int p = MIN_P; p <= MAX_P; ++p) {
+      int maxNumIterations =
+          p + 7; // p + 6 should be enough, +1 to encounter potential platform dependencies
       int m = 1 << p;
       assertThat(sigmaIterations(1. / m)).isLessThanOrEqualTo(maxNumIterations);
       assertThat(sigmaIterations((m - 1.) / m)).isLessThanOrEqualTo(maxNumIterations);
