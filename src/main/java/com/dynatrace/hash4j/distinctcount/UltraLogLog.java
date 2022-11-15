@@ -98,16 +98,6 @@ public final class UltraLogLog {
 
   private static final double CA = Math.pow(2., TAU);
 
-  private static final double CA_INV = 1. / CA;
-
-  private static final double C0 = 1. / (CA - 1.);
-
-  private static final double C1 = CA_INV * C0;
-
-  private static final double C2 = CA_INV * (C1 + 1);
-
-  private static final double C3 = CA_INV * C1;
-
   /**
    * The minimum allowed precision parameter.
    *
@@ -135,29 +125,29 @@ public final class UltraLogLog {
       0.0,
       0.0,
       0.0,
-      198.73981665391307,
+      198.73981665391312,
       1027.9377396749687,
-      5233.925351968596,
+      5233.925351968597,
       26433.204636982657,
       132944.2295453946,
       667235.7546841304,
-      3345276.669622828,
-      1.6763152109693771E7,
-      8.3977830384224E7,
-      4.2064549352151704E8,
-      2.1068767734342608E9,
+      3345276.6696228283,
+      1.6763152109693773E7,
+      8.397783038422403E7,
+      4.2064549352151716E8,
+      2.106876773434261E9,
       1.0552313382074574E10,
-      5.285049385375066E10,
-      2.6469566663317316E11,
+      5.285049385375068E10,
+      2.6469566663317322E11,
       1.3256925604422827E12,
-      6.639538747664201E12,
-      3.3253131662557207E13,
+      6.639538747664202E12,
+      3.3253131662557215E13,
       1.6654322482669144E14,
-      8.34106058225079E14,
-      4.177491022408221E15,
+      8.341060582250791E14,
+      4.177491022408222E15,
       2.0922315506308388E16,
-      1.04786167024773856E17,
-      5.2480523101070317E17,
+      1.04786167024773872E17,
+      5.248052310107033E17,
       2.628405409742423E18
     };
   }
@@ -165,6 +155,10 @@ public final class UltraLogLog {
   // visible for testing
   static double[] getRegisterContributions() {
     return new double[] {
+      1.4540280506705723,
+      0.8615213552914165,
+      1.1029638666014445,
+      0.5104571712222887,
       1.2460201711017937,
       0.653513475722638,
       0.894955987032666,
@@ -404,19 +398,7 @@ public final class UltraLogLog {
       4.8353459016328606E-14,
       2.536045386571153E-14,
       3.472994951770057E-14,
-      1.1736944367083503E-14,
-      2.8649748211916183E-14,
-      1.5026238713288212E-14,
-      2.0577727619417585E-14,
-      6.954218120789614E-15,
-      1.6975167636487347E-14,
-      8.903147043988743E-15,
-      1.2192441390193503E-14,
-      4.1204207976949E-15,
-      1.0057900479802319E-14,
-      5.2751742335084724E-15,
-      7.224103156707597E-15,
-      2.441376910413752E-15
+      1.1736944367083503E-14
     };
   }
 
@@ -607,19 +589,19 @@ public final class UltraLogLog {
   public double getDistinctCountEstimate() {
     final int m = state.length;
     final int p = getP();
-    final int off = (p << 2) + 4;
+    final int off = p << 2;
     final int[] c = new int[4];
     double sum = 0;
 
     for (byte x : state) {
       int y = x & 0xFF;
       int t = y - off;
-      if (t >= 0) {
+      if (t >= 4) {
         sum += REGISTER_CONTRIBUTIONS[t];
       } else {
         int l = (2 | ((x >>> 1) & 1)) >>> (p - (y >>> 2));
         // optimized version of
-        // int l =  (int) (registerToHashPrefix(x) >>> (p - 1));
+        // int l = (int) (registerToHashPrefix(x) >>> (p - 1));
         // for s <= p
         c[l] += 1;
       }
@@ -634,17 +616,18 @@ public final class UltraLogLog {
       if (alpha > 0) {
         double z2 = z * z;
         if (c[0] > 0) {
-          sum += c[0] * (C0 + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
+          sum +=
+              c[0] * (REGISTER_CONTRIBUTIONS[0] + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
         }
         if (c[1] > 0) {
-          sum += c[1] * (C1 + z + CA * z2);
+          sum += c[1] * (REGISTER_CONTRIBUTIONS[1] + z + CA * z2);
         }
       }
       if (c[2] > 0) {
-        sum += c[2] * (C2 + z);
+        sum += c[2] * (REGISTER_CONTRIBUTIONS[2] + z);
       }
       if (c[3] > 0) {
-        sum += c[3] * (C3 + z);
+        sum += c[3] * (REGISTER_CONTRIBUTIONS[3] + z);
       }
     }
 

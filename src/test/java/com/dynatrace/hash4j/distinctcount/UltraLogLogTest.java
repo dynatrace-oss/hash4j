@@ -370,22 +370,16 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
     }
   }
 
-  private static final double LOG_2 = Math.log(2);
-  private static final double LOG_4 = Math.log(4);
-  private static final double LOG_3_92 = Math.log(3.92);
-  private static final double LOG_5_76 = Math.log(5.76);
-  private static final double LOG_1_25 = Math.log(1.25);
-
   private static double calculateVarianceFactor(double tau) {
     double gamma2tauP1 = gamma(2 * tau + 1);
     double gammaTauP1 = gamma(tau + 1);
     double sum =
         0.5
-            + exp(-tau * LOG_4) / Math.expm1(tau * LOG_2)
-            + exp(-tau * LOG_3_92)
-            + exp(-tau * LOG_5_76);
+            + exp(-tau * Math.log(4)) / Math.expm1(tau * Math.log(2))
+            + exp(-tau * Math.log(3.92))
+            + exp(-tau * Math.log(5.76));
 
-    sum *= LOG_2 * gamma2tauP1 * tau / (gammaTauP1 * gammaTauP1);
+    sum *= Math.log(2) * gamma2tauP1 * tau / (gammaTauP1 * gammaTauP1);
     sum -= 1;
     sum /= (tau * tau);
     return sum;
@@ -435,10 +429,14 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
   @Test
   void testRegisterContributions() {
-    double[] expectedContributions = new double[252];
-    for (int i = 0; i < 252; ++i) {
-      expectedContributions[i] = calculateRegisterContribution((byte) (i + 4));
+    double[] expectedContributions = new double[256 - 4 * MIN_P];
+    for (int i = 3; i < 256 - 4 * MIN_P; ++i) {
+      expectedContributions[i] = calculateRegisterContribution((byte) (i));
     }
+    expectedContributions[2] = calculateRegisterContribution((byte) 1);
+    expectedContributions[1] = expectedContributions[3] * Math.pow(2., TAU);
+    expectedContributions[0] = expectedContributions[1] * Math.pow(2., TAU);
+
     assertThat(UltraLogLog.getRegisterContributions())
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedContributions);
@@ -447,7 +445,9 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
   private static double calculateEstimationFactor(int p) {
     int m = 1 << p;
     double biasCorrectionFactor = 1. / (1. + calculateVarianceFactor(TAU) * (1. + TAU) / (2. * m));
-    return m * pow(m * gamma(TAU) / (LOG_2 * exp(LOG_1_25 * TAU)), 1. / TAU) * biasCorrectionFactor;
+    return biasCorrectionFactor
+        * ((4. * m) / 5.)
+        * Math.pow(m * gamma(TAU) / Math.log(2), 1. / TAU);
   }
 
   @Test
