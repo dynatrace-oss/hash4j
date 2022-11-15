@@ -118,7 +118,7 @@ class Murmur3_32 extends AbstractHasher32 {
     return h;
   }
 
-  class HashStreamImpl extends AbstractHashStream32 {
+  private class HashStreamImpl extends AbstractHashStream32 {
 
     private int h1 = seed;
     private long buffer = 0;
