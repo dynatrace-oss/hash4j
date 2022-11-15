@@ -38,7 +38,7 @@ abstract class AbstractHasher implements Hasher {
    *
    * <p>This function was added in <a
    * href="https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/lang/Math.html#unsignedMultiplyHigh(long,long)">Java
-   * 18</a> and potentially can removed in future.
+   * 18</a> and potentially can be removed in future.
    *
    * @param x the first value
    * @param y the second value
