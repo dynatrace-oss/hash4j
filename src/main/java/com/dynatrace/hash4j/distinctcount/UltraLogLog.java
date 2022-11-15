@@ -98,16 +98,6 @@ public final class UltraLogLog {
 
   private static final double CA = Math.pow(2., TAU);
 
-  private static final double CA_INV = 1. / CA;
-
-  private static final double C0 = 1. / (CA - 1.);
-
-  private static final double C1 = CA_INV * C0;
-
-  private static final double C2 = CA_INV * (C1 + 1);
-
-  private static final double C3 = CA_INV * C1;
-
   /**
    * The minimum allowed precision parameter.
    *
@@ -165,6 +155,10 @@ public final class UltraLogLog {
   // visible for testing
   static double[] getRegisterContributions() {
     return new double[] {
+      1.4540280506705723,
+      0.8615213552914165,
+      1.1029638666014445,
+      0.5104571712222887,
       1.2460201711017937,
       0.653513475722638,
       0.894955987032666,
@@ -404,19 +398,7 @@ public final class UltraLogLog {
       4.8353459016328606E-14,
       2.536045386571153E-14,
       3.472994951770057E-14,
-      1.1736944367083503E-14,
-      2.8649748211916183E-14,
-      1.5026238713288212E-14,
-      2.0577727619417585E-14,
-      6.954218120789614E-15,
-      1.6975167636487347E-14,
-      8.903147043988743E-15,
-      1.2192441390193503E-14,
-      4.1204207976949E-15,
-      1.0057900479802319E-14,
-      5.2751742335084724E-15,
-      7.224103156707597E-15,
-      2.441376910413752E-15
+      1.1736944367083503E-14
     };
   }
 
@@ -607,19 +589,19 @@ public final class UltraLogLog {
   public double getDistinctCountEstimate() {
     final int m = state.length;
     final int p = getP();
-    final int off = (p << 2) + 4;
+    final int off = p << 2;
     final int[] c = new int[4];
     double sum = 0;
 
     for (byte x : state) {
       int y = x & 0xFF;
       int t = y - off;
-      if (t >= 0) {
+      if (t >= 4) {
         sum += REGISTER_CONTRIBUTIONS[t];
       } else {
         int l = (2 | ((x >>> 1) & 1)) >>> (p - (y >>> 2));
         // optimized version of
-        // int l =  (int) (registerToHashPrefix(x) >>> (p - 1));
+        // int l = (int) (registerToHashPrefix(x) >>> (p - 1));
         // for s <= p
         c[l] += 1;
       }
@@ -634,17 +616,18 @@ public final class UltraLogLog {
       if (alpha > 0) {
         double z2 = z * z;
         if (c[0] > 0) {
-          sum += c[0] * (C0 + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
+          sum +=
+              c[0] * (REGISTER_CONTRIBUTIONS[0] + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
         }
         if (c[1] > 0) {
-          sum += c[1] * (C1 + z + CA * z2);
+          sum += c[1] * (REGISTER_CONTRIBUTIONS[1] + z + CA * z2);
         }
       }
       if (c[2] > 0) {
-        sum += c[2] * (C2 + z);
+        sum += c[2] * (REGISTER_CONTRIBUTIONS[2] + z);
       }
       if (c[3] > 0) {
-        sum += c[3] * (C3 + z);
+        sum += c[3] * (REGISTER_CONTRIBUTIONS[3] + z);
       }
     }
 

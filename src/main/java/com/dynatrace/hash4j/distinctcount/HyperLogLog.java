@@ -76,8 +76,6 @@ public final class HyperLogLog {
   private static final int MIN_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MIN_P);
   private static final int MAX_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MAX_P);
 
-  private static final double[] REGISTER_CONTRIBUTIONS = getRegisterContributions();
-
   static double[] getEstimationFactors() {
     return new double[] {
       0.0,
@@ -107,20 +105,6 @@ public final class HyperLogLog {
       2.0304126345377997E14,
       8.12165079942359E14,
       3.248660372023916E15
-    };
-  }
-
-  // visible for testing
-  static double[] getRegisterContributions() {
-    return new double[] {
-      0x1.0p0, 0x1.0p-1, 0x1.0p-2, 0x1.0p-3, 0x1.0p-4, 0x1.0p-5, 0x1.0p-6, 0x1.0p-7, 0x1.0p-8,
-      0x1.0p-9, 0x1.0p-10, 0x1.0p-11, 0x1.0p-12, 0x1.0p-13, 0x1.0p-14, 0x1.0p-15, 0x1.0p-16,
-      0x1.0p-17, 0x1.0p-18, 0x1.0p-19, 0x1.0p-20, 0x1.0p-21, 0x1.0p-22, 0x1.0p-23, 0x1.0p-24,
-      0x1.0p-25, 0x1.0p-26, 0x1.0p-27, 0x1.0p-28, 0x1.0p-29, 0x1.0p-30, 0x1.0p-31, 0x1.0p-32,
-      0x1.0p-33, 0x1.0p-34, 0x1.0p-35, 0x1.0p-36, 0x1.0p-37, 0x1.0p-38, 0x1.0p-39, 0x1.0p-40,
-      0x1.0p-41, 0x1.0p-42, 0x1.0p-43, 0x1.0p-44, 0x1.0p-45, 0x1.0p-46, 0x1.0p-47, 0x1.0p-48,
-      0x1.0p-49, 0x1.0p-50, 0x1.0p-51, 0x1.0p-52, 0x1.0p-53, 0x1.0p-54, 0x1.0p-55, 0x1.0p-56,
-      0x1.0p-57, 0x1.0p-58, 0x1.0p-59, 0x1.0p-60, 0x1.0p-61, 0x1.0p-62, 0x1.0p-63
     };
   }
 
@@ -343,7 +327,7 @@ public final class HyperLogLog {
     for (int i = 0; i < m; ++i) {
       long r = ARRAY_HANDLER.get(state, i);
       if (r > 0) {
-        sum += REGISTER_CONTRIBUTIONS[(int) r];
+        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r << 52));
       } else {
         c0 += 1;
       }

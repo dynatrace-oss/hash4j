@@ -435,10 +435,14 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
   @Test
   void testRegisterContributions() {
-    double[] expectedContributions = new double[252];
-    for (int i = 0; i < 252; ++i) {
-      expectedContributions[i] = calculateRegisterContribution((byte) (i + 4));
+    double[] expectedContributions = new double[256 - 4 * MIN_P];
+    for (int i = 3; i < 256 - 4 * MIN_P; ++i) {
+      expectedContributions[i] = calculateRegisterContribution((byte) (i));
     }
+    expectedContributions[2] = calculateRegisterContribution((byte) 1);
+    expectedContributions[1] = expectedContributions[3] * Math.pow(2., TAU);
+    expectedContributions[0] = expectedContributions[1] * Math.pow(2., TAU);
+
     assertThat(UltraLogLog.getRegisterContributions())
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedContributions);

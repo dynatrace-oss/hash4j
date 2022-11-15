@@ -17,7 +17,6 @@ package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
 import static java.lang.Math.pow;
-import static java.util.stream.Collectors.joining;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
@@ -25,10 +24,8 @@ import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
@@ -373,35 +370,11 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
 
   private static final double RELATIVE_ERROR = 1e-10;
 
-  private static double calculateRegisterContribution(int k) {
-    return StrictMath.pow(0.5, k);
-  }
-
   @Test
   void testVarianceFactor() {
     assertThat(HyperLogLog.VARIANCE_FACTOR)
         .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(calculateVarianceFactor());
-  }
-
-  @Test
-  void testRegisterContributions() {
-    double[] expectedContributions = new double[64];
-    for (int i = 0; i < 64; ++i) {
-      expectedContributions[i] = calculateRegisterContribution(i);
-    }
-    assertThat(HyperLogLog.getRegisterContributions())
-        .withRepresentation(
-            o -> {
-              if (o instanceof double[]) {
-                return DoubleStream.of((double[]) o)
-                    .mapToObj(Double::toHexString)
-                    .collect(joining(",", "[", "]"));
-              } else {
-                return Objects.toString(o);
-              }
-            })
-        .isEqualTo(expectedContributions);
   }
 
   private double calculateEstimationFactor(int p) {
