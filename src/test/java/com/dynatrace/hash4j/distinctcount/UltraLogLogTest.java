@@ -402,24 +402,6 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
         .isEqualTo(optimalTau);
   }
 
-  private static double calculateRegisterContribution(byte x) {
-    int i = x & 0xFF;
-    switch (i & 3) {
-      case 0:
-        return (1. + pow(2., -TAU) + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
-            * pow(2., -TAU * (double) (i / 4));
-      case 1:
-        return (0. + pow(2., -TAU) + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
-            * pow(2., -TAU * (double) (i / 4));
-      case 2:
-        return (1. + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
-            * pow(2., -TAU * (double) (i / 4));
-      default:
-        return (0. + 1. / (pow(2., 2 * TAU) * (pow(2., TAU) - 1.)))
-            * pow(2., -TAU * (double) (i / 4));
-    }
-  }
-
   @Test
   void testVarianceFactor() {
     assertThat(UltraLogLog.VARIANCE_FACTOR)
@@ -429,13 +411,17 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
   @Test
   void testRegisterContributions() {
-    double[] expectedContributions = new double[256 - 4 * MIN_P];
-    for (int i = 3; i < 256 - 4 * MIN_P; ++i) {
-      expectedContributions[i] = calculateRegisterContribution((byte) (i));
+    double[] expectedContributions = new double[252 - 4 * MIN_P];
+    for (int x = 0; x < 252 - 4 * MIN_P; ++x) {
+      double r = 1. / (pow(8., TAU) - pow(4., TAU));
+      if ((x & 1) == 0) {
+        r += 1.;
+      }
+      if ((x & 2) == 0) {
+        r += 1. / pow(2., TAU);
+      }
+      expectedContributions[x] = r * pow(2., -TAU * (double) (1 + x / 4));
     }
-    expectedContributions[2] = calculateRegisterContribution((byte) 1);
-    expectedContributions[1] = expectedContributions[3] * Math.pow(2., TAU);
-    expectedContributions[0] = expectedContributions[1] * Math.pow(2., TAU);
 
     assertThat(UltraLogLog.getRegisterContributions())
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))

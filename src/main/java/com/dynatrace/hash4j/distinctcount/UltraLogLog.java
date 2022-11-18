@@ -96,7 +96,11 @@ public final class UltraLogLog {
 
   private static final double MINUS_TAU_INV = -1. / TAU;
 
-  private static final double CA = Math.pow(2., TAU);
+  private static final double POW_2_TAU = Math.pow(2., TAU);
+
+  private static final double CA = 1. / (Math.pow(8, TAU) - Math.pow(4, TAU));
+
+  private static final double CB = CA + 1. / POW_2_TAU;
 
   /**
    * The minimum allowed precision parameter.
@@ -155,10 +159,6 @@ public final class UltraLogLog {
   // visible for testing
   static double[] getRegisterContributions() {
     return new double[] {
-      1.4540280506705723,
-      0.8615213552914165,
-      1.1029638666014445,
-      0.5104571712222887,
       1.2460201711017937,
       0.653513475722638,
       0.894955987032666,
@@ -589,14 +589,14 @@ public final class UltraLogLog {
   public double getDistinctCountEstimate() {
     final int m = state.length;
     final int p = getP();
-    final int off = p << 2;
+    final int off = (p + 1) << 2;
     final int[] c = new int[4];
     double sum = 0;
 
     for (byte x : state) {
       int y = x & 0xFF;
       int t = y - off;
-      if (t >= 4) {
+      if (t >= 0) {
         sum += REGISTER_CONTRIBUTIONS[t];
       } else {
         int l = (2 | ((x >>> 1) & 1)) >>> (p - (y >>> 2));
@@ -616,18 +616,17 @@ public final class UltraLogLog {
       if (alpha > 0) {
         double z2 = z * z;
         if (c[0] > 0) {
-          sum +=
-              c[0] * (REGISTER_CONTRIBUTIONS[0] + z + CA * (z2 + CA * (xi(CA, z2 * z2 * z) / z)));
+          sum += c[0] * (z + POW_2_TAU * (z2 + POW_2_TAU * (CA + xi(POW_2_TAU, z2 * z2 * z) / z)));
         }
         if (c[1] > 0) {
-          sum += c[1] * (REGISTER_CONTRIBUTIONS[1] + z + CA * z2);
+          sum += c[1] * (z + POW_2_TAU * (z2 + CA));
         }
       }
       if (c[2] > 0) {
-        sum += c[2] * (REGISTER_CONTRIBUTIONS[2] + z);
+        sum += c[2] * (z + CB);
       }
       if (c[3] > 0) {
-        sum += c[3] * (REGISTER_CONTRIBUTIONS[3] + z);
+        sum += c[3] * (z + CA);
       }
     }
 
