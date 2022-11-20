@@ -23,9 +23,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 import static org.hipparchus.special.Gamma.gamma;
 
-import com.google.common.collect.Sets;
-import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.assertj.core.data.Offset;
 import org.hipparchus.optim.MaxEval;
@@ -131,28 +128,6 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
     assertThat(UltraLogLog.xi(Double.NaN, Double.NaN)).isNaN();
     assertThat(UltraLogLog.xi(2, Math.nextDown(1.)))
         .isCloseTo(1.2994724158464226E16, withPercentage(1e-8));
-  }
-
-  @Test
-  void testWrapIllegalArguments() {
-    Set<Integer> validLengths =
-        IntStream.range(MIN_P, MAX_P + 1).map(p -> 1 << p).boxed().collect(Collectors.toSet());
-    Set<Integer> testLengths =
-        IntStream.range(MIN_P, MAX_P + 1)
-            .map(p -> 1 << p)
-            .flatMap(p -> IntStream.of(p - 3, p - 2, p - 1, p, p + 1, p + 2, p + 3))
-            .boxed()
-            .collect(Collectors.toCollection(HashSet::new));
-
-    for (int len : validLengths) {
-      assertThatNoException().isThrownBy(() -> UltraLogLog.wrap(new byte[len]));
-    }
-
-    for (int len : Sets.difference(testLengths, validLengths)) {
-      assertThatIllegalArgumentException().isThrownBy(() -> UltraLogLog.wrap(new byte[len]));
-    }
-
-    assertThatNullPointerException().isThrownBy(() -> UltraLogLog.wrap(null));
   }
 
   private static void testErrorOfDistinctCountEqualOne(int p) {
@@ -320,7 +295,7 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
   private static double calculateZ(int m, int h0, int h1, int h2, int h3) {
     int alpha = h0 + h1;
     int beta = alpha + h2 + h3;
-    int gamma = beta + alpha + ((h0 + h2) << 1);
+    int gamma = ((beta + alpha) << 1) + ((h0 + h2) << 2);
     return UltraLogLog.calculateZ(m, alpha, beta, gamma);
   }
 
@@ -412,15 +387,17 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
   @Test
   void testRegisterContributions() {
     double[] expectedContributions = new double[252 - 4 * MIN_P];
-    for (int x = 0; x < 252 - 4 * MIN_P; ++x) {
-      double r = 1. / (pow(8., TAU) - pow(4., TAU));
-      if ((x & 1) == 0) {
-        r += 1.;
-      }
-      if ((x & 2) == 0) {
-        r += 1. / pow(2., TAU);
-      }
-      expectedContributions[x] = r * pow(2., -TAU * (double) (1 + x / 4));
+
+    final double kappa1 = Math.pow(2., TAU);
+    final double kappa2 = 1. / (Math.pow(8, TAU) - Math.pow(4, TAU));
+    final double kappa3 = kappa2 + 1. / kappa1;
+
+    for (int k = 0; k < 252 - 4 * MIN_P; ++k) {
+      int k0 = k & 1;
+      int k1 = (k & 2) >>> 1;
+      int k765432 = k >>> 2;
+      expectedContributions[k] =
+          (1 - k0 + (1 - k1) * kappa3 + k1 * kappa2) * pow(2., -TAU * (1 + k765432));
     }
 
     assertThat(UltraLogLog.getRegisterContributions())
@@ -438,28 +415,13 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
   @Test
   void testEstimationFactors() {
-    double[] expectedEstimationFactors = new double[MAX_P + 1];
+    double[] expectedEstimationFactors = new double[MAX_P - MIN_P + 1];
     for (int p = MIN_P; p <= MAX_P; ++p) {
-      expectedEstimationFactors[p] = calculateEstimationFactor(p);
+      expectedEstimationFactors[p - MIN_P] = calculateEstimationFactor(p);
     }
     assertThat(UltraLogLog.getEstimationFactors())
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedEstimationFactors);
-  }
-
-  @Test
-  void testWrappingOfPotentiallyInvalidByteArrays() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      byte[] b = new byte[1 << p];
-      int c = 0;
-      while (c < 256) {
-        for (int k = 0; k < b.length; ++k) {
-          b[k] = (byte) c;
-          c += 1;
-        }
-        assertThatNoException().isThrownBy(() -> UltraLogLog.wrap(b).getDistinctCountEstimate());
-      }
-    }
   }
 
   @Test

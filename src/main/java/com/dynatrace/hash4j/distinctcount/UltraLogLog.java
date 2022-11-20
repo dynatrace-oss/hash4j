@@ -96,11 +96,11 @@ public final class UltraLogLog {
 
   private static final double MINUS_TAU_INV = -1. / TAU;
 
-  private static final double POW_2_TAU = Math.pow(2., TAU);
+  private static final double KAPPA_1 = Math.pow(2., TAU);
 
-  private static final double CA = 1. / (Math.pow(8, TAU) - Math.pow(4, TAU));
+  private static final double KAPPA_2 = 1. / (Math.pow(8, TAU) - Math.pow(4, TAU));
 
-  private static final double CB = CA + 1. / POW_2_TAU;
+  private static final double KAPPA_3 = KAPPA_2 + 1. / KAPPA_1;
 
   /**
    * The minimum allowed precision parameter.
@@ -124,11 +124,9 @@ public final class UltraLogLog {
 
   private static final double[] REGISTER_CONTRIBUTIONS = getRegisterContributions();
 
+  // visible for testing
   static double[] getEstimationFactors() {
     return new double[] {
-      0.0,
-      0.0,
-      0.0,
       198.73981665391312,
       1027.9377396749687,
       5233.925351968597,
@@ -594,16 +592,11 @@ public final class UltraLogLog {
     double sum = 0;
 
     for (byte x : state) {
-      int y = x & 0xFF;
-      int t = y - off;
+      int t = (x & 0xFF) - off;
       if (t >= 0) {
         sum += REGISTER_CONTRIBUTIONS[t];
       } else {
-        int l = (2 | ((x >>> 1) & 1)) >>> (p - (y >>> 2));
-        // optimized version of
-        // int l = (int) (registerToHashPrefix(x) >>> (p - 1));
-        // for s <= p
-        c[l] += 1;
+        c[Integer.numberOfLeadingZeros((t + 8) | (~t << 28)) & 3] += 1;
       }
     }
 
@@ -611,36 +604,28 @@ public final class UltraLogLog {
     int beta = alpha + c[2] + c[3];
 
     if (beta > 0) {
-      int gamma = beta + alpha + ((c[0] + c[2]) << 1);
+      int gamma = ((beta + alpha) << 1) + ((c[0] + c[2]) << 2);
       double z = calculateZ(m, alpha, beta, gamma);
       if (alpha > 0) {
         double z2 = z * z;
-        if (c[0] > 0) {
-          sum += c[0] * (z + POW_2_TAU * (z2 + POW_2_TAU * (CA + xi(POW_2_TAU, z2 * z2 * z) / z)));
-        }
-        if (c[1] > 0) {
-          sum += c[1] * (z + POW_2_TAU * (z2 + CA));
-        }
+        if (c[0] > 0)
+          sum += c[0] * (z + KAPPA_1 * (z2 + KAPPA_1 * (KAPPA_2 + xi(KAPPA_1, z2 * z2 * z) / z)));
+        if (c[1] > 0) sum += c[1] * (z + KAPPA_1 * (z2 + KAPPA_2));
       }
-      if (c[2] > 0) {
-        sum += c[2] * (z + CB);
-      }
-      if (c[3] > 0) {
-        sum += c[3] * (z + CA);
-      }
+      if (c[2] > 0) sum += c[2] * (z + KAPPA_3);
+      if (c[3] > 0) sum += c[3] * (z + KAPPA_2);
     }
 
-    return ESTIMATION_FACTORS[p] * Math.pow(sum, MINUS_TAU_INV);
+    return ESTIMATION_FACTORS[p - MIN_P] * Math.pow(sum, MINUS_TAU_INV);
   }
 
   // visible for testing
   static double calculateZ(int m, int alpha, int beta, int gamma) {
     int mma = m - alpha;
-    int m3b = m + beta + (beta << 1);
+    int twom3b = ((m + beta) << 1) + (beta << 2);
     double x =
-        (Math.sqrt((double) (Math.multiplyFull(gamma, m3b << 2) + Math.multiplyFull(mma, mma)))
-                - mma)
-            / (m3b << 1);
+        (Math.sqrt((double) (Math.multiplyFull(gamma, twom3b) + Math.multiplyFull(mma, mma))) - mma)
+            / twom3b;
     x *= x;
     x *= x;
     return x;

@@ -22,10 +22,6 @@ import static org.assertj.core.data.Percentage.withPercentage;
 
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
-import com.google.common.collect.Sets;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
@@ -147,7 +143,7 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
   @Test
   void testSigma() {
     assertThat(HyperLogLog.sigma(0.)).isZero();
-    assertThat(HyperLogLog.sigma(0.5)).isCloseTo(0.8907470740377903, withPercentage(1e-8));
+    assertThat(HyperLogLog.sigma(0.5)).isCloseTo(0.3907470740377903, withPercentage(1e-8));
     assertThat(HyperLogLog.sigma(1.)).isEqualTo(Double.POSITIVE_INFINITY);
     assertThat(HyperLogLog.sigma(Double.NEGATIVE_INFINITY)).isZero();
     assertThat(HyperLogLog.sigma(Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
@@ -156,31 +152,6 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
     assertThat(HyperLogLog.sigma(Double.NaN)).isNaN();
     assertThat(HyperLogLog.sigma(Math.nextDown(1.)))
         .isCloseTo(6.497362079232113E15, withPercentage(1e-8));
-  }
-
-  @Test
-  void testWrapIllegalArguments() {
-    Set<Integer> validLengths =
-        IntStream.range(MIN_P, MAX_P + 1)
-            .map(p -> (1 << p) * 6 / 8)
-            .boxed()
-            .collect(Collectors.toSet());
-    Set<Integer> testLengths =
-        IntStream.range(MIN_P, MAX_P + 1)
-            .map(p -> (1 << p) * 6 / 8)
-            .flatMap(p -> IntStream.of(p - 3, p - 2, p - 1, p, p + 1, p + 2, p + 3))
-            .boxed()
-            .collect(Collectors.toCollection(HashSet::new));
-
-    for (int len : validLengths) {
-      assertThatNoException().isThrownBy(() -> HyperLogLog.wrap(new byte[len]));
-    }
-
-    for (int len : Sets.difference(testLengths, validLengths)) {
-      assertThatIllegalArgumentException().isThrownBy(() -> HyperLogLog.wrap(new byte[len]));
-    }
-
-    assertThatNullPointerException().isThrownBy(() -> HyperLogLog.wrap(null));
   }
 
   private static void testErrorOfDistinctCountEqualOne(int p) {
@@ -384,28 +355,13 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
 
   @Test
   void testEstimationFactors() {
-    double[] expectedEstimationFactors = new double[MAX_P + 1];
+    double[] expectedEstimationFactors = new double[MAX_P - MIN_P + 1];
     for (int p = MIN_P; p <= MAX_P; ++p) {
-      expectedEstimationFactors[p] = calculateEstimationFactor(p);
+      expectedEstimationFactors[p - MIN_P] = calculateEstimationFactor(p);
     }
     assertThat(HyperLogLog.getEstimationFactors())
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedEstimationFactors);
-  }
-
-  @Test
-  void testWrappingOfPotentiallyInvalidByteArrays() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      byte[] b = new byte[(6 << p) / 8];
-      int c = 0;
-      while (c < 256) {
-        for (int k = 0; k < b.length; ++k) {
-          b[k] = (byte) c;
-          c += 1;
-        }
-        assertThatNoException().isThrownBy(() -> HyperLogLog.wrap(b).getDistinctCountEstimate());
-      }
-    }
   }
 
   @Test

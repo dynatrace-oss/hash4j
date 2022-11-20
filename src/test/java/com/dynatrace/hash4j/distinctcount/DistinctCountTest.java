@@ -24,11 +24,13 @@ import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+import com.google.common.collect.Sets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.SplittableRandom;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.Deflater;
 import org.junit.jupiter.api.Test;
@@ -405,5 +407,45 @@ abstract class DistinctCountTest<T> {
         assertThat(getState(sketch1)).isEqualTo(getState(sketch2));
       }
     }
+  }
+
+  @Test
+  void testWrappingOfPotentiallyInvalidByteArrays() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      byte[] b = new byte[getStateLength(p)];
+      int c = 0;
+      while (c < 256) {
+        for (int k = 0; k < b.length; ++k) {
+          b[k] = (byte) c;
+          c += 1;
+        }
+        assertThatNoException().isThrownBy(() -> getDistinctCountEstimate(wrap(b)));
+      }
+    }
+  }
+
+  @Test
+  void testWrapIllegalArguments() {
+    Set<Integer> validLengths =
+        IntStream.range(MIN_P, MAX_P + 1)
+            .map(this::getStateLength)
+            .boxed()
+            .collect(Collectors.toSet());
+    Set<Integer> testLengths =
+        IntStream.range(MIN_P, MAX_P + 1)
+            .map(this::getStateLength)
+            .flatMap(p -> IntStream.of(p - 3, p - 2, p - 1, p, p + 1, p + 2, p + 3))
+            .boxed()
+            .collect(Collectors.toCollection(HashSet::new));
+
+    for (int len : validLengths) {
+      assertThatNoException().isThrownBy(() -> wrap(new byte[len]));
+    }
+
+    for (int len : Sets.difference(testLengths, validLengths)) {
+      assertThatIllegalArgumentException().isThrownBy(() -> wrap(new byte[len]));
+    }
+
+    assertThatNullPointerException().isThrownBy(() -> wrap(null));
   }
 }
