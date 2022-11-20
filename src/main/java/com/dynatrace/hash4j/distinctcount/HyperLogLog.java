@@ -78,9 +78,6 @@ public final class HyperLogLog {
 
   static double[] getEstimationFactors() {
     return new double[] {
-      0.0,
-      0.0,
-      0.0,
       40.67760431873907,
       172.99391414703106,
       714.5560640781132,
@@ -320,23 +317,27 @@ public final class HyperLogLog {
    * @return estimated number of distinct elements
    */
   public double getDistinctCountEstimate() {
-    final int m = 1 << p;
     int c0 = 0;
     double sum = 0;
-
-    for (int i = 0; i < m; ++i) {
-      long r = ARRAY_HANDLER.get(state, i);
-      if (r > 0) {
-        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r << 52));
-      } else {
-        c0 += 1;
-      }
+    for (int off = 0; off + 2 < state.length; off += 3) {
+      long r0 = state[off] & 0x3fL;
+      long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
+      long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
+      long r3 = (state[off + 2] & 0xfcL) >>> 2;
+      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
+      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
+      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
+      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
+      if (r0 == 0) c0 += 1;
+      if (r1 == 0) c0 += 1;
+      if (r2 == 0) c0 += 1;
+      if (r3 == 0) c0 += 1;
     }
-
     if (c0 > 0) {
-      sum += m * sigma(c0 / (double) m);
+      double m = 1 << p;
+      sum += m * sigma(c0 / m);
     }
-    return ESTIMATION_FACTORS[p] / sum;
+    return ESTIMATION_FACTORS[p - MIN_P] / sum;
   }
 
   // visible for testing
@@ -344,7 +345,7 @@ public final class HyperLogLog {
     if (x <= 0.) return 0;
     if (x >= 1.) return Double.POSITIVE_INFINITY;
     double z = 1;
-    double sum = x;
+    double sum = 0;
     double oldSum;
     do {
       x *= x;
