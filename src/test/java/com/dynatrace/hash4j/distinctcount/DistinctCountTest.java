@@ -343,8 +343,13 @@ abstract class DistinctCountTest<T> {
 
   @Test
   void testEmpty() {
-    T sketch = create(10);
-    assertThat(getDistinctCountEstimate(sketch)).isZero();
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      T sketch = create(p);
+      assertThat(getDistinctCountEstimate(sketch)).isZero();
+      T mergedSketch = merge(sketch, sketch);
+      assertThat(getState(mergedSketch)).isEqualTo(new byte[getStateLength(p)]);
+      assertThat(getDistinctCountEstimate(mergedSketch)).isZero();
+    }
   }
 
   @Test
