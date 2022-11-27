@@ -30,7 +30,9 @@ import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.hipparchus.optim.univariate.*;
 import org.junit.jupiter.api.Test;
 
-class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
+class UltraLogLogTest extends DistinctCounterTest<UltraLogLog> {
+
+  private static final double VARIANCE_FACTOR = calculateVarianceFactor(TAU);
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
@@ -62,7 +64,7 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
     };
     double[] actual =
         IntStream.range(MIN_P, MAX_P + 1)
-            .mapToDouble(UltraLogLog::calculateTheoreticalRelativeStandardError)
+            .mapToDouble(this::calculateTheoreticalRelativeStandardError)
             .toArray();
     assertThat(actual)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
@@ -130,7 +132,7 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
         .isCloseTo(1.2994724158464226E16, withPercentage(1e-8));
   }
 
-  private static void testErrorOfDistinctCountEqualOne(int p) {
+  private void testErrorOfDistinctCountEqualOne(int p) {
     UltraLogLog sketch = UltraLogLog.create(p);
     double sumProbabiltiy = 0;
     double averageEstimate = 0;
@@ -148,14 +150,13 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
     double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError =
-        UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
   }
 
-  private static void testErrorOfDistinctCountEqualTwo(int p) {
+  private void testErrorOfDistinctCountEqualTwo(int p) {
     double m = 1 << p;
     UltraLogLog sketch = UltraLogLog.create(p);
     double sumProbabiltiy = 0;
@@ -191,14 +192,13 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
     double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError =
-        UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
   }
 
-  private static void testErrorOfDistinctCountEqualThree(int p) {
+  private void testErrorOfDistinctCountEqualThree(int p) {
     double m = 1 << p;
     UltraLogLog sketch = UltraLogLog.create(p);
     double sumProbabiltiy = 0;
@@ -247,8 +247,7 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
     double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError =
-        UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.75);
@@ -307,7 +306,15 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
     assertThat(xiIterations(x, 0.)).isZero();
     assertThat(xiIterations(x, Double.POSITIVE_INFINITY)).isZero();
     assertThat(xiIterations(x, 1.)).isZero();
-    assertThat(xiIterations(x, Math.nextDown(1.))).isEqualTo(59);
+    for (int p = 1; p <= 53; ++p) {
+      assertThat(xiIterations(x, Math.pow(1. - Math.pow(2., -p), 5)))
+          .isLessThanOrEqualTo(
+              p + 4); // p + 3 should be enough, +1 more to encounter potential platform
+      // dependencies
+    }
+    for (int p = 54; p <= 60; ++p) {
+      assertThat(xiIterations(x, Math.pow(1. - Math.pow(2., -p), 5))).isLessThanOrEqualTo(1);
+    }
     assertThat(xiIterations(x, Math.nextUp(0.))).isEqualTo(1);
     for (int p = MIN_P; p <= MAX_P; ++p) {
       int maxNumIterations =
@@ -378,13 +385,6 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
   }
 
   @Test
-  void testVarianceFactor() {
-    assertThat(UltraLogLog.VARIANCE_FACTOR)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateVarianceFactor(TAU));
-  }
-
-  @Test
   void testRegisterContributions() {
     double[] expectedContributions = new double[252 - 4 * MIN_P];
 
@@ -407,7 +407,7 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
 
   private static double calculateEstimationFactor(int p) {
     int m = 1 << p;
-    double biasCorrectionFactor = 1. / (1. + calculateVarianceFactor(TAU) * (1. + TAU) / (2. * m));
+    double biasCorrectionFactor = 1. / (1. + VARIANCE_FACTOR * (1. + TAU) / (2. * m));
     return biasCorrectionFactor
         * ((4. * m) / 5.)
         * Math.pow(m * gamma(TAU) / Math.log(2), 1. / TAU);
@@ -476,58 +476,36 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
   }
 
   @Override
-  protected double getDistinctCountEstimate(UltraLogLog sketch) {
-    return sketch.getDistinctCountEstimate();
-  }
-
-  @Override
   protected UltraLogLog merge(UltraLogLog sketch1, UltraLogLog sketch2) {
     return UltraLogLog.merge(sketch1, sketch2);
   }
 
-  @Override
-  protected UltraLogLog add(UltraLogLog sketch, long hashValue) {
-    return sketch.add(hashValue);
-  }
-
-  @Override
-  protected UltraLogLog add(UltraLogLog sketch, UltraLogLog otherSketch) {
-    return sketch.add(otherSketch);
-  }
-
-  @Override
-  protected UltraLogLog downsize(UltraLogLog sketch, int p) {
-    return sketch.downsize(p);
-  }
-
-  @Override
-  protected UltraLogLog copy(UltraLogLog sketch) {
-    return sketch.copy();
-  }
-
-  @Override
-  protected UltraLogLog reset(UltraLogLog sketch) {
-    return sketch.reset();
-  }
-
-  @Override
-  protected byte[] getState(UltraLogLog sketch) {
-    return sketch.getState();
-  }
-
+  /**
+   * Returns the theoretical asymptotic (for large p and as the distinct count goes to infinity)
+   * relative standard error of the distinct count estimate for a given precision parameter.
+   *
+   * <p>For small cardinalities (up to the order of {@code 2^p} where {@code p} is the precision
+   * parameter, the relative error is usually less than this theoretical error.
+   *
+   * <p>The empirical root-mean square error might be slightly greater than this theoretical error,
+   * especially for small precision parameters.
+   *
+   * @param p the precision parameter
+   * @return the relative standard error
+   */
   @Override
   protected double calculateTheoreticalRelativeStandardError(int p) {
-    return UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+    return Math.sqrt(VARIANCE_FACTOR / (1 << p));
+  }
+
+  @Override
+  protected double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
+    return Math.sqrt(Math.log(2.) * 1.25 / (2. * (1L << p)));
   }
 
   @Override
   protected long getCompatibilityFingerPrint() {
     return 0xfc124320345bd3b9L;
-  }
-
-  @Override
-  protected double calculateVarianceFactor() {
-    return calculateVarianceFactor(TAU);
   }
 
   @Override
@@ -543,10 +521,5 @@ class UltraLogLogTest extends DistinctCountTest<UltraLogLog> {
   @Override
   protected double getApproximateStorageFactor() {
     return 2.8895962872532435;
-  }
-
-  @Override
-  protected int getP(UltraLogLog sketch) {
-    return sketch.getP();
   }
 }

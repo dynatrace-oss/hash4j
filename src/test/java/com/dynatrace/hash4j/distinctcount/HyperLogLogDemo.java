@@ -22,14 +22,14 @@ import com.dynatrace.hash4j.hashing.Hashing;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.Test;
 
-class UltraLogLogDemo {
+class HyperLogLogDemo {
 
   @Test
   void demoBasicUsage() {
 
     Hasher64 hasher = Hashing.wyhashFinal3();
 
-    UltraLogLog sketch = UltraLogLog.create(12);
+    HyperLogLog sketch = HyperLogLog.create(12);
 
     sketch.add(hasher.hashCharsToLong("foo"));
     sketch.add(hasher.hashCharsToLong("bar"));
@@ -45,13 +45,13 @@ class UltraLogLogDemo {
 
     Hasher64 hasher = Hashing.wyhashFinal3();
 
-    UltraLogLog sketch1 =
-        UltraLogLog.create(12)
+    HyperLogLog sketch1 =
+        HyperLogLog.create(12)
             .add(hasher.hashCharsToLong("foo"))
             .add(hasher.hashCharsToLong("bar"));
-    UltraLogLog sketch2 = UltraLogLog.create(14).add(hasher.hashCharsToLong("foo"));
+    HyperLogLog sketch2 = HyperLogLog.create(14).add(hasher.hashCharsToLong("foo"));
 
-    UltraLogLog sketchMerged = UltraLogLog.merge(sketch1, sketch2);
+    HyperLogLog sketchMerged = HyperLogLog.merge(sketch1, sketch2);
 
     double distinctCountEstimate = sketchMerged.getDistinctCountEstimate();
 
@@ -63,7 +63,7 @@ class UltraLogLogDemo {
 
     Hasher64 hasher = Hashing.wyhashFinal3();
 
-    UltraLogLog sketch = UltraLogLog.create(12);
+    HyperLogLog sketch = HyperLogLog.create(12);
     MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
 
     sketch.add(hasher.hashCharsToLong("foo"), martingaleEstimator);
