@@ -42,12 +42,9 @@ import java.util.Arrays;
  *       16th International Conference on Extending Database Technology. 2013.
  * </ul>
  */
-public final class HyperLogLog {
+public final class HyperLogLog implements DistinctCounter<HyperLogLog> {
 
   private static final PackedArrayHandler ARRAY_HANDLER = PackedArray.getHandler(6);
-
-  // visible for testing
-  static final double VARIANCE_FACTOR = 1.0794415416798357;
 
   private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
 
@@ -182,22 +179,24 @@ public final class HyperLogLog {
   }
 
   /**
-   * Creates a copy of this {@link HyperLogLog} sketch.
+   * Creates a copy of this sketch.
    *
    * @return the copy
    */
+  @Override
   public HyperLogLog copy() {
     return new HyperLogLog(Arrays.copyOf(state, state.length), p);
   }
 
   /**
-   * Returns a downsized copy of this {@link HyperLogLog} sketch with a precision that is not larger
-   * than the given precision parameter.
+   * Returns a downsized copy of this sketch with a precision that is not larger than the given
+   * precision parameter.
    *
    * @param p the precision parameter used for downsizing
    * @return the downsized copy
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
+  @Override
   public HyperLogLog downsize(int p) {
     checkPrecisionParameter(p, MIN_P, MAX_P);
     if (p >= this.p) {
@@ -228,12 +227,13 @@ public final class HyperLogLog {
   }
 
   /**
-   * Returns a reference to the internal state of this {@link HyperLogLog} sketch.
+   * Returns a reference to the internal state of this sketch.
    *
    * <p>The returned state is never {@code null}.
    *
    * @return the internal state of this sketch
    */
+  @Override
   public byte[] getState() {
     return state;
   }
@@ -243,6 +243,7 @@ public final class HyperLogLog {
    *
    * @return the precision parameter
    */
+  @Override
   public int getP() {
     return p;
   }
@@ -261,15 +262,43 @@ public final class HyperLogLog {
    * @param hashValue a 64-bit hash value
    * @return this sketch
    */
+  @Override
   public HyperLogLog add(long hashValue) {
-    int idx = (int) (hashValue >>> (-p));
-    long nlz = Long.numberOfLeadingZeros(~(~hashValue << p)); // nlz in {0, 1, ..., 64-p}
-    ARRAY_HANDLER.update(state, idx, nlz + 1, Math::max);
+    add(hashValue, null);
     return this;
   }
 
   /**
-   * Adds another {@link HyperLogLog} sketch.
+   * Adds a new element represented by a 64-bit hash value to this sketch and passes, if the
+   * internal state has changed, decrements of the state change probability to the given {@link
+   * StateChangeObserver}.
+   *
+   * <p>In order to get good estimates, it is important that the hash value is calculated using a
+   * high-quality hash algorithm.
+   *
+   * @param hashValue a 64-bit hash value
+   * @param stateChangeObserver a state change observer
+   * @return this sketch
+   */
+  @Override
+  public HyperLogLog add(long hashValue, StateChangeObserver stateChangeObserver) {
+    int idx = (int) (hashValue >>> (-p));
+    long newValue = Long.numberOfLeadingZeros(~(~hashValue << p)) + 1;
+    long oldValue = ARRAY_HANDLER.update(state, idx, newValue, Math::max);
+    if (stateChangeObserver != null && newValue > oldValue) {
+      double stateChangeProbabilityDecrement =
+          getRegisterChangeProbability(oldValue, p) - getRegisterChangeProbability(newValue, p);
+      stateChangeObserver.stateChanged(stateChangeProbabilityDecrement);
+    }
+    return this;
+  }
+
+  private static double getRegisterChangeProbability(long registerValue, int p) {
+    return Double.longBitsToDouble(0x3FF0000000000000L - ((registerValue + p) << 52));
+  }
+
+  /**
+   * Adds another sketch.
    *
    * <p>The precision parameter of the added sketch must not be smaller than the precision parameter
    * of this sketch. Otherwise, an {@link IllegalArgumentException} will be thrown.
@@ -278,6 +307,7 @@ public final class HyperLogLog {
    * @return this sketch
    * @throws NullPointerException if the argument is null
    */
+  @Override
   public HyperLogLog add(HyperLogLog other) {
     requireNonNull(other, "null argument");
     byte[] otherData = other.state;
@@ -316,6 +346,7 @@ public final class HyperLogLog {
    *
    * @return estimated number of distinct elements
    */
+  @Override
   public double getDistinctCountEstimate() {
     int c0 = 0;
     double sum = 0;
@@ -357,22 +388,24 @@ public final class HyperLogLog {
   }
 
   /**
-   * Visible for testing.
+   * Returns the probability of an internal state change when a new distinct element is added.
    *
-   * <p>Returns the theoretical asymptotic (for large p and as the distinct count goes to infinity)
-   * relative standard error of the distinct count estimate for a given precision parameter.
-   *
-   * <p>For small cardinalities (up to the order of {@code 2^p} where {@code p} is the precision
-   * parameter, the relative error is usually less than this theoretical error.
-   *
-   * <p>The empirical root-mean square error might be slightly greater than this theoretical error,
-   * especially for small precision parameters.
-   *
-   * @param p the precision parameter
-   * @return the relative standard error
+   * @return the state change probability
    */
-  static double calculateTheoreticalRelativeStandardError(int p) {
-    return Math.sqrt(VARIANCE_FACTOR / (1 << p));
+  @Override
+  public double getStateChangeProbability() {
+    double sum = 0;
+    for (int off = 0; off + 2 < state.length; off += 3) {
+      long r0 = state[off] & 0x3fL;
+      long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
+      long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
+      long r3 = (state[off + 2] & 0xfcL) >>> 2;
+      sum += getRegisterChangeProbability(r0, p);
+      sum += getRegisterChangeProbability(r1, p);
+      sum += getRegisterChangeProbability(r2, p);
+      sum += getRegisterChangeProbability(r3, p);
+    }
+    return sum;
   }
 
   /**
@@ -380,6 +413,7 @@ public final class HyperLogLog {
    *
    * @return this sketch
    */
+  @Override
   public HyperLogLog reset() {
     ARRAY_HANDLER.clear(state);
     return this;

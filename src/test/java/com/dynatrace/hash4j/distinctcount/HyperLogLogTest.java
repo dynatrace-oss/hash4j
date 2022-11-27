@@ -26,7 +26,9 @@ import java.util.stream.IntStream;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
-class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
+class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
+
+  private static final double VARIANCE_FACTOR = calculateVarianceFactor();
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
@@ -58,7 +60,7 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
     };
     double[] actual =
         IntStream.range(MIN_P, MAX_P + 1)
-            .mapToDouble(HyperLogLog::calculateTheoreticalRelativeStandardError)
+            .mapToDouble(this::calculateTheoreticalRelativeStandardError)
             .toArray();
     assertThat(actual)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
@@ -71,48 +73,33 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
   }
 
   @Override
-  protected double getDistinctCountEstimate(HyperLogLog sketch) {
-    return sketch.getDistinctCountEstimate();
-  }
-
-  @Override
   protected HyperLogLog merge(HyperLogLog sketch1, HyperLogLog sketch2) {
     return HyperLogLog.merge(sketch1, sketch2);
   }
 
-  @Override
-  protected HyperLogLog add(HyperLogLog sketch, long hashValue) {
-    return sketch.add(hashValue);
-  }
-
-  @Override
-  protected HyperLogLog add(HyperLogLog sketch, HyperLogLog otherSketch) {
-    return sketch.add(otherSketch);
-  }
-
-  @Override
-  protected HyperLogLog downsize(HyperLogLog sketch, int p) {
-    return sketch.downsize(p);
-  }
-
-  @Override
-  protected HyperLogLog copy(HyperLogLog sketch) {
-    return sketch.copy();
-  }
-
-  @Override
-  protected HyperLogLog reset(HyperLogLog sketch) {
-    return sketch.reset();
-  }
-
-  @Override
-  protected byte[] getState(HyperLogLog sketch) {
-    return sketch.getState();
-  }
-
+  /**
+   * Visible for testing.
+   *
+   * <p>Returns the theoretical asymptotic (for large p and as the distinct count goes to infinity)
+   * relative standard error of the distinct count estimate for a given precision parameter.
+   *
+   * <p>For small cardinalities (up to the order of {@code 2^p} where {@code p} is the precision
+   * parameter, the relative error is usually less than this theoretical error.
+   *
+   * <p>The empirical root-mean square error might be slightly greater than this theoretical error,
+   * especially for small precision parameters.
+   *
+   * @param p the precision parameter
+   * @return the relative standard error
+   */
   @Override
   protected double calculateTheoreticalRelativeStandardError(int p) {
-    return HyperLogLog.calculateTheoreticalRelativeStandardError(p);
+    return Math.sqrt(VARIANCE_FACTOR / (1 << p));
+  }
+
+  @Override
+  protected double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
+    return Math.sqrt(Math.log(2.) / (1L << p));
   }
 
   @Override
@@ -135,11 +122,6 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
     return 3.3741034021645766;
   }
 
-  @Override
-  protected int getP(HyperLogLog sketch) {
-    return sketch.getP();
-  }
-
   @Test
   void testSigma() {
     assertThat(HyperLogLog.sigma(0.)).isZero();
@@ -154,7 +136,7 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
         .isCloseTo(6.497362079232113E15, withPercentage(1e-8));
   }
 
-  private static void testErrorOfDistinctCountEqualOne(int p) {
+  private void testErrorOfDistinctCountEqualOne(int p) {
     HyperLogLog sketch = HyperLogLog.create(p);
     double sumProbabiltiy = 0;
     double averageEstimate = 0;
@@ -172,14 +154,13 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
     double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError =
-        HyperLogLog.calculateTheoreticalRelativeStandardError(p);
+    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
   }
 
-  private static void testErrorOfDistinctCountEqualTwo(int p) {
+  private void testErrorOfDistinctCountEqualTwo(int p) {
     double m = 1 << p;
     HyperLogLog sketch = HyperLogLog.create(p);
     double sumProbabiltiy = 0;
@@ -215,14 +196,13 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
     double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError =
-        HyperLogLog.calculateTheoreticalRelativeStandardError(p);
+    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
   }
 
-  private static void testErrorOfDistinctCountEqualThree(int p) {
+  private void testErrorOfDistinctCountEqualThree(int p) {
     double m = 1 << p;
     HyperLogLog sketch = HyperLogLog.create(p);
     double sumProbabiltiy = 0;
@@ -271,8 +251,7 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
 
     double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
     double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError =
-        HyperLogLog.calculateTheoreticalRelativeStandardError(p);
+    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
     assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
     assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
     assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.75);
@@ -332,25 +311,15 @@ class HyperLogLogTest extends DistinctCountTest<HyperLogLog> {
     }
   }
 
-  private static final double LOG_2 = Math.log(2);
-
-  @Override
-  protected double calculateVarianceFactor() {
-    return 3. * LOG_2 - 1.;
+  private static double calculateVarianceFactor() {
+    return 3. * Math.log(2) - 1.;
   }
 
   private static final double RELATIVE_ERROR = 1e-10;
 
-  @Test
-  void testVarianceFactor() {
-    assertThat(HyperLogLog.VARIANCE_FACTOR)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateVarianceFactor());
-  }
-
   private double calculateEstimationFactor(int p) {
     double m = 1 << p;
-    return m * m / (2. * LOG_2 * (1. + calculateVarianceFactor() / m));
+    return m * m / (2. * Math.log(2) * (1. + calculateVarianceFactor() / m));
   }
 
   @Test

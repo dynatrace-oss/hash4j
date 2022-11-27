@@ -84,10 +84,7 @@ import java.util.Arrays;
  *       Sketches for Networking Applications." DIALM-POMC. 2007.
  * </ul>
  */
-public final class UltraLogLog {
-
-  // visible for testing
-  static final double VARIANCE_FACTOR = 0.6169896446766369;
+public final class UltraLogLog implements DistinctCounter<UltraLogLog> {
 
   private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
 
@@ -448,22 +445,24 @@ public final class UltraLogLog {
   }
 
   /**
-   * Creates a copy of this {@link UltraLogLog} sketch.
+   * Creates a copy of this sketch.
    *
    * @return the copy
    */
+  @Override
   public UltraLogLog copy() {
     return new UltraLogLog(Arrays.copyOf(state, state.length));
   }
 
   /**
-   * Returns a downsized copy of this {@link UltraLogLog} sketch with a precision that is not larger
-   * than the given precision parameter.
+   * Returns a downsized copy of this sketch with a precision that is not larger than the given
+   * precision parameter.
    *
    * @param p the precision parameter used for downsizing
    * @return the downsized copy
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
+  @Override
   public UltraLogLog downsize(int p) {
     checkPrecisionParameter(p, MIN_P, MAX_P);
     if ((1 << p) >= state.length) {
@@ -494,12 +493,13 @@ public final class UltraLogLog {
   }
 
   /**
-   * Returns a reference to the internal state of this {@link UltraLogLog} sketch.
+   * Returns a reference to the internal state of this sketch.
    *
    * <p>The returned state is never {@code null}.
    *
    * @return the internal state of this sketch
    */
+  @Override
   public byte[] getState() {
     return state;
   }
@@ -509,6 +509,7 @@ public final class UltraLogLog {
    *
    * @return the precision parameter
    */
+  @Override
   public int getP() {
     return 31 - Integer.numberOfLeadingZeros(state.length);
   }
@@ -522,18 +523,44 @@ public final class UltraLogLog {
    * @param hashValue a 64-bit hash value
    * @return this sketch
    */
+  @Override
   public UltraLogLog add(long hashValue) {
-    int q = Long.numberOfLeadingZeros(state.length - 1L); // q = 64 - p
-    int idx = (int) (hashValue >>> q);
-    int nlz = Long.numberOfLeadingZeros(~(~hashValue << (-q))); // nlz in {0, 1, ..., 64-p}
-    long hashPrefix = registerToHashPrefix(state[idx]);
-    hashPrefix |= 1L << (nlz + (~q)); // (nlz + (~q)) = (nlz + p - 1) in {p-1, ... 63}
-    state[idx] = hashPrefixToRegister(hashPrefix);
+    add(hashValue, null);
     return this;
   }
 
   /**
-   * Adds another {@link UltraLogLog} sketch.
+   * Adds a new element represented by a 64-bit hash value to this sketch and passes, if the
+   * internal state has changed, decrements of the state change probability to the given {@link
+   * StateChangeObserver}.
+   *
+   * <p>In order to get good estimates, it is important that the hash value is calculated using a
+   * high-quality hash algorithm.
+   *
+   * @param hashValue a 64-bit hash value
+   * @param stateChangeObserver a state change observer
+   * @return this sketch
+   */
+  @Override
+  public UltraLogLog add(long hashValue, StateChangeObserver stateChangeObserver) {
+    int q = Long.numberOfLeadingZeros(state.length - 1L); // q = 64 - p
+    int idx = (int) (hashValue >>> q);
+    int nlz = Long.numberOfLeadingZeros(~(~hashValue << (-q))); // nlz in {0, 1, ..., 64-p}
+    byte oldState = state[idx];
+    long hashPrefix = registerToHashPrefix(oldState);
+    hashPrefix |= 1L << (nlz + (~q)); // (nlz + (~q)) = (nlz + p - 1) in {p-1, ... 63}
+    byte newState = hashPrefixToRegister(hashPrefix);
+    state[idx] = newState;
+    if (stateChangeObserver != null && newState != oldState) {
+      int p = 64 - q;
+      stateChangeObserver.stateChanged(
+          getRegisterChangeProbability(oldState, p) - getRegisterChangeProbability(newState, p));
+    }
+    return this;
+  }
+
+  /**
+   * Adds another sketch.
    *
    * <p>The precision parameter of the added sketch must not be smaller than the precision parameter
    * of this sketch. Otherwise, an {@link IllegalArgumentException} will be thrown.
@@ -542,6 +569,7 @@ public final class UltraLogLog {
    * @return this sketch
    * @throws NullPointerException if the argument is null
    */
+  @Override
   public UltraLogLog add(UltraLogLog other) {
     requireNonNull(other, "null argument");
     byte[] otherData = other.state;
@@ -584,6 +612,7 @@ public final class UltraLogLog {
    *
    * @return estimated number of distinct elements
    */
+  @Override
   public double getDistinctCountEstimate() {
     final int m = state.length;
     final int p = getP();
@@ -647,23 +676,48 @@ public final class UltraLogLog {
     return sum;
   }
 
+  private static double getRegisterChangeProbability(byte reg, int p) {
+    final int off = (p + 1) << 2;
+    int t = (reg & 0xFF) - off;
+    long x;
+    if (t >= 0) {
+      if ((t & 3) == 0) {
+        x = 0x3fec000000000000L; // = 7/8
+      } else if ((t & 3) == 1) {
+        x = 0x3fd8000000000000L; // = 3/8
+      } else if ((t & 3) == 2) {
+        x = 0x3fe4000000000000L; // = 5/8
+      } else {
+        x = 0x3fc0000000000000L; // = 1/8
+      }
+      return Double.longBitsToDouble(x - (((long) p + (t >>> 2)) << 52));
+    } else {
+      if (t == -2) {
+        x = 0x3fd0000000000000L; // = 1/4
+      } else if (t == -4) {
+        x = 0x3fe8000000000000L; // = 3/4
+      } else if (t == -8) {
+        x = 0x3fe0000000000000L; // = 1/2
+      } else {
+        x = 0x3ff0000000000000L; // = 1
+      }
+      return Double.longBitsToDouble(x - ((long) p << 52));
+    }
+  }
+
   /**
-   * Visible for testing.
+   * Returns the probability of an internal state change when a new distinct element is added.
    *
-   * <p>Returns the theoretical asymptotic (for large p and as the distinct count goes to infinity)
-   * relative standard error of the distinct count estimate for a given precision parameter.
-   *
-   * <p>For small cardinalities (up to the order of {@code 2^p} where {@code p} is the precision
-   * parameter, the relative error is usually less than this theoretical error.
-   *
-   * <p>The empirical root-mean square error might be slightly greater than this theoretical error,
-   * especially for small precision parameters.
-   *
-   * @param p the precision parameter
-   * @return the relative standard error
+   * @return the state change probability
    */
-  static double calculateTheoreticalRelativeStandardError(int p) {
-    return Math.sqrt(VARIANCE_FACTOR / (1 << p));
+  @Override
+  public double getStateChangeProbability() {
+    final int p = getP();
+    double sum = 0;
+    for (byte x : state) {
+      sum += getRegisterChangeProbability(x, p);
+    }
+    return sum;
   }
 
   /**
@@ -671,6 +725,7 @@ public final class UltraLogLog {
    *
    * @return this sketch
    */
+  @Override
   public UltraLogLog reset() {
     Arrays.fill(state, (byte) 0);
     return this;

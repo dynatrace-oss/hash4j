@@ -78,7 +78,7 @@ public class UltraLogLogEstimationErrorSimulation {
       int p = pVals[pIdx];
       String fileName = resultFolder + "ultraloglog-estimation-error-p" + p + ".csv";
       double theoreticalRelativeStandardError =
-          UltraLogLog.calculateTheoreticalRelativeStandardError(p);
+          new UltraLogLogTest().calculateTheoreticalRelativeStandardError(p);
       try (FileWriter writer = new FileWriter(fileName)) {
         writer.write("sketch_name=ultraloglog; p=" + p + "; num_cycles=" + numCycles + "\n");
         writer.write(

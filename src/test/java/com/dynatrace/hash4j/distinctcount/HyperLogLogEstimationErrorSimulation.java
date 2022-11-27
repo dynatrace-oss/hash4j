@@ -78,7 +78,7 @@ public class HyperLogLogEstimationErrorSimulation {
       int p = pVals[pIdx];
       String fileName = resultFolder + "hyperloglog-estimation-error-p" + p + ".csv";
       double theoreticalRelativeStandardError =
-          HyperLogLog.calculateTheoreticalRelativeStandardError(p);
+          new HyperLogLogTest().calculateTheoreticalRelativeStandardError(p);
       try (FileWriter writer = new FileWriter(fileName)) {
         writer.write("sketch_name=hyperloglog; p=" + p + "; num_cycles=" + numCycles + "\n");
         writer.write(
