@@ -100,7 +100,8 @@ public final class MartingaleEstimator implements StateChangeObserver {
 
   @Override
   public String toString() {
-    return "DistinctCountMartingaleEstimator{"
+    return MartingaleEstimator.class.getSimpleName()
+        + "{"
         + "distinctCountEstimate="
         + distinctCountEstimate
         + ", stateChangeProbability="

@@ -24,12 +24,10 @@ class MartingaleEstimatorTest {
 
   @Test
   void testToString() {
-    assertThat(new MartingaleEstimator().toString())
-        .isEqualTo(
-            "DistinctCountMartingaleEstimator{distinctCountEstimate=0.0, stateChangeProbability=1.0}");
-    assertThat(new MartingaleEstimator(2, 0.25).toString())
-        .isEqualTo(
-            "DistinctCountMartingaleEstimator{distinctCountEstimate=2.0, stateChangeProbability=0.25}");
+    assertThat(new MartingaleEstimator())
+        .hasToString("MartingaleEstimator{distinctCountEstimate=0.0, stateChangeProbability=1.0}");
+    assertThat(new MartingaleEstimator(2, 0.25))
+        .hasToString("MartingaleEstimator{distinctCountEstimate=2.0, stateChangeProbability=0.25}");
   }
 
   @Test
