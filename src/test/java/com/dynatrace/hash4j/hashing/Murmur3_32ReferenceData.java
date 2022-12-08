@@ -68,7 +68,7 @@ final class Murmur3_32ReferenceData {
   }
 
   private static List<ReferenceRecord> createReferenceData() {
-    // the reference data was computed using references/murmur3_32/reference_data.cpp
+    // the reference data was computed using reference-implementations/murmur3_32/reference_data.cpp
     // on an Intel x86 architecture with little endianness
 
     ReferenceDataBuilder builder = new ReferenceDataBuilder();

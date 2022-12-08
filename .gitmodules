@@ -1,21 +1,21 @@
 [submodule "references/komihash_4_3/komihash"]
-	path = references/komihash_4_3/komihash
+	path = reference-implementations/komihash_4_3/komihash
 	url = https://github.com/avaneev/komihash.git
 [submodule "references/komihash_4_5/komihash"]
-	path = references/komihash_4_5/komihash
+	path = reference-implementations/komihash_4_5/komihash
 	url = https://github.com/avaneev/komihash.git
 [submodule "references/komihash_4_7/komihash"]
-	path = references/komihash_4_7/komihash
+	path = reference-implementations/komihash_4_7/komihash
 	url = https://github.com/avaneev/komihash.git
 [submodule "references/wyhash_final_3/wyhash"]
-	path = references/wyhash_final_3/wyhash
+	path = reference-implementations/wyhash_final_3/wyhash
 	url = https://github.com/wangyi-fudan/wyhash.git
 [submodule "references/murmur3_128/smhasher"]
-	path = references/murmur3_128/smhasher
+	path = reference-implementations/murmur3_128/smhasher
 	url = https://github.com/aappleby/smhasher
 [submodule "references/murmur3_32/smhasher"]
-	path = references/murmur3_32/smhasher
+	path = reference-implementations/murmur3_32/smhasher
 	url = https://github.com/aappleby/smhasher
 [submodule "references/xxh3/xxHash"]
-	path = references/xxh3/xxHash
+	path = reference-implementations/xxh3/xxHash
 	url = https://github.com/Cyan4973/xxHash.git

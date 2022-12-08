@@ -68,7 +68,7 @@ final class XXH3ReferenceData {
   }
 
   private static List<ReferenceRecord> createReferenceData() {
-    // the reference data was computed using references/xxh3/reference_data.cpp
+    // the reference data was computed using reference-implementations/xxh3/reference_data.cpp
     // on an Intel x86 architecture with little endianness
 
     ReferenceDataBuilder builder = new ReferenceDataBuilder();
