@@ -16,3 +16,6 @@
 [submodule "references/murmur3_32/smhasher"]
 	path = references/murmur3_32/smhasher
 	url = https://github.com/aappleby/smhasher
+[submodule "references/xxh3/xxHash"]
+	path = references/xxh3/xxHash
+	url = https://github.com/Cyan4973/xxHash.git

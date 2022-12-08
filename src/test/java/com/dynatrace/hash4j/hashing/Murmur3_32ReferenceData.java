@@ -68,66 +68,8 @@ final class Murmur3_32ReferenceData {
   }
 
   private static List<ReferenceRecord> createReferenceData() {
-    // the hashes are calculated using the c++ reference implementation on an Intel x86 architecture
-    // with little endianness using the code below
-    // the reference implementation was taken from
-    // https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash3.cpp
-    // https://github.com/aappleby/smhasher/blob/61a0530f28277f2e850bfc39600ce61d02b518de/src/MurmurHash3.h
-    /*
-      #include <iostream>
-      #include <iomanip>
-      #include <random>
-
-      #include "MurmurHash3.h"
-
-      using namespace std;
-
-      int main(int argc, char *argv[])
-      {
-
-          mt19937_64 rng(0);
-
-          uint64_t maxSize = 200;
-          uint64_t numExamplesPerSize = 10;
-          uint32_t defaultSeed = 0;
-
-          uniform_int_distribution<uint8_t> dist(0, 255);
-
-          for (uint64_t size = 0; size <= maxSize; ++size)
-          {
-              vector<uint8_t> data(size);
-              for (uint64_t i = 0; i < numExamplesPerSize; ++i)
-              {
-                  for (uint64_t k = 0; k < size; ++k)
-                  {
-                      data[k] = dist(rng);
-                  }
-                  uint32_t seed = rng();
-
-                  uint8_t hash[4];
-                  uint8_t hashWithSeed[4];
-                  MurmurHash3_x86_32(&data[0], size, defaultSeed, hash);
-                  MurmurHash3_x86_32(&data[0], size, seed, hashWithSeed);
-
-                  cout << "builder.add(0x";
-                  for (int8_t i = 3; i >= 0; --i)
-                      cout << hex << setfill('0') << setw(2) << static_cast<uint64_t>(hash[i]);
-                  cout << ",0x";
-                  for (int8_t i = 3; i >= 0; --i)
-                      cout << hex << setfill('0') << setw(2) << static_cast<uint64_t>(hashWithSeed[i]);
-                  cout << ",0x";
-                  cout << hex << setfill('0') << setw(8) << seed;
-                  cout << ",\"";
-                  for (uint64_t k = 0; k < size; ++k)
-                      cout << hex << setfill('0') << setw(2) << static_cast<uint64_t>(data[k]);
-                  cout << "\");";
-
-                  cout << endl;
-              }
-          }
-      }
-
-    */
+    // the reference data was computed using references/murmur3_32/reference_data.cpp
+    // on an Intel x86 architecture with little endianness
 
     ReferenceDataBuilder builder = new ReferenceDataBuilder();
     builder.add(0x00000000, 0xf4190160, 0xcb41dc3e, "");
