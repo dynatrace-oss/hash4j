@@ -82,68 +82,9 @@ final class FarmHashUoReferenceData {
   }
 
   private static List<ReferenceRecord> createReferenceData() {
-    // the hashes are calculated using the c++ reference implementation on an Intel x86 architecture
-    // with little endianness
-    // the reference implementation was taken from
-    // https://github.com/google/farmhash/tree/0d859a811870d10f53a594927d0d0b97573ad06d
-
-    /*
-     #define NAMESPACE_FOR_HASH_FUNCTIONS farmhashuo
-     #include "farmhash.h"
-
-     #include <iostream>
-     #include <iomanip>
-     #include <random>
-
-     using namespace std;
-
-     int main(int argc, char *argv[])
-     {
-
-         mt19937_64 rng(0);
-
-         uint64_t maxSize = 200;
-         uint64_t numExamplesPerSize = 10;
-
-         uniform_int_distribution<uint8_t> dist(0, 255);
-
-         for (uint64_t size = 0; size <= maxSize; ++size)
-         {
-             vector<uint8_t> data(size);
-             for (uint64_t i = 0; i < numExamplesPerSize; ++i)
-             {
-                 for (uint64_t k = 0; k < size; ++k)
-                 {
-                     data[k] = dist(rng);
-                 }
-                 uint64_t seed1 = rng();
-                 uint64_t seed2 = rng();
-
-                 uint64_t hash0 = farmhashuo::Hash64((char *)(&data[0]), size);
-                 uint64_t hash1 = farmhashuo::Hash64WithSeed((char *)(&data[0]), size, seed1);
-                 uint64_t hash2 = farmhashuo::Hash64WithSeeds((char *)(&data[0]), size, seed1, seed2);
-
-                 cout << "builder.add(0x";
-                 cout << hex << setfill('0') << setw(16) << hash0;
-                 cout << "L,0x";
-                 cout << hex << setfill('0') << setw(16) << hash1;
-                 cout << "L,0x";
-                 cout << hex << setfill('0') << setw(16) << hash2;
-                 cout << "L,0x";
-                 cout << hex << setfill('0') << setw(16) << seed1 << 'L';
-                 cout << ",0x";
-                 cout << hex << setfill('0') << setw(16) << seed2 << 'L';
-                 cout << ",\"";
-                 for (uint64_t k = 0; k < size; ++k)
-                     cout << hex << setfill('0') << setw(2) << static_cast<uint64_t>(data[k]);
-                 cout << "\");";
-
-                 cout << endl;
-             }
-         }
-     }
-
-    */
+    // the reference data was computed using
+    // reference-implementations/farmhash_uo/reference_data.cpp
+    // on an Intel x86 architecture with little endianness
 
     ReferenceDataBuilder builder = new ReferenceDataBuilder();
 

@@ -19,3 +19,9 @@
 [submodule "references/xxh3/xxHash"]
 	path = reference-implementations/xxh3/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
+[submodule "reference-implementations/farmhash_uo/farmhash"]
+	path = reference-implementations/farmhash_uo/farmhash
+	url = https://github.com/google/farmhash.git
+[submodule "reference-implementations/farmhash_na/farmhash"]
+	path = reference-implementations/farmhash_na/farmhash
+	url = https://github.com/google/farmhash.git
