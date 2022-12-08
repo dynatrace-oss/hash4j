@@ -142,3 +142,8 @@ See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount
 This project contains python code. We recommend using a python virtual environment in a `.venv` directory. If your are new, please follow the steps outlined
 in the [official Python documentation](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) for creation and activation.
 To install the required dependencies including black, please execute `pip install -r requirements.txt`.
+
+### Reference implementations
+
+Reference implementations of hash algorithms are included as git submodules within the `reference-implementations` and can be fetched using 
+`git submodule update --init --recursive`.

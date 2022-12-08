@@ -106,6 +106,8 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
    * on an Intel x86 architecture.
    *
+   * <p>This implementation is also compatible with Komihash versions 4.5 and 4.7.
+   *
    * @param seed a 64-bit seed
    * @return a hasher instance
    */
@@ -121,6 +123,8 @@ public final class Hashing {
    * defined in <a
    * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
+   *
+   * <p>This implementation is also compatible with Komihash versions 4.5 and 4.7.
    *
    * @return a hasher instance
    */

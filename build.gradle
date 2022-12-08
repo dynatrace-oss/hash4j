@@ -75,6 +75,11 @@ spotless {
         black('22.8.0')
         licenseHeader readPythonLicense('APACHE_2_0_DYNATRACE'), '(import|from)'
     }
+    cpp {
+        target 'reference-implementations/*/*.cpp'
+        eclipseCdt('4.21.0')
+        licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
+    }
     java {
         importOrder()
         removeUnusedImports()
