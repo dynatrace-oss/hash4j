@@ -145,5 +145,5 @@ To install the required dependencies including black, please execute `pip instal
 
 ### Reference implementations
 
-Reference implementations of hash algorithms are included as git submodules within the `reference-implementations` and can be fetched using 
+Reference implementations of hash algorithms are included as git submodules within the `reference-implementations` directory and can be fetched using 
 `git submodule update --init --recursive`.
