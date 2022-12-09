@@ -28,7 +28,7 @@ implementation 'com.dynatrace.hash4j:hash4j:0.7.0'
 hash4j currently implements the following hash algorithms:
 * [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp) (128-bit and 32-bit)
 * [Wyhash](https://github.com/wangyi-fudan/wyhash) (final version 3)
-* [Komihash](https://github.com/avaneev/komihash) (version 4.3)
+* [Komihash](https://github.com/avaneev/komihash) (version 4.3, compatible with 4.5 and 4.7)
 
 All hash functions are thoroughly tested against the native reference implementations and also other libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/latest/com/google/common/hash/package-summary.html), [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html), or [crypto](https://github.com/appmattus/crypto) (see [CrossCheckTest.java](src/test/java/com/dynatrace/hash4j/hashing/CrossCheckTest.java)).
  
