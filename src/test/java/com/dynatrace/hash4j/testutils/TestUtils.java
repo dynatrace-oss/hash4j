@@ -110,6 +110,17 @@ public final class TestUtils {
         | (b[0] & 0xFFL);
   }
 
+  public static byte[] longToByteArray(long l) {
+    byte[] b = new byte[8];
+
+    for (int i = 0; i < 8; i++) {
+      b[i] = (byte) l;
+      l >>= 8;
+    }
+
+    return b;
+  }
+
   public static int byteArrayToInt(byte[] b) {
     if (b.length != 4) {
       throw new IllegalArgumentException();

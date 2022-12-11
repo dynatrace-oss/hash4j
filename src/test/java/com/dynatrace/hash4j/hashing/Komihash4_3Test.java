@@ -31,6 +31,32 @@ class Komihash4_3Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
+
+    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long hash0 = Komihash4_3.create().hashBytesToLong(dataBytes);
+    long hash1 = Komihash4_3.create(seed).hashBytesToLong(dataBytes);
+
+    LONG_HANDLE.set(hashBytes, 0, hash0);
+    LONG_HANDLE.set(hashBytes, 8, hash1);
+  }
+
+  @Override
+  int getSeedSizeForChecksum() {
+    return 8;
+  }
+
+  @Override
+  int getHashSizeForChecksum() {
+    return 16;
+  }
+
+  @Override
+  String getExpectedChecksum() {
+    return "b83dc90ff8c0ad72989f5150a6f7dba41adfe0a70b9112da93040f3882ce16f6";
+  }
+
+  @Override
   protected List<ReferenceTestRecord64> getReferenceTestRecords() {
     List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
     for (ReferenceRecord r : Komihash4_3ReferenceData.get()) {

@@ -54,4 +54,36 @@ class TestUtilsTest {
     }
     assertThat(actual).isEqualTo(expected);
   }
+
+  @Test
+  void testByteArrayToLong() {
+    byte[] b = {
+      (byte) 0xef,
+      (byte) 0xcd,
+      (byte) 0xab,
+      (byte) 0x89,
+      (byte) 0x67,
+      (byte) 0x45,
+      (byte) 0x23,
+      (byte) 0x01
+    };
+    long l = 0x0123456789abcdefL;
+    assertThat(TestUtils.byteArrayToLong(b)).isEqualTo(l);
+  }
+
+  @Test
+  void testLongToByteArray() {
+    byte[] b = {
+      (byte) 0xef,
+      (byte) 0xcd,
+      (byte) 0xab,
+      (byte) 0x89,
+      (byte) 0x67,
+      (byte) 0x45,
+      (byte) 0x23,
+      (byte) 0x01
+    };
+    long l = 0x0123456789abcdefL;
+    assertThat(TestUtils.longToByteArray(l)).isEqualTo(b);
+  }
 }
