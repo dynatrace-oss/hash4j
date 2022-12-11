@@ -34,6 +34,42 @@ class WyhashFinal3Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long rand = (long) LONG_HANDLE.get(seedBytes, 16);
+
+    long hash0 = WyhashFinal3.create().hashBytesToLong(dataBytes);
+    long hash1 = WyhashFinal3.create(seed0).hashBytesToLong(dataBytes);
+    long hash2 = 0;
+    long hash3 = 0;
+    if ((rand & 0x3fL) == 0) {
+      hash2 = WyhashFinal3.create(0L, seed1).hashBytesToLong(dataBytes);
+      hash3 = WyhashFinal3.create(seed0, seed1).hashBytesToLong(dataBytes);
+    }
+
+    LONG_HANDLE.set(hashBytes, 0, hash0);
+    LONG_HANDLE.set(hashBytes, 8, hash1);
+    LONG_HANDLE.set(hashBytes, 16, hash2);
+    LONG_HANDLE.set(hashBytes, 24, hash3);
+  }
+
+  @Override
+  int getSeedSizeForChecksum() {
+    return 24;
+  }
+
+  @Override
+  int getHashSizeForChecksum() {
+    return 32;
+  }
+
+  @Override
+  String getExpectedChecksum() {
+    return "8aff8c5f45d1cd806f5822f7ea4fc561c2dd7efebc6b051656a51faeed162526";
+  }
+
+  @Override
   protected List<ReferenceTestRecord64> getReferenceTestRecords() {
     List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
     for (ReferenceRecord r : WyhashFinal3ReferenceData.get()) {

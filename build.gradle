@@ -76,7 +76,7 @@ spotless {
         licenseHeader readPythonLicense('APACHE_2_0_DYNATRACE'), '(import|from)'
     }
     cpp {
-        target 'reference-implementations/*/*.cpp'
+        target 'reference-implementations/*/*.cpp', 'reference-implementations/*/*.hpp', 'reference-implementations/*.cpp', 'reference-implementations/*.hpp'
         eclipseCdt('4.21.0')
         licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
     }

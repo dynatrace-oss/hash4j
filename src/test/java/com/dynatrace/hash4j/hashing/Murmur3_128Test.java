@@ -35,6 +35,34 @@ class Murmur3_128Test extends AbstractHasher128Test {
     return HASHERS;
   }
 
+  @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
+    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+
+    HashValue128 hash0 = Hashing.murmur3_128().hashBytesTo128Bits(dataBytes);
+    HashValue128 hash1 = Hashing.murmur3_128(seed).hashBytesTo128Bits(dataBytes);
+
+    LONG_HANDLE.set(hashBytes, 0, hash0.getLeastSignificantBits());
+    LONG_HANDLE.set(hashBytes, 8, hash0.getMostSignificantBits());
+    LONG_HANDLE.set(hashBytes, 16, hash1.getLeastSignificantBits());
+    LONG_HANDLE.set(hashBytes, 24, hash1.getMostSignificantBits());
+  }
+
+  @Override
+  int getSeedSizeForChecksum() {
+    return 4;
+  }
+
+  @Override
+  int getHashSizeForChecksum() {
+    return 32;
+  }
+
+  @Override
+  String getExpectedChecksum() {
+    return "483c1ed6d0936ba877b9e9e063b27774b6b1f481ae6fae439e19120619cc2d1a";
+  }
+
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
    * longer than {@link Integer#MAX_VALUE} as it uses a native unsigned {@code int} for the length

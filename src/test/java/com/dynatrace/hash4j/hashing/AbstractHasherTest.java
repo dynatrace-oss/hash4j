@@ -20,7 +20,14 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
+import com.dynatrace.hash4j.random.PseudoRandomGenerator;
+import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.dynatrace.hash4j.testutils.TestUtils;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -1004,5 +1011,63 @@ abstract class AbstractHasherTest {
       chars[off + 3] = (char) (k >>> 48);
       assertThat(AbstractHasher.getLong(new String(chars), off)).isEqualTo(k);
     }
+  }
+
+  protected abstract void calculateHashForChecksum(
+      byte[] seedBytes, byte[] hashBytes, byte[] dataBytes);
+
+  abstract int getSeedSizeForChecksum();
+
+  abstract int getHashSizeForChecksum();
+
+  abstract String getExpectedChecksum();
+
+  protected static final VarHandle LONG_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
+  protected static final VarHandle INT_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
+
+  @Test
+  void testCheckSum() throws NoSuchAlgorithmException {
+
+    long maxDataLength = 200;
+    long numCycles = 10000;
+
+    PseudoRandomGenerator pseudoRandomGenerator =
+        PseudoRandomGeneratorProvider.splitMix64_V1().create();
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+    int effectiveSeedLength = ((getSeedSizeForChecksum() + 7) >>> 3);
+
+    byte[] seedBytesTemp = new byte[effectiveSeedLength * 8];
+    byte[] seedBytes = new byte[getSeedSizeForChecksum()];
+    byte[] hashBytes = new byte[getHashSizeForChecksum()];
+
+    for (int dataLength = 0; dataLength <= maxDataLength; ++dataLength) {
+      int effectiveDataLength = (dataLength + 7) >> 3;
+
+      byte[] dataBytesTemp = new byte[effectiveDataLength * 8];
+      byte[] dataBytes = new byte[dataLength];
+
+      for (long cycle = 0; cycle < numCycles; ++cycle) {
+        for (int i = 0; i < effectiveDataLength; ++i) {
+          LONG_HANDLE.set(dataBytesTemp, 8 * i, pseudoRandomGenerator.nextLong());
+        }
+        for (int i = 0; i < effectiveSeedLength; ++i) {
+          LONG_HANDLE.set(seedBytesTemp, 8 * i, pseudoRandomGenerator.nextLong());
+        }
+
+        System.arraycopy(dataBytesTemp, 0, dataBytes, 0, dataLength);
+        System.arraycopy(seedBytesTemp, 0, seedBytes, 0, getSeedSizeForChecksum());
+
+        calculateHashForChecksum(seedBytes, hashBytes, dataBytes);
+
+        md.update(hashBytes);
+      }
+    }
+
+    String checksum = byteArrayToHexString(md.digest());
+    assertThat(checksum).isEqualTo(getExpectedChecksum());
   }
 }
