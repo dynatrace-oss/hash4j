@@ -240,17 +240,21 @@ class WyhashFinal3 extends AbstractHasher64 {
       boolean ok;
       do {
         ok = true;
-        secret[i] = 0;
-        for (int j = 0; j < 64; j += 8) {
+        seed += 0xa0761d6478bd642fL;
+        secret[i] =
+            (c[(int) (Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length))]
+                & 0xFFL);
+        if ((secret[i] & 1) == 0) {
+          seed += 0x633acdbf4d2dbd49L; // = 7 * 0xa0761d6478bd642fL
+          ok = false;
+          continue;
+        }
+        for (int j = 8; j < 64; j += 8) {
           seed += 0xa0761d6478bd642fL;
           secret[i] |=
               (c[(int) (Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length))]
                       & 0xFFL)
                   << j;
-        }
-        if (secret[i] % 2 == 0) {
-          ok = false;
-          continue;
         }
         for (int j = 0; j < i; j++) {
           if (Long.bitCount(secret[j] ^ secret[i]) != 32) {
