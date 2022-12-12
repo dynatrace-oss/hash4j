@@ -16,12 +16,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.7.0</version>
+  <version>0.7.1</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.7.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.7.1'
 ```
 
 ## Hash algorithms
@@ -114,7 +114,7 @@ is approximately $\sqrt{\frac{4.936}{8 m}} = \frac{0.785}{\sqrt{m}}$ as confirme
 [simulation results](doc/ultraloglog-estimation-error.md).
   
 Both algorithms share the following properties:
-* Constant-time (HyperLogLog) & branch-free (UltraLogLog) add-operations
+* Constant-time add-operations
 * Allocation-free updates
 * Idempotency, adding items already inserted before will never change the internal state
 * Mergeability, even for data structures initialized with different precision parameters   
