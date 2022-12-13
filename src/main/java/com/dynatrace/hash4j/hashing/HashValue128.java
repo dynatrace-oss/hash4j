@@ -27,7 +27,7 @@ public final class HashValue128 {
   }
 
   public int getAsInt() {
-    return (int) leastSignificantBits;
+    return (int) getLeastSignificantBits();
   }
 
   public long getMostSignificantBits() {
@@ -39,7 +39,7 @@ public final class HashValue128 {
   }
 
   public long getAsLong() {
-    return leastSignificantBits;
+    return getLeastSignificantBits();
   }
 
   @Override
