@@ -16,6 +16,7 @@
 import csv
 import matplotlib.pyplot as plt
 import glob
+from matplotlib.lines import Line2D
 
 
 def read_data(data_file):
@@ -58,11 +59,13 @@ def to_percent(values):
 def plot_charts(filename):
     d = read_data(filename)
 
+    colors = ["C0", "C1", "C2"]
+
     values = d[1]
     headers = d[0]
 
     fig, ax = plt.subplots(1, 1, sharey="row", sharex=True)
-    fig.set_size_inches(6, 3)
+    fig.set_size_inches(6, 4)
 
     p = int(headers["p"])
 
@@ -101,7 +104,7 @@ def plot_charts(filename):
         + num_simulation_runs_unit
     )
     ax.set_xscale("log", base=10)
-    theory = to_percent(values["theoretical relative standard error"])[0]
+    theory = to_percent(values["theoretical relative standard error default"])[0]
 
     if headers["sketch_name"] == "ultraloglog":
         ax.set_ylim([-theory * 0.1, theory * 1.15])
@@ -114,15 +117,60 @@ def plot_charts(filename):
     ax.set_xlabel("distinct count")
     ax.yaxis.grid(True)
     ax.set_ylabel("relative error (%)")
-    ax.plot(values["distinct count"], to_percent(values["relative bias"]), label="bias")
-    ax.plot(values["distinct count"], to_percent(values["relative rmse"]), label="rmse")
     ax.plot(
         values["distinct count"],
-        to_percent(values["theoretical relative standard error"]),
-        label="theory",
+        to_percent(values["theoretical relative standard error martingale"]),
+        label="theory (martingale)",
+        color=colors[2],
+        linestyle="dotted",
     )
-    # fig.legend(loc="center right")
-    ax.legend(loc="center right")
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["theoretical relative standard error default"]),
+        label="theory (default)",
+        color=colors[2],
+    )
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative rmse martingale"]),
+        label="rmse (martingale)",
+        color=colors[1],
+        linestyle="dotted",
+    )
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative rmse default"]),
+        label="rmse (default)",
+        color=colors[1],
+    )
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative bias martingale"]),
+        label="bias (martingale)",
+        color=colors[0],
+        linestyle="dotted",
+    )
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative bias default"]),
+        label="bias (default)",
+        color=colors[0],
+    )
+
+    legend_elements = [
+        Line2D([0], [0], color=colors[0]),
+        Line2D([0], [0], color=colors[1]),
+        Line2D([0], [0], color=colors[2]),
+        Line2D([0], [0], color="gray"),
+        Line2D([0], [0], color="gray", linestyle="dotted"),
+    ]
+    fig.legend(
+        legend_elements,
+        ["bias", "rmse", "theory", "default", "martingale"],
+        loc="lower center",
+        ncol=5,
+    )
+    fig.subplots_adjust(top=0.93, bottom=0.21, left=0.11, right=0.99)
     fig.savefig(
         "test-results/"
         + headers["sketch_name"]
@@ -132,7 +180,6 @@ def plot_charts(filename):
         format="png",
         dpi=300,
         metadata={"creationDate": None},
-        bbox_inches="tight",
     )
     plt.close(fig)
 

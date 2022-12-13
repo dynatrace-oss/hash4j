@@ -500,7 +500,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog> {
 
   @Override
   protected double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
-    return Math.sqrt(Math.log(2.) * 1.25 / (2. * (1L << p)));
+    return Math.sqrt(Math.log(2.) * 5. / (8. * (1L << p)));
   }
 
   @Override

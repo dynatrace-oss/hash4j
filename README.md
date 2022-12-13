@@ -16,12 +16,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.7.0</version>
+  <version>0.7.1</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.7.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.7.1'
 ```
 
 ## Hash algorithms
@@ -100,21 +100,24 @@ the state size in bits multiplied by the squared relative standard error of the 
 
 $\text{storage factor} := (\text{relative standard error})^2 \times (\text{state size})$.
 
-This library implements two algorithms:
+This library implements two algorithms for approximate distinct counting:
 * [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog): This implementation uses [6-bit registers](https://doi.org/10.1145/2452376.2452456) and
-an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). Its asymptotic storage factor 
-is 6.477. The state size is a function of the precision parameter $p$, which defines the number of 
-registers as $m = 2^p$ and results in a state size of $6m = 6\cdot 2^p$ bits. Using the definition of the storage factor, the
-relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$ as empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
+an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). 
+Its asymptotic storage factor is $18 \ln 2 - 6 = 6.477$. The state size is $6m = 6\cdot 2^p$ bits, where the precision parameter $p$ also defines the number of registers as $m = 2^p$. Using the definition of the storage factor, the relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$.
+In case of non-distributed data streams, the [martingale estimator](src/main/java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java) can be used, 
+ which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
+This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
+The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
 * UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper. It has an
 asymptotic storage factor of 4.936, which corresponds to a 24% reduction compared to HyperLogLog.
 UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers. Like for HyperLogLog,
-  the number of registers $m = 2^p$ depends on the chosen precision parameter $p$ and corresponds to the state size in bytes. The relative standard error 
-is approximately $\sqrt{\frac{4.936}{8 m}} = \frac{0.785}{\sqrt{m}}$ as confirmed by
-[simulation results](doc/ultraloglog-estimation-error.md).
-  
+the number of registers $m = 2^p$ depends on the chosen precision parameter $p$ and corresponds to the state size in bytes.
+The relative standard error is approximately $\sqrt{\frac{4.936}{8 m}} = \frac{0.785}{\sqrt{m}}$. If the martingale estimator can 
+be used, the storage factor will be just $5 \ln 2 = 3.466$ yielding an asymptotic relative standard error of $\sqrt{\frac{5 \ln 2}{8 m}} = \frac{0.658}{\sqrt{m}}$.
+These theoretical formulas again agree well with the [simulation results](doc/ultraloglog-estimation-error.md).
+
 Both algorithms share the following properties:
-* Constant-time (HyperLogLog) & branch-free (UltraLogLog) add-operations
+* Constant-time add-operations
 * Allocation-free updates
 * Idempotency, adding items already inserted before will never change the internal state
 * Mergeability, even for data structures initialized with different precision parameters   
@@ -133,7 +136,12 @@ sketch.add(hasher.hashCharsToLong("foo"));
 
 double distinctCountEstimate = sketch.getDistinctCountEstimate(); // gives a value close to 2
 ```
-See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/UltraLogLogDemo.java).
+See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/UltraLogLogDemo.java) and [HyperLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/HyperLogLogDemo.java).
+
+### Compatibility
+HyperLogLog and UltraLogLog sketches can be reduced to corresponding sketches with smaller precision parameter `p` using `sketch.downsize(p)`. UltraLogLog sketches can be also transformed into HyperLogLog sketches with same precision parameter using `HyperLogLog hyperLogLog = HyperLogLog.create(ultraLogLog);` as demonstrated in [ConversionDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/ConversionDemo.java).
+HyperLogLog can be made compatible with implementations of other libraries which also use a single 64-bit hash value as input. The implementations usually differ only in which bits of the hash value are used for the register index and which bits are used to determine the number of leading (or trailing) zeros.
+Therefore, if the bits of the hash value are permuted accordingly, compatibility can be achieved.
 
 ## Contribution FAQ
 
