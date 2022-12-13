@@ -102,13 +102,11 @@ $\text{storage factor} := (\text{relative standard error})^2 \times (\text{state
 
 This library implements two algorithms for approximate distinct counting:
 * [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog): This implementation uses [6-bit registers](https://doi.org/10.1145/2452376.2452456) and
-an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). Its asymptotic storage factor 
-is $18 \ln 2 - 6 = 6.477$. The state size is a function of the precision parameter $p$, which defines the number of 
-registers as $m = 2^p$ and results in a state size of $6m = 6\cdot 2^p$ bits. Using the definition of the storage factor, the
-relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$.
+an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). 
+Its asymptotic storage factor is $18 \ln 2 - 6 = 6.477$. The state size is $6m = 6\cdot 2^p$ bits, where the precision parameter $p$ also defines the number of registers as $m = 2^p$. Using the definition of the storage factor, the relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$.
 In case of non-distributed data streams, the [martingale estimator](java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java) can be used, 
- which gives slightly better estimation results
-as the asymptotic storage factor is $6\ln 2 = 4.159$. This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
+ which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
+This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
 The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
 * UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper. It has an
 asymptotic storage factor of 4.936, which corresponds to a 24% reduction compared to HyperLogLog.
@@ -141,12 +139,8 @@ double distinctCountEstimate = sketch.getDistinctCountEstimate(); // gives a val
 See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/UltraLogLogDemo.java) and [HyperLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/HyperLogLogDemo.java).
 
 ### Compatibility
-HyperLogLog and UltraLogLog sketches can be reduced to corresponding sketches with smaller precision parameter `p` using `sketch.downsize(p)`.
-UltraLogLog sketches can be also transformed into HyperLogLog sketches with same precision parameter using `HyperLogLog hyperLogLog = HyperLogLog.create(ultraLogLog);`
-as demonstrated in [ConversionDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/ConversionDemo.java).
-HyperLogLog can be made compatible with implementations of other libraries which also use a single 64-bit hash value as input.
-The implementations usually differ only in which bits of the hash value are used for the register index and which bits
-are used to determine the number of leading (or trailing) zeros.
+HyperLogLog and UltraLogLog sketches can be reduced to corresponding sketches with smaller precision parameter `p` using `sketch.downsize(p)`. UltraLogLog sketches can be also transformed into HyperLogLog sketches with same precision parameter using `HyperLogLog hyperLogLog = HyperLogLog.create(ultraLogLog);` as demonstrated in [ConversionDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/ConversionDemo.java).
+HyperLogLog can be made compatible with implementations of other libraries which also use a single 64-bit hash value as input. The implementations usually differ only in which bits of the hash value are used for the register index and which bits are used to determine the number of leading (or trailing) zeros.
 Therefore, if the bits of the hash value are permuted accordingly, compatibility can be achieved.
 
 ## Contribution FAQ
