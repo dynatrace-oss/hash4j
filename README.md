@@ -104,7 +104,7 @@ This library implements two algorithms for approximate distinct counting:
 * [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog): This implementation uses [6-bit registers](https://doi.org/10.1145/2452376.2452456) and
 an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). 
 Its asymptotic storage factor is $18 \ln 2 - 6 = 6.477$. The state size is $6m = 6\cdot 2^p$ bits, where the precision parameter $p$ also defines the number of registers as $m = 2^p$. Using the definition of the storage factor, the relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$.
-In case of non-distributed data streams, the [martingale estimator](java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java) can be used, 
+In case of non-distributed data streams, the [martingale estimator](src/main/java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java) can be used, 
  which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
 This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
 The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
