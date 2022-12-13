@@ -36,6 +36,9 @@ import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
  * estimate as the standard estimator. However, if many further elements are added, the martingale
  * estimator may again produce better estimates.
  *
+ * <p>The estimator remains valid if the associated data structure is downsized with {@link
+ * HyperLogLog#downsize(int)} or {@link UltraLogLog#downsize(int)}.
+ *
  * <p>References:
  *
  * <ul>
