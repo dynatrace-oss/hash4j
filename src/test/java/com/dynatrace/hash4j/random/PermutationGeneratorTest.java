@@ -33,7 +33,7 @@ class PermutationGeneratorTest {
   }
 
   @Test
-  public void test() {
+  void test() {
 
     int loops = 100000;
     int[] sizes = {3, 5, 7, 11, 13};

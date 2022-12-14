@@ -28,7 +28,7 @@ class FastSimHashPolicy_v1Test extends AbstractSimilarityHasherPolicyTest {
   }
 
   @Test
-  public void testStability() {
+  void testStability() {
 
     int numberOfComponents = 30;
 

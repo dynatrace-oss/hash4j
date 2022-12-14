@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 class MinHashPolicy_v1Test extends AbstractMinHashPolicyTest {
 
   @Test
-  public void testStability() {
+  void testStability() {
 
     int numberOfComponents = 30;
 
