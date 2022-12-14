@@ -184,82 +184,82 @@ class PackedArrayTest {
     {
       byte[] array = handler.create(16);
       handler.set(array, 0, 0xf);
-      assertThat("0f00000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("0f00000000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 1, 0xf);
-      assertThat("f000000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("f000000000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 2, 0xf);
-      assertThat("000f000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("000f000000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 3, 0xf);
-      assertThat("00f0000000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("00f0000000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 4, 0xf);
-      assertThat("00000f0000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("00000f0000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 5, 0xf);
-      assertThat("0000f00000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("0000f00000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 6, 0xf);
-      assertThat("0000000f00000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("0000000f00000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 7, 0xf);
-      assertThat("000000f000000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("000000f000000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 8, 0xf);
-      assertThat("000000000f000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("000000000f000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 9, 0xf);
-      assertThat("00000000f0000000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("00000000f0000000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 10, 0xf);
-      assertThat("00000000000f0000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("00000000000f0000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 11, 0xf);
-      assertThat("0000000000f00000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("0000000000f00000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 12, 0xf);
-      assertThat("0000000000000f00").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("0000000000000f00");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 13, 0xf);
-      assertThat("000000000000f000").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("000000000000f000");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 14, 0xf);
-      assertThat("000000000000000f").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("000000000000000f");
     }
     {
       byte[] array = handler.create(16);
       handler.set(array, 15, 0xf);
-      assertThat("00000000000000f0").isEqualTo(TestUtils.byteArrayToHexString(array));
+      assertThat(TestUtils.byteArrayToHexString(array)).isEqualTo("00000000000000f0");
     }
   }
 

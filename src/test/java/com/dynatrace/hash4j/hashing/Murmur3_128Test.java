@@ -70,7 +70,7 @@ class Murmur3_128Test extends AbstractHasher128Test {
    * Integer#MAX_VALUE} always results in the same hash value.
    */
   @Test
-  public void testLongInput() {
+  void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
     HashStream128 stream = Hashing.murmur3_128().hashStream();
     LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));

@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class SplitMix64_v1Test extends AbstractPseudoRandomGeneratorTest {
 
   @Test
-  public void testConsistency() {
+  void testConsistency() {
 
     RandomGenerator rng = new Well1024a(0x321f290dee3d921dL);
 
