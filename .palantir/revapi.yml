@@ -1,0 +1,23 @@
+acceptedBreaks:
+  "0.7.1":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.class.finalClassInheritsFromNewClass"
+      old: "class com.dynatrace.hash4j.distinctcount.HyperLogLog"
+      new: "class com.dynatrace.hash4j.distinctcount.HyperLogLog"
+      justification: "{Transforming DistinctCounter from an interface to a class should\
+        \ be fine as it is package-private}"
+    - code: "java.class.finalClassInheritsFromNewClass"
+      old: "class com.dynatrace.hash4j.distinctcount.UltraLogLog"
+      new: "class com.dynatrace.hash4j.distinctcount.UltraLogLog"
+      justification: "{Transforming DistinctCounter from an interface to a class should\
+        \ be fine as it is package-private}"
+    - code: "java.class.noLongerImplementsInterface"
+      old: "class com.dynatrace.hash4j.distinctcount.HyperLogLog"
+      new: "class com.dynatrace.hash4j.distinctcount.HyperLogLog"
+      justification: "{Transforming DistinctCounter from an interface to a class should\
+        \ be fine as it is package-private}"
+    - code: "java.class.noLongerImplementsInterface"
+      old: "class com.dynatrace.hash4j.distinctcount.UltraLogLog"
+      new: "class com.dynatrace.hash4j.distinctcount.UltraLogLog"
+      justification: "{Transforming DistinctCounter from an interface to a class should\
+        \ be fine as it is package-private}"

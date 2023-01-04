@@ -16,19 +16,27 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
-import static java.lang.Math.pow;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
+import com.dynatrace.hash4j.distinctcount.HyperLogLog.Estimator;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+import java.util.Arrays;
+import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
-class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
+class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, Estimator> {
 
-  private static final double VARIANCE_FACTOR = calculateVarianceFactor();
+  private static final double VARIANCE_FACTOR_RAW = 3. * Math.log(2) - 1.;
+
+  private static final double VARIANCE_FACTOR_MARTINGALE = Math.log(2);
+
+  // see https://www.wolframalpha.com/input?i=ln%282%29%2Fzeta%282%2C+2%29
+  private static final double VARIANCE_FACTOR_ML =
+      1.0747566552769260937701392307869745509357687653622079625754435936;
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
@@ -60,7 +68,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
     };
     double[] actual =
         IntStream.range(MIN_P, MAX_P + 1)
-            .mapToDouble(this::calculateTheoreticalRelativeStandardError)
+            .mapToDouble(this::calculateTheoreticalRelativeStandardErrorRaw)
             .toArray();
     assertThat(actual)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
@@ -92,14 +100,22 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
    * @param p the precision parameter
    * @return the relative standard error
    */
+  protected double calculateTheoreticalRelativeStandardErrorRaw(int p) {
+    return Math.sqrt(VARIANCE_FACTOR_RAW / (1 << p));
+  }
+
+  protected double calculateTheoreticalRelativeStandardErrorDefault(int p) {
+    return calculateTheoreticalRelativeStandardErrorRaw(p);
+  }
+
   @Override
-  protected double calculateTheoreticalRelativeStandardError(int p) {
-    return Math.sqrt(VARIANCE_FACTOR / (1 << p));
+  protected double calculateTheoreticalRelativeStandardErrorML(int p) {
+    return Math.sqrt(VARIANCE_FACTOR_ML / (1 << p));
   }
 
   @Override
   protected double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
-    return Math.sqrt(Math.log(2.) / (1L << p));
+    return Math.sqrt(VARIANCE_FACTOR_MARTINGALE / (1L << p));
   }
 
   @Override
@@ -118,164 +134,200 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
   }
 
   @Override
-  protected double getApproximateStorageFactor() {
-    return 3.3741034021645766;
+  protected double getCompressedStorageFactorLowerBound() {
+    return 3.043659973416202; // TODO compute this constant directly from formula
+  }
+
+  @Override
+  protected Estimator[] getEstimators() {
+    return Estimator.values();
   }
 
   @Test
   void testSigma() {
-    assertThat(HyperLogLog.sigma(0.)).isZero();
-    assertThat(HyperLogLog.sigma(0.5)).isCloseTo(0.3907470740377903, withPercentage(1e-8));
-    assertThat(HyperLogLog.sigma(1.)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(HyperLogLog.sigma(Double.NEGATIVE_INFINITY)).isZero();
-    assertThat(HyperLogLog.sigma(Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
-    assertThat(HyperLogLog.sigma(Double.MAX_VALUE)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(HyperLogLog.sigma(-Double.MIN_VALUE)).isZero();
-    assertThat(HyperLogLog.sigma(Double.NaN)).isNaN();
-    assertThat(HyperLogLog.sigma(Math.nextDown(1.)))
+    assertThat(Estimator.sigma(0.)).isZero();
+    assertThat(Estimator.sigma(0.5)).isCloseTo(0.3907470740377903, withPercentage(1e-8));
+    assertThat(Estimator.sigma(1.)).isEqualTo(Double.POSITIVE_INFINITY);
+    assertThat(Estimator.sigma(Double.NEGATIVE_INFINITY)).isZero();
+    assertThat(Estimator.sigma(Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
+    assertThat(Estimator.sigma(Double.MAX_VALUE)).isEqualTo(Double.POSITIVE_INFINITY);
+    assertThat(Estimator.sigma(-Double.MIN_VALUE)).isZero();
+    assertThat(Estimator.sigma(Double.NaN)).isNaN();
+    assertThat(Estimator.sigma(Math.nextDown(1.)))
         .isCloseTo(6.497362079232113E15, withPercentage(1e-8));
   }
 
-  private void testErrorOfDistinctCountEqualOne(int p) {
-    HyperLogLog sketch = HyperLogLog.create(p);
-    double sumProbabiltiy = 0;
-    double averageEstimate = 0;
-    double averageRMSE = 0;
-    double trueDistinctCount = 1;
-    for (int nlz = 0; nlz < 64 - p; ++nlz) {
-      long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz;
-      sketch.reset().add(hash1);
-      double probability = pow(0.5, nlz + 1);
-      sumProbabiltiy += probability;
-      double estimate = sketch.getDistinctCountEstimate();
-      averageEstimate += probability * estimate;
-      averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
-    }
-
-    double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
-    double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
-    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
-    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
-  }
-
-  private void testErrorOfDistinctCountEqualTwo(int p) {
-    double m = 1 << p;
-    HyperLogLog sketch = HyperLogLog.create(p);
-    double sumProbabiltiy = 0;
-    double averageEstimate = 0;
-    double averageRMSE = 0;
-    double trueDistinctCount = 2;
-    long regMask1 = 0x0000000000000000L;
-    long regMask2 = 0x8000000000000000L;
-    for (int nlz1 = 0; nlz1 < 64 - p; ++nlz1) {
-      for (int nlz2 = nlz1; nlz2 < 64 - p; ++nlz2) {
-        long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz1;
-        long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
-        {
-          sketch.reset().add(hash1 | regMask1).add(hash2 | regMask1);
-          double probability = 1. / m * pow(0.5, nlz1 + nlz2 + 2);
-          if (nlz1 != nlz2) probability *= 2;
-          sumProbabiltiy += probability;
-          double estimate = sketch.getDistinctCountEstimate();
-          averageEstimate += probability * estimate;
-          averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
-        }
-        {
-          sketch.reset().add(hash1 | regMask1).add(hash2 | regMask2);
-          double probability = (m - 1) / m * pow(0.5, nlz1 + nlz2 + 2);
-          if (nlz1 != nlz2) probability *= 2;
-          sumProbabiltiy += probability;
-          double estimate = sketch.getDistinctCountEstimate();
-          averageEstimate += probability * estimate;
-          averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
-        }
-      }
-    }
-
-    double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
-    double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
-    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
-    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.7);
-  }
-
-  private void testErrorOfDistinctCountEqualThree(int p) {
-    double m = 1 << p;
-    HyperLogLog sketch = HyperLogLog.create(p);
-    double sumProbabiltiy = 0;
-    double averageEstimate = 0;
-    double averageRMSE = 0;
-    double trueDistinctCount = 3;
-    long regMask1 = 0x0000000000000000L;
-    long regMask2 = 0x8000000000000000L;
-    long regMask3 = 0x4000000000000000L;
-    for (int nlz1 = 0; nlz1 < 64 - p; ++nlz1) {
-      for (int nlz2 = nlz1; nlz2 < 64 - p; ++nlz2) {
-        for (int nlz3 = 0; nlz3 < 64 - p; ++nlz3) {
-          long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz1;
-          long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
-          long hash3 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz3;
-          {
-            sketch.reset().add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask1);
-            double probability = 1. / (m * m) * pow(0.5, nlz1 + nlz2 + nlz3 + 3);
-            if (nlz1 != nlz2) probability *= 2;
-            sumProbabiltiy += probability;
-            double estimate = sketch.getDistinctCountEstimate();
-            averageEstimate += probability * estimate;
-            averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
-          }
-          {
-            sketch.reset().add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask2);
-            double probability = 3. * (m - 1) / (m * m) * pow(0.5, nlz1 + nlz2 + nlz3 + 3);
-            if (nlz1 != nlz2) probability *= 2;
-            sumProbabiltiy += probability;
-            double estimate = sketch.getDistinctCountEstimate();
-            averageEstimate += probability * estimate;
-            averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
-          }
-          {
-            sketch.reset().add(hash1 | regMask1).add(hash2 | regMask2).add(hash3 | regMask3);
-            double probability = (m - 1) * (m - 2) / (m * m) * pow(0.5, nlz1 + nlz2 + nlz3 + 3);
-            if (nlz1 != nlz2) probability *= 2;
-            sumProbabiltiy += probability;
-            double estimate = sketch.getDistinctCountEstimate();
-            averageEstimate += probability * estimate;
-            averageRMSE += probability * pow(estimate - trueDistinctCount, 2);
-          }
-        }
-      }
-    }
-
-    double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
-    double relativeRMSE = Math.sqrt(averageRMSE) / trueDistinctCount;
-    double theoreticalRelativeStandardError = calculateTheoreticalRelativeStandardError(p);
-    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
-    assertThat(relativeBias).isLessThan(theoreticalRelativeStandardError * 0.07);
-    assertThat(relativeRMSE).isLessThan(theoreticalRelativeStandardError * 0.75);
+  @Test
+  void testTau() {
+    assertThat(Estimator.tau(0.)).isZero();
+    assertThat(Estimator.tau(0.5)).isCloseTo(0.14992949586408805, withPercentage(1e-8));
+    assertThat(Estimator.tau(1.)).isEqualTo(0.);
+    assertThat(Estimator.tau(Double.NEGATIVE_INFINITY)).isZero();
+    assertThat(Estimator.tau(Double.MIN_VALUE))
+        .isNotNegative()
+        .isCloseTo(9.689758351310876E-4, within(1e-6));
+    assertThat(Estimator.tau(Double.MAX_VALUE)).isNotNegative().isCloseTo(0.0, within(1e-6));
+    assertThat(Estimator.tau(-Double.MIN_VALUE)).isZero();
+    assertThat(Estimator.tau(Double.NaN)).isNaN();
+    assertThat(Estimator.tau(Math.nextDown(1.)))
+        .isCloseTo(3.700743415417188E-17, withPercentage(1e-8));
   }
 
   @Test
-  void testVarianceOfDistinctCountEqualOne() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      testErrorOfDistinctCountEqualOne(p);
-    }
+  void testDistinctCountEqualOneSmallRangeCorrectedRawEstimator() {
+    testErrorOfDistinctCountEqualOne(
+        new int[] {
+          3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
+        },
+        Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorRaw,
+        new double[] {
+          0.1619, 0.1271, 0.0946, 0.0687, 0.0493, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
+          0.0052, 0.0043, 0.0038, 0.0038, 0.0043, 0.0053, 0.0069, 0.0094, 0.013, 0.0181, 0.0255,
+          0.0359, 0.0507
+        },
+        new double[] {
+          0.1623, 0.1271, 0.0947, 0.0687, 0.0493, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
+          0.0052, 0.0043, 0.0038, 0.0038, 0.0043, 0.0053, 0.0069, 0.0094, 0.013, 0.0181, 0.0255,
+          0.0359, 0.0507
+        });
   }
 
   @Test
-  void testVarianceOfDistinctCountEqualTwo() {
-    for (int p = MIN_P; p <= 20; ++p) {
-      testErrorOfDistinctCountEqualTwo(p);
-    }
+  void testDistinctCountEqualTwoSmallRangeCorrectedRawEstimator() {
+    testErrorOfDistinctCountEqualTwo(
+        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
+        Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorRaw,
+        new double[] {
+          0.1511, 0.1233, 0.0933, 0.0682, 0.0491, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
+          0.0052, 0.0043, 0.0038, 0.0038, 0.0043
+        },
+        new double[] {
+          0.5158, 0.5019, 0.4945, 0.4904, 0.4883, 0.4872, 0.4867, 0.4864, 0.4863, 0.4862, 0.4862,
+          0.4861, 0.4861, 0.4861, 0.4861, 0.4861
+        });
   }
 
   @Test
-  void testVarianceOfDistinctCountEqualThree() {
-    for (int p = MIN_P; p <= 14; ++p) {
-      testErrorOfDistinctCountEqualThree(p);
-    }
+  void testDistinctCountEqualThreeSmallRangeCorrectedRawEstimator() {
+    testErrorOfDistinctCountEqualThree(
+        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+        Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorRaw,
+        new double[] {
+          0.1412, 0.1197, 0.092, 0.0677, 0.0489, 0.0349, 0.0248, 0.0176, 0.0124, 0.0087, 0.0061,
+          0.0043
+        },
+        new double[] {
+          0.6039, 0.5812, 0.5713, 0.5664, 0.5639, 0.5626, 0.562, 0.5616, 0.5615, 0.5614, 0.5614,
+          0.5613
+        });
+  }
+
+  @Test
+  void testDistinctCountEqualOneCorrectedRawEstimator() {
+    testErrorOfDistinctCountEqualOne(
+        new int[] {
+          3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
+        },
+        Estimator.CORRECTED_RAW_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorRaw,
+        new double[] {
+          0.1619, 0.1271, 0.0946, 0.0687, 0.0493, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
+          0.0052, 0.0043, 0.0038, 0.0038, 0.0043, 0.0053, 0.0069, 0.0094, 0.013, 0.0181, 0.0255,
+          0.0359, 0.0507
+        },
+        new double[] {
+          0.1623, 0.1271, 0.0947, 0.0687, 0.0493, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
+          0.0052, 0.0043, 0.0038, 0.0038, 0.0043, 0.0053, 0.0069, 0.0094, 0.013, 0.0181, 0.0255,
+          0.0359, 0.0507
+        });
+  }
+
+  @Test
+  void testDistinctCountEqualTwoCorrectedRawEstimator() {
+    testErrorOfDistinctCountEqualTwo(
+        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
+        Estimator.CORRECTED_RAW_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorRaw,
+        new double[] {
+          0.1511, 0.1233, 0.0933, 0.0682, 0.0491, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
+          0.0052, 0.0043, 0.0038, 0.0038, 0.0043
+        },
+        new double[] {
+          0.5158, 0.5019, 0.4945, 0.4904, 0.4883, 0.4872, 0.4867, 0.4864, 0.4863, 0.4862, 0.4862,
+          0.4861, 0.4861, 0.4861, 0.4861, 0.4861
+        });
+  }
+
+  @Test
+  void testDistinctCountEqualThreeCorrectedRawEstimator() {
+    testErrorOfDistinctCountEqualThree(
+        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+        Estimator.CORRECTED_RAW_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorRaw,
+        new double[] {
+          0.1412, 0.1197, 0.092, 0.0677, 0.0489, 0.0349, 0.0248, 0.0176, 0.0124, 0.0087, 0.0061,
+          0.0043
+        },
+        new double[] {
+          0.6039, 0.5812, 0.5713, 0.5664, 0.5639, 0.5626, 0.562, 0.5616, 0.5615, 0.5614, 0.5614,
+          0.5613
+        });
+  }
+
+  @Test
+  void testDistinctCountEqualOneMaximumLikelihoodEstimator() {
+    testErrorOfDistinctCountEqualOne(
+        new int[] {
+          3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
+        },
+        Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorML,
+        new double[] {
+          0.1881, 0.1272, 0.088, 0.0616, 0.0433, 0.0306, 0.0216, 0.0153, 0.0108, 0.0077, 0.0054,
+          0.0039, 0.0027, 0.002, 0.0014, 0.001, 7.0E-4, 5.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4,
+          1.0E-4, 1.0E-4
+        },
+        new double[] {
+          0.2159, 0.145, 0.1001, 0.0699, 0.0492, 0.0347, 0.0245, 0.0173, 0.0123, 0.0087, 0.0062,
+          0.0044, 0.0031, 0.0022, 0.0016, 0.0011, 8.0E-4, 6.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4,
+          1.0E-4, 1.0E-4
+        });
+  }
+
+  @Test
+  void testDistinctCountEqualTwoMaximumLikelihoodEstimator() {
+
+    testErrorOfDistinctCountEqualTwo(
+        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
+        Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorML,
+        new double[] {
+          0.1983, 0.1303, 0.089, 0.0619, 0.0435, 0.0306, 0.0216, 0.0153, 0.0108, 0.0077, 0.0054,
+          0.0039, 0.0027, 0.002, 0.0014, 0.001
+        },
+        new double[] {
+          0.6064, 0.5415, 0.5132, 0.4999, 0.4935, 0.4903, 0.4887, 0.488, 0.4876, 0.4874, 0.4873,
+          0.4872, 0.4872, 0.4872, 0.4872, 0.4872
+        });
+  }
+
+  @Test
+  void testDistinctCountEqualThreeMaximumLikelihoodEstimator() {
+    testErrorOfDistinctCountEqualThree(
+        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+        Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        this::calculateTheoreticalRelativeStandardErrorML,
+        new double[] {
+          0.2087, 0.1334, 0.0901, 0.0623, 0.0436, 0.0307, 0.0216, 0.0153, 0.0108, 0.0077, 0.0054,
+          0.0039
+        },
+        new double[] {
+          0.7067, 0.6252, 0.5919, 0.5768, 0.5696, 0.566, 0.5643, 0.5634, 0.563, 0.5627, 0.5626,
+          0.5626
+        });
   }
 
   private static strictfp int sigmaIterations(double x) {
@@ -311,15 +363,11 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
     }
   }
 
-  private static double calculateVarianceFactor() {
-    return 3. * Math.log(2) - 1.;
-  }
-
   private static final double RELATIVE_ERROR = 1e-10;
 
   private double calculateEstimationFactor(int p) {
     double m = 1 << p;
-    return m * m / (2. * Math.log(2) * (1. + calculateVarianceFactor() / m));
+    return m * m / (2. * Math.log(2) * (1. + VARIANCE_FACTOR_RAW / m));
   }
 
   @Test
@@ -328,7 +376,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       expectedEstimationFactors[p - MIN_P] = calculateEstimationFactor(p);
     }
-    assertThat(HyperLogLog.getEstimationFactors())
+    assertThat(Estimator.getEstimationFactors())
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedEstimationFactors);
   }
@@ -360,6 +408,62 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog> {
           assertThat(HyperLogLog.create(ullSketch).getState()).isEqualTo(hllSketch.getState());
         }
       }
+    }
+  }
+
+  @Test
+  void testDistinctCountEstimation() {
+    int maxP = 14;
+    long[] distinctCounts = TestUtils.getDistinctCountValues(0, 100000, 0.2);
+    SplittableRandom random = new SplittableRandom(0xd77b9e4ea99553e0L);
+    for (int p = MIN_P; p <= maxP; ++p) {
+      testDistinctCountEstimation(
+          p,
+          random.nextLong(),
+          distinctCounts,
+          Arrays.asList(
+              Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
+              Estimator.CORRECTED_RAW_ESTIMATOR,
+              Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+          Arrays.asList(
+              this::calculateTheoreticalRelativeStandardErrorRaw,
+              this::calculateTheoreticalRelativeStandardErrorRaw,
+              this::calculateTheoreticalRelativeStandardErrorML),
+          new double[] {0.2, 0.2, 0.5},
+          new double[] {1.3, 1.3, 1.5},
+          new double[] {0.3, 0.3, 0.5},
+          0.1,
+          1.2,
+          0.15,
+          Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR);
+    }
+  }
+
+  @Test
+  void testLargeDistinctCountEstimation() {
+    long[] distinctCountSteps = {1L << 16};
+    SplittableRandom random = new SplittableRandom(0xd77b9e4ea99553e0L);
+    testLargeDistinctCountEstimation(
+        10,
+        random.nextLong(),
+        48,
+        distinctCountSteps,
+        Arrays.asList(Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR, Estimator.CORRECTED_RAW_ESTIMATOR),
+        Arrays.asList(
+            this::calculateTheoreticalRelativeStandardErrorML,
+            this::calculateTheoreticalRelativeStandardErrorRaw),
+        new double[] {0.06, 0.06},
+        new double[] {0.15, 0.15});
+  }
+
+  @Test
+  void testStateChangeProbabilityForAlmostFullSketch() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      HyperLogLog sketch = create(p);
+      for (long k = 0; k < (1 << p); ++k) {
+        sketch.add((k << -p) | 1);
+      }
+      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
     }
   }
 }

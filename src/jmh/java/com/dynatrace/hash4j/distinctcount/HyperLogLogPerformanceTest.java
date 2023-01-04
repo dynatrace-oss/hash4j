@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,18 @@ public class HyperLogLogPerformanceTest {
     blackhole.consume(hyperLogLogState[randomState.random.nextInt(hyperLogLogState.length)]);
   }
 
+  public enum Estimator {
+    MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+    SMALL_RANGE_CORRECTED_RAW_ESTIMATOR(HyperLogLog.Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR),
+    CORRECTED_RAW_ESTIMATOR(HyperLogLog.Estimator.CORRECTED_RAW_ESTIMATOR);
+
+    private final HyperLogLog.Estimator estimator;
+
+    Estimator(HyperLogLog.Estimator estimator) {
+      this.estimator = estimator;
+    }
+  }
+
   @State(Scope.Benchmark)
   public static class EstimationState {
 
@@ -71,6 +83,8 @@ public class HyperLogLogPerformanceTest {
     // @Param({"8", "10", "12", "14"})
     @Param({"10", "14"})
     public int precision;
+
+    @Param public Estimator estimator;
 
     @Setup
     public void init() {
@@ -91,8 +105,9 @@ public class HyperLogLogPerformanceTest {
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
     double sum = 0;
-    for (HyperLogLog HyperLogLog : estimationState.hyperLogLogs) {
-      sum += HyperLogLog.getDistinctCountEstimate();
+    HyperLogLog.Estimator estimator = estimationState.estimator.estimator;
+    for (HyperLogLog hyperLogLog : estimationState.hyperLogLogs) {
+      sum += estimator.estimate(hyperLogLog);
     }
     blackhole.consume(sum);
   }
@@ -142,7 +157,7 @@ public class HyperLogLogPerformanceTest {
   public void distinctCountMerge(
       MergeState mergeState, RandomState randomState, Blackhole blackhole) {
     long sum = 0;
-    for (int i = 0; i < mergeState.NUM_EXAMPLES; ++i) {
+    for (int i = 0; i < MergeState.NUM_EXAMPLES; ++i) {
       HyperLogLog mergedHyperLogLog =
           HyperLogLog.merge(mergeState.hyperLogLogs1.get(i), mergeState.hyperLogLogs2.get(i));
       sum +=

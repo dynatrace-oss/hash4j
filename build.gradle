@@ -145,6 +145,7 @@ jacocoTestReport {
 
 test {
     useJUnitPlatform()
+    maxHeapSize '4g'
 }
 
 jmh {

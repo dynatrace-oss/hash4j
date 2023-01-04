@@ -17,9 +17,11 @@ package com.dynatrace.hash4j.distinctcount;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.SplittableRandom;
 import java.util.function.IntFunction;
 import java.util.function.IntToDoubleFunction;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
@@ -27,12 +29,36 @@ public final class EstimationErrorSimulationUtil {
 
   private EstimationErrorSimulationUtil() {}
 
-  public static <T extends DistinctCounter<T>> void doSimulation(
-      int p,
-      String sketchName,
-      IntFunction<T> supplier,
-      IntToDoubleFunction theoreticalRelativeStandardErrorDefaultEstimatorCalculator,
-      IntToDoubleFunction theoreticalRelativeStandardErrorMartingaleEstimatorCalculator) {
+  public static final class EstimatorConfig<T> {
+    private final ToDoubleBiFunction<T, MartingaleEstimator> estimator;
+    private final String label;
+
+    private final IntToDoubleFunction pToAsymptoticRelativeStandardError;
+
+    public EstimatorConfig(
+        ToDoubleBiFunction<T, MartingaleEstimator> estimator,
+        String label,
+        IntToDoubleFunction pToAsymptoticRelativeStandardError) {
+      this.estimator = estimator;
+      this.label = label;
+      this.pToAsymptoticRelativeStandardError = pToAsymptoticRelativeStandardError;
+    }
+
+    public String getLabel() {
+      return label;
+    }
+
+    public IntToDoubleFunction getpToAsymptoticRelativeStandardError() {
+      return pToAsymptoticRelativeStandardError;
+    }
+  }
+
+  public static <T extends DistinctCounter<T, R>, R extends DistinctCounter.Estimator<T>>
+      void doSimulation(
+          int p,
+          String sketchName,
+          IntFunction<T> supplier,
+          List<EstimatorConfig<T>> estimatorConfigs) {
     int numCycles = 100000;
     String resultFolder = "test-results/";
 
@@ -41,11 +67,13 @@ public final class EstimationErrorSimulationUtil {
     long[] seeds = seedRandom.longs(numCycles).toArray();
     long[] trueDistinctCounts = TestUtils.getDistinctCountValues(0L, 1L << 24, 0.05);
 
-    double[][] estimatedDistinctCountsDefault = new double[trueDistinctCounts.length][];
-    double[][] estimatedDistinctCountsMartingale = new double[trueDistinctCounts.length][];
-    for (int i = 0; i < trueDistinctCounts.length; ++i) {
-      estimatedDistinctCountsDefault[i] = new double[numCycles];
-      estimatedDistinctCountsMartingale[i] = new double[numCycles];
+    double[][][] estimatedDistinctCounts = new double[estimatorConfigs.size() + 1][][];
+
+    for (int k = 0; k < estimatorConfigs.size() + 1; ++k) {
+      estimatedDistinctCounts[k] = new double[trueDistinctCounts.length][];
+      for (int i = 0; i < trueDistinctCounts.length; ++i) {
+        estimatedDistinctCounts[k][i] = new double[numCycles];
+      }
     }
 
     ThreadLocal<T> sketches = ThreadLocal.withInitial(() -> supplier.apply(p));
@@ -61,10 +89,13 @@ public final class EstimationErrorSimulationUtil {
               int distinctCountIndex = 0;
               while (distinctCountIndex < trueDistinctCounts.length) {
                 if (trueDistinctCount == trueDistinctCounts[distinctCountIndex]) {
-                  estimatedDistinctCountsDefault[distinctCountIndex][i] =
-                      sketch.getDistinctCountEstimate();
-                  estimatedDistinctCountsMartingale[distinctCountIndex][i] =
-                      martingaleEstimator.getDistinctCountEstimate();
+                  for (int k = 0; k < estimatorConfigs.size(); ++k) {
+                    estimatedDistinctCounts[k][distinctCountIndex][i] =
+                        estimatorConfigs
+                            .get(k)
+                            .estimator
+                            .applyAsDouble(sketch, martingaleEstimator);
+                  }
                   distinctCountIndex += 1;
                 }
                 sketch.add(random.nextLong(), martingaleEstimator);
@@ -72,58 +103,50 @@ public final class EstimationErrorSimulationUtil {
               }
             });
     String fileName = resultFolder + sketchName + "-estimation-error-p" + p + ".csv";
-    double theoreticalRelativeStandardErrorDefault =
-        theoreticalRelativeStandardErrorDefaultEstimatorCalculator.applyAsDouble(p);
-    double theoreticalRelativeStandardErrorMartingale =
-        theoreticalRelativeStandardErrorMartingaleEstimatorCalculator.applyAsDouble(p);
+    double[] theoreticalRelativeStandardErrors =
+        estimatorConfigs.stream()
+            .mapToDouble(c -> c.getpToAsymptoticRelativeStandardError().applyAsDouble(p))
+            .toArray();
+
     try (FileWriter writer = new FileWriter(fileName)) {
       writer.write("sketch_name=" + sketchName + "; p=" + p + "; num_cycles=" + numCycles + "\n");
-      writer.write(
-          "distinct count; relative bias default; relative rmse default; theoretical relative standard error default; relative bias martingale; relative rmse martingale; theoretical relative standard error martingale\n");
+      writer.write("distinct count");
+
+      for (EstimatorConfig<T> estimatorConfig : estimatorConfigs) {
+        writer.write("; relative bias " + estimatorConfig.getLabel());
+        writer.write("; relative rmse " + estimatorConfig.getLabel());
+        writer.write("; theoretical relative standard error " + estimatorConfig.getLabel());
+      }
+      writer.write('\n');
+
       for (int distinctCountIndex = 0;
           distinctCountIndex < trueDistinctCounts.length;
           ++distinctCountIndex) {
-        double[] estimatesDefault = estimatedDistinctCountsDefault[distinctCountIndex];
-        double[] estimatesMartingale = estimatedDistinctCountsMartingale[distinctCountIndex];
-        double trueDistinctCount = trueDistinctCounts[distinctCountIndex];
-        double relativeBiasDefault =
-            DoubleStream.of(estimatesDefault).map(d -> d - trueDistinctCount).sum()
-                / numCycles
-                / trueDistinctCount;
-        double relativeBiasMartingale =
-            DoubleStream.of(estimatesMartingale).map(d -> d - trueDistinctCount).sum()
-                / numCycles
-                / trueDistinctCount;
-        double relativeRmseDefault =
-            Math.sqrt(
-                    DoubleStream.of(estimatesDefault)
-                            .map(d -> (d - trueDistinctCount) * (d - trueDistinctCount))
-                            .sum()
-                        / numCycles)
-                / trueDistinctCount;
-        double relativeRmseMartingale =
-            Math.sqrt(
-                    DoubleStream.of(estimatesMartingale)
-                            .map(d -> (d - trueDistinctCount) * (d - trueDistinctCount))
-                            .sum()
-                        / numCycles)
-                / trueDistinctCount;
 
-        writer.write(
-            trueDistinctCount
-                + ";"
-                + relativeBiasDefault
-                + ";"
-                + relativeRmseDefault
-                + ";"
-                + theoreticalRelativeStandardErrorDefault
-                + ";"
-                + relativeBiasMartingale
-                + ";"
-                + relativeRmseMartingale
-                + ";"
-                + theoreticalRelativeStandardErrorMartingale
-                + "\n");
+        double trueDistinctCount = trueDistinctCounts[distinctCountIndex];
+        writer.write("" + trueDistinctCount);
+
+        for (int k = 0; k < estimatorConfigs.size(); ++k) {
+
+          double relativeBias =
+              DoubleStream.of(estimatedDistinctCounts[k][distinctCountIndex])
+                      .map(d -> d - trueDistinctCount)
+                      .sum()
+                  / numCycles
+                  / trueDistinctCount;
+          double relativeRmse =
+              Math.sqrt(
+                      DoubleStream.of(estimatedDistinctCounts[k][distinctCountIndex])
+                              .map(d -> (d - trueDistinctCount) * (d - trueDistinctCount))
+                              .sum()
+                          / numCycles)
+                  / trueDistinctCount;
+
+          writer.write("; " + relativeBias);
+          writer.write("; " + relativeRmse);
+          writer.write("; " + theoreticalRelativeStandardErrors[k]);
+        }
+        writer.write('\n');
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

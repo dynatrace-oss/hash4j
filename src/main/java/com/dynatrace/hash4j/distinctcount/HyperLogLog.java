@@ -42,11 +42,9 @@ import java.util.Arrays;
  *       16th International Conference on Extending Database Technology. 2013.
  * </ul>
  */
-public final class HyperLogLog implements DistinctCounter<HyperLogLog> {
+public final class HyperLogLog extends DistinctCounter<HyperLogLog, HyperLogLog.Estimator> {
 
   private static final PackedArrayHandler ARRAY_HANDLER = PackedArray.getHandler(6);
-
-  private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
 
   /**
    * The minimum allowed precision parameter.
@@ -72,35 +70,6 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog> {
 
   private static final int MIN_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MIN_P);
   private static final int MAX_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MAX_P);
-
-  static double[] getEstimationFactors() {
-    return new double[] {
-      40.67760431873907,
-      172.99391414703106,
-      714.5560640781132,
-      2905.6322537477818,
-      11719.723738552972,
-      47075.733045730056,
-      188699.0930713932,
-      755591.1970832772,
-      3023956.9501793,
-      1.2099014641293615E7,
-      4.8402434765532516E7,
-      1.9362249398321322E8,
-      7.745154882959671E8,
-      3.098112980431337E9,
-      1.2392553978741665E10,
-      4.9570420031520744E10,
-      1.982820883617127E11,
-      7.931291699206317E11,
-      3.1725183126326094E12,
-      1.2690076516433127E13,
-      5.076031259754041E13,
-      2.0304126345377997E14,
-      8.12165079942359E14,
-      3.248660372023916E15
-    };
-  }
 
   private final int p;
   private final byte[] state;
@@ -294,7 +263,12 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog> {
   }
 
   private static double getRegisterChangeProbability(long registerValue, int p) {
-    return Double.longBitsToDouble(0x3FF0000000000000L - ((registerValue + p) << 52));
+    long r = registerValue + p;
+    if (r <= 64) {
+      return Double.longBitsToDouble(0x3FF0000000000000L - (r << 52));
+    } else {
+      return 0;
+    }
   }
 
   /**
@@ -348,43 +322,13 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog> {
    */
   @Override
   public double getDistinctCountEstimate() {
-    int c0 = 0;
-    double sum = 0;
-    for (int off = 0; off + 2 < state.length; off += 3) {
-      long r0 = state[off] & 0x3fL;
-      long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
-      long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
-      long r3 = (state[off + 2] & 0xfcL) >>> 2;
-      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
-      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
-      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
-      sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
-      if (r0 == 0) c0 += 1;
-      if (r1 == 0) c0 += 1;
-      if (r2 == 0) c0 += 1;
-      if (r3 == 0) c0 += 1;
-    }
-    if (c0 > 0) {
-      double m = 1 << p;
-      sum += m * sigma(c0 / m);
-    }
-    return ESTIMATION_FACTORS[p - MIN_P] / sum;
+    return getDistinctCountEstimate(Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR);
   }
 
   // visible for testing
-  static double sigma(double x) {
-    if (x <= 0.) return 0;
-    if (x >= 1.) return Double.POSITIVE_INFINITY;
-    double z = 1;
-    double sum = 0;
-    double oldSum;
-    do {
-      x *= x;
-      oldSum = sum;
-      sum += x * z;
-      z += z;
-    } while (oldSum < sum);
-    return sum;
+  @Override
+  double getDistinctCountEstimate(Estimator estimator) {
+    return estimator.estimate(this);
   }
 
   /**
@@ -417,5 +361,190 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog> {
   public HyperLogLog reset() {
     ARRAY_HANDLER.clear(state);
     return this;
+  }
+
+  // visible for testing
+  enum Estimator implements DistinctCounter.Estimator<HyperLogLog> {
+    SMALL_RANGE_CORRECTED_RAW_ESTIMATOR {
+
+      @Override
+      public double estimate(HyperLogLog hyperLogLog) {
+        byte[] state = hyperLogLog.state;
+        int c0 = 0;
+        double sum = 0;
+        for (int off = 0; off + 2 < state.length; off += 3) {
+          long r0 = state[off] & 0x3fL;
+          long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
+          long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
+          long r3 = (state[off + 2] & 0xfcL) >>> 2;
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
+          if (r0 == 0) c0 += 1;
+          if (r1 == 0) c0 += 1;
+          if (r2 == 0) c0 += 1;
+          if (r3 == 0) c0 += 1;
+        }
+        if (c0 > 0) {
+          double m = 1 << hyperLogLog.p;
+          sum += m * sigma(c0 / m);
+        }
+        return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+      }
+    },
+    CORRECTED_RAW_ESTIMATOR {
+      @Override
+      public double estimate(HyperLogLog hyperLogLog) {
+        byte[] state = hyperLogLog.state;
+        int c0 = 0;
+        int cMax = 0;
+        double sum = 0;
+        int maxR = 65 - hyperLogLog.p;
+        for (int off = 0; off + 2 < state.length; off += 3) {
+          long r0 = state[off] & 0x3fL;
+          long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
+          long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
+          long r3 = (state[off + 2] & 0xfcL) >>> 2;
+          if (r0 < maxR) {
+            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
+          } else {
+            cMax += 1;
+          }
+          if (r1 < maxR) {
+            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
+          } else {
+            cMax += 1;
+          }
+          if (r2 < maxR) {
+            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
+          } else {
+            cMax += 1;
+          }
+          if (r3 < maxR) {
+            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
+          } else {
+            cMax += 1;
+          }
+          if (r0 == 0) c0 += 1;
+          if (r1 == 0) c0 += 1;
+          if (r2 == 0) c0 += 1;
+          if (r3 == 0) c0 += 1;
+        }
+        if (c0 > 0) {
+          double m = 1 << hyperLogLog.p;
+          sum += m * sigma(c0 / m);
+        }
+        if (cMax > 0) {
+          double m = 1 << hyperLogLog.p;
+          sum +=
+              Double.longBitsToDouble(0x3FF0000000000000L - ((32L - hyperLogLog.p) << 53))
+                  * tau(1. - cMax / m);
+        }
+        return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+      }
+    },
+    MAXIMUM_LIKELIHOOD_ESTIMATOR {
+
+      private double contribute(int r, int[] b, int maxR) {
+        if (r <= maxR) {
+          if (r > 0) {
+            b[r] += 1;
+          }
+          return Double.longBitsToDouble(0x3FF0000000000000L - ((long) r << 52));
+        } else {
+          b[maxR] += 1;
+          return 0;
+        }
+      }
+
+      @Override
+      public double estimate(HyperLogLog hyperLogLog) {
+        final double eps = 1e-2;
+        byte[] state = hyperLogLog.state;
+        int p = hyperLogLog.p;
+        double a = 0;
+        int[] b = new int[64];
+        int maxR = 63 - p;
+
+        for (int off = 0; off + 2 < state.length; off += 3) {
+          int r0 = state[off] & 0x3f;
+          int r1 = ((state[off] & 0xc0) >>> 6) | ((state[off + 1] & 0x0f) << 2);
+          int r2 = ((state[off + 1] & 0xf0) >>> 4) | ((state[off + 2] & 0x03) << 4);
+          int r3 = (state[off + 2] & 0xfc) >>> 2;
+
+          a += contribute(r0, b, maxR);
+          a += contribute(r1, b, maxR);
+          a += contribute(r2, b, maxR);
+          a += contribute(r3, b, maxR);
+        }
+        int m = 1 << p;
+        return m * DistinctCountUtil.solveMaximumLikelihoodEquation(a, b, eps / Math.sqrt(m));
+      }
+    };
+
+    // visible for testing
+    static double[] getEstimationFactors() {
+      return new double[] {
+        40.67760431873907,
+        172.99391414703106,
+        714.5560640781132,
+        2905.6322537477818,
+        11719.723738552972,
+        47075.733045730056,
+        188699.0930713932,
+        755591.1970832772,
+        3023956.9501793,
+        1.2099014641293615E7,
+        4.8402434765532516E7,
+        1.9362249398321322E8,
+        7.745154882959671E8,
+        3.098112980431337E9,
+        1.2392553978741665E10,
+        4.9570420031520744E10,
+        1.982820883617127E11,
+        7.931291699206317E11,
+        3.1725183126326094E12,
+        1.2690076516433127E13,
+        5.076031259754041E13,
+        2.0304126345377997E14,
+        8.12165079942359E14,
+        3.248660372023916E15
+      };
+    }
+
+    private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
+
+    // visible for testing
+    protected static double sigma(double x) {
+      if (x <= 0.) return 0;
+      if (x >= 1.) return Double.POSITIVE_INFINITY;
+      double z = 1;
+      double sum = 0;
+      double oldSum;
+      do {
+        x *= x;
+        oldSum = sum;
+        sum += x * z;
+        z += z;
+      } while (oldSum < sum);
+      return sum;
+    }
+
+    // visible for testing
+    protected static double tau(double x) {
+      if (x <= 0. || x >= 1.) return 0.;
+      double zPrime;
+      double y = 1.0;
+      double z = 1 - x;
+      do {
+        x = Math.sqrt(x);
+        zPrime = z;
+        y *= 0.5;
+        double oneMinusX = 1 - x;
+        z -= oneMinusX * oneMinusX * y;
+      } while (zPrime > z);
+      return z * (1. / 3.);
+    }
   }
 }
