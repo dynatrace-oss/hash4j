@@ -16,6 +16,9 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.distinctcount.EstimationErrorSimulationUtil.doSimulation;
+import static com.dynatrace.hash4j.distinctcount.HyperLogLog.Estimator.*;
+
+import java.util.Arrays;
 
 public class HyperLogLogEstimationErrorSimulation {
   public static void main(String[] args) {
@@ -26,8 +29,29 @@ public class HyperLogLogEstimationErrorSimulation {
           p,
           "hyperloglog",
           HyperLogLog::create,
-          new HyperLogLogTest()::calculateTheoreticalRelativeStandardError,
-          new HyperLogLogTest()::calculateTheoreticalRelativeStandardErrorMartingale);
+          Arrays.asList(
+              new EstimationErrorSimulationUtil.EstimatorConfig<HyperLogLog>(
+                  (s, m) -> s.getDistinctCountEstimate(),
+                  "default",
+                  pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorDefault(pp)),
+              new EstimationErrorSimulationUtil.EstimatorConfig<>(
+                  (s, m) -> m.getDistinctCountEstimate(),
+                  "martingale",
+                  pp ->
+                      new HyperLogLogTest()
+                          .calculateTheoreticalRelativeStandardErrorMartingale(pp)),
+              new EstimationErrorSimulationUtil.EstimatorConfig<>(
+                  (s, m) -> s.getDistinctCountEstimate(MAXIMUM_LIKELIHOOD_ESTIMATOR),
+                  "maximum likelihood",
+                  pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorML(pp)),
+              new EstimationErrorSimulationUtil.EstimatorConfig<>(
+                  (s, m) -> s.getDistinctCountEstimate(SMALL_RANGE_CORRECTED_RAW_ESTIMATOR),
+                  "small range corrected raw",
+                  pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorRaw(pp)),
+              new EstimationErrorSimulationUtil.EstimatorConfig<>(
+                  (s, m) -> s.getDistinctCountEstimate(CORRECTED_RAW_ESTIMATOR),
+                  "corrected raw",
+                  pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorRaw(pp))));
     }
   }
 }

@@ -56,7 +56,7 @@ def to_percent(values):
     return [100.0 * v for v in values]
 
 
-def plot_charts(filename):
+def plot_charts(filename, extended=False):
     d = read_data(filename)
 
     colors = ["C0", "C1", "C2"]
@@ -124,12 +124,23 @@ def plot_charts(filename):
         color=colors[2],
         linestyle="dotted",
     )
+    if extended:
+        ax.plot(
+            values["distinct count"],
+            to_percent(
+                values["theoretical relative standard error maximum likelihood"]
+            ),
+            label="theory (ML)",
+            color=colors[2],
+            linestyle="dashdot",
+        )
     ax.plot(
         values["distinct count"],
         to_percent(values["theoretical relative standard error default"]),
         label="theory (default)",
         color=colors[2],
     )
+
     ax.plot(
         values["distinct count"],
         to_percent(values["relative rmse martingale"]),
@@ -137,12 +148,21 @@ def plot_charts(filename):
         color=colors[1],
         linestyle="dotted",
     )
+    if extended:
+        ax.plot(
+            values["distinct count"],
+            to_percent(values["relative rmse maximum likelihood"]),
+            label="rmse (ML)",
+            color=colors[1],
+            linestyle="dashdot",
+        )
     ax.plot(
         values["distinct count"],
         to_percent(values["relative rmse default"]),
         label="rmse (default)",
         color=colors[1],
     )
+
     ax.plot(
         values["distinct count"],
         to_percent(values["relative bias martingale"]),
@@ -150,6 +170,14 @@ def plot_charts(filename):
         color=colors[0],
         linestyle="dotted",
     )
+    if extended:
+        ax.plot(
+            values["distinct count"],
+            to_percent(values["relative bias maximum likelihood"]),
+            label="bias (ML)",
+            color=colors[0],
+            linestyle="dashdot",
+        )
     ax.plot(
         values["distinct count"],
         to_percent(values["relative bias default"]),
@@ -171,12 +199,25 @@ def plot_charts(filename):
         ncol=5,
     )
     fig.subplots_adjust(top=0.93, bottom=0.21, left=0.11, right=0.99)
+
+    if extended:
+        filename = (
+            "test-results/"
+            + headers["sketch_name"]
+            + "-estimation-error-p"
+            + headers["p"]
+            + "-extended.png"
+        )
+    else:
+        filename = (
+            "test-results/"
+            + headers["sketch_name"]
+            + "-estimation-error-p"
+            + headers["p"]
+            + ".png"
+        )
     fig.savefig(
-        "test-results/"
-        + headers["sketch_name"]
-        + "-estimation-error-p"
-        + headers["p"]
-        + ".png",
+        filename,
         format="png",
         dpi=300,
         metadata={"creationDate": None},
@@ -188,3 +229,4 @@ filenames = glob.glob("test-results/*loglog-estimation-error-p*.csv")
 
 for filename in filenames:
     plot_charts(filename)
+    # plot_charts(filename, extended=True)

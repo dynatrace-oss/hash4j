@@ -24,17 +24,20 @@ import com.dynatrace.hash4j.hashing.Hashing;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.google.common.collect.Sets;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SplittableRandom;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.zip.Deflater;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 
-abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
+abstract class DistinctCounterTest<
+    T extends DistinctCounter<T, R>, R extends DistinctCounter.Estimator<T>> {
 
   protected static final int MIN_P = 3;
   protected static final int MAX_P = 26;
@@ -45,7 +48,7 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
 
   protected abstract T merge(T sketch1, T sketch2);
 
-  protected abstract double calculateTheoreticalRelativeStandardError(int p);
+  protected abstract double calculateTheoreticalRelativeStandardErrorML(int p);
 
   protected abstract double calculateTheoreticalRelativeStandardErrorMartingale(int p);
 
@@ -55,7 +58,7 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
 
   protected abstract T wrap(byte[] state);
 
-  protected abstract double getApproximateStorageFactor();
+  protected abstract double getCompressedStorageFactorLowerBound();
 
   @Test
   void testStateCompatibility() {
@@ -154,21 +157,18 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
     }
   }
 
-  private static byte[] compress(byte[] data) throws IOException {
-    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-      Deflater deflater = new Deflater();
-      deflater.setInput(data);
-      deflater.finish();
-      byte[] buffer = new byte[1024];
-      while (!deflater.finished()) {
-        outputStream.write(buffer, 0, deflater.deflate(buffer));
-      }
-      return outputStream.toByteArray();
-    }
+  private static int compressedLength(byte[] data, byte[] work) {
+    Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+    deflater.setInput(data);
+    deflater.finish();
+    int numBytes = deflater.deflate(work);
+    assertThat(numBytes).isLessThan(work.length);
+    assertThat(deflater.finished()).isTrue();
+    return numBytes;
   }
 
   @Test
-  void testCompressedStorageFactors() throws IOException {
+  void testCompressedStorageFactors() {
     int numCycles = 100;
     long trueDistinctCount = 100000;
     int p = 12;
@@ -177,21 +177,22 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
     int bitsPerRegister = (getStateLength(p) * Byte.SIZE) / (1 << p);
 
     SplittableRandom random = new SplittableRandom(0L);
+    T sketch = create(p);
+    byte[] work = new byte[(1 << p) * 10];
     for (int i = 0; i < numCycles; ++i) {
-      T sketch = create(p);
-
+      sketch.reset();
       for (long k = 0; k < trueDistinctCount; ++k) {
         long hash = random.nextLong();
         sketch.add(hash);
       }
-      sumSize += compress(sketch.getState()).length;
+      sumSize += compressedLength(sketch.getState(), work);
     }
 
-    double expectedVariance = pow(calculateTheoreticalRelativeStandardError(p), 2);
+    double expectedVariance = pow(calculateTheoreticalRelativeStandardErrorML(p), 2);
 
     double storageFactor = bitsPerRegister * sumSize * expectedVariance / numCycles;
 
-    assertThat(storageFactor).isCloseTo(getApproximateStorageFactor(), withPercentage(1));
+    assertThat(storageFactor).isCloseTo(getCompressedStorageFactorLowerBound(), withPercentage(18));
   }
 
   @Test
@@ -248,17 +249,45 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
     }
   }
 
-  private void testDistinctCountEstimation(int p, long seed, long[] distinctCounts) {
+  protected void testDistinctCountEstimation(
+      int p,
+      long seed,
+      long[] distinctCounts,
+      List<R> estimators,
+      List<IntToDoubleFunction> pToTheoreticalRelativeStandardErrorFunctions,
+      double[] relativeBiasThresholds,
+      double[] relativeRmseThresholds,
+      double[] asymptoticThresholds,
+      double relativeBiasThresholdMartingale,
+      double relativeRmseThresholdMartingale,
+      double asymptoticThresholdMartingale,
+      R defaultEstimator) {
 
-    double relativeStandardError = calculateTheoreticalRelativeStandardError(p);
-    double relativeStandardErrorMartingale = calculateTheoreticalRelativeStandardErrorMartingale(p);
-
-    double[] estimationErrorsMoment1 = new double[distinctCounts.length];
-    double[] estimationErrorsMoment2 = new double[distinctCounts.length];
-    double[] estimationErrorsMoment1Martingale = new double[distinctCounts.length];
-    double[] estimationErrorsMoment2Martingale = new double[distinctCounts.length];
     int numIterations = 1000;
     SplittableRandom random = new SplittableRandom(seed);
+
+    assertThat(estimators.size())
+        .isEqualTo(relativeBiasThresholds.length)
+        .isEqualTo(relativeRmseThresholds.length)
+        .isEqualTo(asymptoticThresholds.length)
+        .isEqualTo(pToTheoreticalRelativeStandardErrorFunctions.size());
+    int numEstimators = estimators.size();
+
+    double[] theoreticalRelativeStandardErrors = new double[numEstimators + 1];
+    double[][] estimationErrorsMoment1 = new double[numEstimators + 1][];
+    double[][] estimationErrorsMoment2 = new double[numEstimators + 1][];
+    for (int i = 0; i < numEstimators + 1; ++i) {
+      estimationErrorsMoment1[i] = new double[distinctCounts.length];
+      estimationErrorsMoment2[i] = new double[distinctCounts.length];
+    }
+
+    for (int i = 0; i < numEstimators; ++i) {
+      theoreticalRelativeStandardErrors[i] =
+          pToTheoreticalRelativeStandardErrorFunctions.get(i).applyAsDouble(p);
+    }
+    theoreticalRelativeStandardErrors[numEstimators] =
+        calculateTheoreticalRelativeStandardErrorMartingale(p);
+
     for (int i = 0; i < numIterations; ++i) {
       T sketch = create(p);
       T sketchMartingale = create(p);
@@ -267,18 +296,24 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
       int distinctCountIndex = 0;
       while (distinctCountIndex < distinctCounts.length) {
         if (trueDistinctCount == distinctCounts[distinctCountIndex]) {
-
-          double distinctCountEstimationError =
-              sketch.getDistinctCountEstimate() - trueDistinctCount;
-          estimationErrorsMoment1[distinctCountIndex] += distinctCountEstimationError;
-          estimationErrorsMoment2[distinctCountIndex] +=
-              distinctCountEstimationError * distinctCountEstimationError;
+          for (int estimatorIdx = 0; estimatorIdx < numEstimators; ++estimatorIdx) {
+            R estimator = estimators.get(estimatorIdx);
+            double estimate = sketch.getDistinctCountEstimate(estimator);
+            if (defaultEstimator.equals(estimator)) {
+              assertThat(sketch.getDistinctCountEstimate(defaultEstimator)).isEqualTo(estimate);
+            }
+            double distinctCountEstimationError = estimate - trueDistinctCount;
+            estimationErrorsMoment1[estimatorIdx][distinctCountIndex] +=
+                distinctCountEstimationError;
+            estimationErrorsMoment2[estimatorIdx][distinctCountIndex] +=
+                distinctCountEstimationError * distinctCountEstimationError;
+          }
 
           double distinctCountEstimationErrorMartingale =
               martingaleEstimator.getDistinctCountEstimate() - trueDistinctCount;
-          estimationErrorsMoment1Martingale[distinctCountIndex] +=
+          estimationErrorsMoment1[numEstimators][distinctCountIndex] +=
               distinctCountEstimationErrorMartingale;
-          estimationErrorsMoment2Martingale[distinctCountIndex] +=
+          estimationErrorsMoment2[numEstimators][distinctCountIndex] +=
               distinctCountEstimationErrorMartingale * distinctCountEstimationErrorMartingale;
 
           distinctCountIndex += 1;
@@ -299,71 +334,146 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
         ++distinctCountIndex) {
       long trueDistinctCount = distinctCounts[distinctCountIndex];
 
-      {
+      for (int estimatorIdx = 0; estimatorIdx < numEstimators; ++estimatorIdx) {
         double relativeBias =
-            estimationErrorsMoment1[distinctCountIndex]
-                / (trueDistinctCount * (double) numIterations);
-        double relativeRootMeanSquareError =
-            Math.sqrt(estimationErrorsMoment2[distinctCountIndex] / numIterations)
-                / trueDistinctCount;
+            estimationErrorsMoment1[estimatorIdx][distinctCountIndex]
+                / (trueDistinctCount
+                    * (double) numIterations
+                    * theoreticalRelativeStandardErrors[estimatorIdx]);
+        double relativeRmse =
+            Math.sqrt(estimationErrorsMoment2[estimatorIdx][distinctCountIndex] / numIterations)
+                / (trueDistinctCount * theoreticalRelativeStandardErrors[estimatorIdx]);
+
+        double relativeBiasThreshold = relativeBiasThresholds[estimatorIdx];
+        double relativeRmseThreshold = relativeRmseThresholds[estimatorIdx];
+        double asymptoticThreshold = asymptoticThresholds[estimatorIdx];
 
         if (trueDistinctCount > 0) {
           // verify bias to be significantly smaller than standard error
-          assertThat(relativeBias).isLessThan(relativeStandardError * 0.2);
+          assertThat(Math.abs(relativeBias)).isLessThan(relativeBiasThreshold);
         }
         if (trueDistinctCount > 0) {
           // test if observed root mean square error is not much greater than relative standard
           // error
-          assertThat(relativeRootMeanSquareError).isLessThan(relativeStandardError * 1.3);
-        }
-        if (trueDistinctCount > 10 * (1L << p)) {
-          // test asymptotic behavior (distinct count is much greater than number of registers
-          // (state
-          // size) given by (1 << p)
-          // observed root mean square error should be approximately equal to the standard error
-          assertThat(relativeRootMeanSquareError)
-              .isCloseTo(relativeStandardError, withPercentage(30));
-        }
-      }
-
-      {
-        double relativeBiasMartingale =
-            estimationErrorsMoment1Martingale[distinctCountIndex]
-                / (trueDistinctCount * (double) numIterations);
-        double relativeRootMeanSquareErrorMartingale =
-            Math.sqrt(estimationErrorsMoment2Martingale[distinctCountIndex] / numIterations)
-                / trueDistinctCount;
-
-        if (trueDistinctCount > 0) {
-          // verify bias to be significantly smaller than standard error
-          // System.out.println(trueDistinctCount + " " + p);
-          assertThat(relativeBiasMartingale).isLessThan(relativeStandardErrorMartingale * 0.1);
-        }
-        if (trueDistinctCount > 0) {
-          // test if observed root mean square error is not much greater than relative standard
-          // error
-          assertThat(relativeRootMeanSquareErrorMartingale)
-              .isLessThan(relativeStandardErrorMartingale * 1.2);
+          assertThat(relativeRmse).isLessThan(relativeRmseThreshold);
         }
         if (trueDistinctCount > 10 * (1L << p)) {
           // test asymptotic behavior (distinct count is much greater than number of registers
           // (state size) given by (1 << p)
           // observed root mean square error should be approximately equal to the standard error
-          assertThat(relativeRootMeanSquareErrorMartingale)
-              .isCloseTo(relativeStandardErrorMartingale, withPercentage(15));
+          assertThat(relativeRmse).isCloseTo(1., within(asymptoticThreshold));
+        }
+      }
+
+      {
+        double relativeBiasMartingale =
+            estimationErrorsMoment1[numEstimators][distinctCountIndex]
+                / (trueDistinctCount
+                    * (double) numIterations
+                    * theoreticalRelativeStandardErrors[numEstimators]);
+        double relativeRmseMartingale =
+            Math.sqrt(estimationErrorsMoment2[numEstimators][distinctCountIndex] / numIterations)
+                / (trueDistinctCount * theoreticalRelativeStandardErrors[numEstimators]);
+
+        if (trueDistinctCount > 0) {
+          // verify bias to be significantly smaller than standard error
+          // System.out.println(trueDistinctCount + " " + p);
+          assertThat(Math.abs(relativeBiasMartingale)).isLessThan(relativeBiasThresholdMartingale);
+        }
+        if (trueDistinctCount > 0) {
+          // test if observed root mean square error is not much greater than relative standard
+          // error
+          assertThat(relativeRmseMartingale).isLessThan(relativeRmseThresholdMartingale);
+        }
+        if (trueDistinctCount > 10 * (1L << p)) {
+          // test asymptotic behavior (distinct count is much greater than number of registers
+          // (state size) given by (1 << p)
+          // observed root mean square error should be approximately equal to the standard error
+          assertThat(relativeRmseMartingale).isCloseTo(1., within(asymptoticThresholdMartingale));
         }
       }
     }
   }
 
-  @Test
-  void testDistinctCountEstimation() {
-    int maxP = 14;
-    SplittableRandom random = new SplittableRandom(0xd77b9e4ea99553e0L);
-    long[] distinctCounts = TestUtils.getDistinctCountValues(0, 100000, 0.2);
+  protected void testLargeDistinctCountEstimation(
+      int p,
+      long seed,
+      int distinctCountStepExponent,
+      long[] distinctCountSteps,
+      List<R> estimators,
+      List<IntToDoubleFunction> pToTheoreticalRelativeStandardErrorFunctions,
+      double[] relativeBiasThresholds,
+      double[] relativeRmseThresholds) {
 
-    for (int p = MIN_P; p <= maxP; ++p) {
-      testDistinctCountEstimation(p, random.nextLong(), distinctCounts);
+    int numIterations = 10000;
+    SplittableRandom random = new SplittableRandom(seed);
+
+    assertThat(estimators.size())
+        .isEqualTo(relativeRmseThresholds.length)
+        .isEqualTo(pToTheoreticalRelativeStandardErrorFunctions.size());
+    int numEstimators = estimators.size();
+
+    double[] theoreticalRelativeStandardErrors = new double[numEstimators + 1];
+    double[][] estimationErrorsMoment1 = new double[numEstimators][];
+    double[][] estimationErrorsMoment2 = new double[numEstimators][];
+    for (int i = 0; i < numEstimators; ++i) {
+      estimationErrorsMoment1[i] = new double[distinctCountSteps.length];
+      estimationErrorsMoment2[i] = new double[distinctCountSteps.length];
+    }
+
+    for (int i = 0; i < numEstimators; ++i) {
+      theoreticalRelativeStandardErrors[i] =
+          pToTheoreticalRelativeStandardErrorFunctions.get(i).applyAsDouble(p);
+    }
+    theoreticalRelativeStandardErrors[numEstimators] =
+        calculateTheoreticalRelativeStandardErrorMartingale(p);
+
+    final long mask =
+        ~(((1L << distinctCountStepExponent) - 1) << (-p - distinctCountStepExponent));
+
+    for (int i = 0; i < numIterations; ++i) {
+      T sketch = create(p);
+      long trueDistinctCountSteps = 0;
+      int distinctCountStepIndex = 0;
+      while (distinctCountStepIndex < distinctCountSteps.length) {
+        if (trueDistinctCountSteps == distinctCountSteps[distinctCountStepIndex]) {
+          for (int estimatorIdx = 0; estimatorIdx < numEstimators; ++estimatorIdx) {
+            R estimator = estimators.get(estimatorIdx);
+            double estimate = sketch.getDistinctCountEstimate(estimator);
+            double trueDistinctCount =
+                trueDistinctCountSteps * Math.pow(2., distinctCountStepExponent);
+            double distinctCountEstimationError = estimate - trueDistinctCount;
+            estimationErrorsMoment1[estimatorIdx][distinctCountStepIndex] +=
+                distinctCountEstimationError;
+            estimationErrorsMoment2[estimatorIdx][distinctCountStepIndex] +=
+                distinctCountEstimationError * distinctCountEstimationError;
+          }
+
+          distinctCountStepIndex += 1;
+        }
+        long hash = random.nextLong() & mask;
+        sketch.add(hash);
+        trueDistinctCountSteps += 1;
+      }
+    }
+
+    for (int distinctCountStepIndex = 0;
+        distinctCountStepIndex < distinctCountSteps.length;
+        ++distinctCountStepIndex) {
+      double trueDistinctCount =
+          distinctCountSteps[distinctCountStepIndex] * Math.pow(2., distinctCountStepExponent);
+
+      for (int estimatorIdx = 0; estimatorIdx < numEstimators; ++estimatorIdx) {
+        double relativeBias =
+            Math.abs(estimationErrorsMoment1[estimatorIdx][distinctCountStepIndex] / numIterations)
+                / (trueDistinctCount * theoreticalRelativeStandardErrors[estimatorIdx]);
+        double relativeRmse =
+            Math.sqrt(estimationErrorsMoment2[estimatorIdx][distinctCountStepIndex] / numIterations)
+                / (trueDistinctCount * theoreticalRelativeStandardErrors[estimatorIdx]);
+
+        assertThat(relativeBias).isCloseTo(0., within(relativeBiasThresholds[estimatorIdx]));
+        assertThat(relativeRmse).isCloseTo(1., within(relativeRmseThresholds[estimatorIdx]));
+      }
     }
   }
 
@@ -372,9 +482,15 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       T sketch = create(p);
       assertThat(sketch.getDistinctCountEstimate()).isZero();
+      for (R estimator : getEstimators()) {
+        assertThat(estimator.estimate(sketch)).isZero();
+      }
       T mergedSketch = merge(sketch, sketch);
       assertThat(mergedSketch.getState()).isEqualTo(new byte[getStateLength(p)]);
       assertThat(mergedSketch.getDistinctCountEstimate()).isZero();
+      for (R estimator : getEstimators()) {
+        assertThat(estimator.estimate(mergedSketch)).isZero();
+      }
       assertThat(sketch.getStateChangeProbability()).isOne();
     }
   }
@@ -384,8 +500,13 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
     for (int p = MIN_P; p <= MAX_P; p += 1) {
       T sketch = wrap(new byte[getStateLength(p)]);
       assertThat(sketch.getDistinctCountEstimate()).isZero();
+      for (R estimator : getEstimators()) {
+        assertThat(estimator.estimate(sketch)).isZero();
+      }
     }
   }
+
+  protected abstract R[] getEstimators();
 
   @Test
   void testRandomStates() {
@@ -406,6 +527,10 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
       int newP2 = random.nextInt(minP, maxP + 1);
       assertThatNoException().isThrownBy(sketch1::getDistinctCountEstimate);
       assertThatNoException().isThrownBy(sketch2::getDistinctCountEstimate);
+      for (R estimator : getEstimators()) {
+        assertThatNoException().isThrownBy(() -> estimator.estimate(sketch1));
+        assertThatNoException().isThrownBy(() -> estimator.estimate(sketch2));
+      }
       assertThatNoException().isThrownBy(sketch1::copy);
       assertThatNoException().isThrownBy(sketch2::copy);
       assertThatNoException().isThrownBy(() -> sketch1.downsize(newP1));
@@ -453,6 +578,9 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
           c += 1;
         }
         assertThatNoException().isThrownBy(() -> wrap(b).getDistinctCountEstimate());
+        for (R estimator : getEstimators()) {
+          assertThatNoException().isThrownBy(() -> estimator.estimate(wrap(b)));
+        }
       }
     }
   }
@@ -480,5 +608,277 @@ abstract class DistinctCounterTest<T extends DistinctCounter<T>> {
     }
 
     assertThatNullPointerException().isThrownBy(() -> wrap(null));
+  }
+
+  protected void testErrorOfDistinctCountEqualOne(
+      int[] pValues,
+      R estimator,
+      IntToDoubleFunction pToTheoreticalRelativeStandardError,
+      double[] relativeBiasLimit,
+      double[] relativeRmseLimit) {
+
+    testErrorOfDistinctCount(
+        pValues,
+        estimator,
+        pToTheoreticalRelativeStandardError,
+        relativeBiasLimit,
+        relativeRmseLimit,
+        this::calculateErrorOfDistinctCountEqualOne);
+  }
+
+  protected void testErrorOfDistinctCountEqualTwo(
+      int[] pValues,
+      R estimator,
+      IntToDoubleFunction pToTheoreticalRelativeStandardError,
+      double[] relativeBiasLimit,
+      double[] relativeRmseLimit) {
+
+    testErrorOfDistinctCount(
+        pValues,
+        estimator,
+        pToTheoreticalRelativeStandardError,
+        relativeBiasLimit,
+        relativeRmseLimit,
+        this::calculateErrorOfDistinctCountEqualTwo);
+  }
+
+  protected void testErrorOfDistinctCountEqualThree(
+      int[] pValues,
+      R estimator,
+      IntToDoubleFunction pToTheoreticalRelativeStandardError,
+      double[] relativeBiasLimit,
+      double[] relativeRmseLimit) {
+
+    testErrorOfDistinctCount(
+        pValues,
+        estimator,
+        pToTheoreticalRelativeStandardError,
+        relativeBiasLimit,
+        relativeRmseLimit,
+        this::calculateErrorOfDistinctCountEqualThree);
+  }
+
+  private void testErrorOfDistinctCount(
+      int[] pValues,
+      R estimator,
+      IntToDoubleFunction pToTheoreticalRelativeStandardError,
+      double[] relativeBiasLimit,
+      double[] relativeRmseLimit,
+      BiFunction<Integer, R, double[]> errorCalculator) {
+
+    double[] relativeBiasValues = new double[pValues.length];
+    double[] relativeRmseValues = new double[pValues.length];
+    for (int i = 0; i < pValues.length; ++i) {
+      double[] r = errorCalculator.apply(pValues[i], estimator);
+      double bias = r[0];
+      double rmse = r[1];
+      double theoreticalRelativeError =
+          pToTheoreticalRelativeStandardError.applyAsDouble(pValues[i]);
+      relativeBiasValues[i] = bias / theoreticalRelativeError;
+      relativeRmseValues[i] = rmse / theoreticalRelativeError;
+    }
+
+    DoubleUnaryOperator limitCalculator =
+        x -> {
+          BigDecimal bd = BigDecimal.valueOf(Math.abs(x) * 1.01);
+          return bd.setScale(4, RoundingMode.UP).doubleValue();
+        };
+    double[] proposedBiasLimits = Arrays.stream(relativeBiasValues).map(limitCalculator).toArray();
+    double[] proposedRmseLimits = Arrays.stream(relativeRmseValues).map(limitCalculator).toArray();
+
+    String description =
+        "proposed bias limits: "
+            + Arrays.toString(proposedBiasLimits)
+            + '\n'
+            + "proposed rmse limits: "
+            + Arrays.toString(proposedRmseLimits);
+
+    assertThat(relativeBiasLimit).describedAs(description).hasSize(relativeBiasValues.length);
+    for (int i = 0; i < pValues.length; ++i) {
+      assertThat(relativeBiasValues[i])
+          .describedAs(description)
+          .isLessThanOrEqualTo(relativeBiasLimit[i]);
+    }
+
+    assertThat(relativeRmseLimit).describedAs(description).hasSize(relativeRmseValues.length);
+    for (int i = 0; i < pValues.length; ++i) {
+      assertThat(relativeRmseValues[i])
+          .describedAs(description)
+          .isLessThanOrEqualTo(relativeRmseLimit[i]);
+    }
+  }
+
+  private double[] calculateErrorOfDistinctCountEqualOne(int p, R estimator) {
+    T sketch = create(p);
+    double sumProbabiltiy = 0;
+    double averageEstimate = 0;
+    double averageRmse = 0;
+    double trueDistinctCount = 1;
+    for (int nlz = 0; nlz < 64 - p; ++nlz) {
+      long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz;
+      sketch.getState()[0] = 0;
+      sketch.add(hash1);
+      double probability = pow(0.5, nlz + 1);
+      sumProbabiltiy += probability;
+      double estimate = sketch.getDistinctCountEstimate(estimator);
+      averageEstimate += probability * estimate;
+      double error = estimate - trueDistinctCount;
+      averageRmse += probability * (error * error);
+    }
+
+    sketch.getState()[0] = 0;
+    double relativeBias = (averageEstimate - trueDistinctCount) / (trueDistinctCount);
+    double relativeRmse = Math.sqrt(averageRmse) / (trueDistinctCount);
+
+    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
+    assertThat(sketch.getState()).containsOnly((byte) 0);
+    return new double[] {Math.abs(relativeBias), relativeRmse};
+  }
+
+  private double[] calculateErrorOfDistinctCountEqualTwo(int p, R estimator) {
+
+    double[] pow_0_5 = IntStream.range(0, 129 - p).mapToDouble(i -> Math.pow(0.5, i)).toArray();
+
+    long m = 1L << p;
+    T sketch = create(p);
+    double sumProbabiltiy = 0;
+    double averageEstimate = 0;
+    double averageRmse = 0;
+    double trueDistinctCount = 2;
+    long regMask1 = 0L << -p;
+    long regMask2 = 1L << -p;
+    for (int nlz1 = 0; nlz1 < 64 - p; ++nlz1) {
+      for (int nlz2 = nlz1; nlz2 < 64 - p; ++nlz2) {
+        long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz1;
+        long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
+        {
+          Arrays.fill(sketch.getState(), 0, 2, (byte) 0);
+          sketch.add(hash1 | regMask1).add(hash2 | regMask1);
+          double probability = pow_0_5[nlz1 + nlz2 + 2 + p];
+          if (nlz1 != nlz2) probability *= 2;
+          sumProbabiltiy += probability;
+          double estimate = sketch.getDistinctCountEstimate(estimator);
+          averageEstimate += probability * estimate;
+          double error = estimate - trueDistinctCount;
+          averageRmse += probability * (error * error);
+        }
+        {
+          Arrays.fill(sketch.getState(), 0, 2, (byte) 0);
+          sketch.add(hash1 | regMask1).add(hash2 | regMask2);
+          double probability = (m - 1) * pow_0_5[nlz1 + nlz2 + 2 + p];
+          if (nlz1 != nlz2) probability *= 2;
+          sumProbabiltiy += probability;
+          double estimate = sketch.getDistinctCountEstimate(estimator);
+          averageEstimate += probability * estimate;
+          double error = estimate - trueDistinctCount;
+          averageRmse += probability * (error * error);
+        }
+      }
+    }
+
+    Arrays.fill(sketch.getState(), 0, 2, (byte) 0);
+    double relativeBias = Math.abs(averageEstimate - trueDistinctCount) / trueDistinctCount;
+    double relativeRmse = Math.sqrt(averageRmse) / trueDistinctCount;
+
+    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
+    assertThat(sketch.getState()).containsOnly((byte) 0);
+
+    return new double[] {relativeBias, relativeRmse};
+  }
+
+  private double[] calculateErrorOfDistinctCountEqualThree(int p, R estimator) {
+    double[] pow_0_5 = IntStream.range(0, 193 - p).mapToDouble(i -> Math.pow(0.5, i)).toArray();
+    long m = 1L << p;
+    T sketch = create(p);
+    double sumProbabiltiy = 0;
+    double averageEstimate = 0;
+    double averageRmse = 0;
+    double trueDistinctCount = 3;
+    long regMask1 = 0L << -p;
+    long regMask2 = 1L << -p;
+    long regMask3 = 2L << -p;
+    for (int nlz1 = 0; nlz1 < 64 - p; ++nlz1) {
+      for (int nlz2 = nlz1; nlz2 < 64 - p; ++nlz2) {
+        for (int nlz3 = 0; nlz3 < 64 - p; ++nlz3) {
+          long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz1;
+          long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
+          long hash3 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz3;
+          {
+            Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
+            sketch.add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask1);
+            double probability = pow_0_5[nlz1 + nlz2 + nlz3 + 3 + p + p];
+            if (nlz1 != nlz2) probability *= 2;
+            sumProbabiltiy += probability;
+            double estimate = sketch.getDistinctCountEstimate(estimator);
+            averageEstimate += probability * estimate;
+            double error = estimate - trueDistinctCount;
+            averageRmse += probability * (error * error);
+          }
+          {
+            Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
+            sketch.add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask2);
+            double probability = (3 * (m - 1)) * pow_0_5[nlz1 + nlz2 + nlz3 + 3 + p + p];
+            if (nlz1 != nlz2) probability *= 2;
+            sumProbabiltiy += probability;
+            double estimate = sketch.getDistinctCountEstimate(estimator);
+            averageEstimate += probability * estimate;
+            double error = estimate - trueDistinctCount;
+            averageRmse += probability * (error * error);
+          }
+          {
+            Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
+            sketch.add(hash1 | regMask1).add(hash2 | regMask2).add(hash3 | regMask3);
+            double probability = ((m - 1) * (m - 2)) * pow_0_5[nlz1 + nlz2 + nlz3 + 3 + p + p];
+            if (nlz1 != nlz2) probability *= 2;
+            sumProbabiltiy += probability;
+            double estimate = sketch.getDistinctCountEstimate(estimator);
+            averageEstimate += probability * estimate;
+            double error = estimate - trueDistinctCount;
+            averageRmse += probability * (error * error);
+          }
+        }
+      }
+    }
+
+    Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
+    double relativeBias = (averageEstimate - trueDistinctCount) / trueDistinctCount;
+    double relativeRmse = Math.sqrt(averageRmse) / trueDistinctCount;
+
+    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
+    assertThat(sketch.getState()).containsOnly((byte) 0);
+
+    return new double[] {relativeBias, relativeRmse};
+  }
+
+  @Test
+  void testStateChangeProbabilityForEmptySketch() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      T sketch = create(p);
+      assertThat(sketch.getStateChangeProbability()).isOne();
+    }
+  }
+
+  @Test
+  void testStateChangeProbabilityForFullSketch() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      T sketch = create(p);
+      for (long k = 0; k < (1 << p); ++k) {
+        for (int i = 62 - p; i <= 64 - p; ++i) {
+          sketch.add((k << -p) | (0xFFFFFFFFFFFFFFFFL >>> p >>> i));
+        }
+      }
+      assertThat(sketch.getStateChangeProbability()).isZero();
+    }
+  }
+
+  @Test
+  void testStateChangeProbabilityForHalfFullSketch() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      T sketch = create(p);
+      for (long k = 0; k < (1 << p); ++k) {
+        sketch.add((k << -p) | (0xFFFFFFFFFFFFFFFFL >>> p));
+      }
+      assertThat(sketch.getStateChangeProbability()).isEqualTo(0.5);
+    }
   }
 }

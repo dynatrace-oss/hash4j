@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,20 @@ public class UltraLogLogPerformanceTest {
     blackhole.consume(ultraLogLogState[randomState.random.nextInt(ultraLogLogState.length)]);
   }
 
+  public enum Estimator {
+    MAXIMUM_LIKELIHOOD_ESTIMATOR(UltraLogLog.Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+    SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR(
+        UltraLogLog.Estimator.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR),
+    SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR(
+        UltraLogLog.Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR);
+
+    private final UltraLogLog.Estimator estimator;
+
+    Estimator(UltraLogLog.Estimator estimator) {
+      this.estimator = estimator;
+    }
+  }
+
   @State(Scope.Benchmark)
   public static class EstimationState {
 
@@ -71,6 +85,8 @@ public class UltraLogLogPerformanceTest {
     // @Param({"8", "10", "12", "14"})
     @Param({"10", "14"})
     public int precision;
+
+    @Param public Estimator estimator;
 
     @Setup
     public void init() {
@@ -91,8 +107,9 @@ public class UltraLogLogPerformanceTest {
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
     double sum = 0;
+    UltraLogLog.Estimator estimator = estimationState.estimator.estimator;
     for (UltraLogLog ultraLogLog : estimationState.ultraLogLogs) {
-      sum += ultraLogLog.getDistinctCountEstimate();
+      sum += estimator.estimate(ultraLogLog);
     }
     blackhole.consume(sum);
   }
@@ -142,7 +159,7 @@ public class UltraLogLogPerformanceTest {
   public void distinctCountMerge(
       MergeState mergeState, RandomState randomState, Blackhole blackhole) {
     long sum = 0;
-    for (int i = 0; i < mergeState.NUM_EXAMPLES; ++i) {
+    for (int i = 0; i < MergeState.NUM_EXAMPLES; ++i) {
       UltraLogLog mergedUltraLogLog =
           UltraLogLog.merge(mergeState.ultraLogLogs1.get(i), mergeState.ultraLogLogs2.get(i));
       sum +=
