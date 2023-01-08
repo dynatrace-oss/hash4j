@@ -56,7 +56,128 @@ def to_percent(values):
     return [100.0 * v for v in values]
 
 
-def plot_charts(filename, extended=False):
+def plot_individual_chart(filename, d, estimation_algorithm):
+    colors = ["C0", "C1", "C2"]
+
+    values = d[1]
+    headers = d[0]
+
+    fig, ax = plt.subplots(1, 1, sharey="row", sharex=True)
+    fig.set_size_inches(6, 4)
+
+    p = int(headers["p"])
+
+    state_size_unit = "B"
+    if headers["sketch_name"] == "ultraloglog":
+        state_size = 2**p
+    elif headers["sketch_name"] == "hyperloglog":
+        state_size = 2**p * 6 // 8
+    else:
+        assert False
+
+    if state_size % 1024 == 0:
+        state_size //= 1024
+        state_size_unit = "kB"
+    if state_size % 1024 == 0:
+        state_size //= 1024
+        state_size_unit = "MB"
+
+    num_simulation_runs_unit = ""
+    num_simulation_runs = int(headers["num_cycles"])
+    if num_simulation_runs % 1000 == 0:
+        num_simulation_runs //= 1000
+        num_simulation_runs_unit = "k"
+    if num_simulation_runs % 1000 == 0:
+        num_simulation_runs //= 1000
+        num_simulation_runs_unit = "M"
+
+    ax.set_title(
+        "p = "
+        + str(p)
+        + ", state size = "
+        + str(state_size)
+        + state_size_unit
+        + ", #simulation runs = "
+        + str(num_simulation_runs)
+        + num_simulation_runs_unit
+    )
+    ax.set_xscale("log", base=10)
+    theory = to_percent(
+        values["theoretical relative standard error " + estimation_algorithm]
+    )[0]
+
+    if headers["sketch_name"] == "ultraloglog":
+        ax.set_ylim([-theory * 0.1, theory * 1.15])
+    elif headers["sketch_name"] == "hyperloglog":
+        ax.set_ylim([-theory * 0.2, theory * 1.25])
+    else:
+        assert False
+    ax.set_xlim([1, values["distinct count"][-1]])
+    ax.xaxis.grid(True)
+    ax.set_xlabel("distinct count")
+    ax.yaxis.grid(True)
+    ax.set_ylabel("relative error (%)")
+
+    ax.plot(
+        values["distinct count"],
+        to_percent(
+            values["theoretical relative standard error " + estimation_algorithm]
+        ),
+        label="theory (default)",
+        color=colors[2],
+    )
+
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative rmse " + estimation_algorithm]),
+        label="rmse (default)",
+        color=colors[1],
+    )
+
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative bias " + estimation_algorithm]),
+        label="bias (default)",
+        color=colors[0],
+    )
+
+    legend_elements = [
+        Line2D([0], [0], color=colors[0]),
+        Line2D([0], [0], color=colors[1]),
+        Line2D([0], [0], color=colors[2]),
+    ]
+    fig.legend(
+        legend_elements,
+        ["bias", "rmse", "theory"],
+        loc="lower center",
+        ncol=3,
+    )
+    fig.subplots_adjust(top=0.93, bottom=0.21, left=0.11, right=0.99)
+    filename = filename[:-4] + "-" + estimation_algorithm.replace(" ", "-") + ".png"
+
+    fig.savefig(
+        filename,
+        format="png",
+        dpi=300,
+        metadata={"creationDate": None},
+    )
+    plt.close(fig)
+
+
+def plot_individual_charts(filename):
+    d = read_data(filename)
+    values = d[1]
+    estimation_algorithms = set()
+    for k in ["relative rmse", "relative bias", "theoretical relative standard error"]:
+        for h in values:
+            if h.startswith(k):
+                estimation_algorithms.add(h[len(k) + 1 :])
+
+    for estimation_algorithm in estimation_algorithms:
+        plot_individual_chart(filename, d, estimation_algorithm)
+
+
+def plot_charts(filename):
     d = read_data(filename)
 
     colors = ["C0", "C1", "C2"]
@@ -124,16 +245,6 @@ def plot_charts(filename, extended=False):
         color=colors[2],
         linestyle="dotted",
     )
-    if extended:
-        ax.plot(
-            values["distinct count"],
-            to_percent(
-                values["theoretical relative standard error maximum likelihood"]
-            ),
-            label="theory (ML)",
-            color=colors[2],
-            linestyle="dashdot",
-        )
     ax.plot(
         values["distinct count"],
         to_percent(values["theoretical relative standard error default"]),
@@ -148,14 +259,6 @@ def plot_charts(filename, extended=False):
         color=colors[1],
         linestyle="dotted",
     )
-    if extended:
-        ax.plot(
-            values["distinct count"],
-            to_percent(values["relative rmse maximum likelihood"]),
-            label="rmse (ML)",
-            color=colors[1],
-            linestyle="dashdot",
-        )
     ax.plot(
         values["distinct count"],
         to_percent(values["relative rmse default"]),
@@ -170,14 +273,6 @@ def plot_charts(filename, extended=False):
         color=colors[0],
         linestyle="dotted",
     )
-    if extended:
-        ax.plot(
-            values["distinct count"],
-            to_percent(values["relative bias maximum likelihood"]),
-            label="bias (ML)",
-            color=colors[0],
-            linestyle="dashdot",
-        )
     ax.plot(
         values["distinct count"],
         to_percent(values["relative bias default"]),
@@ -200,24 +295,8 @@ def plot_charts(filename, extended=False):
     )
     fig.subplots_adjust(top=0.93, bottom=0.21, left=0.11, right=0.99)
 
-    if extended:
-        filename = (
-            "test-results/"
-            + headers["sketch_name"]
-            + "-estimation-error-p"
-            + headers["p"]
-            + "-extended.png"
-        )
-    else:
-        filename = (
-            "test-results/"
-            + headers["sketch_name"]
-            + "-estimation-error-p"
-            + headers["p"]
-            + ".png"
-        )
     fig.savefig(
-        filename,
+        filename[:-3] + "png",
         format="png",
         dpi=300,
         metadata={"creationDate": None},
@@ -225,8 +304,8 @@ def plot_charts(filename, extended=False):
     plt.close(fig)
 
 
-filenames = glob.glob("test-results/*loglog-estimation-error-p*.csv")
+filenames = glob.glob("test-results/*-estimation-error-p*.csv")
 
 for filename in filenames:
     plot_charts(filename)
-    # plot_charts(filename, extended=True)
+    # plot_individual_charts(filename)
