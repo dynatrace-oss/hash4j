@@ -135,7 +135,13 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, Estimator> {
 
   @Override
   protected double getCompressedStorageFactorLowerBound() {
-    return 3.043659973416202; // TODO compute this constant directly from formula
+    // = (1/2 + int_0^1 (1-z)*ln(1-z)/ln(z) dz) / (ln(2) * zeta(2,2))
+    // where zeta denotes the Hurvitz zeta function,
+    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    //
+    // for a numerical evaluation see
+    // https://www.wolframalpha.com/input?i=%281%2F2+%2B+int_0%5E1+%281-z%29*ln%281-z%29%2Fln%28z%29+dz%29+%2F+%28ln%282%29+*+zeta%282%2C2%29%29
+    return 3.0436599734226085615249901682841889998940943134541648920053615832;
   }
 
   @Override
@@ -286,12 +292,12 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, Estimator> {
         Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
-          0.1881, 0.1272, 0.088, 0.0616, 0.0433, 0.0306, 0.0216, 0.0153, 0.0108, 0.0077, 0.0054,
-          0.0039, 0.0027, 0.002, 0.0014, 0.001, 7.0E-4, 5.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4,
+          0.142, 0.1119, 0.0834, 0.0606, 0.0434, 0.0309, 0.0219, 0.0156, 0.011, 0.0078, 0.0055,
+          0.0039, 0.0028, 0.002, 0.0014, 0.001, 7.0E-4, 5.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4,
           1.0E-4, 1.0E-4
         },
         new double[] {
-          0.2159, 0.145, 0.1001, 0.0699, 0.0492, 0.0347, 0.0245, 0.0173, 0.0123, 0.0087, 0.0062,
+          0.1704, 0.1297, 0.0954, 0.0688, 0.0491, 0.0349, 0.0248, 0.0176, 0.0124, 0.0088, 0.0062,
           0.0044, 0.0031, 0.0022, 0.0016, 0.0011, 8.0E-4, 6.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4,
           1.0E-4, 1.0E-4
         });
@@ -305,11 +311,11 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, Estimator> {
         Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
-          0.1983, 0.1303, 0.089, 0.0619, 0.0435, 0.0306, 0.0216, 0.0153, 0.0108, 0.0077, 0.0054,
-          0.0039, 0.0027, 0.002, 0.0014, 0.001
+          0.133, 0.109, 0.0824, 0.0602, 0.0433, 0.0309, 0.0219, 0.0156, 0.011, 0.0078, 0.0055,
+          0.0039, 0.0028, 0.002, 0.0014, 0.001
         },
         new double[] {
-          0.6064, 0.5415, 0.5132, 0.4999, 0.4935, 0.4903, 0.4887, 0.488, 0.4876, 0.4874, 0.4873,
+          0.5259, 0.5062, 0.4968, 0.4921, 0.4896, 0.4884, 0.4878, 0.4875, 0.4873, 0.4872, 0.4872,
           0.4872, 0.4872, 0.4872, 0.4872, 0.4872
         });
   }
@@ -321,12 +327,12 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, Estimator> {
         Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
-          0.2087, 0.1334, 0.0901, 0.0623, 0.0436, 0.0307, 0.0216, 0.0153, 0.0108, 0.0077, 0.0054,
+          0.1238, 0.1061, 0.0815, 0.0599, 0.0432, 0.0308, 0.0219, 0.0155, 0.011, 0.0078, 0.0055,
           0.0039
         },
         new double[] {
-          0.7067, 0.6252, 0.5919, 0.5768, 0.5696, 0.566, 0.5643, 0.5634, 0.563, 0.5627, 0.5626,
-          0.5626
+          0.6121, 0.5842, 0.573, 0.5677, 0.5651, 0.5638, 0.5632, 0.5628, 0.5627, 0.5626, 0.5626,
+          0.5625
         });
   }
 

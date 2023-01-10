@@ -308,4 +308,4 @@ filenames = glob.glob("test-results/*-estimation-error-p*.csv")
 
 for filename in filenames:
     plot_charts(filename)
-    # plot_individual_charts(filename)
+    plot_individual_charts(filename)

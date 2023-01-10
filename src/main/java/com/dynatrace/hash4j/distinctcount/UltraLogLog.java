@@ -519,7 +519,7 @@ public final class UltraLogLog extends DistinctCounter<UltraLogLog, UltraLogLog.
 
       @Override
       public double estimate(UltraLogLog ultraLogLog) {
-        final double eps = 1e-2;
+
         byte[] state = ultraLogLog.state;
         int p = ultraLogLog.getP();
 
@@ -530,10 +530,33 @@ public final class UltraLogLog extends DistinctCounter<UltraLogLog, UltraLogLog.
           a += contribute(r & 0xff, b, p);
         }
         int m = state.length;
-        return m * DistinctCountUtil.solveMaximumLikelihoodEquation(a, b, eps / Math.sqrt(m));
+        return m
+            * DistinctCountUtil.solveMaximumLikelihoodEquation(
+                a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
+            / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
       }
     };
 
+    // = sqrt(ln(2)/zeta(2,5/4))
+    // where zeta is the Hurvitz zeta function,
+    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    //
+    // for a numerical evaluation see
+    // https://www.wolframalpha.com/input?i=sqrt%28ln%282%29%2Fzeta%282%2C5%2F4%29%29
+    private static final double INV_SQRT_FISHER_INFORMATION =
+        0.7608621002725182046969980445546699052078408464652591074059522646;
+
+    private static final double ML_EQUATION_SOLVER_EPS =
+        0.01 * INV_SQRT_FISHER_INFORMATION; // 1% of theoretical relative error
+
+    // = 3/2 * ln(2) * zeta(3,5/4) / (zeta(2,5/4))^2
+    // where zeta denotes the Hurvitz zeta function,
+    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    //
+    // for a numerical evaluation see
+    // https://www.wolframalpha.com/input?i=3%2F2+*+ln%282%29+*+zeta%283%2C5%2F4%29%2F%28zeta%282%2C5%2F4%29%29%5E2
+    private static final double ML_BIAS_CORRECTION_CONSTANT =
+        0.4814737652772006629514810906704298203396203932131028763547546717;
     private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
 
     // visible for testing

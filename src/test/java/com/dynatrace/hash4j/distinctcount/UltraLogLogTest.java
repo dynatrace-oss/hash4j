@@ -393,7 +393,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
 
   @Override
   protected double getCompressedStorageFactorLowerBound() {
-    return 2.312167517227526; // TODO compute this constant directly from formula
+    // = (4/5 + int_0^1 z^(-3/4) (1-z)*ln(1-z)/ln(z) dz) / (ln(2) * zeta(2,5/4))
+    // where zeta denotes the Hurvitz zeta function,
+    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    //
+    // for a numerical evaluation see
+    // https://www.wolframalpha.com/input?i=%284%2F5+%2B+int_0%5E1+z%5E%28-3%2F4%29+%281-z%29*ln%281-z%29%2Fln%28z%29+dz%29+%2F+%28ln%282%29+*+zeta%282%2C5%2F4%29%29
+    return 2.3121675172273321507391374981099550309731319926228541209892337122;
   }
 
   @Override
@@ -542,13 +548,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
-          0.1244, 0.0854, 0.0595, 0.0418, 0.0295, 0.0208, 0.0147, 0.0104, 0.0074, 0.0052, 0.0037,
-          0.0026, 0.0019, 0.0013, 0.001, 7.0E-4, 5.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4, 1.0E-4,
+          0.0959, 0.0723, 0.0528, 0.0379, 0.027, 0.0192, 0.0136, 0.0096, 0.0068, 0.0048, 0.0034,
+          0.0025, 0.0017, 0.0013, 9.0E-4, 7.0E-4, 5.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4, 1.0E-4,
           1.0E-4, 1.0E-4
         },
         new double[] {
-          0.1594, 0.1082, 0.075, 0.0525, 0.037, 0.0261, 0.0185, 0.0131, 0.0092, 0.0066, 0.0046,
-          0.0033, 0.0023, 0.0017, 0.0012, 9.0E-4, 6.0E-4, 5.0E-4, 3.0E-4, 3.0E-4, 2.0E-4, 2.0E-4,
+          0.1344, 0.0969, 0.0693, 0.0493, 0.035, 0.0248, 0.0176, 0.0124, 0.0088, 0.0062, 0.0044,
+          0.0031, 0.0022, 0.0016, 0.0011, 8.0E-4, 6.0E-4, 4.0E-4, 3.0E-4, 2.0E-4, 2.0E-4, 1.0E-4,
           1.0E-4, 1.0E-4
         });
   }
@@ -560,11 +566,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
-          0.1274, 0.0864, 0.0599, 0.0419, 0.0295, 0.0208, 0.0147, 0.0104, 0.0074, 0.0052, 0.0037,
-          0.0026, 0.0019, 0.0013, 0.001, 7.0E-4
+          0.093, 0.0713, 0.0524, 0.0378, 0.027, 0.0192, 0.0136, 0.0096, 0.0068, 0.0048, 0.0034,
+          0.0025, 0.0017, 0.0013, 9.0E-4, 7.0E-4
         },
         new double[] {
-          0.5284, 0.4971, 0.4828, 0.476, 0.4727, 0.471, 0.4702, 0.4698, 0.4696, 0.4695, 0.4694,
+          0.4925, 0.4806, 0.4749, 0.4721, 0.4708, 0.4701, 0.4697, 0.4695, 0.4695, 0.4694, 0.4694,
           0.4694, 0.4694, 0.4694, 0.4694, 0.4694
         });
   }
@@ -576,11 +582,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
-          0.1306, 0.0874, 0.0602, 0.0421, 0.0296, 0.0209, 0.0147, 0.0104, 0.0074, 0.0052, 0.0037,
-          0.0026
+          0.0901, 0.0704, 0.0521, 0.0377, 0.0269, 0.0192, 0.0136, 0.0096, 0.0068, 0.0048, 0.0034,
+          0.0025
         },
         new double[] {
-          0.6092, 0.573, 0.5569, 0.5493, 0.5456, 0.5438, 0.5429, 0.5424, 0.5422, 0.5421, 0.542,
+          0.5685, 0.5542, 0.5479, 0.5449, 0.5434, 0.5427, 0.5423, 0.5422, 0.5421, 0.542, 0.542,
           0.542
         });
   }
