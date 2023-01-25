@@ -16,12 +16,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.7.1</version>
+  <version>0.7.2</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.7.1'
+implementation 'com.dynatrace.hash4j:hash4j:0.7.2'
 ```
 
 ## Hash algorithms
@@ -101,20 +101,30 @@ the state size in bits multiplied by the squared relative standard error of the 
 $\text{storage factor} := (\text{relative standard error})^2 \times (\text{state size})$.
 
 This library implements two algorithms for approximate distinct counting:
-* [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog): This implementation uses [6-bit registers](https://doi.org/10.1145/2452376.2452456) and
-an [improved distinct count estimator](https://arxiv.org/abs/1702.01284). 
-Its asymptotic storage factor is $18 \ln 2 - 6 = 6.477$. The state size is $6m = 6\cdot 2^p$ bits, where the precision parameter $p$ also defines the number of registers as $m = 2^p$. Using the definition of the storage factor, the relative standard error is roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$.
-In case of non-distributed data streams, the [martingale estimator](src/main/java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java) can be used, 
- which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
+* [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog): This implementation uses [6-bit registers](https://doi.org/10.1145/2452376.2452456). 
+The default estimator, which is an [improved version of the original estimator](https://arxiv.org/abs/1702.01284), leads to an 
+asymptotic storage factor of $18 \ln 2 - 6 = 6.477$. Using the definition of the storage factor, the corresponding relative standard error is
+roughly $\sqrt{\frac{6.477}{6 m}} = \frac{1.039}{\sqrt{m}}$. The state size is $6m = 6\cdot 2^p$ bits,
+where the precision parameter $p$ also defines the number of registers as $m = 2^p$.
+Alternatively, the maximum-likelihood estimator can be used,
+which achieves a slightly smaller asymptotic storage factor of $6\ln(2)/(\frac{\pi^2}{6}-1)\approx 6.449$
+corresponding to a relative error of $\frac{1.037}{\sqrt{m}}$, but has a worse worst-case runtime performance.
+In case of non-distributed data streams, the [martingale estimator](src/main/java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java)
+can be used, which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
 This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
 The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
-* UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper. It has an
-asymptotic storage factor of 4.936, which corresponds to a 24% reduction compared to HyperLogLog.
-UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers. Like for HyperLogLog,
-the number of registers $m = 2^p$ depends on the chosen precision parameter $p$ and corresponds to the state size in bytes.
-The relative standard error is approximately $\sqrt{\frac{4.936}{8 m}} = \frac{0.785}{\sqrt{m}}$. If the martingale estimator can 
-be used, the storage factor will be just $5 \ln 2 = 3.466$ yielding an asymptotic relative standard error of $\sqrt{\frac{5 \ln 2}{8 m}} = \frac{0.658}{\sqrt{m}}$.
-These theoretical formulas again agree well with the [simulation results](doc/ultraloglog-estimation-error.md).
+* UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper.
+Like for HyperLogLog, a precision parameter $p$ defines the number of registers $m = 2^p$.
+However, since UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers, 
+$m$ is also the state size in bytes.
+The default estimator leads to an asymptotic storage factor of 4.936,
+which corresponds to a 24% reduction compared to HyperLogLog and a
+relative standard error of $\frac{0.785}{\sqrt{m}}$.
+Alternatively, if performance is not an issue, the slower maximum-likelihood estimator can be used to obtain
+a storage factor of $8\ln(2)/\zeta(2,\frac{5}{4}) \approx 4.631$ corresponding to a 28% reduction and a relative error of $\frac{0.761}{\sqrt{m}}$.
+If the martingale estimator can 
+be used, the storage factor will be just $5 \ln 2 = 3.466$ yielding an asymptotic relative standard error of
+$\frac{0.658}{\sqrt{m}}$. These theoretical formulas again agree well with the [simulation results](doc/ultraloglog-estimation-error.md).
 
 Both algorithms share the following properties:
 * Constant-time add-operations

@@ -59,13 +59,13 @@ public class HyperLogLogPerformanceTest {
   }
 
   public enum Estimator {
-    MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
-    SMALL_RANGE_CORRECTED_RAW_ESTIMATOR(HyperLogLog.Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR),
-    CORRECTED_RAW_ESTIMATOR(HyperLogLog.Estimator.CORRECTED_RAW_ESTIMATOR);
+    MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+    SMALL_RANGE_CORRECTED_RAW_ESTIMATOR(HyperLogLog.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR),
+    CORRECTED_RAW_ESTIMATOR(HyperLogLog.CORRECTED_RAW_ESTIMATOR);
 
-    private final HyperLogLog.Estimator estimator;
+    private final DistinctCounter.Estimator<HyperLogLog> estimator;
 
-    Estimator(HyperLogLog.Estimator estimator) {
+    Estimator(DistinctCounter.Estimator estimator) {
       this.estimator = estimator;
     }
   }
@@ -105,7 +105,7 @@ public class HyperLogLogPerformanceTest {
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
     double sum = 0;
-    HyperLogLog.Estimator estimator = estimationState.estimator.estimator;
+    DistinctCounter.Estimator estimator = estimationState.estimator.estimator;
     for (HyperLogLog hyperLogLog : estimationState.hyperLogLogs) {
       sum += estimator.estimate(hyperLogLog);
     }
