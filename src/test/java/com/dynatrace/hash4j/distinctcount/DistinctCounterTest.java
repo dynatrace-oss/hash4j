@@ -253,7 +253,7 @@ abstract class DistinctCounterTest<
       int p,
       long seed,
       long[] distinctCounts,
-      List<R> estimators,
+      List<? extends R> estimators,
       List<IntToDoubleFunction> pToTheoreticalRelativeStandardErrorFunctions,
       double[] relativeBiasThresholds,
       double[] relativeRmseThresholds,
@@ -400,7 +400,7 @@ abstract class DistinctCounterTest<
       long seed,
       int distinctCountStepExponent,
       long[] distinctCountSteps,
-      List<R> estimators,
+      List<? extends R> estimators,
       List<IntToDoubleFunction> pToTheoreticalRelativeStandardErrorFunctions,
       double[] relativeBiasThresholds,
       double[] relativeRmseThresholds) {
@@ -506,7 +506,7 @@ abstract class DistinctCounterTest<
     }
   }
 
-  protected abstract R[] getEstimators();
+  protected abstract List<? extends R> getEstimators();
 
   @Test
   void testRandomStates() {
@@ -527,7 +527,7 @@ abstract class DistinctCounterTest<
       int newP2 = random.nextInt(minP, maxP + 1);
       assertThatNoException().isThrownBy(sketch1::getDistinctCountEstimate);
       assertThatNoException().isThrownBy(sketch2::getDistinctCountEstimate);
-      for (R estimator : getEstimators()) {
+      for (DistinctCounter.Estimator<T> estimator : getEstimators()) {
         assertThatNoException().isThrownBy(() -> estimator.estimate(sketch1));
         assertThatNoException().isThrownBy(() -> estimator.estimate(sketch2));
       }
@@ -710,7 +710,7 @@ abstract class DistinctCounterTest<
 
   private double[] calculateErrorOfDistinctCountEqualOne(int p, R estimator) {
     T sketch = create(p);
-    double sumProbabiltiy = 0;
+    double sumProbability = 0;
     double averageEstimate = 0;
     double averageRmse = 0;
     double trueDistinctCount = 1;
@@ -719,7 +719,7 @@ abstract class DistinctCounterTest<
       sketch.getState()[0] = 0;
       sketch.add(hash1);
       double probability = pow(0.5, nlz + 1);
-      sumProbabiltiy += probability;
+      sumProbability += probability;
       double estimate = sketch.getDistinctCountEstimate(estimator);
       averageEstimate += probability * estimate;
       double error = estimate - trueDistinctCount;
@@ -730,7 +730,7 @@ abstract class DistinctCounterTest<
     double relativeBias = (averageEstimate - trueDistinctCount) / (trueDistinctCount);
     double relativeRmse = Math.sqrt(averageRmse) / (trueDistinctCount);
 
-    assertThat(sumProbabiltiy).isCloseTo(1., Offset.offset(1e-6));
+    assertThat(sumProbability).isCloseTo(1., Offset.offset(1e-6));
     assertThat(sketch.getState()).containsOnly((byte) 0);
     return new double[] {Math.abs(relativeBias), relativeRmse};
   }

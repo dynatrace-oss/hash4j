@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.distinctcount.UltraLogLog.Estimator.TAU;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
 import static java.lang.Math.exp;
 import static java.lang.Math.pow;
@@ -23,8 +23,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 import static org.hipparchus.special.Gamma.gamma;
 
-import com.dynatrace.hash4j.distinctcount.UltraLogLog.Estimator;
+import com.dynatrace.hash4j.distinctcount.UltraLogLog.AbstractSmallRangeCorrectedGraEstimator;
 import java.util.Arrays;
+import java.util.List;
 import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 import org.assertj.core.data.Offset;
@@ -33,9 +34,10 @@ import org.hipparchus.optim.nonlinear.scalar.GoalType;
 import org.hipparchus.optim.univariate.*;
 import org.junit.jupiter.api.Test;
 
-class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
+class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estimator> {
 
-  private static final double VARIANCE_FACTOR_GRA = calculateVarianceFactorGra(TAU);
+  private static final double VARIANCE_FACTOR_GRA =
+      calculateVarianceFactorGra(AbstractSmallRangeCorrectedGraEstimator.TAU);
 
   // see https://www.wolframalpha.com/input?i=ln%282%29%2Fzeta%282%2C+5%2F4%29
   private static final double VARIANCE_FACTOR_ML =
@@ -125,17 +127,21 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
 
   @Test
   void testXi() {
-    assertThat(Estimator.xi(2, 0.)).isZero();
-    assertThat(Estimator.xi(2, 0.5)).isCloseTo(1.2814941480755806, withPercentage(1e-8));
-    assertThat(Estimator.xi(2, 1.)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(Estimator.xi(2, Double.NEGATIVE_INFINITY)).isZero();
-    assertThat(Estimator.xi(2, Double.MIN_VALUE)).isCloseTo(0., Offset.offset(1e-200));
-    assertThat(Estimator.xi(2, Double.MAX_VALUE)).isEqualTo(Double.POSITIVE_INFINITY);
-    assertThat(Estimator.xi(2, -Double.MIN_VALUE)).isZero();
-    assertThat(Estimator.xi(2, Double.NaN)).isNaN();
-    assertThat(Estimator.xi(Double.NaN, 0.5)).isNaN();
-    assertThat(Estimator.xi(Double.NaN, Double.NaN)).isNaN();
-    assertThat(Estimator.xi(2, Math.nextDown(1.)))
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, 0.)).isZero();
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, 0.5))
+        .isCloseTo(1.2814941480755806, withPercentage(1e-8));
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, 1.))
+        .isEqualTo(Double.POSITIVE_INFINITY);
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, Double.NEGATIVE_INFINITY)).isZero();
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, Double.MIN_VALUE))
+        .isCloseTo(0., Offset.offset(1e-200));
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, Double.MAX_VALUE))
+        .isEqualTo(Double.POSITIVE_INFINITY);
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, -Double.MIN_VALUE)).isZero();
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, Double.NaN)).isNaN();
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(Double.NaN, 0.5)).isNaN();
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(Double.NaN, Double.NaN)).isNaN();
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.xi(2, Math.nextDown(1.)))
         .isCloseTo(1.2994724158464226E16, withPercentage(1e-8));
   }
 
@@ -160,13 +166,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
     int alpha = h0 + h1;
     int beta = alpha + h2 + h3;
     int gamma = ((beta + alpha) << 1) + ((h0 + h2) << 2);
-    return Estimator.calculateZ(m, alpha, beta, gamma);
+    return SmallRangeCorrected4GraEstimator.calculateZ(m, alpha, beta, gamma);
   }
 
   @Test
   void testXiIterations() {
 
-    double x = pow(2., TAU);
+    double x = pow(2., AbstractSmallRangeCorrectedGraEstimator.TAU);
 
     assertThat(xiIterations(x, 0.)).isZero();
     assertThat(xiIterations(x, Double.POSITIVE_INFINITY)).isZero();
@@ -244,7 +250,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
 
     double optimalTau = result.getPoint();
 
-    assertThat(TAU)
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.TAU)
         .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(optimalTau);
   }
@@ -253,8 +259,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testRegisterContributions() {
     double[] expectedContributions = new double[252 - 4 * MIN_P];
 
-    final double kappa1 = Math.pow(2., TAU);
-    final double kappa2 = 1. / (Math.pow(8, TAU) - Math.pow(4, TAU));
+    final double kappa1 = Math.pow(2., AbstractSmallRangeCorrectedGraEstimator.TAU);
+    final double kappa2 =
+        1.
+            / (Math.pow(8, AbstractSmallRangeCorrectedGraEstimator.TAU)
+                - Math.pow(4, AbstractSmallRangeCorrectedGraEstimator.TAU));
     final double kappa3 = kappa2 + 1. / kappa1;
 
     for (int k = 0; k < 252 - 4 * MIN_P; ++k) {
@@ -262,20 +271,28 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
       int k1 = (k & 2) >>> 1;
       int k765432 = k >>> 2;
       expectedContributions[k] =
-          (1 - k0 + (1 - k1) * kappa3 + k1 * kappa2) * pow(2., -TAU * (1 + k765432));
+          (1 - k0 + (1 - k1) * kappa3 + k1 * kappa2)
+              * pow(2., -AbstractSmallRangeCorrectedGraEstimator.TAU * (1 + k765432));
     }
 
-    assertThat(Estimator.getRegisterContributions())
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.REGISTER_CONTRIBUTIONS)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedContributions);
   }
 
   private static double calculateEstimationFactor(int p) {
     int m = 1 << p;
-    double biasCorrectionFactor = 1. / (1. + VARIANCE_FACTOR_GRA * (1. + TAU) / (2. * m));
+    double biasCorrectionFactor =
+        1.
+            / (1.
+                + VARIANCE_FACTOR_GRA
+                    * (1. + AbstractSmallRangeCorrectedGraEstimator.TAU)
+                    / (2. * m));
     return biasCorrectionFactor
         * ((4. * m) / 5.)
-        * Math.pow(m * gamma(TAU) / Math.log(2), 1. / TAU);
+        * Math.pow(
+            m * gamma(AbstractSmallRangeCorrectedGraEstimator.TAU) / Math.log(2),
+            1. / AbstractSmallRangeCorrectedGraEstimator.TAU);
   }
 
   @Test
@@ -284,7 +301,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       expectedEstimationFactors[p - MIN_P] = calculateEstimationFactor(p);
     }
-    assertThat(Estimator.getEstimationFactors())
+    assertThat(AbstractSmallRangeCorrectedGraEstimator.ESTIMATION_FACTORS)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedEstimationFactors);
   }
@@ -403,8 +420,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   }
 
   @Override
-  protected Estimator[] getEstimators() {
-    return Estimator.values();
+  protected List<UltraLogLog.Estimator> getEstimators() {
+    return Arrays.asList(
+        MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR);
   }
 
   @Test
@@ -418,9 +438,9 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
           random.nextLong(),
           distinctCounts,
           Arrays.asList(
-              Estimator.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
-              Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
-              Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+              SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
+              SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
+              MAXIMUM_LIKELIHOOD_ESTIMATOR),
           Arrays.asList(
               this::calculateTheoreticalRelativeStandardErrorGRA,
               this::calculateTheoreticalRelativeStandardErrorGRA,
@@ -431,7 +451,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
           0.1,
           1.2,
           0.15,
-          Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR);
+          SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR);
     }
   }
 
@@ -441,7 +461,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         new int[] {
           3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
         },
-        Estimator.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorGRA,
         new double[] {
           9.0E-4, 0.0068, 0.0071, 0.0058, 0.0044, 0.0031, 0.0022, 0.0014, 9.0E-4, 4.0E-4, 2.0E-4,
@@ -459,7 +479,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testDistinctCountEqualTwoGRA1Estimator() {
     testErrorOfDistinctCountEqualTwo(
         new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-        Estimator.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorGRA,
         new double[] {
           0.0032, 0.0045, 0.006, 0.0053, 0.0042, 0.0031, 0.0022, 0.0014, 9.0E-4, 4.0E-4, 2.0E-4,
@@ -475,7 +495,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testDistinctCountEqualThreeGRA1Estimator() {
     testErrorOfDistinctCountEqualThree(
         new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-        Estimator.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorGRA,
         new double[] {
           0.0035, 0.0036, 0.0053, 0.0051, 0.0042, 0.0032, 0.0025, 0.0019, 0.0015, 0.0013, 0.0012,
@@ -493,7 +513,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         new int[] {
           3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
         },
-        Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorGRA,
         new double[] {
           0.0495, 0.0441, 0.0344, 0.0255, 0.0184, 0.0131, 0.0093, 0.0065, 0.0044, 0.0029, 0.0017,
@@ -511,7 +531,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testDistinctCountEqualTwoGRA4Estimator() {
     testErrorOfDistinctCountEqualTwo(
         new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-        Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorGRA,
         new double[] {
           0.0425, 0.0403, 0.0329, 0.0249, 0.0182, 0.0131, 0.0092, 0.0065, 0.0044, 0.0029, 0.0017,
@@ -527,7 +547,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testDistinctCountEqualThreeGRA4Estimator() {
     testErrorOfDistinctCountEqualThree(
         new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-        Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
+        SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorGRA,
         new double[] {
           0.0418, 0.038, 0.0317, 0.0245, 0.0182, 0.0132, 0.0095, 0.0069, 0.0051, 0.0038, 0.003,
@@ -545,7 +565,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         new int[] {
           3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
         },
-        Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
           0.0959, 0.0723, 0.0528, 0.0379, 0.027, 0.0192, 0.0136, 0.0096, 0.0068, 0.0048, 0.0034,
@@ -563,7 +583,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testDistinctCountEqualTwoMLEstimator() {
     testErrorOfDistinctCountEqualTwo(
         new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-        Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
           0.093, 0.0713, 0.0524, 0.0378, 0.027, 0.0192, 0.0136, 0.0096, 0.0068, 0.0048, 0.0034,
@@ -579,7 +599,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
   void testDistinctCountEqualThreeMLEstimator() {
     testErrorOfDistinctCountEqualThree(
         new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-        Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR,
+        MAXIMUM_LIKELIHOOD_ESTIMATOR,
         this::calculateTheoreticalRelativeStandardErrorML,
         new double[] {
           0.0901, 0.0704, 0.0521, 0.0377, 0.0269, 0.0192, 0.0136, 0.0096, 0.0068, 0.0048, 0.0034,
@@ -667,7 +687,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, Estimator> {
         random.nextLong(),
         48,
         distinctCountSteps,
-        Arrays.asList(Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+        Arrays.asList(MAXIMUM_LIKELIHOOD_ESTIMATOR),
         Arrays.asList(this::calculateTheoreticalRelativeStandardErrorML),
         new double[] {0.06},
         new double[] {0.15});

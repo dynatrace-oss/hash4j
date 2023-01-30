@@ -59,15 +59,13 @@ public class UltraLogLogPerformanceTest {
   }
 
   public enum Estimator {
-    MAXIMUM_LIKELIHOOD_ESTIMATOR(UltraLogLog.Estimator.MAXIMUM_LIKELIHOOD_ESTIMATOR),
-    SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR(
-        UltraLogLog.Estimator.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR),
-    SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR(
-        UltraLogLog.Estimator.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR);
+    MAXIMUM_LIKELIHOOD_ESTIMATOR(UltraLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
+    SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR(UltraLogLog.SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR),
+    SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR(UltraLogLog.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR);
 
-    private final UltraLogLog.Estimator estimator;
+    private final DistinctCounter.Estimator<UltraLogLog> estimator;
 
-    Estimator(UltraLogLog.Estimator estimator) {
+    Estimator(DistinctCounter.Estimator estimator) {
       this.estimator = estimator;
     }
   }
@@ -107,7 +105,7 @@ public class UltraLogLogPerformanceTest {
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
     double sum = 0;
-    UltraLogLog.Estimator estimator = estimationState.estimator.estimator;
+    DistinctCounter.Estimator estimator = estimationState.estimator.estimator;
     for (UltraLogLog ultraLogLog : estimationState.ultraLogLogs) {
       sum += estimator.estimate(ultraLogLog);
     }

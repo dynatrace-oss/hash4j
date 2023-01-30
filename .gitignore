@@ -9,3 +9,13 @@
 /.project
 /.settings/
 /.venv/
+/test-results/hyperloglog-estimation-error-p??-maximum-likelihood.png
+/test-results/ultraloglog-estimation-error-p??-maximum-likelihood.png
+/test-results/ultraloglog-estimation-error-p??-small-range-corrected-1-GRA.png
+/test-results/ultraloglog-estimation-error-p??-small-range-corrected-4-GRA.png
+/test-results/ultraloglog-estimation-error-p??-default.png
+/test-results/ultraloglog-estimation-error-p??-martingale.png
+/test-results/hyperloglog-estimation-error-p??-default.png
+/test-results/hyperloglog-estimation-error-p??-martingale.png
+/test-results/hyperloglog-estimation-error-p??-small-range-corrected-raw.png
+/test-results/hyperloglog-estimation-error-p??-corrected-raw.png

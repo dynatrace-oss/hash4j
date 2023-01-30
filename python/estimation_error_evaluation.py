@@ -247,6 +247,13 @@ def plot_charts(filename):
     )
     ax.plot(
         values["distinct count"],
+        to_percent(values["theoretical relative standard error maximum likelihood"]),
+        label="theory (ML)",
+        color=colors[2],
+        linestyle="dashed",
+    )
+    ax.plot(
+        values["distinct count"],
         to_percent(values["theoretical relative standard error default"]),
         label="theory (default)",
         color=colors[2],
@@ -258,6 +265,13 @@ def plot_charts(filename):
         label="rmse (martingale)",
         color=colors[1],
         linestyle="dotted",
+    )
+    ax.plot(
+        values["distinct count"],
+        to_percent(values["relative rmse maximum likelihood"]),
+        label="rmse (ML)",
+        color=colors[1],
+        linestyle="dashed",
     )
     ax.plot(
         values["distinct count"],
@@ -275,6 +289,13 @@ def plot_charts(filename):
     )
     ax.plot(
         values["distinct count"],
+        to_percent(values["relative bias maximum likelihood"]),
+        label="bias (ML)",
+        color=colors[0],
+        linestyle="dashed",
+    )
+    ax.plot(
+        values["distinct count"],
         to_percent(values["relative bias default"]),
         label="bias (default)",
         color=colors[0],
@@ -282,18 +303,19 @@ def plot_charts(filename):
 
     legend_elements = [
         Line2D([0], [0], color=colors[0]),
-        Line2D([0], [0], color=colors[1]),
-        Line2D([0], [0], color=colors[2]),
         Line2D([0], [0], color="gray"),
+        Line2D([0], [0], color=colors[1]),
+        Line2D([0], [0], color="gray", linestyle="dashed"),
+        Line2D([0], [0], color=colors[2]),
         Line2D([0], [0], color="gray", linestyle="dotted"),
     ]
     fig.legend(
         legend_elements,
-        ["bias", "rmse", "theory", "default", "martingale"],
+        ["bias", "default", "rmse", "ML", "theory", "martingale"],
         loc="lower center",
-        ncol=5,
+        ncol=3,
     )
-    fig.subplots_adjust(top=0.93, bottom=0.21, left=0.11, right=0.99)
+    fig.subplots_adjust(top=0.93, bottom=0.25, left=0.11, right=0.99)
 
     fig.savefig(
         filename[:-3] + "png",

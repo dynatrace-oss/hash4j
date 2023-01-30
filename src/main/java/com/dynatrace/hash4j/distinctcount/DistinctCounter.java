@@ -15,9 +15,8 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-// package-private abstract class to unify method names and to simplify testing
-abstract class DistinctCounter<
-    T extends DistinctCounter<T, R>, R extends DistinctCounter.Estimator<T>> {
+// package-private interface to unify method names and to simplify testing
+interface DistinctCounter<T extends DistinctCounter<T, R>, R extends DistinctCounter.Estimator<T>> {
 
   /**
    * Adds a new element represented by a 64-bit hash value to this sketch.
@@ -28,7 +27,7 @@ abstract class DistinctCounter<
    * @param hashValue a 64-bit hash value
    * @return this sketch
    */
-  public abstract T add(long hashValue);
+  T add(long hashValue);
 
   /**
    * Adds another sketch.
@@ -40,32 +39,14 @@ abstract class DistinctCounter<
    * @return this sketch
    * @throws NullPointerException if the argument is null
    */
-  public abstract T add(T other);
+  T add(T other);
 
   /**
    * Returns an estimate of the number of distinct elements added to this sketch.
    *
    * @return estimated number of distinct elements
    */
-  public abstract double getDistinctCountEstimate();
-
-  /**
-   * An estimator for a distinct counter.
-   *
-   * @param <T> the distinct counter type
-   */
-  // visible for testing
-  @FunctionalInterface
-  interface Estimator<T> {
-
-    /**
-     * Estimates the number of distinct elements added to the given sketch.
-     *
-     * @param sketch the sketch
-     * @return estimated number of distinct elements
-     */
-    double estimate(T sketch);
-  }
+  double getDistinctCountEstimate();
 
   /**
    * Returns an estimate of the number of distinct elements added to this sketch using the given
@@ -74,15 +55,14 @@ abstract class DistinctCounter<
    * @param estimator the estimator
    * @return estimated number of distinct elements
    */
-  // visible for testing
-  abstract double getDistinctCountEstimate(R estimator);
+  double getDistinctCountEstimate(R estimator);
 
   /**
    * Creates a copy of this sketch.
    *
    * @return the copy
    */
-  public abstract T copy();
+  T copy();
 
   /**
    * Returns a downsized copy of this sketch with a precision that is not larger than the given
@@ -92,14 +72,14 @@ abstract class DistinctCounter<
    * @return the downsized copy
    * @throws IllegalArgumentException if the precision parameter is invalid
    */
-  public abstract T downsize(int p);
+  T downsize(int p);
 
   /**
    * Resets this sketch to its initial state representing an empty set.
    *
    * @return this sketch
    */
-  public abstract T reset();
+  T reset();
 
   /**
    * Returns a reference to the internal state of this sketch.
@@ -108,14 +88,14 @@ abstract class DistinctCounter<
    *
    * @return the internal state of this sketch
    */
-  public abstract byte[] getState();
+  byte[] getState();
 
   /**
    * Returns the precision parameter of this sketch.
    *
    * @return the precision parameter
    */
-  public abstract int getP();
+  int getP();
 
   /**
    * Adds a new element represented by a 64-bit hash value to this sketch and passes, if the
@@ -129,12 +109,29 @@ abstract class DistinctCounter<
    * @param stateChangeObserver a state change observer
    * @return this sketch
    */
-  public abstract T add(long hashValue, StateChangeObserver stateChangeObserver);
+  T add(long hashValue, StateChangeObserver stateChangeObserver);
 
   /**
    * Returns the probability of an internal state change when a new distinct element is added.
    *
    * @return the state change probability
    */
-  public abstract double getStateChangeProbability();
+  double getStateChangeProbability();
+
+  /**
+   * An estimator for a distinct counter.
+   *
+   * @param <T> the distinct counter type
+   */
+  @FunctionalInterface
+  interface Estimator<T> {
+
+    /**
+     * Estimates the number of distinct elements added to the given sketch.
+     *
+     * @param sketch the sketch
+     * @return estimated number of distinct elements
+     */
+    double estimate(T sketch);
+  }
 }

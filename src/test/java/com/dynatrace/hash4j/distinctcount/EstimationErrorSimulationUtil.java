@@ -58,9 +58,9 @@ public final class EstimationErrorSimulationUtil {
           int p,
           String sketchName,
           IntFunction<T> supplier,
-          List<EstimatorConfig<T>> estimatorConfigs) {
+          List<EstimatorConfig<T>> estimatorConfigs,
+          String outputFile) {
     int numCycles = 100000;
-    String resultFolder = "test-results/";
 
     SplittableRandom seedRandom = new SplittableRandom(0x891ea7f506edfc35L);
 
@@ -102,13 +102,12 @@ public final class EstimationErrorSimulationUtil {
                 trueDistinctCount += 1;
               }
             });
-    String fileName = resultFolder + sketchName + "-estimation-error-p" + p + ".csv";
     double[] theoreticalRelativeStandardErrors =
         estimatorConfigs.stream()
             .mapToDouble(c -> c.getpToAsymptoticRelativeStandardError().applyAsDouble(p))
             .toArray();
 
-    try (FileWriter writer = new FileWriter(fileName)) {
+    try (FileWriter writer = new FileWriter(outputFile)) {
       writer.write("sketch_name=" + sketchName + "; p=" + p + "; num_cycles=" + numCycles + "\n");
       writer.write("distinct count");
 

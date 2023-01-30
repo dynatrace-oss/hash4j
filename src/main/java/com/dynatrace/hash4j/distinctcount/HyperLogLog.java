@@ -28,12 +28,12 @@ import java.util.Arrays;
  *
  * <p>Prefer using {@link UltraLogLog} which is more space-efficient.
  *
- * <p>This HyperLogLog (Flajolet2007) uses 6 bits per register as proposed in (Heule2013) and the
- * estimation algorithm presented in (Ertl2017).
+ * <p>This HyperLogLog (Flajolet2007) implementation uses 6 bits per register as proposed in
+ * (Heule2013).
+ *
+ * <p>See:
  *
  * <ul>
- *   <li>Ertl, Otmar. "New cardinality estimation algorithms for HyperLogLog sketches." arXiv
- *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
  *   <li>Flajolet, Philippe, et al. "Hyperloglog: the analysis of a near-optimal cardinality
  *       estimation algorithm." Discrete Mathematics and Theoretical Computer Science. Discrete
  *       Mathematics and Theoretical Computer Science, 2007.
@@ -42,7 +42,50 @@ import java.util.Arrays;
  *       16th International Conference on Extending Database Technology. 2013.
  * </ul>
  */
-public final class HyperLogLog extends DistinctCounter<HyperLogLog, HyperLogLog.Estimator> {
+public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogLog.Estimator> {
+
+  /**
+   * Bias-reduced version of the standard HyperLogLog estimator using small range correction as
+   * described in (Ertl2017).
+   *
+   * <p>See:
+   *
+   * <ul>
+   *   <li>Ertl, Otmar. "New cardinality estimation algorithms for HyperLogLog sketches." arXiv
+   *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
+   * </ul>
+   */
+  public static final Estimator SMALL_RANGE_CORRECTED_RAW_ESTIMATOR =
+      new SmallRangeCorrectedRawEstimator();
+
+  // visible for testing
+  /**
+   * Bias-reduced version of the standard HyperLogLog estimator using small range and large range
+   * correction as described in (Ertl2017).
+   *
+   * <p>See:
+   *
+   * <ul>
+   *   <li>Ertl, Otmar. "New cardinality estimation algorithms for HyperLogLog sketches." arXiv
+   *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
+   * </ul>
+   */
+  static final Estimator CORRECTED_RAW_ESTIMATOR = new CorrectedRawEstimator();
+
+  /**
+   * A bias-reduced version of the maximum-likelihood estimator described in (Ertl2017).
+   *
+   * <p>See:
+   *
+   * <ul>
+   *   <li>Ertl, Otmar. "New cardinality estimation algorithms for HyperLogLog sketches." arXiv
+   *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
+   * </ul>
+   */
+  public static final Estimator MAXIMUM_LIKELIHOOD_ESTIMATOR = new MaximumLikelihoodEstimator();
+
+  /** The default estimator. */
+  public static final Estimator DEFAULT_ESTIMATOR = SMALL_RANGE_CORRECTED_RAW_ESTIMATOR;
 
   private static final PackedArrayHandler ARRAY_HANDLER = PackedArray.getHandler(6);
 
@@ -322,12 +365,18 @@ public final class HyperLogLog extends DistinctCounter<HyperLogLog, HyperLogLog.
    */
   @Override
   public double getDistinctCountEstimate() {
-    return getDistinctCountEstimate(Estimator.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR);
+    return DEFAULT_ESTIMATOR.estimate(this);
   }
 
-  // visible for testing
+  /**
+   * Returns an estimate of the number of distinct elements added to this sketch using the given
+   * estimator.
+   *
+   * @param estimator the estimator
+   * @return estimated number of distinct elements
+   */
   @Override
-  double getDistinctCountEstimate(Estimator estimator) {
+  public double getDistinctCountEstimate(Estimator estimator) {
     return estimator.estimate(this);
   }
 
@@ -363,184 +412,14 @@ public final class HyperLogLog extends DistinctCounter<HyperLogLog, HyperLogLog.
     return this;
   }
 
-  // visible for testing
-  enum Estimator implements DistinctCounter.Estimator<HyperLogLog> {
-    SMALL_RANGE_CORRECTED_RAW_ESTIMATOR {
+  /** A distinct count estimator for HyperLogLog. */
+  public interface Estimator extends DistinctCounter.Estimator<HyperLogLog> {}
 
-      @Override
-      public double estimate(HyperLogLog hyperLogLog) {
-        byte[] state = hyperLogLog.state;
-        int c0 = 0;
-        double sum = 0;
-        for (int off = 0; off + 2 < state.length; off += 3) {
-          long r0 = state[off] & 0x3fL;
-          long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
-          long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
-          long r3 = (state[off + 2] & 0xfcL) >>> 2;
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
-          if (r0 == 0) c0 += 1;
-          if (r1 == 0) c0 += 1;
-          if (r2 == 0) c0 += 1;
-          if (r3 == 0) c0 += 1;
-        }
-        if (c0 > 0) {
-          double m = 1 << hyperLogLog.p;
-          sum += m * sigma(c0 / m);
-        }
-        return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
-      }
-    },
-    CORRECTED_RAW_ESTIMATOR {
-      @Override
-      public double estimate(HyperLogLog hyperLogLog) {
-        byte[] state = hyperLogLog.state;
-        int c0 = 0;
-        int cMax = 0;
-        double sum = 0;
-        int maxR = 65 - hyperLogLog.p;
-        for (int off = 0; off + 2 < state.length; off += 3) {
-          long r0 = state[off] & 0x3fL;
-          long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
-          long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
-          long r3 = (state[off + 2] & 0xfcL) >>> 2;
-          if (r0 < maxR) {
-            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
-          } else {
-            cMax += 1;
-          }
-          if (r1 < maxR) {
-            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
-          } else {
-            cMax += 1;
-          }
-          if (r2 < maxR) {
-            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
-          } else {
-            cMax += 1;
-          }
-          if (r3 < maxR) {
-            sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
-          } else {
-            cMax += 1;
-          }
-          if (r0 == 0) c0 += 1;
-          if (r1 == 0) c0 += 1;
-          if (r2 == 0) c0 += 1;
-          if (r3 == 0) c0 += 1;
-        }
-        if (c0 > 0) {
-          double m = 1 << hyperLogLog.p;
-          sum += m * sigma(c0 / m);
-        }
-        if (cMax > 0) {
-          double m = 1 << hyperLogLog.p;
-          sum +=
-              Double.longBitsToDouble(0x3FF0000000000000L - ((32L - hyperLogLog.p) << 53))
-                  * tau(1. - cMax / m);
-        }
-        return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
-      }
-    },
-    MAXIMUM_LIKELIHOOD_ESTIMATOR {
+  abstract static class AbstractRawEstimator implements Estimator {
 
-      private double contribute(int r, int[] b, int maxR) {
-        if (r <= maxR) {
-          if (r > 0) {
-            b[r] += 1;
-          }
-          return Double.longBitsToDouble(0x3FF0000000000000L - ((long) r << 52));
-        } else {
-          b[maxR] += 1;
-          return 0;
-        }
-      }
+    private AbstractRawEstimator() {}
 
-      @Override
-      public double estimate(HyperLogLog hyperLogLog) {
-
-        byte[] state = hyperLogLog.state;
-        int p = hyperLogLog.p;
-        double a = 0;
-        int[] b = new int[64];
-        int maxR = 63 - p;
-
-        for (int off = 0; off + 2 < state.length; off += 3) {
-          int r0 = state[off] & 0x3f;
-          int r1 = ((state[off] & 0xc0) >>> 6) | ((state[off + 1] & 0x0f) << 2);
-          int r2 = ((state[off + 1] & 0xf0) >>> 4) | ((state[off + 2] & 0x03) << 4);
-          int r3 = (state[off + 2] & 0xfc) >>> 2;
-
-          a += contribute(r0, b, maxR);
-          a += contribute(r1, b, maxR);
-          a += contribute(r2, b, maxR);
-          a += contribute(r3, b, maxR);
-        }
-        int m = 1 << p;
-        return m
-            * DistinctCountUtil.solveMaximumLikelihoodEquation(
-                a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
-            / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
-      }
-    };
-
-    // = sqrt(ln(2)/zeta(2,2))
-    // where zeta is the Hurvitz zeta function,
-    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
-    //
-    // for a numerical evaluation see
-    // https://www.wolframalpha.com/input?i=sqrt%28ln%282%29%2Fzeta%282%2C2%29%29
-    private static final double INV_SQRT_FISHER_INFORMATION =
-        1.0367047097785010515294550203275421651870833101049654526772626427;
-
-    private static final double ML_EQUATION_SOLVER_EPS =
-        0.01 * INV_SQRT_FISHER_INFORMATION; // 1% of theoretical relative error
-
-    // = 3 * ln(2) * zeta(3,2)/(zeta(2,2))^2
-    // where zeta denotes the Hurvitz zeta function,
-    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
-    //
-    // for a numerical evaluation see
-    // https://www.wolframalpha.com/input?i=3+*+ln%282%29+*+zeta%283%2C2%29%2F%28zeta%282%2C2%29%29%5E2
-    private static final double ML_BIAS_CORRECTION_CONSTANT =
-        1.0101590809585398846370363680437872475215951788609050234281811303;
-
-    // visible for testing
-    static double[] getEstimationFactors() {
-      return new double[] {
-        40.67760431873907,
-        172.99391414703106,
-        714.5560640781132,
-        2905.6322537477818,
-        11719.723738552972,
-        47075.733045730056,
-        188699.0930713932,
-        755591.1970832772,
-        3023956.9501793,
-        1.2099014641293615E7,
-        4.8402434765532516E7,
-        1.9362249398321322E8,
-        7.745154882959671E8,
-        3.098112980431337E9,
-        1.2392553978741665E10,
-        4.9570420031520744E10,
-        1.982820883617127E11,
-        7.931291699206317E11,
-        3.1725183126326094E12,
-        1.2690076516433127E13,
-        5.076031259754041E13,
-        2.0304126345377997E14,
-        8.12165079942359E14,
-        3.248660372023916E15
-      };
-    }
-
-    private static final double[] ESTIMATION_FACTORS = getEstimationFactors();
-
-    // visible for testing
-    protected static double sigma(double x) {
+    static double sigma(double x) {
       if (x <= 0.) return 0;
       if (x >= 1.) return Double.POSITIVE_INFINITY;
       double z = 1;
@@ -555,8 +434,68 @@ public final class HyperLogLog extends DistinctCounter<HyperLogLog, HyperLogLog.
       return sum;
     }
 
-    // visible for testing
-    protected static double tau(double x) {
+    static final double[] ESTIMATION_FACTORS = {
+      40.67760431873907,
+      172.99391414703106,
+      714.5560640781132,
+      2905.6322537477818,
+      11719.723738552972,
+      47075.733045730056,
+      188699.0930713932,
+      755591.1970832772,
+      3023956.9501793,
+      1.2099014641293615E7,
+      4.8402434765532516E7,
+      1.9362249398321322E8,
+      7.745154882959671E8,
+      3.098112980431337E9,
+      1.2392553978741665E10,
+      4.9570420031520744E10,
+      1.982820883617127E11,
+      7.931291699206317E11,
+      3.1725183126326094E12,
+      1.2690076516433127E13,
+      5.076031259754041E13,
+      2.0304126345377997E14,
+      8.12165079942359E14,
+      3.248660372023916E15
+    };
+  }
+
+  private static final class SmallRangeCorrectedRawEstimator extends AbstractRawEstimator {
+
+    @Override
+    public double estimate(HyperLogLog hyperLogLog) {
+      byte[] state = hyperLogLog.state;
+      int c0 = 0;
+      double sum = 0;
+      for (int off = 0; off + 2 < state.length; off += 3) {
+        long r0 = state[off] & 0x3fL;
+        long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
+        long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
+        long r3 = (state[off + 2] & 0xfcL) >>> 2;
+        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
+        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
+        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
+        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
+        if (r0 == 0) c0 += 1;
+        if (r1 == 0) c0 += 1;
+        if (r2 == 0) c0 += 1;
+        if (r3 == 0) c0 += 1;
+      }
+      if (c0 > 0) {
+        double m = 1 << hyperLogLog.p;
+        sum += m * sigma(c0 / m);
+      }
+      return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+    }
+  }
+
+  static final class CorrectedRawEstimator extends AbstractRawEstimator {
+
+    private CorrectedRawEstimator() {}
+
+    static double tau(double x) {
       if (x <= 0. || x >= 1.) return 0.;
       double zPrime;
       double y = 1.0;
@@ -569,6 +508,119 @@ public final class HyperLogLog extends DistinctCounter<HyperLogLog, HyperLogLog.
         z -= oneMinusX * oneMinusX * y;
       } while (zPrime > z);
       return z * (1. / 3.);
+    }
+
+    @Override
+    public double estimate(HyperLogLog hyperLogLog) {
+      byte[] state = hyperLogLog.state;
+      int c0 = 0;
+      int cMax = 0;
+      double sum = 0;
+      int maxR = 65 - hyperLogLog.p;
+      for (int off = 0; off + 2 < state.length; off += 3) {
+        long r0 = state[off] & 0x3fL;
+        long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
+        long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
+        long r3 = (state[off + 2] & 0xfcL) >>> 2;
+        if (r0 < maxR) {
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
+        } else {
+          cMax += 1;
+        }
+        if (r1 < maxR) {
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
+        } else {
+          cMax += 1;
+        }
+        if (r2 < maxR) {
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
+        } else {
+          cMax += 1;
+        }
+        if (r3 < maxR) {
+          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
+        } else {
+          cMax += 1;
+        }
+        if (r0 == 0) c0 += 1;
+        if (r1 == 0) c0 += 1;
+        if (r2 == 0) c0 += 1;
+        if (r3 == 0) c0 += 1;
+      }
+      if (c0 > 0) {
+        double m = 1 << hyperLogLog.p;
+        sum += m * sigma(c0 / m);
+      }
+      if (cMax > 0) {
+        double m = 1 << hyperLogLog.p;
+        sum +=
+            Double.longBitsToDouble(0x3FF0000000000000L - ((32L - hyperLogLog.p) << 53))
+                * tau(1. - cMax / m);
+      }
+      return AbstractRawEstimator.ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+    }
+  }
+
+  private static final class MaximumLikelihoodEstimator implements Estimator {
+
+    // = sqrt(ln(2)/zeta(2,2))
+    // where zeta is the Hurvitz zeta function,
+    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    //
+    // for a numerical evaluation see
+    // https://www.wolframalpha.com/input?i=sqrt%28ln%282%29%2Fzeta%282%2C2%29%29
+    private static final double INV_SQRT_FISHER_INFORMATION =
+        1.0367047097785010515294550203275421651870833101049654526772626427;
+
+    private static final double ML_EQUATION_SOLVER_EPS =
+        0.001 * INV_SQRT_FISHER_INFORMATION; // 0.1% of theoretical relative error
+
+    // = 3 * ln(2) * zeta(3,2)/(zeta(2,2))^2
+    // where zeta denotes the Hurvitz zeta function,
+    // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
+    //
+    // for a numerical evaluation see
+    // https://www.wolframalpha.com/input?i=3+*+ln%282%29+*+zeta%283%2C2%29%2F%28zeta%282%2C2%29%29%5E2
+    private static final double ML_BIAS_CORRECTION_CONSTANT =
+        1.0101590809585398846370363680437872475215951788609050234281811303;
+
+    private static double contribute(int r, int[] b, int maxR) {
+      if (r <= maxR) {
+        if (r > 0) {
+          b[r] += 1;
+        }
+        return Double.longBitsToDouble(0x3FF0000000000000L - ((long) r << 52));
+      } else {
+        b[maxR] += 1;
+        return 0;
+      }
+    }
+
+    @Override
+    public double estimate(HyperLogLog hyperLogLog) {
+
+      byte[] state = hyperLogLog.state;
+      int p = hyperLogLog.p;
+      double a = 0;
+      int[] b = new int[64];
+      int maxR = 63 - p;
+
+      for (int off = 0; off + 2 < state.length; off += 3) {
+        int r0 = state[off] & 0x3f;
+        int r1 = ((state[off] & 0xc0) >>> 6) | ((state[off + 1] & 0x0f) << 2);
+        int r2 = ((state[off + 1] & 0xf0) >>> 4) | ((state[off + 2] & 0x03) << 4);
+        int r3 = (state[off + 2] & 0xfc) >>> 2;
+
+        a += contribute(r0, b, maxR);
+        a += contribute(r1, b, maxR);
+        a += contribute(r2, b, maxR);
+        a += contribute(r3, b, maxR);
+      }
+      int m = 1 << p;
+      return m
+          * DistinctCountUtil.solveMaximumLikelihoodEquation(
+              a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
+          / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
     }
   }
 }
