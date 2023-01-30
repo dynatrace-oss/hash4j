@@ -417,6 +417,8 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
 
   abstract static class AbstractRawEstimator implements Estimator {
 
+    private AbstractRawEstimator() {}
+
     static double sigma(double x) {
       if (x <= 0.) return 0;
       if (x >= 1.) return Double.POSITIVE_INFINITY;
@@ -490,6 +492,8 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   }
 
   static final class CorrectedRawEstimator extends AbstractRawEstimator {
+
+    private CorrectedRawEstimator() {}
 
     static double tau(double x) {
       if (x <= 0. || x >= 1.) return 0.;

@@ -428,6 +428,8 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
 
   abstract static class AbstractSmallRangeCorrectedGraEstimator implements Estimator {
 
+    private AbstractSmallRangeCorrectedGraEstimator() {}
+
     static final double[] ESTIMATION_FACTORS = {
       198.73981665391312,
       1027.9377396749687,
