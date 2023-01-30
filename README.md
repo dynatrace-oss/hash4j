@@ -157,7 +157,7 @@ Therefore, if the bits of the hash value are permuted accordingly, compatibility
 
 ### Python
 
-This project contains python code. We recommend using a python virtual environment in a `.venv` directory. If your are new, please follow the steps outlined
+This project contains python code. We recommend using a python virtual environment in a `.venv` directory. If you are new, please follow the steps outlined
 in the [official Python documentation](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) for creation and activation.
 To install the required dependencies including black, please execute `pip install -r requirements.txt`.
 
