@@ -72,7 +72,7 @@ spotless {
     ratchetFrom 'origin/main'
     python {
         target 'python/**/*.py'
-        black('22.8.0')
+        black('22.12.0')
         licenseHeader readPythonLicense('APACHE_2_0_DYNATRACE'), '(import|from)'
     }
     cpp {
