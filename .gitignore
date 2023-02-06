@@ -19,3 +19,4 @@
 /test-results/hyperloglog-estimation-error-p??-martingale.png
 /test-results/hyperloglog-estimation-error-p??-small-range-corrected-raw.png
 /test-results/hyperloglog-estimation-error-p??-corrected-raw.png
+/reference-implementations/calculate_checksums

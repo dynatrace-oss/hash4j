@@ -16,18 +16,18 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.7.2</version>
+  <version>0.8.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.7.2'
+implementation 'com.dynatrace.hash4j:hash4j:0.8.0'
 ```
 
 ## Hash algorithms
 hash4j currently implements the following hash algorithms:
 * [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp) (128-bit and 32-bit)
-* [Wyhash](https://github.com/wangyi-fudan/wyhash) (final version 3)
+* [Wyhash](https://github.com/wangyi-fudan/wyhash) (final version 3 and final version 4)
 * [Komihash](https://github.com/avaneev/komihash) (version 4.3, compatible with 4.5 and 4.7)
 
 All hash functions are thoroughly tested against the native reference implementations and also other libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/latest/com/google/common/hash/package-summary.html), [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html), or [crypto](https://github.com/appmattus/crypto) (see [CrossCheckTest.java](src/test/java/com/dynatrace/hash4j/hashing/CrossCheckTest.java)).
@@ -43,14 +43,14 @@ class TestClass {
 
 TestClass obj = new TestClass(); // create an instance of some test class
     
-Hasher64 hasher = Hashing.wyhashFinal3(); // create a hasher instance
+Hasher64 hasher = Hashing.wyhashFinal4(); // create a hasher instance
 
 // variant 1: hash object by passing data into a hash stream
-long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong(); // gives 0x2cf18e9ee8fd3546L
+long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong(); // gives 0x89a90f343c3d4862L
 
 // variant 2: hash object by defining a funnel
 HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putString(o.c);
-long hash2 = hasher.hashToLong(obj, funnel); // gives 0x2cf18e9ee8fd3546L
+long hash2 = hasher.hashToLong(obj, funnel); // gives 0x89a90f343c3d4862L
 ```
 More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/hash4j/hashing/HashingDemo.java).
 

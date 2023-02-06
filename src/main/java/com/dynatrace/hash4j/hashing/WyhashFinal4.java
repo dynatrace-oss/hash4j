@@ -15,15 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class WyhashFinal3 extends AbstractWyhashFinal {
+class WyhashFinal4 extends AbstractWyhashFinal {
 
-  private WyhashFinal3(long seedForHash, long[] secret) {
-    super(seedForHash ^ secret[0], secret[1], secret[2], secret[3]);
-  }
+  private final long secret0;
 
-  @Override
-  protected long finish(long a, long b, long seed, long len) {
-    return wymix(secret1 ^ len, wymix(a ^ secret1, b ^ seed));
+  private WyhashFinal4(long seedForHash, long[] secret) {
+    super(seedForHash ^ wymix(seedForHash ^ secret[0], secret[1]), secret[1], secret[2], secret[3]);
+    this.secret0 = secret[0];
   }
 
   static Hasher64 create() {
@@ -31,12 +29,19 @@ class WyhashFinal3 extends AbstractWyhashFinal {
   }
 
   static Hasher64 create(long seedForHash) {
-    return new WyhashFinal3(seedForHash, DEFAULT_SECRET);
+    return new WyhashFinal4(seedForHash, DEFAULT_SECRET);
   }
 
   static Hasher64 create(long seedForHash, long seedForSecret) {
-    return new WyhashFinal3(seedForHash, makeSecret(seedForSecret));
+    return new WyhashFinal4(seedForHash, makeSecret(seedForSecret));
   }
 
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);
+
+  @Override
+  protected long finish(long a, long b, long seed, long len) {
+    a ^= secret1;
+    b ^= seed;
+    return wymix((a * b) ^ secret0 ^ len, unsignedMultiplyHigh(a, b) ^ secret1);
+  }
 }
