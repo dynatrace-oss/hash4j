@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class HashingDemo {
     TestClass obj = new TestClass();
 
     // create a hasher instance
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.wyhashFinal4();
 
     // variant 1: hash object by passing data into a hash stream
     long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong();
@@ -44,7 +44,7 @@ class HashingDemo {
     long hash2 = hasher.hashToLong(obj, funnel);
 
     // both variants lead to same hash value
-    assertThat(hash1).isEqualTo(hash2).isEqualTo(0x2cf18e9ee8fd3546L);
+    assertThat(hash1).isEqualTo(hash2).isEqualTo(0x89a90f343c3d4862L);
   }
 
   // Some class with two string fields.

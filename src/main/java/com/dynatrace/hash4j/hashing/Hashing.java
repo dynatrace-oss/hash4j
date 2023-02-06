@@ -164,4 +164,52 @@ public final class Hashing {
   public static Hasher64 wyhashFinal3(long seed, long seedForSecret) {
     return WyhashFinal3.create(seed, seedForSecret);
   }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 4) algorithm using a
+   * seed value of zero and the default secret.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
+   * defined in <a
+   * href="https://github.com/wangyi-fudan/wyhash/blob/ea3b25e1aef55d90f707c3a292eeb9162e2615d8/wyhash.h">wyhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 wyhashFinal4() {
+    return WyhashFinal4.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 4) algorithm using the
+   * given seed value and the default secret.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
+   * defined in <a
+   * href="https://github.com/wangyi-fudan/wyhash/blob/ea3b25e1aef55d90f707c3a292eeb9162e2615d8/wyhash.h">wyhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 wyhashFinal4(long seed) {
+    return WyhashFinal4.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 4) algorithm using the
+   * given seed values.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code wyhash}
+   * and {@code make_secret} defined in <a
+   * href="https://github.com/wangyi-fudan/wyhash/blob/ea3b25e1aef55d90f707c3a292eeb9162e2615d8/wyhash.h">wyhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @param seedForSecret a 64-bit seed for secret generation
+   * @return a hasher instance
+   */
+  public static Hasher64 wyhashFinal4(long seed, long seedForSecret) {
+    return WyhashFinal4.create(seed, seedForSecret);
+  }
 }

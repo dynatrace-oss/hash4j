@@ -25,3 +25,6 @@
 [submodule "reference-implementations/farmhash_na/farmhash"]
 	path = reference-implementations/farmhash_na/farmhash
 	url = https://github.com/google/farmhash.git
+[submodule "reference-implementations/wyhash_final_4/wyhash"]
+	path = reference-implementations/wyhash_final_4/wyhash
+	url = https://github.com/wangyi-fudan/wyhash.git
