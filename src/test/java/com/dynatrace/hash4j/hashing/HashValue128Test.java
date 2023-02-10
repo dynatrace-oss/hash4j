@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,5 +66,57 @@ class HashValue128Test {
     assertThat(hash1a.equals(hash3)).isFalse();
     assertThat(hash1a.equals(hash4)).isFalse();
     assertThat(hash1a.equals((new Object()))).isFalse();
+  }
+
+  @Test
+  void testToString() {
+    assertThat(new HashValue128(0x0001020304050607L, 0x08090a0b0c0d0e0fL))
+        .hasToString("000102030405060708090a0b0c0d0e0f");
+    assertThat(new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L))
+        .hasToString("3b373969bb1aa907f91ca468290066d3");
+  }
+
+  @Test
+  void testToByteArray() {
+    assertThat(new HashValue128(0x0011223344556677L, 0x8899aabbccddeeffL).toByteArray())
+        .isEqualTo(
+            new byte[] {
+              (byte) 0xff,
+              (byte) 0xee,
+              (byte) 0xdd,
+              (byte) 0xcc,
+              (byte) 0xbb,
+              (byte) 0xaa,
+              (byte) 0x99,
+              (byte) 0x88,
+              (byte) 0x77,
+              (byte) 0x66,
+              (byte) 0x55,
+              (byte) 0x44,
+              (byte) 0x33,
+              (byte) 0x22,
+              (byte) 0x11,
+              (byte) 0x00
+            });
+    assertThat(new HashValue128(0xaf6cbc3f12e21e38L, 0x2d5c760d5dd733c4L).toByteArray())
+        .isEqualTo(
+            new byte[] {
+              (byte) 0xc4,
+              (byte) 0x33,
+              (byte) 0xd7,
+              (byte) 0x5d,
+              (byte) 0x0d,
+              (byte) 0x76,
+              (byte) 0x5c,
+              (byte) 0x2d,
+              (byte) 0x38,
+              (byte) 0x1e,
+              (byte) 0xe2,
+              (byte) 0x12,
+              (byte) 0x3f,
+              (byte) 0xbc,
+              (byte) 0x6c,
+              (byte) 0xaf
+            });
   }
 }

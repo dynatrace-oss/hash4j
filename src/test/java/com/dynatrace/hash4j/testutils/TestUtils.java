@@ -15,9 +15,7 @@
  */
 package com.dynatrace.hash4j.testutils;
 
-import com.dynatrace.hash4j.hashing.HashValue128;
 import java.util.Comparator;
-import java.util.List;
 
 public final class TestUtils {
 
@@ -49,41 +47,6 @@ public final class TestUtils {
       hexChars[j * 2 + 1] = HEX_DIGITS_LOWER_CASE[v & 0x0F];
     }
     return new String(hexChars);
-  }
-
-  public static String byteListToHexString(final List<Byte> bytes) {
-    byte[] x = new byte[bytes.size()];
-    for (int i = 0; i < bytes.size(); ++i) {
-      x[i] = bytes.get(i);
-    }
-    return byteArrayToHexString(x);
-  }
-
-  public static byte[] hash128ToByteArray(HashValue128 hash) {
-    return new byte[] {
-      (byte) (hash.getLeastSignificantBits()),
-      (byte) (hash.getLeastSignificantBits() >>> 8),
-      (byte) (hash.getLeastSignificantBits() >>> 16),
-      (byte) (hash.getLeastSignificantBits() >>> 24),
-      (byte) (hash.getLeastSignificantBits() >>> 32),
-      (byte) (hash.getLeastSignificantBits() >>> 40),
-      (byte) (hash.getLeastSignificantBits() >>> 48),
-      (byte) (hash.getLeastSignificantBits() >>> 56),
-      (byte) (hash.getMostSignificantBits()),
-      (byte) (hash.getMostSignificantBits() >>> 8),
-      (byte) (hash.getMostSignificantBits() >>> 16),
-      (byte) (hash.getMostSignificantBits() >>> 24),
-      (byte) (hash.getMostSignificantBits() >>> 32),
-      (byte) (hash.getMostSignificantBits() >>> 40),
-      (byte) (hash.getMostSignificantBits() >>> 48),
-      (byte) (hash.getMostSignificantBits() >>> 56)
-    };
-  }
-
-  public static byte[] hash32ToByteArray(int hash) {
-    return new byte[] {
-      (byte) hash, (byte) (hash >>> 8), (byte) (hash >>> 16), (byte) (hash >>> 24)
-    };
   }
 
   public static byte[] tupleToByteArray(long[] tuple) {
@@ -121,13 +84,6 @@ public final class TestUtils {
     return b;
   }
 
-  public static int byteArrayToInt(byte[] b) {
-    if (b.length != 4) {
-      throw new IllegalArgumentException();
-    }
-    return ((b[3] & 0xFF) << 24) | ((b[2] & 0xFF) << 16) | ((b[1] & 0xFF) << 8) | (b[0] & 0xFF);
-  }
-
   public static CharSequence byteArrayToCharSequence(byte[] b) {
     if (b.length % 2 != 0) {
       throw new IllegalArgumentException();
@@ -140,8 +96,7 @@ public final class TestUtils {
 
       @Override
       public char charAt(int index) {
-        return (char)
-            ((((int) (b[2 * index + 1] & 0xFF)) << 8) | (((int) b[2 * index + 0]) & 0xFF));
+        return (char) (((b[2 * index + 1] & 0xFF) << 8) | (b[2 * index + 0] & 0xFF));
       }
 
       @Override
