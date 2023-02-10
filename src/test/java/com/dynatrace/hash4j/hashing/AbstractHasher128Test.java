@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
-import static com.dynatrace.hash4j.testutils.TestUtils.hash128ToByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -76,18 +75,18 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
   @MethodSource("getReferenceTestRecords")
   void testAgainstReference(AbstractHasher128Test.ReferenceTestRecord128 r) {
 
-    assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_1)))
+    assertThat(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_1).toByteArray())
         .isEqualTo(r.getExpectedHash());
-    assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_2)))
+    assertThat(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_2).toByteArray())
         .isEqualTo(r.getExpectedHash());
-    assertThat(hash128ToByteArray(r.getHasher().hashBytesTo128Bits(r.getData())))
+    assertThat(r.getHasher().hashBytesTo128Bits(r.getData()).toByteArray())
         .isEqualTo(r.getExpectedHash());
 
     if (r.getData().length % 2 == 0) {
       CharSequence charSequence = byteArrayToCharSequence(r.getData());
-      assertThat(hash128ToByteArray(r.getHasher().hashCharsTo128Bits(charSequence)))
+      assertThat(r.getHasher().hashCharsTo128Bits(charSequence).toByteArray())
           .isEqualTo(r.getExpectedHash());
-      assertThat(hash128ToByteArray(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL)))
+      assertThat(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL).toByteArray())
           .isEqualTo(r.getExpectedHash());
     }
   }

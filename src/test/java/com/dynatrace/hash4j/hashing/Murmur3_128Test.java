@@ -15,7 +15,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.testutils.TestUtils.hash128ToByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -74,7 +73,7 @@ class Murmur3_128Test extends AbstractHasher128Test {
     long len = 1L + Integer.MAX_VALUE;
     HashStream128 stream = Hashing.murmur3_128().hashStream();
     LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
-    byte[] hashValueBytes = hash128ToByteArray(stream.get());
+    byte[] hashValueBytes = stream.get().toByteArray();
     byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
     assertThat(hashValueBytes).isEqualTo(expected);
   }
