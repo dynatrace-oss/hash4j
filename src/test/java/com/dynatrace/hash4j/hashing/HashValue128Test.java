@@ -71,9 +71,9 @@ class HashValue128Test {
   @Test
   void testToString() {
     assertThat(new HashValue128(0x0001020304050607L, 0x08090a0b0c0d0e0fL))
-        .hasToString("000102030405060708090a0b0c0d0e0f");
+        .hasToString("0x000102030405060708090a0b0c0d0e0f");
     assertThat(new HashValue128(0x3b373969bb1aa907L, 0xf91ca468290066d3L))
-        .hasToString("3b373969bb1aa907f91ca468290066d3");
+        .hasToString("0x3b373969bb1aa907f91ca468290066d3");
   }
 
   @Test
