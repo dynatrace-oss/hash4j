@@ -1,3 +1,5 @@
+import com.diffplug.gradle.spotless.JavaExtension
+
 buildscript {
 	repositories {
 		mavenCentral()
@@ -20,7 +22,7 @@ plugins {
 	id "com.palantir.revapi" version "1.7.0"
 }
 
-def readJavaLicense(licenseName) {
+static def readJavaLicense(licenseName) {
 	File licenseFile = new File('licenses/' + licenseName + '.txt')
 	def line
 	def s = '/*\n'
@@ -38,7 +40,7 @@ def readJavaLicense(licenseName) {
 	return s
 }
 
-def readPythonLicense(licenseName) {
+static def readPythonLicense(licenseName) {
 	File licenseFile = new File('licenses/' + licenseName + '.txt')
 	def line
 	def s = '#\n'
@@ -90,23 +92,30 @@ spotless {
 		removeUnusedImports()
 		googleJavaFormat('1.15.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
-		targetExclude 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java','src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
+		targetExclude 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java','src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
-	format 'javaKomihash', com.diffplug.gradle.spotless.JavaExtension, {
+	format 'javaImohash', JavaExtension, {
+		importOrder()
+		removeUnusedImports()
+		googleJavaFormat('1.15.0')
+		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_IMOHASH')
+		target 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java'
+	}
+	format 'javaKomihash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
 		googleJavaFormat('1.15.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_KOMIHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
 	}
-	format 'javaSplitMix64', com.diffplug.gradle.spotless.JavaExtension, {
+	format 'javaSplitMix64', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
 		googleJavaFormat('1.15.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('CREATIVE_COMMONS_SPLITMIX64')
 		target 'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
 	}
-	format 'javaExponential', com.diffplug.gradle.spotless.JavaExtension, {
+	format 'javaExponential', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
 		googleJavaFormat('1.15.0')
@@ -178,7 +187,7 @@ task evaluateEstimationErrors(type:Exec) {
 	commandLine 'python', 'python/estimation_error_evaluation.py'
 }
 
-def sketches = ["UltraLogLog", "HyperLogLog"];
+def sketches = ["UltraLogLog", "HyperLogLog"]
 def pValues = [
 	3,
 	4,
