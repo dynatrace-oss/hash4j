@@ -88,9 +88,9 @@ class Imohash1_0_2 extends AbstractFileHasher128 {
     long numBytesRemaining = numBytes;
     int bufferPos = 0;
     while (numBytesRemaining > 0) {
-      int numBytesRequested = buffer.length - bufferPos;
-      if (numBytesRequested > numBytesRemaining) numBytesRequested = (int) numBytesRemaining;
-      long numBytesRead = stream.read(buffer, bufferPos, numBytesRequested);
+      int numBytesToRead = buffer.length - bufferPos;
+      if (numBytesToRead > numBytesRemaining) numBytesToRead = (int) numBytesRemaining;
+      long numBytesRead = stream.read(buffer, bufferPos, numBytesToRead);
       if (numBytesRead < 0) {
         throw new EOFException();
       }
