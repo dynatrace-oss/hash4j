@@ -53,7 +53,7 @@ import java.io.InputStream;
 
 class Imohash1_0_2 extends AbstractFileHasher128 {
 
-  static final long DEFAULT_SAMPLE_THRESHOLD = 128 * 1024;
+  static final long DEFAULT_SAMPLE_THRESHOLD = 128L * 1024L;
   static final int DEFAULT_SAMPLE_SIZE = 16 * 1024;
 
   private static final int BUFFER_SIZE = 1024;
