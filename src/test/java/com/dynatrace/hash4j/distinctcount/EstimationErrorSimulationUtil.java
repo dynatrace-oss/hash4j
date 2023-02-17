@@ -15,10 +15,13 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static java.util.Comparator.comparing;
+
+import com.dynatrace.hash4j.random.PseudoRandomGenerator;
+import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
-import java.util.SplittableRandom;
+import java.util.*;
 import java.util.function.IntFunction;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleBiFunction;
@@ -53,6 +56,46 @@ public final class EstimationErrorSimulationUtil {
     }
   }
 
+  private static final class Transition {
+    private final BigInt distinctCount;
+    private final long hash;
+
+    public Transition(BigInt distinctCount, long hash) {
+      this.distinctCount = distinctCount;
+      this.hash = hash;
+    }
+  }
+
+  private static final class LocalState<T> {
+    private final T sketch;
+    private final Transition[] transitions;
+    private final int p;
+    private final PseudoRandomGenerator prg;
+
+    public LocalState(T sketch, int p, PseudoRandomGenerator prg) {
+      int transitionListLen = (1 << p) * (65 - p);
+      this.sketch = sketch;
+      this.transitions = new Transition[transitionListLen];
+      this.p = p;
+      this.prg = prg;
+    }
+
+    public void generateTransitions(BigInt distinctCountOffset) {
+      int counter = 0;
+      for (int nlz = 0; nlz <= 64 - p; ++nlz) {
+        double factor = Math.pow(2., Math.min(64, 1 + p + nlz));
+        for (int registerIdx = 0; registerIdx < (1 << p); ++registerIdx) {
+          BigInt transitionDistinctCount = BigInt.floor(prg.nextExponential() * factor);
+          transitionDistinctCount.increment(); // 1-based geometric distribution
+          transitionDistinctCount.add(distinctCountOffset);
+          long hash = DistinctCounterTest.createUpdateValue(p, registerIdx, nlz);
+          transitions[counter++] = new Transition(transitionDistinctCount, hash);
+        }
+      }
+      Arrays.sort(transitions, comparing(transition -> transition.distinctCount));
+    }
+  }
+
   public static <T extends DistinctCounter<T, R>, R extends DistinctCounter.Estimator<T>>
       void doSimulation(
           int p,
@@ -60,55 +103,86 @@ public final class EstimationErrorSimulationUtil {
           IntFunction<T> supplier,
           List<EstimatorConfig<T>> estimatorConfigs,
           String outputFile) {
+
+    // parameters
     int numCycles = 100000;
+    final BigInt largeScaleSimulationModeDistinctCountLimit = BigInt.fromLong(1000000);
+    List<BigInt> targetDistinctCounts = TestUtils.getDistinctCountValues(1e21, 0.05);
 
     SplittableRandom seedRandom = new SplittableRandom(0x891ea7f506edfc35L);
-
     long[] seeds = seedRandom.longs(numCycles).toArray();
-    long[] trueDistinctCounts = TestUtils.getDistinctCountValues(0L, 1L << 24, 0.05);
 
     double[][][] estimatedDistinctCounts = new double[estimatorConfigs.size() + 1][][];
-
     for (int k = 0; k < estimatorConfigs.size() + 1; ++k) {
-      estimatedDistinctCounts[k] = new double[trueDistinctCounts.length][];
-      for (int i = 0; i < trueDistinctCounts.length; ++i) {
+      estimatedDistinctCounts[k] = new double[targetDistinctCounts.size()][];
+      for (int i = 0; i < targetDistinctCounts.size(); ++i) {
         estimatedDistinctCounts[k][i] = new double[numCycles];
       }
     }
 
-    ThreadLocal<T> sketches = ThreadLocal.withInitial(() -> supplier.apply(p));
+    PseudoRandomGeneratorProvider prgProvider = PseudoRandomGeneratorProvider.splitMix64_V1();
+    ThreadLocal<LocalState<T>> localStates =
+        ThreadLocal.withInitial(() -> new LocalState<>(supplier.apply(p), p, prgProvider.create()));
 
     IntStream.range(0, numCycles)
         .parallel()
         .forEach(
             i -> {
-              SplittableRandom random = new SplittableRandom(seeds[i]);
-              T sketch = sketches.get().reset();
+              LocalState<T> state = localStates.get();
+              final PseudoRandomGenerator prg = state.prg;
+              prg.reset(seeds[i]);
+              final T sketch = state.sketch;
+              sketch.reset();
               MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
-              long trueDistinctCount = 0;
-              int distinctCountIndex = 0;
-              while (distinctCountIndex < trueDistinctCounts.length) {
-                if (trueDistinctCount == trueDistinctCounts[distinctCountIndex]) {
-                  for (int k = 0; k < estimatorConfigs.size(); ++k) {
-                    estimatedDistinctCounts[k][distinctCountIndex][i] =
-                        estimatorConfigs
-                            .get(k)
-                            .estimator
-                            .applyAsDouble(sketch, martingaleEstimator);
-                  }
-                  distinctCountIndex += 1;
+              final Transition[] transitions = state.transitions;
+              state.generateTransitions(largeScaleSimulationModeDistinctCountLimit);
+
+              BigInt trueDistinctCount = BigInt.createZero();
+              int transitionIndex = 0;
+              for (int distinctCountIndex = 0;
+                  distinctCountIndex < targetDistinctCounts.size();
+                  ++distinctCountIndex) {
+                BigInt targetDistinctCount = targetDistinctCounts.get(distinctCountIndex);
+                BigInt limit = targetDistinctCount.copy();
+                limit.min(largeScaleSimulationModeDistinctCountLimit);
+
+                while (trueDistinctCount.compareTo(limit) < 0) {
+                  sketch.add(prg.nextLong(), martingaleEstimator);
+                  trueDistinctCount.increment();
                 }
-                sketch.add(random.nextLong(), martingaleEstimator);
-                trueDistinctCount += 1;
+                if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
+                  while (transitionIndex < transitions.length
+                      && transitions[transitionIndex].distinctCount.compareTo(targetDistinctCount)
+                          < 0) {
+                    sketch.add(transitions[transitionIndex].hash, martingaleEstimator);
+                    transitionIndex += 1;
+                  }
+                  trueDistinctCount.set(targetDistinctCount);
+                }
+
+                for (int k = 0; k < estimatorConfigs.size(); ++k) {
+                  estimatedDistinctCounts[k][distinctCountIndex][i] =
+                      estimatorConfigs.get(k).estimator.applyAsDouble(sketch, martingaleEstimator);
+                }
               }
             });
+
     double[] theoreticalRelativeStandardErrors =
         estimatorConfigs.stream()
             .mapToDouble(c -> c.getpToAsymptoticRelativeStandardError().applyAsDouble(p))
             .toArray();
 
     try (FileWriter writer = new FileWriter(outputFile)) {
-      writer.write("sketch_name=" + sketchName + "; p=" + p + "; num_cycles=" + numCycles + "\n");
+      writer.write(
+          "sketch_name="
+              + sketchName
+              + "; p="
+              + p
+              + "; num_cycles="
+              + numCycles
+              + "; large_scale_simulation_mode_distinct_count_limit="
+              + largeScaleSimulationModeDistinctCountLimit
+              + "\n");
       writer.write("distinct count");
 
       for (EstimatorConfig<T> estimatorConfig : estimatorConfigs) {
@@ -119,10 +193,10 @@ public final class EstimationErrorSimulationUtil {
       writer.write('\n');
 
       for (int distinctCountIndex = 0;
-          distinctCountIndex < trueDistinctCounts.length;
+          distinctCountIndex < targetDistinctCounts.size();
           ++distinctCountIndex) {
 
-        double trueDistinctCount = trueDistinctCounts[distinctCountIndex];
+        double trueDistinctCount = targetDistinctCounts.get(distinctCountIndex).asDouble();
         writer.write("" + trueDistinctCount);
 
         for (int k = 0; k < estimatorConfigs.size(); ++k) {

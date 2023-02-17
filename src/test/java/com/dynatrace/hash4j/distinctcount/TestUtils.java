@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import com.dynatrace.hash4j.util.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,5 +33,19 @@ public class TestUtils {
     }
     Collections.reverse(distinctCounts);
     return distinctCounts.stream().mapToLong(Long::valueOf).toArray();
+  }
+
+  public static List<BigInt> getDistinctCountValues(double max, double relativeIncrement) {
+    Preconditions.checkArgument(max >= 1.);
+    List<BigInt> distinctCounts = new ArrayList<>();
+    BigInt c = BigInt.ceil(max);
+    while (c.isPositive()) {
+      distinctCounts.add(c.copy());
+      double d = c.asDouble();
+      c.decrement();
+      c.min(BigInt.ceil(d / (1. + relativeIncrement)));
+    }
+    Collections.reverse(distinctCounts);
+    return distinctCounts;
   }
 }
