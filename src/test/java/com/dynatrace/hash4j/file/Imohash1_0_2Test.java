@@ -19,11 +19,16 @@ import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static org.assertj.core.api.Assertions.*;
 
 import com.dynatrace.hash4j.hashing.HashValue128;
+import com.dynatrace.hash4j.testutils.TestUtils;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class Imohash1_0_2Test {
@@ -100,6 +105,37 @@ class Imohash1_0_2Test {
     TestInputStream testInputStream = new TestInputStream();
     assertThat(FileHashing.imohash1_0_2().hashInputStreamTo128Bits(testInputStream, Long.MAX_VALUE))
         .isEqualTo(new HashValue128(0x2314f35347d68a7fL, 0xffffffffffffffffL));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      longs = {
+        1,
+        10,
+        100,
+        1000,
+        10000,
+        100000,
+        Long.MAX_VALUE >>> 8,
+        Long.MAX_VALUE >>> 7,
+        Long.MAX_VALUE >>> 2,
+        Long.MAX_VALUE >>> 1,
+        Long.MAX_VALUE
+      })
+  // test if the length can be retrieved from the hash
+  void testEncodingOfLength(long len) throws IOException {
+    TestInputStream testInputStream = new TestInputStream();
+    byte[] hashBytes =
+        FileHashing.imohash1_0_2().hashInputStreamTo128Bits(testInputStream, len).toByteArray();
+    int pos = 0;
+    long actualLength = 0;
+    while (true) {
+      long b = hashBytes[pos] & 0xFF;
+      actualLength |= (b & 0x7f) << (7 * pos);
+      if (b < 128) break;
+      pos += 1;
+    }
+    assertThat(actualLength).isEqualTo(len);
   }
 
   @Test
@@ -244,5 +280,57 @@ class Imohash1_0_2Test {
       count += skipLength;
       return skipLength;
     }
+  }
+
+  // see
+  // https://github.com/kalafut/imohash/blob/cd421d62f1d9507bc812f2e80a1658d7a9d68c8b/algorithm.md#test-vectors
+  private static Stream<Arguments> getTestVectors() {
+    return Stream.of(
+        Arguments.of(16384, 131072, 0, "00000000000000000000000000000000"),
+        Arguments.of(16384, 131072, 1, "01659e2ec0f3c75bf39e43a41adb5d4f"),
+        Arguments.of(16384, 131072, 127, "7f47671cc79d4374404b807249f3166e"),
+        Arguments.of(16384, 131072, 128, "800183e5dbea2e5199ef7c8ea963a463"),
+        Arguments.of(16384, 131072, 4095, "ff1f770d90d3773949d89880efa17e60"),
+        Arguments.of(16384, 131072, 4096, "802048c26d66de432dbfc71afca6705d"),
+        Arguments.of(16384, 131072, 131072, "8080085a3d3af2cb4b3a957811cdf370"),
+        Arguments.of(16384, 131073, 131072, "808008282d3f3b53e1fd132cc51fcc1d"),
+        Arguments.of(16384, 131072, 500000, "a0c21e44a0ba3bddee802a9d1c5332ca"),
+        Arguments.of(50, 131072, 300000, "e0a712edd8815c606344aed13c44adcf"));
+  }
+
+  private static byte[] generateTestDataForTestVectors(int n) {
+    MessageDigest md;
+    try {
+      md = MessageDigest.getInstance("MD5");
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+    byte[] input = new byte[(n + 15) / 16];
+    Arrays.fill(input, (byte) 'A');
+    byte[] result = new byte[n];
+    for (int i = 0; i < n; i += 16) {
+      md.update(input, 0, 1 + i / 16);
+      byte[] d = md.digest();
+      System.arraycopy(d, 0, result, i, Math.min(16, n - i));
+    }
+    return result;
+  }
+
+  @Test
+  void testGenerateTestDataForTestVectors() {
+    assertThat(TestUtils.byteArrayToHexString(generateTestDataForTestVectors(16)))
+        .isEqualTo("7fc56270e7a70fa81a5935b72eacbe29");
+    assertThat(
+            TestUtils.byteArrayToHexString(generateTestDataForTestVectors(1000000))
+                .endsWith("197c74f51423765786516442fd1c9832"))
+        .isTrue();
+  }
+
+  @ParameterizedTest
+  @MethodSource("getTestVectors")
+  void testAgainstReferenceData(int s, int t, int n, String hash) throws IOException {
+    ByteArrayInputStream bis = new ByteArrayInputStream(generateTestDataForTestVectors(n));
+    HashValue128 hashValue128 = FileHashing.imohash1_0_2(s, t).hashInputStreamTo128Bits(bis, n);
+    assertThat(TestUtils.byteArrayToHexString(hashValue128.toByteArray())).isEqualTo(hash);
   }
 }
