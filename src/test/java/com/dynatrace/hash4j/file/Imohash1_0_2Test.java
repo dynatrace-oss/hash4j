@@ -320,10 +320,8 @@ class Imohash1_0_2Test {
   void testGenerateTestDataForTestVectors() {
     assertThat(TestUtils.byteArrayToHexString(generateTestDataForTestVectors(16)))
         .isEqualTo("7fc56270e7a70fa81a5935b72eacbe29");
-    assertThat(
-            TestUtils.byteArrayToHexString(generateTestDataForTestVectors(1000000))
-                .endsWith("197c74f51423765786516442fd1c9832"))
-        .isTrue();
+    assertThat(TestUtils.byteArrayToHexString(generateTestDataForTestVectors(1000000)))
+        .endsWith("197c74f51423765786516442fd1c9832");
   }
 
   @ParameterizedTest
