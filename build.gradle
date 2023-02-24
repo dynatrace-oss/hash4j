@@ -13,7 +13,7 @@ plugins {
 	id 'java'
 	id 'java-library'
 	id 'jacoco'
-	id 'me.champeau.jmh' version '0.6.8'
+	id 'me.champeau.jmh' version '0.7.0'
 	id 'org.sonarqube' version '4.0.0.2929'
 	id 'com.diffplug.spotless' version '6.15.0'
 	id 'maven-publish'
