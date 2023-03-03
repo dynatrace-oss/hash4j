@@ -491,9 +491,17 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     }
   }
 
+  private static double unsignedLongToDouble(long l) {
+    double d = (double) (l & 0x7fffffffffffffffL);
+    if (l < 0) d += 0x1.0p63;
+    return d;
+  }
+
   static final class CorrectedRawEstimator extends AbstractRawEstimator {
 
     private CorrectedRawEstimator() {}
+
+    private static final double ONE_THIRD = 1. / 3.;
 
     static double tau(double x) {
       if (x <= 0. || x >= 1.) return 0.;
@@ -507,7 +515,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
         double oneMinusX = 1 - x;
         z -= oneMinusX * oneMinusX * y;
       } while (zPrime > z);
-      return z * (1. / 3.);
+      return z * ONE_THIRD;
     }
 
     @Override
@@ -515,48 +523,45 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       byte[] state = hyperLogLog.state;
       int c0 = 0;
       int cMax = 0;
-      double sum = 0;
+      long agg = 0;
       int maxR = 65 - hyperLogLog.p;
+      long inc = 1L << -hyperLogLog.p;
       for (int off = 0; off + 2 < state.length; off += 3) {
-        long r0 = state[off] & 0x3fL;
-        long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
-        long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
-        long r3 = (state[off + 2] & 0xfcL) >>> 2;
-        if (r0 < maxR) {
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
-        } else {
-          cMax += 1;
-        }
-        if (r1 < maxR) {
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
-        } else {
-          cMax += 1;
-        }
-        if (r2 < maxR) {
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
-        } else {
-          cMax += 1;
-        }
-        if (r3 < maxR) {
-          sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
-        } else {
-          cMax += 1;
-        }
+        int r0 = state[off] & 0x3f;
+        int r1 = ((state[off] & 0xc0) >>> 6) | ((state[off + 1] & 0x0f) << 2);
+        int r2 = ((state[off + 1] & 0xf0) >>> 4) | ((state[off + 2] & 0x03) << 4);
+        int r3 = (state[off + 2] & 0xfc) >>> 2;
+        agg += inc >>> r0;
+        agg += inc >>> r1;
+        agg += inc >>> r2;
+        agg += inc >>> r3;
+        if (r0 >= maxR) cMax += 1;
+        if (r1 >= maxR) cMax += 1;
+        if (r2 >= maxR) cMax += 1;
+        if (r3 >= maxR) cMax += 1;
         if (r0 == 0) c0 += 1;
         if (r1 == 0) c0 += 1;
         if (r2 == 0) c0 += 1;
         if (r3 == 0) c0 += 1;
       }
-      if (c0 > 0) {
-        double m = 1 << hyperLogLog.p;
-        sum += m * sigma(c0 / m);
-      }
+      double sum = 0;
+
       if (cMax > 0) {
         double m = 1 << hyperLogLog.p;
         sum +=
             Double.longBitsToDouble(0x3FF0000000000000L - ((32L - hyperLogLog.p) << 53))
                 * tau(1. - cMax / m);
       }
+
+      // if c0 == m agg could have overflown and would be zero, but sum would become infinite anyway
+      // due to the sigma function below, so this does not matter
+      sum += unsignedLongToDouble(agg) / inc;
+
+      if (c0 > 0) {
+        double m = 1 << hyperLogLog.p;
+        sum += m * sigma(c0 / m);
+      }
+
       return AbstractRawEstimator.ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
     }
   }
@@ -569,9 +574,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     //
     // for a numerical evaluation see
     // https://www.wolframalpha.com/input?i=sqrt%28ln%282%29%2Fzeta%282%2C2%29%29
-    private static final double INV_SQRT_FISHER_INFORMATION =
-        1.0367047097785010515294550203275421651870833101049654526772626427;
-
+    private static final double INV_SQRT_FISHER_INFORMATION = 1.0367047097785011;
     private static final double ML_EQUATION_SOLVER_EPS =
         0.001 * INV_SQRT_FISHER_INFORMATION; // 0.1% of theoretical relative error
 
@@ -581,8 +584,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     //
     // for a numerical evaluation see
     // https://www.wolframalpha.com/input?i=3+*+ln%282%29+*+zeta%283%2C2%29%2F%28zeta%282%2C2%29%29%5E2
-    private static final double ML_BIAS_CORRECTION_CONSTANT =
-        1.0101590809585398846370363680437872475215951788609050234281811303;
+    private static final double ML_BIAS_CORRECTION_CONSTANT = 1.01015908095854;
 
     private static double contribute(int r, int[] b, int maxR) {
       if (r <= maxR) {
