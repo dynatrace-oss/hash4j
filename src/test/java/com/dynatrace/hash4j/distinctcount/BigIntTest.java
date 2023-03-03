@@ -20,34 +20,34 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 
-public class BigIntTest {
+class BigIntTest {
 
   @Test
   void testBigIntFloor() {
-    assertThat(BigInt.floor(1.2).toString()).isEqualTo("1");
-    assertThat(BigInt.floor(1e20).toString()).isEqualTo("100000000000000000000");
-    assertThat(BigInt.floor(1e30).toString()).isEqualTo("1000000000000000019884624838656");
+    assertThat(BigInt.floor(1.2)).hasToString("1");
+    assertThat(BigInt.floor(1e20)).hasToString("100000000000000000000");
+    assertThat(BigInt.floor(1e30)).hasToString("1000000000000000019884624838656");
   }
 
   @Test
   void testBigIntCeil() {
-    assertThat(BigInt.ceil(1.2).toString()).isEqualTo("2");
-    assertThat(BigInt.ceil(1e20).toString()).isEqualTo("100000000000000000000");
-    assertThat(BigInt.ceil(1e30).toString()).isEqualTo("1000000000000000019884624838656");
+    assertThat(BigInt.ceil(1.2)).hasToString("2");
+    assertThat(BigInt.ceil(1e20)).hasToString("100000000000000000000");
+    assertThat(BigInt.ceil(1e30)).hasToString("1000000000000000019884624838656");
   }
 
   @Test
   void testIncrement() {
     BigInt i = BigInt.ceil(1);
     i.increment();
-    assertThat(i.toString()).isEqualTo("2");
+    assertThat(i).hasToString("2");
   }
 
   @Test
   void testDecrement() {
     BigInt i = BigInt.ceil(Math.pow(2, 63));
     i.decrement();
-    assertThat(i.toString()).isEqualTo(Long.toString(Long.MAX_VALUE));
+    assertThat(i).hasToString(Long.toString(Long.MAX_VALUE));
   }
 
   @Test
@@ -55,6 +55,6 @@ public class BigIntTest {
     BigInt i1 = BigInt.fromBigInt(new BigInteger("10000500000000005"));
     BigInt i2 = BigInt.fromBigInt(new BigInteger("10000900000000006"));
     i1.add(i2);
-    assertThat(i1.toString()).isEqualTo("20001400000000011");
+    assertThat(i1).hasToString("20001400000000011");
   }
 }

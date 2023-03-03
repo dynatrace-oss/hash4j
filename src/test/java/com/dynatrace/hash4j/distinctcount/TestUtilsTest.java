@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
-public class TestUtilsTest {
+class TestUtilsTest {
 
   @Test
   void testGetDistinctCountValues() {
