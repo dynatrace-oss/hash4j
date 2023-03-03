@@ -99,6 +99,10 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   private static final int MIN_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MIN_P);
   private static final int MAX_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MAX_P);
 
+  private static double powHalf(int x) {
+    return Double.longBitsToDouble((0x3FFL - x) << 52);
+  }
+
   private final int p;
   private final byte[] state;
 
@@ -280,20 +284,20 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   @Override
   public HyperLogLog add(long hashValue, StateChangeObserver stateChangeObserver) {
     int idx = (int) (hashValue >>> (-p));
-    long newValue = Long.numberOfLeadingZeros(~(~hashValue << p)) + 1;
-    long oldValue = ARRAY_HANDLER.update(state, idx, newValue, Math::max);
+    int newValue = Long.numberOfLeadingZeros(~(~hashValue << p)) + 1;
+    int oldValue = (int) ARRAY_HANDLER.update(state, idx, newValue, Math::max);
     if (stateChangeObserver != null && newValue > oldValue) {
       double stateChangeProbabilityDecrement =
-          getRegisterChangeProbability(oldValue, p) - getRegisterChangeProbability(newValue, p);
+          getRegisterChangeProbability(oldValue) - getRegisterChangeProbability(newValue);
       stateChangeObserver.stateChanged(stateChangeProbabilityDecrement);
     }
     return this;
   }
 
-  private static double getRegisterChangeProbability(long registerValue, int p) {
-    long r = registerValue + p;
+  private double getRegisterChangeProbability(int registerValue) {
+    int r = registerValue + p;
     if (r <= 64) {
-      return Double.longBitsToDouble(0x3FF0000000000000L - (r << 52));
+      return powHalf(r);
     } else {
       return 0;
     }
@@ -374,14 +378,17 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   public double getStateChangeProbability() {
     double sum = 0;
     for (int off = 0; off + 2 < state.length; off += 3) {
-      long r0 = state[off] & 0x3fL;
-      long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
-      long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
-      long r3 = (state[off + 2] & 0xfcL) >>> 2;
-      sum += getRegisterChangeProbability(r0, p);
-      sum += getRegisterChangeProbability(r1, p);
-      sum += getRegisterChangeProbability(r2, p);
-      sum += getRegisterChangeProbability(r3, p);
+      int s0 = state[off];
+      int s1 = state[off + 1];
+      int s2 = state[off + 2];
+      int r0 = s0 & 0x3F;
+      int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
+      int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
+      int r3 = (s2 >>> 2) & 0x3F;
+      sum += getRegisterChangeProbability(r0);
+      sum += getRegisterChangeProbability(r1);
+      sum += getRegisterChangeProbability(r2);
+      sum += getRegisterChangeProbability(r3);
     }
     return sum;
   }
@@ -401,7 +408,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   public interface Estimator extends DistinctCounter.Estimator<HyperLogLog> {}
 
   private static double unsignedLongToDouble(long l) {
-    double d = (double) (l & 0x7fffffffffffffffL);
+    double d = l & 0x7fffffffffffffffL;
     if (l < 0) d += 0x1.0p63;
     return d;
   }
@@ -478,10 +485,13 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       int maxR = 65 - hyperLogLog.p;
       long inc = 1L << -hyperLogLog.p;
       for (int off = 0; off + 2 < state.length; off += 3) {
-        int r0 = state[off] & 0x3f;
-        int r1 = ((state[off] & 0xc0) >>> 6) | ((state[off + 1] & 0x0f) << 2);
-        int r2 = ((state[off + 1] & 0xf0) >>> 4) | ((state[off + 2] & 0x03) << 4);
-        int r3 = (state[off + 2] & 0xfc) >>> 2;
+        int s0 = state[off];
+        int s1 = state[off + 1];
+        int s2 = state[off + 2];
+        int r0 = s0 & 0x3F;
+        int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
+        int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
+        int r3 = (s2 >>> 2) & 0x3F;
         agg += inc >>> r0;
         agg += inc >>> r1;
         agg += inc >>> r2;
@@ -537,42 +547,44 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     // https://www.wolframalpha.com/input?i=3+*+ln%282%29+*+zeta%283%2C2%29%2F%28zeta%282%2C2%29%29%5E2
     private static final double ML_BIAS_CORRECTION_CONSTANT = 1.01015908095854;
 
-    private static double contribute(int r, int[] b, int maxR) {
-      if (r <= maxR) {
-        if (r > 0) {
-          b[r] += 1;
-        }
-        return Double.longBitsToDouble(0x3FF0000000000000L - ((long) r << 52));
-      } else {
-        b[maxR] += 1;
-        return 0;
-      }
-    }
-
     @Override
     public double estimate(HyperLogLog hyperLogLog) {
 
       byte[] state = hyperLogLog.state;
       int p = hyperLogLog.p;
-      double a = 0;
-      int[] b = new int[64];
-      int maxR = 63 - p;
+      long agg = 0;
+      int[] c = new int[66 - p];
+      long inc = 1L << -hyperLogLog.p;
 
       for (int off = 0; off + 2 < state.length; off += 3) {
-        int r0 = state[off] & 0x3f;
-        int r1 = ((state[off] & 0xc0) >>> 6) | ((state[off + 1] & 0x0f) << 2);
-        int r2 = ((state[off + 1] & 0xf0) >>> 4) | ((state[off + 2] & 0x03) << 4);
-        int r3 = (state[off + 2] & 0xfc) >>> 2;
-
-        a += contribute(r0, b, maxR);
-        a += contribute(r1, b, maxR);
-        a += contribute(r2, b, maxR);
-        a += contribute(r3, b, maxR);
+        int s0 = state[off];
+        int s1 = state[off + 1];
+        int s2 = state[off + 2];
+        int r0 = s0 & 0x3F;
+        int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
+        int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
+        int r3 = (s2 >>> 2) & 0x3F;
+        agg += inc >>> r0;
+        agg += inc >>> r1;
+        agg += inc >>> r2;
+        agg += inc >>> r3;
+        if (r0 < c.length) c[r0] += 1;
+        if (r1 < c.length) c[r1] += 1;
+        if (r2 < c.length) c[r2] += 1;
+        if (r3 < c.length) c[r3] += 1;
       }
       int m = 1 << p;
+
+      // if c[0] == m agg could have overflown and would be zero, but sum would become infinite
+      // anyway due to the sigma function below, so this does not matter
+      if (c[0] == m) return 0.;
+      c[0] = 0;
+      c[c.length - 2] += c[c.length - 1];
+      c[c.length - 1] = 0;
+      double a = unsignedLongToDouble(agg) / inc;
       return m
           * DistinctCountUtil.solveMaximumLikelihoodEquation(
-              a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
+              a, c, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
           / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
     }
   }

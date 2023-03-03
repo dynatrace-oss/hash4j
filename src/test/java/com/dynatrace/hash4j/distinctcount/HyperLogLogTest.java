@@ -148,6 +148,11 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
+  protected int getNumberOfExtraBits() {
+    return 0;
+  }
+
+  @Override
   protected List<HyperLogLog.Estimator> getEstimators() {
     return Arrays.asList(CORRECTED_RAW_ESTIMATOR, MAXIMUM_LIKELIHOOD_ESTIMATOR);
   }
@@ -409,10 +414,21 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   void testStateChangeProbabilityForAlmostFullSketch() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       HyperLogLog sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | 1);
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 63 - p));
       }
       assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
+    }
+  }
+
+  @Test
+  void testDistinctCountEstimationFromFullSketch() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      HyperLogLog sketch = createFullSketch(p);
+      assertThat(sketch.getDistinctCountEstimate()).isInfinite();
+      for (HyperLogLog.Estimator estimator : getEstimators()) {
+        assertThat(sketch.getDistinctCountEstimate(estimator)).isInfinite();
+      }
     }
   }
 }

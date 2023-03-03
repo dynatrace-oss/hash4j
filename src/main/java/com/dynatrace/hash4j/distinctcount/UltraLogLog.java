@@ -387,11 +387,11 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       }
       return Double.longBitsToDouble(x - (((r >>> 2) - 1L) << 52));
     } else if (r == 252) {
-      return 0x1.8p-62; // = 2^-63 + 2^-62
+      return 0x1.8p-63; // = 2^-64 + 2^-63
     } else if (r == 253) {
-      return 0x1.0p-63; // = 2^-63
+      return 0x1.0p-64; // = 2^-64
     } else if (r == 254) {
-      return 0x1.0p-62; // = 2^-62
+      return 0x1.0p-63; // = 2^-63
     } else {
       return 0;
     }
