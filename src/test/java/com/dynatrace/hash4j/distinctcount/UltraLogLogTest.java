@@ -416,7 +416,12 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     //
     // for a numerical evaluation see
     // https://www.wolframalpha.com/input?i=%284%2F5+%2B+int_0%5E1+z%5E%28-3%2F4%29+%281-z%29*ln%281-z%29%2Fln%28z%29+dz%29+%2F+%28ln%282%29+*+zeta%282%2C5%2F4%29%29
-    return 2.3121675172273321507391374981099550309731319926228541209892337122;
+    return 2.312167517227332;
+  }
+
+  @Override
+  protected int getNumberOfExtraBits() {
+    return 2;
   }
 
   @Override
@@ -615,10 +620,10 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   void testStateChangeProbabilityForAlmostFullSketch251() {
     for (int p = MIN_P; p <= 16; ++p) {
       UltraLogLog sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | 1);
-        sketch.add((k << -p) | 2);
-        sketch.add((k << -p) | 4);
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 63 - p));
+        sketch.add(createUpdateValue(p, k, 62 - p));
+        sketch.add(createUpdateValue(p, k, 61 - p));
       }
       assertThat(sketch.getState()).containsOnly((byte) 251);
       assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
@@ -629,12 +634,12 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   void testStateChangeProbabilityForAlmostFullSketch252() {
     for (int p = MIN_P; p <= 16; ++p) {
       UltraLogLog sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | 0);
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 64 - p));
       }
       assertThat(sketch.getState()).containsOnly((byte) 252);
       assertThat(sketch.getStateChangeProbability())
-          .isEqualTo(Math.pow(0.5, 62 - p) + Math.pow(0.5, 63 - p));
+          .isEqualTo(Math.pow(0.5, 63 - p) + Math.pow(0.5, 64 - p));
     }
   }
 
@@ -642,12 +647,12 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   void testStateChangeProbabilityForAlmostFullSketch253() {
     for (int p = MIN_P; p <= 16; ++p) {
       UltraLogLog sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | 0);
-        sketch.add((k << -p) | 2);
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 64 - p));
+        sketch.add(createUpdateValue(p, k, 62 - p));
       }
       assertThat(sketch.getState()).containsOnly((byte) 253);
-      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 63 - p));
+      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
     }
   }
 
@@ -655,12 +660,12 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   void testStateChangeProbabilityForAlmostFullSketch254() {
     for (int p = MIN_P; p <= 16; ++p) {
       UltraLogLog sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | 0);
-        sketch.add((k << -p) | 1);
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 64 - p));
+        sketch.add(createUpdateValue(p, k, 63 - p));
       }
       assertThat(sketch.getState()).containsOnly((byte) 254);
-      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 62 - p));
+      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 63 - p));
     }
   }
 
@@ -668,10 +673,10 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   void testStateChangeProbabilityForAlmostFullSketch255() {
     for (int p = MIN_P; p <= 16; ++p) {
       UltraLogLog sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | 0);
-        sketch.add((k << -p) | 1);
-        sketch.add((k << -p) | 2);
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 64 - p));
+        sketch.add(createUpdateValue(p, k, 63 - p));
+        sketch.add(createUpdateValue(p, k, 62 - p));
       }
       assertThat(sketch.getState()).containsOnly((byte) 255);
       assertThat(sketch.getStateChangeProbability()).isZero();
@@ -691,5 +696,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
         Arrays.asList(this::calculateTheoreticalRelativeStandardErrorML),
         new double[] {0.06},
         new double[] {0.15});
+  }
+
+  @Test
+  void testDistinctCountEstimationFromFullSketch() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      UltraLogLog sketch = createFullSketch(p);
+      assertThat(sketch.getDistinctCountEstimate(MAXIMUM_LIKELIHOOD_ESTIMATOR)).isInfinite();
+    }
   }
 }

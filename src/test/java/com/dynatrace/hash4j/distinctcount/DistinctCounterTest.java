@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 import static java.lang.Math.pow;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
@@ -59,6 +60,10 @@ abstract class DistinctCounterTest<
   protected abstract T wrap(byte[] state);
 
   protected abstract double getCompressedStorageFactorLowerBound();
+
+  protected abstract List<? extends R> getEstimators();
+
+  protected abstract int getNumberOfExtraBits();
 
   @Test
   void testStateCompatibility() {
@@ -506,8 +511,6 @@ abstract class DistinctCounterTest<
     }
   }
 
-  protected abstract List<? extends R> getEstimators();
-
   @Test
   void testRandomStates() {
     int numCycles = 1000000;
@@ -715,7 +718,7 @@ abstract class DistinctCounterTest<
     double averageRmse = 0;
     double trueDistinctCount = 1;
     for (int nlz = 0; nlz < 64 - p; ++nlz) {
-      long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz;
+      long hash1 = createUpdateValue(p, 0, nlz);
       sketch.getState()[0] = 0;
       sketch.add(hash1);
       double probability = pow(0.5, nlz + 1);
@@ -745,15 +748,12 @@ abstract class DistinctCounterTest<
     double averageEstimate = 0;
     double averageRmse = 0;
     double trueDistinctCount = 2;
-    long regMask1 = 0L << -p;
-    long regMask2 = 1L << -p;
     for (int nlz1 = 0; nlz1 < 64 - p; ++nlz1) {
       for (int nlz2 = nlz1; nlz2 < 64 - p; ++nlz2) {
-        long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz1;
-        long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
         {
           Arrays.fill(sketch.getState(), 0, 2, (byte) 0);
-          sketch.add(hash1 | regMask1).add(hash2 | regMask1);
+          sketch.add(createUpdateValue(p, 0, nlz1));
+          sketch.add(createUpdateValue(p, 0, nlz2));
           double probability = pow_0_5[nlz1 + nlz2 + 2 + p];
           if (nlz1 != nlz2) probability *= 2;
           sumProbabiltiy += probability;
@@ -764,7 +764,8 @@ abstract class DistinctCounterTest<
         }
         {
           Arrays.fill(sketch.getState(), 0, 2, (byte) 0);
-          sketch.add(hash1 | regMask1).add(hash2 | regMask2);
+          sketch.add(createUpdateValue(p, 0, nlz1));
+          sketch.add(createUpdateValue(p, 1, nlz2));
           double probability = (m - 1) * pow_0_5[nlz1 + nlz2 + 2 + p];
           if (nlz1 != nlz2) probability *= 2;
           sumProbabiltiy += probability;
@@ -794,18 +795,14 @@ abstract class DistinctCounterTest<
     double averageEstimate = 0;
     double averageRmse = 0;
     double trueDistinctCount = 3;
-    long regMask1 = 0L << -p;
-    long regMask2 = 1L << -p;
-    long regMask3 = 2L << -p;
     for (int nlz1 = 0; nlz1 < 64 - p; ++nlz1) {
       for (int nlz2 = nlz1; nlz2 < 64 - p; ++nlz2) {
         for (int nlz3 = 0; nlz3 < 64 - p; ++nlz3) {
-          long hash1 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz1;
-          long hash2 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz2;
-          long hash3 = 0xFFFFFFFFFFFFFFFFL >>> p >>> nlz3;
           {
             Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
-            sketch.add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask1);
+            sketch.add(createUpdateValue(p, 0, nlz1));
+            sketch.add(createUpdateValue(p, 0, nlz2));
+            sketch.add(createUpdateValue(p, 0, nlz3));
             double probability = pow_0_5[nlz1 + nlz2 + nlz3 + 3 + p + p];
             if (nlz1 != nlz2) probability *= 2;
             sumProbabiltiy += probability;
@@ -816,7 +813,9 @@ abstract class DistinctCounterTest<
           }
           {
             Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
-            sketch.add(hash1 | regMask1).add(hash2 | regMask1).add(hash3 | regMask2);
+            sketch.add(createUpdateValue(p, 0, nlz1));
+            sketch.add(createUpdateValue(p, 0, nlz2));
+            sketch.add(createUpdateValue(p, 1, nlz3));
             double probability = (3 * (m - 1)) * pow_0_5[nlz1 + nlz2 + nlz3 + 3 + p + p];
             if (nlz1 != nlz2) probability *= 2;
             sumProbabiltiy += probability;
@@ -827,7 +826,9 @@ abstract class DistinctCounterTest<
           }
           {
             Arrays.fill(sketch.getState(), 0, 3, (byte) 0);
-            sketch.add(hash1 | regMask1).add(hash2 | regMask2).add(hash3 | regMask3);
+            sketch.add(createUpdateValue(p, 0, nlz1));
+            sketch.add(createUpdateValue(p, 1, nlz2));
+            sketch.add(createUpdateValue(p, 2, nlz3));
             double probability = ((m - 1) * (m - 2)) * pow_0_5[nlz1 + nlz2 + nlz3 + 3 + p + p];
             if (nlz1 != nlz2) probability *= 2;
             sumProbabiltiy += probability;
@@ -850,6 +851,12 @@ abstract class DistinctCounterTest<
     return new double[] {relativeBias, relativeRmse};
   }
 
+  static long createUpdateValue(int p, int registerIndex, int nlz) {
+    checkArgument(nlz >= 0);
+    checkArgument(nlz <= 64 - p);
+    return ((long) registerIndex << -p) | (0xFFFFFFFFFFFFFFFFL >>> p >>> nlz);
+  }
+
   @Test
   void testStateChangeProbabilityForEmptySketch() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
@@ -858,16 +865,60 @@ abstract class DistinctCounterTest<
     }
   }
 
+  protected T createFullSketch(int p) {
+    T sketch = create(p);
+    for (int k = 0; k < (1 << p); ++k) {
+      for (int nlz = 64 - p - getNumberOfExtraBits(); nlz <= 64 - p; ++nlz) {
+        sketch.add(createUpdateValue(p, k, nlz));
+      }
+    }
+    return sketch;
+  }
+
+  protected T createAlmostFullSketch(int p) {
+    T sketch = create(p);
+    for (int nlz = 63 - p - getNumberOfExtraBits(); nlz <= 63 - p; ++nlz) {
+      sketch.add(createUpdateValue(p, 0, nlz));
+    }
+    for (int k = 1; k < (1 << p); ++k) {
+      for (int nlz = 64 - p - getNumberOfExtraBits(); nlz <= 64 - p; ++nlz) {
+        sketch.add(createUpdateValue(p, k, nlz));
+      }
+    }
+    return sketch;
+  }
+
   @Test
   void testStateChangeProbabilityForFullSketch() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
+      assertThat(createFullSketch(p).getStateChangeProbability()).isZero();
+    }
+  }
+
+  @Test
+  void testStateChangeProbabilityForAlmostFullSketch() {
+    for (int p = MIN_P; p <= 12; ++p) {
       T sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        for (int i = 62 - p; i <= 64 - p; ++i) {
-          sketch.add((k << -p) | (0xFFFFFFFFFFFFFFFFL >>> p >>> i));
+      for (int off = 0; off + getNumberOfExtraBits() < 64 - p; ++off) {
+        for (int nlz = off; nlz <= off + getNumberOfExtraBits(); ++nlz) {
+          for (int k = 0; k < (1 << p); ++k) {
+            sketch.add(createUpdateValue(p, k, nlz));
+          }
         }
+        assertThat(sketch.getStateChangeProbability())
+            .isEqualTo(Math.pow(0.5, off + getNumberOfExtraBits() + 1));
       }
-      assertThat(sketch.getStateChangeProbability()).isZero();
+    }
+  }
+
+  @Test
+  void testDistinctCountEstimationFromAlmostFullSketchIsFinite() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      T sketch = createAlmostFullSketch(p);
+      assertThat(sketch.getDistinctCountEstimate()).isFinite();
+      for (R estimator : getEstimators()) {
+        assertThat(sketch.getDistinctCountEstimate(estimator)).isFinite();
+      }
     }
   }
 
@@ -875,8 +926,8 @@ abstract class DistinctCounterTest<
   void testStateChangeProbabilityForHalfFullSketch() {
     for (int p = MIN_P; p <= MAX_P; ++p) {
       T sketch = create(p);
-      for (long k = 0; k < (1 << p); ++k) {
-        sketch.add((k << -p) | (0xFFFFFFFFFFFFFFFFL >>> p));
+      for (int k = 0; k < (1 << p); ++k) {
+        sketch.add(createUpdateValue(p, k, 0));
       }
       assertThat(sketch.getStateChangeProbability()).isEqualTo(0.5);
     }
