@@ -25,3 +25,9 @@ acceptedBreaks:
       old: "class com.dynatrace.hash4j.distinctcount.UltraLogLog"
       new: "class com.dynatrace.hash4j.distinctcount.UltraLogLog"
       justification: "changed type parameters of parent package-private interface"
+  "0.8.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.field.removed"
+      old: "field com.dynatrace.hash4j.distinctcount.HyperLogLog.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR"
+      justification: "{removed SMALL_RANGE_CORRECTED_RAW_ESTIMATOR use CORRECTED_RAW_ESTIMATOR\
+        \ instead}"

@@ -43,10 +43,6 @@ public class HyperLogLogEstimationErrorSimulation {
                 "maximum likelihood",
                 pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorML(pp)),
             new EstimationErrorSimulationUtil.EstimatorConfig<>(
-                (s, m) -> s.getDistinctCountEstimate(SMALL_RANGE_CORRECTED_RAW_ESTIMATOR),
-                "small range corrected raw",
-                pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorRaw(pp)),
-            new EstimationErrorSimulationUtil.EstimatorConfig<>(
                 (s, m) -> s.getDistinctCountEstimate(CORRECTED_RAW_ESTIMATOR),
                 "corrected raw",
                 pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorRaw(pp))),

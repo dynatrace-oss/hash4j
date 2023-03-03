@@ -45,21 +45,6 @@ import java.util.Arrays;
 public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogLog.Estimator> {
 
   /**
-   * Bias-reduced version of the standard HyperLogLog estimator using small range correction as
-   * described in (Ertl2017).
-   *
-   * <p>See:
-   *
-   * <ul>
-   *   <li>Ertl, Otmar. "New cardinality estimation algorithms for HyperLogLog sketches." arXiv
-   *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
-   * </ul>
-   */
-  public static final Estimator SMALL_RANGE_CORRECTED_RAW_ESTIMATOR =
-      new SmallRangeCorrectedRawEstimator();
-
-  // visible for testing
-  /**
    * Bias-reduced version of the standard HyperLogLog estimator using small range and large range
    * correction as described in (Ertl2017).
    *
@@ -70,7 +55,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
    * </ul>
    */
-  static final Estimator CORRECTED_RAW_ESTIMATOR = new CorrectedRawEstimator();
+  public static final Estimator CORRECTED_RAW_ESTIMATOR = new CorrectedRawEstimator();
 
   /**
    * A bias-reduced version of the maximum-likelihood estimator described in (Ertl2017).
@@ -85,7 +70,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   public static final Estimator MAXIMUM_LIKELIHOOD_ESTIMATOR = new MaximumLikelihoodEstimator();
 
   /** The default estimator. */
-  public static final Estimator DEFAULT_ESTIMATOR = SMALL_RANGE_CORRECTED_RAW_ESTIMATOR;
+  public static final Estimator DEFAULT_ESTIMATOR = CORRECTED_RAW_ESTIMATOR;
 
   private static final PackedArrayHandler ARRAY_HANDLER = PackedArray.getHandler(6);
 
@@ -415,24 +400,17 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   /** A distinct count estimator for HyperLogLog. */
   public interface Estimator extends DistinctCounter.Estimator<HyperLogLog> {}
 
-  abstract static class AbstractRawEstimator implements Estimator {
+  private static double unsignedLongToDouble(long l) {
+    double d = (double) (l & 0x7fffffffffffffffL);
+    if (l < 0) d += 0x1.0p63;
+    return d;
+  }
 
-    private AbstractRawEstimator() {}
+  static final class CorrectedRawEstimator implements Estimator {
 
-    static double sigma(double x) {
-      if (x <= 0.) return 0;
-      if (x >= 1.) return Double.POSITIVE_INFINITY;
-      double z = 1;
-      double sum = 0;
-      double oldSum;
-      do {
-        x *= x;
-        oldSum = sum;
-        sum += x * z;
-        z += z;
-      } while (oldSum < sum);
-      return sum;
-    }
+    private CorrectedRawEstimator() {}
+
+    private static final double ONE_THIRD = 1. / 3.;
 
     static final double[] ESTIMATION_FACTORS = {
       40.67760431873907,
@@ -460,48 +438,21 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       8.12165079942359E14,
       3.248660372023916E15
     };
-  }
 
-  private static final class SmallRangeCorrectedRawEstimator extends AbstractRawEstimator {
-
-    @Override
-    public double estimate(HyperLogLog hyperLogLog) {
-      byte[] state = hyperLogLog.state;
-      int c0 = 0;
+    static double sigma(double x) {
+      if (x <= 0.) return 0;
+      if (x >= 1.) return Double.POSITIVE_INFINITY;
+      double z = 1;
       double sum = 0;
-      for (int off = 0; off + 2 < state.length; off += 3) {
-        long r0 = state[off] & 0x3fL;
-        long r1 = ((state[off] & 0xc0L) >>> 6) | ((state[off + 1] & 0x0fL) << 2);
-        long r2 = ((state[off + 1] & 0xf0L) >>> 4) | ((state[off + 2] & 0x03L) << 4);
-        long r3 = (state[off + 2] & 0xfcL) >>> 2;
-        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r0 << 52));
-        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r1 << 52));
-        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r2 << 52));
-        sum += Double.longBitsToDouble(0x3FF0000000000000L - (r3 << 52));
-        if (r0 == 0) c0 += 1;
-        if (r1 == 0) c0 += 1;
-        if (r2 == 0) c0 += 1;
-        if (r3 == 0) c0 += 1;
-      }
-      if (c0 > 0) {
-        double m = 1 << hyperLogLog.p;
-        sum += m * sigma(c0 / m);
-      }
-      return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+      double oldSum;
+      do {
+        x *= x;
+        oldSum = sum;
+        sum += x * z;
+        z += z;
+      } while (oldSum < sum);
+      return sum;
     }
-  }
-
-  private static double unsignedLongToDouble(long l) {
-    double d = (double) (l & 0x7fffffffffffffffL);
-    if (l < 0) d += 0x1.0p63;
-    return d;
-  }
-
-  static final class CorrectedRawEstimator extends AbstractRawEstimator {
-
-    private CorrectedRawEstimator() {}
-
-    private static final double ONE_THIRD = 1. / 3.;
 
     static double tau(double x) {
       if (x <= 0. || x >= 1.) return 0.;
@@ -562,7 +513,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
         sum += m * sigma(c0 / m);
       }
 
-      return AbstractRawEstimator.ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+      return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
     }
   }
 

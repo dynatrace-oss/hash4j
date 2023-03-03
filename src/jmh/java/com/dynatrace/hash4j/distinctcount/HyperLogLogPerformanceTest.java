@@ -60,7 +60,6 @@ public class HyperLogLogPerformanceTest {
 
   public enum Estimator {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
-    SMALL_RANGE_CORRECTED_RAW_ESTIMATOR(HyperLogLog.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR),
     CORRECTED_RAW_ESTIMATOR(HyperLogLog.CORRECTED_RAW_ESTIMATOR);
 
     private final DistinctCounter.Estimator<HyperLogLog> estimator;

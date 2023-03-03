@@ -16,7 +16,7 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.distinctcount.HyperLogLog.*;
-import static com.dynatrace.hash4j.distinctcount.HyperLogLog.AbstractRawEstimator.sigma;
+import static com.dynatrace.hash4j.distinctcount.HyperLogLog.CorrectedRawEstimator.sigma;
 import static com.dynatrace.hash4j.distinctcount.HyperLogLog.CorrectedRawEstimator.tau;
 import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
 import static org.assertj.core.api.Assertions.*;
@@ -149,8 +149,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
 
   @Override
   protected List<HyperLogLog.Estimator> getEstimators() {
-    return Arrays.asList(
-        SMALL_RANGE_CORRECTED_RAW_ESTIMATOR, CORRECTED_RAW_ESTIMATOR, MAXIMUM_LIKELIHOOD_ESTIMATOR);
+    return Arrays.asList(CORRECTED_RAW_ESTIMATOR, MAXIMUM_LIKELIHOOD_ESTIMATOR);
   }
 
   @Test
@@ -177,58 +176,6 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
     assertThat(tau(-Double.MIN_VALUE)).isZero();
     assertThat(tau(Double.NaN)).isNaN();
     assertThat(tau(Math.nextDown(1.))).isCloseTo(3.700743415417188E-17, withPercentage(1e-8));
-  }
-
-  @Test
-  void testDistinctCountEqualOneSmallRangeCorrectedRawEstimator() {
-    testErrorOfDistinctCountEqualOne(
-        new int[] {
-          3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
-        },
-        SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
-        this::calculateTheoreticalRelativeStandardErrorRaw,
-        new double[] {
-          0.1619, 0.1271, 0.0946, 0.0687, 0.0493, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
-          0.0052, 0.0043, 0.0038, 0.0038, 0.0043, 0.0053, 0.0069, 0.0094, 0.013, 0.0181, 0.0255,
-          0.0359, 0.0507
-        },
-        new double[] {
-          0.1623, 0.1271, 0.0947, 0.0687, 0.0493, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
-          0.0052, 0.0043, 0.0038, 0.0038, 0.0043, 0.0053, 0.0069, 0.0094, 0.013, 0.0181, 0.0255,
-          0.0359, 0.0507
-        });
-  }
-
-  @Test
-  void testDistinctCountEqualTwoSmallRangeCorrectedRawEstimator() {
-    testErrorOfDistinctCountEqualTwo(
-        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18},
-        SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
-        this::calculateTheoreticalRelativeStandardErrorRaw,
-        new double[] {
-          0.1511, 0.1233, 0.0933, 0.0682, 0.0491, 0.0351, 0.025, 0.0178, 0.0128, 0.0092, 0.0068,
-          0.0052, 0.0043, 0.0038, 0.0038, 0.0043
-        },
-        new double[] {
-          0.5158, 0.5019, 0.4945, 0.4904, 0.4883, 0.4872, 0.4867, 0.4864, 0.4863, 0.4862, 0.4862,
-          0.4861, 0.4861, 0.4861, 0.4861, 0.4861
-        });
-  }
-
-  @Test
-  void testDistinctCountEqualThreeSmallRangeCorrectedRawEstimator() {
-    testErrorOfDistinctCountEqualThree(
-        new int[] {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-        SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
-        this::calculateTheoreticalRelativeStandardErrorRaw,
-        new double[] {
-          0.1412, 0.1197, 0.092, 0.0677, 0.0489, 0.0349, 0.0248, 0.0176, 0.0124, 0.0087, 0.0061,
-          0.0043
-        },
-        new double[] {
-          0.6039, 0.5812, 0.5713, 0.5664, 0.5639, 0.5626, 0.562, 0.5616, 0.5615, 0.5614, 0.5614,
-          0.5613
-        });
   }
 
   @Test
@@ -377,12 +324,12 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Test
-  void testEstimationFactors() {
+  void testEstimationFactorsForCorrectedRawEstimator() {
     double[] expectedEstimationFactors = new double[MAX_P - MIN_P + 1];
     for (int p = MIN_P; p <= MAX_P; ++p) {
       expectedEstimationFactors[p - MIN_P] = calculateEstimationFactor(p);
     }
-    assertThat(AbstractRawEstimator.ESTIMATION_FACTORS)
+    assertThat(CorrectedRawEstimator.ESTIMATION_FACTORS)
         .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
         .isEqualTo(expectedEstimationFactors);
   }
@@ -427,21 +374,17 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
           p,
           random.nextLong(),
           distinctCounts,
+          Arrays.asList(CORRECTED_RAW_ESTIMATOR, MAXIMUM_LIKELIHOOD_ESTIMATOR),
           Arrays.asList(
-              SMALL_RANGE_CORRECTED_RAW_ESTIMATOR,
-              CORRECTED_RAW_ESTIMATOR,
-              MAXIMUM_LIKELIHOOD_ESTIMATOR),
-          Arrays.asList(
-              this::calculateTheoreticalRelativeStandardErrorRaw,
               this::calculateTheoreticalRelativeStandardErrorRaw,
               this::calculateTheoreticalRelativeStandardErrorML),
-          new double[] {0.2, 0.2, 0.5},
-          new double[] {1.3, 1.3, 1.5},
-          new double[] {0.3, 0.3, 0.5},
+          new double[] {0.2, 0.5},
+          new double[] {1.3, 1.5},
+          new double[] {0.3, 0.5},
           0.1,
           1.2,
           0.15,
-          SMALL_RANGE_CORRECTED_RAW_ESTIMATOR);
+          CORRECTED_RAW_ESTIMATOR);
     }
   }
 
