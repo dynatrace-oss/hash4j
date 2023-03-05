@@ -214,6 +214,10 @@ def plot_charts(filename):
         num_simulation_runs //= 1000
         num_simulation_runs_unit = "M"
 
+    large_scale_simulation_mode_distinct_count_limit = int(
+        headers["large_scale_simulation_mode_distinct_count_limit"]
+    )
+
     ax.set_title(
         "p = "
         + str(p)
@@ -301,6 +305,9 @@ def plot_charts(filename):
         color=colors[0],
     )
 
+    # draw transition
+    # ax.plot([large_scale_simulation_mode_distinct_count_limit, large_scale_simulation_mode_distinct_count_limit], [-theory * 2, theory * 2], color="red", linestyle="dotted")
+
     legend_elements = [
         Line2D([0], [0], color=colors[0]),
         Line2D([0], [0], color="gray"),
@@ -315,7 +322,7 @@ def plot_charts(filename):
         loc="lower center",
         ncol=3,
     )
-    fig.subplots_adjust(top=0.93, bottom=0.25, left=0.11, right=0.99)
+    fig.subplots_adjust(top=0.93, bottom=0.25, left=0.11, right=0.97)
 
     fig.savefig(
         filename[:-3] + "png",
