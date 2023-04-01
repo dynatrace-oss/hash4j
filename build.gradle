@@ -92,7 +92,7 @@ spotless {
 		removeUnusedImports()
 		googleJavaFormat('1.16.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
-		targetExclude 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java','src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
+		targetExclude 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java', 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java','src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
 	format 'javaImohash', JavaExtension, {
 		importOrder()
@@ -121,6 +121,13 @@ spotless {
 		googleJavaFormat('1.16.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('BOOST_EXPONENTIAL_RANDOM_GENERATION')
 		target 'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
+	}
+	format 'javaConsistnetJumpHash', JavaExtension, {
+		importOrder()
+		removeUnusedImports()
+		googleJavaFormat('1.16.0')
+		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_GUAVA')
+		target 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java'
 	}
 }
 
