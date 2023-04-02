@@ -25,12 +25,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.8.0</version>
+  <version>0.9.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.8.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.9.0'
 ```
 
 ## Hash algorithms
@@ -163,13 +163,20 @@ HyperLogLog can be made compatible with implementations of other libraries which
 Therefore, if the bits of the hash value are permuted accordingly, compatibility can be achieved.
 
 ## File hashing
+This library contains an implementation of [ImoHash](https://github.com/kalafut/imohash) that
+allows fast hashing of files.
+It is based on the idea of hashing only the beginning,
+a middle part and the end, of large files,
+which is usually sufficient to distinguish files.
+Unlike cryptographic hashing algorithms, this method is not suitable for verifying the integrity of files.
+However, this algorithm can be useful for file indexes, for example, to find identical files.
 
 ### Usage
 ```java
 // create some file in the given path
 File file = path.resolve("test.txt").toFile();
-try (FileWriter myWriter = new FileWriter(file)) {
-  myWriter.write("this is the file content");
+try (FileWriter fileWriter = new FileWriter(file)) {
+    fileWriter.write("this is the file content");
 }
 
 // use ImoHash to hash that file
@@ -179,6 +186,10 @@ HashValue128 hash = FileHashing.imohash1_0_2().hashFileTo128Bits(file);
 See also [FileHashingDemo.java](src/test/java/com/dynatrace/hash4j/file/FileHashingDemo.java).
 
 ## Consistent hashing
+This library contains an implementation of [JumpHash](https://arxiv.org/abs/1406.2294)
+that can be used to achieve distributed agreement when assigning hash values to a given number of buckets.
+The hash values are distributed uniformly over the buckets.
+The algorithm also minimizes the number of reassignments needed for balancing when the number of buckets changes.
 
 ### Usage
 ```java
