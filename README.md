@@ -10,18 +10,27 @@
 
 hash4j is a Java library by Dynatrace that includes various non-cryptographic hash algorithms and data structures that are based on high-quality hash functions.
 
-## Adding hash4j to your build
+## Content
+- [First steps](#first-steps)
+- [Hash algorithms](#hash-algorithms)
+- [Similarity hashing](#similarity-hashing)
+- [Approximate distinct counting](#approximate-distinct-counting)
+- [File hashing](#file-hashing)
+- [Consistent hashing](#consistent-hashing)
+- [Contribution FAQ](#contribution-faq)
+
+## First steps
 To add a dependency on hash4j using Maven, use the following:
 ```xml
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.8.0</version>
+  <version>0.9.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.8.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.9.0'
 ```
 
 ## Hash algorithms
@@ -152,6 +161,61 @@ See also [UltraLogLogDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount
 HyperLogLog and UltraLogLog sketches can be reduced to corresponding sketches with smaller precision parameter `p` using `sketch.downsize(p)`. UltraLogLog sketches can be also transformed into HyperLogLog sketches with same precision parameter using `HyperLogLog hyperLogLog = HyperLogLog.create(ultraLogLog);` as demonstrated in [ConversionDemo.java](src/test/java/com/dynatrace/hash4j/distinctcount/ConversionDemo.java).
 HyperLogLog can be made compatible with implementations of other libraries which also use a single 64-bit hash value as input. The implementations usually differ only in which bits of the hash value are used for the register index and which bits are used to determine the number of leading (or trailing) zeros.
 Therefore, if the bits of the hash value are permuted accordingly, compatibility can be achieved.
+
+## File hashing
+This library contains an implementation of [ImoHash](https://github.com/kalafut/imohash) that
+allows fast hashing of files.
+It is based on the idea of hashing only the beginning,
+a middle part and the end, of large files,
+which is usually sufficient to distinguish files.
+Unlike cryptographic hashing algorithms, this method is not suitable for verifying the integrity of files.
+However, this algorithm can be useful for file indexes, for example, to find identical files.
+
+### Usage
+```java
+// create some file in the given path
+File file = path.resolve("test.txt").toFile();
+try (FileWriter fileWriter = new FileWriter(file)) {
+    fileWriter.write("this is the file content");
+}
+
+// use ImoHash to hash that file
+HashValue128 hash = FileHashing.imohash1_0_2().hashFileTo128Bits(file);
+// returns 0xd317f2dad6ea7ae56ff7fdb517e33918
+```
+See also [FileHashingDemo.java](src/test/java/com/dynatrace/hash4j/file/FileHashingDemo.java).
+
+## Consistent hashing
+This library contains an implementation of [JumpHash](https://arxiv.org/abs/1406.2294)
+that can be used to achieve distributed agreement when assigning hash values to a given number of buckets.
+The hash values are distributed uniformly over the buckets.
+The algorithm also minimizes the number of reassignments needed for balancing when the number of buckets changes.
+
+### Usage
+```java
+// create a consistent bucket hasher
+ConsistentBucketHasher consistentBucketHasher =
+    ConsistentHashing.jumpHash(PseudoRandomGeneratorProvider.splitMix64_V1());
+
+long[] hashValues = {9184114998275508886L, 7090183756869893925L, -8795772374088297157L};
+
+// determine assignment of hash value to 2 buckets
+Map<Integer, List<Long>> assignment2Buckets =
+    LongStream.of(hashValues)
+        .boxed()
+        .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 2)));
+// gives {0=[7090183756869893925, -8795772374088297157], 1=[9184114998275508886]}
+
+// determine assignment of hash value to 3 buckets
+Map<Integer, List<Long>> assignment3Buckets =
+    LongStream.of(hashValues)
+        .boxed()
+        .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 3)));
+// gives {0=[-8795772374088297157], 1=[9184114998275508886], 2=[7090183756869893925]}
+// hash value 7090183756869893925 got reassigned from bucket 0 to bucket 2
+// probability of reassignment is equal to 1/3
+```
+See also [ConsistentHashingDemo.java](src/test/java/com/dynatrace/hash4j/consistent/ConsistentHashingDemo.java).
 
 ## Contribution FAQ
 
