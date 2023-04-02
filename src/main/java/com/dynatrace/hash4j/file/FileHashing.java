@@ -28,6 +28,8 @@ public interface FileHashing {
    * <p>For a description of the algorithm see <a
    * href="https://github.com/kalafut/imohash/blob/v1.0.2/algorithm.md">here</a>.
    *
+   * <p>This algorithm does not return a uniformly distributed hash value.
+   *
    * @return a file hasher instance
    */
   static FileHasher128 imohash1_0_2() {
@@ -43,6 +45,8 @@ public interface FileHashing {
    *
    * <p>For a description of the algorithm and the parameters see <a
    * href="https://github.com/kalafut/imohash/blob/v1.0.2/algorithm.md">here</a>.
+   *
+   * <p>This algorithm does not return a uniformly distributed hash value.
    *
    * @param sampleSize the sample size
    * @param sampleThreshold the sample threshold
