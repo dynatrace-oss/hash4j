@@ -163,7 +163,7 @@ HyperLogLog can be made compatible with implementations of other libraries which
 Therefore, if the bits of the hash value are permuted accordingly, compatibility can be achieved.
 
 ## File hashing
-This library contains an implementation of [ImoHash](https://github.com/kalafut/imohash) that
+This library contains an implementation of [Imohash](https://github.com/kalafut/imohash) that
 allows fast hashing of files.
 It is based on the idea of hashing only the beginning,
 a middle part and the end, of large files,
