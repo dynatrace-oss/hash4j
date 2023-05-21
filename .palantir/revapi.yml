@@ -31,3 +31,8 @@ acceptedBreaks:
       old: "field com.dynatrace.hash4j.distinctcount.HyperLogLog.SMALL_RANGE_CORRECTED_RAW_ESTIMATOR"
       justification: "{removed SMALL_RANGE_CORRECTED_RAW_ESTIMATOR use CORRECTED_RAW_ESTIMATOR\
         \ instead}"
+  "0.9.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.field.removed"
+      old: "field com.dynatrace.hash4j.distinctcount.UltraLogLog.SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR"
+      justification: "{estimator is replaced by OPTIMAL_FGRA_ESTIMATOR}"

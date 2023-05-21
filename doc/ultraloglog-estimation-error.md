@@ -1,7 +1,7 @@
 ### UltraLogLog estimation error
 
 The state of an UltraLogLog sketch with precision parameter $p$ requires $m = 2^p$ bytes where $m$ denotes the number of registers.
-The expected relative standard error is approximately given by $\frac{0.785}{\sqrt{m}}$, $\frac{0.761}{\sqrt{m}}$,
+The expected relative standard error is approximately given by $\frac{0.782}{\sqrt{m}}$, $\frac{0.761}{\sqrt{m}}$,
 and $\frac{0.658}{\sqrt{m}}$ for the default, the maximum-likelihood (ML), and the martingale estimator, respectively.
 This is a good approximation for all $p\geq 6$ and large distinct counts.
 However, the error is significantly smaller for distinct counts that are in the order of $m$ or smaller.

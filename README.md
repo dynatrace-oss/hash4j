@@ -126,9 +126,9 @@ The theoretically predicted estimation errors  have been empirically confirmed b
 Like for HyperLogLog, a precision parameter $p$ defines the number of registers $m = 2^p$.
 However, since UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers, 
 $m$ is also the state size in bytes.
-The default estimator leads to an asymptotic storage factor of 4.936,
+The default estimator leads to an asymptotic storage factor of 4.895,
 which corresponds to a 24% reduction compared to HyperLogLog and a
-relative standard error of $\frac{0.785}{\sqrt{m}}$.
+relative standard error of $\frac{0.782}{\sqrt{m}}$.
 Alternatively, if performance is not an issue, the slower maximum-likelihood estimator can be used to obtain
 a storage factor of $8\ln(2)/\zeta(2,\frac{5}{4}) \approx 4.631$ corresponding to a 28% reduction and a relative error of $\frac{0.761}{\sqrt{m}}$.
 If the martingale estimator can 

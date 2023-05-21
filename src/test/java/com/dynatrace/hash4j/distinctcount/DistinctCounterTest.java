@@ -43,7 +43,7 @@ abstract class DistinctCounterTest<
   protected static final int MIN_P = 3;
   protected static final int MAX_P = 26;
 
-  protected static final double RELATIVE_ERROR = 1e-10;
+  protected static final double RELATIVE_ERROR = 1e-12;
 
   protected abstract T create(int p);
 
