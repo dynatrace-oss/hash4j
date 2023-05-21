@@ -223,6 +223,7 @@ for (sketch in sketches) {
 			classpath = sourceSets.test.runtimeClasspath
 			mainClass = 'com.dynatrace.hash4j.distinctcount.' + sketch + 'EstimationErrorSimulation'
 			args = [p.toString(), outputFileName]
+			jvmArgs = ['-Xmx16g']
 		}
 		sketchTasks.add(sketchTaskName)
 	}

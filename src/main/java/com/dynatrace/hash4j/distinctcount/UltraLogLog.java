@@ -17,6 +17,8 @@ package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
@@ -44,10 +46,11 @@ import java.util.Arrays;
  * registers.
  *
  * <ul>
- *   <li>The default estimator is a generalized remaining area (GRA) estimator (Pettie2022) combined
- *       with small range correction techniques based on ideas presented in earlier works (Ertl2017,
- *       Ertl2021). Using this estimator a 24% space reduction compared to HyperLogLog with 6-bit *
- *       registers can be achieved.
+ *   <li>The default estimator is a further generalized remaining area (FGRA) estimator with optimal
+ *       tau parameter that is a generalization of the GRA estimator (Pettie2022). In addition, the
+ *       FGRA estimator includes small and large range correction techniques based on ideas
+ *       presented in earlier works (Ertl2017, Ertl2021). Using this estimator a 24% space reduction
+ *       compared to HyperLogLog with 6-bit registers can be achieved.
  *   <li>The maximum-likelihood (ML) estimator is more efficient but has a worse runtime behavior.
  *       It is able to use almost all information collected and stored within UltraLogLog to get
  *       more accurate distinct count estimates. When using the ML estimator, the space reduction is
@@ -92,20 +95,14 @@ import java.util.Arrays;
  */
 public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogLog.Estimator> {
 
-  /** Bias-reduced GRA estimator using the lowest 4 register states for small-range correction. */
-  public static final Estimator SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR =
-      new SmallRangeCorrected4GraEstimator();
-
-  /** Bias-reduced GRA estimator using the lowest register state for small-range correction. */
-  // visible for testing
-  static final Estimator SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR =
-      new SmallRangeCorrected1GraEstimator();
-
   /** Bias-reduced maximum-likelihood estimator. */
   public static final Estimator MAXIMUM_LIKELIHOOD_ESTIMATOR = new MaximumLikelihoodEstimator();
 
+  /** Optimal further generalized remaining area (FGRA) estimator. */
+  public static final Estimator OPTIMAL_FGRA_ESTIMATOR = new OptimalFGRAEstimator();
+
   /** The default estimator. */
-  public static final Estimator DEFAULT_ESTIMATOR = SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR;
+  public static final Estimator DEFAULT_ESTIMATOR = OPTIMAL_FGRA_ESTIMATOR;
 
   /**
    * The minimum allowed precision parameter.
@@ -426,398 +423,6 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   /** A distinct count estimator for UltraLogLog. */
   public interface Estimator extends DistinctCounter.Estimator<UltraLogLog> {}
 
-  abstract static class AbstractSmallRangeCorrectedGraEstimator implements Estimator {
-
-    private AbstractSmallRangeCorrectedGraEstimator() {}
-
-    static final double[] ESTIMATION_FACTORS = {
-      198.73981665391312,
-      1027.9377396749687,
-      5233.925351968597,
-      26433.204636982657,
-      132944.2295453946,
-      667235.7546841304,
-      3345276.6696228283,
-      1.6763152109693773E7,
-      8.397783038422403E7,
-      4.2064549352151716E8,
-      2.106876773434261E9,
-      1.0552313382074574E10,
-      5.285049385375068E10,
-      2.6469566663317322E11,
-      1.3256925604422827E12,
-      6.639538747664202E12,
-      3.3253131662557215E13,
-      1.6654322482669144E14,
-      8.341060582250791E14,
-      4.177491022408222E15,
-      2.0922315506308388E16,
-      1.04786167024773872E17,
-      5.248052310107033E17,
-      2.628405409742423E18
-    };
-
-    static final double TAU = 0.7550966382001302;
-
-    static final double MINUS_TAU_INV = -1. / TAU;
-
-    static final double KAPPA_1 = Math.pow(2., TAU);
-
-    static final double KAPPA_2 = 1. / (Math.pow(8, TAU) - Math.pow(4, TAU));
-
-    static final double KAPPA_3 = KAPPA_2 + 1. / KAPPA_1;
-
-    static final double[] REGISTER_CONTRIBUTIONS = {
-      1.2460201711017937,
-      0.653513475722638,
-      0.894955987032666,
-      0.3024492916535102,
-      0.7382752939552941,
-      0.38721110988616636,
-      0.5302674143865155,
-      0.1792032303173878,
-      0.4374330547015261,
-      0.22942517513274754,
-      0.3141869933654037,
-      0.10617911379662519,
-      0.25918201369081073,
-      0.13593595235468833,
-      0.1861578971700481,
-      0.06291183583392572,
-      0.1535670784336574,
-      0.08054296191289477,
-      0.11029980047095791,
-      0.037275683950195294,
-      0.09098952216175796,
-      0.047722244199058475,
-      0.06535337027802751,
-      0.022086092315328043,
-      0.053911901090191665,
-      0.028275749206461226,
-      0.03872230945532442,
-      0.013086157571593987,
-      0.03194316235655737,
-      0.01675357072169013,
-      0.022943227612823313,
-      0.007753635977956072,
-      0.018926537567843658,
-      0.009926602824109598,
-      0.01359401597420574,
-      0.0045940812304716815,
-      0.01121410022929249,
-      0.005881578635654573,
-      0.008054545481808098,
-      0.002722023888170182,
-      0.006644429468508727,
-      0.003484874721024335,
-      0.0047723721262072265,
-      0.0016128173787228353,
-      0.003936868947065984,
-      0.002064811604764485,
-      0.002827662437618638,
-      9.55605095317139E-4,
-      0.0023326212099668846,
-      0.0012234147005195375,
-      0.0016754089265611884,
-      5.662024171138415E-4,
-      0.001382093684688806,
-      7.248814012831103E-4,
-      9.92691006485508E-4,
-      3.3547872307981245E-4,
-      8.188997618193659E-4,
-      4.294970836160677E-4,
-      5.881760677853368E-4,
-      1.9877338958203874E-4,
-      4.8520359172237E-4,
-      2.544798976883411E-4,
-      3.484982582245961E-4,
-      1.1777456419056722E-4,
-      2.8748637671751845E-4,
-      1.5078104321974457E-4,
-      2.0648755132604703E-4,
-      6.978221782827322E-5,
-      1.7033760303542404E-4,
-      8.933877764395259E-5,
-      1.2234525667313E-4,
-      4.13464312816586E-5,
-      1.0092617027332548E-4,
-      5.293382391103152E-5,
-      7.249038372671083E-5,
-      2.4498037364416874E-5,
-      5.979943162592211E-5,
-      3.1363645079307446E-5,
-      4.29510377086804E-5,
-      1.4515251162065735E-5,
-      3.543156361822687E-5,
-      1.8583169700985165E-5,
-      2.5448777415875718E-5,
-      8.600383498634015E-6,
-      2.099343867155194E-5,
-      1.1010652469200782E-5,
-      1.5078571008120223E-5,
-      5.095784805769066E-6,
-      1.2438752971926225E-5,
-      6.523885308494502E-6,
-      8.934154279061265E-6,
-      3.019286615629545E-6,
-      7.370044418033647E-6,
-      3.865445725168695E-6,
-      5.293546227894125E-6,
-      1.7889475350291736E-6,
-      4.366800662926713E-6,
-      2.2903024727871896E-6,
-      3.136461582326346E-6,
-      1.059963392186823E-6,
-      2.587358630170215E-6,
-      1.3570195495698475E-6,
-      1.8583744873278625E-6,
-      6.280354067274951E-7,
-      1.5330273117228908E-6,
-      8.040431688805394E-7,
-      1.1010993262635626E-6,
-      3.7211518342121145E-7,
-      9.083289463949215E-7,
-      4.764009609355932E-7,
-      6.524087230886388E-7,
-      2.2048073762931057E-7,
-      5.381909823456857E-7,
-      2.822707590394028E-7,
-      3.865565365537844E-7,
-      1.3063631324750157E-7,
-      3.18881760432504E-7,
-      1.6724731464060264E-7,
-      2.2903733605069478E-7,
-      7.740289025879344E-8,
-      1.8893957809055026E-7,
-      9.90951537087412E-8,
-      1.3570615510184212E-7,
-      4.586173072003307E-8,
-      1.1194796504076395E-7,
-      5.871454205205578E-8,
-      8.040680550200368E-8,
-      2.717338251329552E-8,
-      6.632991882072436E-8,
-      3.4788759281964074E-8,
-      4.7641570613986767E-8,
-      1.6100411075226482E-8,
-      3.9300921005234995E-8,
-      2.061257279849743E-8,
-      2.8227949567165946E-8,
-      9.539601360428386E-9,
-      2.328605883016905E-8,
-      1.2213087392099998E-8,
-      1.6725249115370975E-8,
-      5.652277677301926E-9,
-      1.3797145765868082E-8,
-      7.236336051070006E-9,
-      9.909822082741611E-9,
-      3.3490123679435366E-9,
-      8.174901243399014E-9,
-      4.287577560272542E-9,
-      5.871635934040619E-9,
-      1.9843122509141475E-9,
-      4.843683720777293E-9,
-      2.5404184114189026E-9,
-      3.478983603747904E-9,
-      1.1757182943895137E-9,
-      2.86991503485957E-9,
-      1.5052149178301797E-9,
-      2.0613210783349387E-9,
-      6.966209613055487E-10,
-      1.7004438733235995E-9,
-      8.918499167989679E-10,
-      1.2213465402396332E-9,
-      4.1275258371500173E-10,
-      1.007524380060696E-9,
-      5.284270469767305E-10,
-      7.236560024701489E-10,
-      2.445586693861836E-10,
-      5.96964940943696E-10,
-      3.1309656335314873E-10,
-      4.2877102661487837E-10,
-      1.4490264902433124E-10,
-      3.5370572441576243E-10,
-      1.8551181008694479E-10,
-      2.5404970405390984E-10,
-      8.585578972509221E-11,
-      2.0957300991027393E-10,
-      1.0991698954842127E-10,
-      1.5052615061103474E-10,
-      5.08701302491821E-11,
-      1.2417341154259957E-10,
-      6.512655224336035E-11,
-      8.918775206668936E-11,
-      3.014089276745014E-11,
-      7.357357772706164E-11,
-      3.858791825115141E-11,
-      5.284434024532962E-11,
-      1.7858680769419393E-11,
-      4.3592837406282564E-11,
-      2.2863599924550633E-11,
-      3.131062540825184E-11,
-      1.0581387926519918E-11,
-      2.5829048033797352E-11,
-      1.3546836035766623E-11,
-      1.8551755190897945E-11,
-      6.269543192867219E-12,
-      1.530388389529476E-11,
-      8.02659105239535E-12,
-      1.0992039161642047E-11,
-      3.7147463187426396E-12,
-      9.067653673267387E-12,
-      4.755808939614672E-12,
-      6.5128567991428E-12,
-      2.201012065490087E-12,
-      5.372645512790326E-12,
-      2.8178486386657384E-12,
-      3.85891125953777E-12,
-      1.3041143854131823E-12,
-      3.1833284382270484E-12,
-      1.6695941849744907E-12,
-      2.286430758150141E-12,
-      7.72696504897584E-13,
-      1.8861434132403988E-12,
-      9.892457331634913E-13,
-      1.3547255327247989E-12,
-      4.578278526478915E-13,
-      1.1175526007902254E-12,
-      5.861347202746278E-13,
-      8.026839485405335E-13,
-      2.712660680249361E-13,
-      6.621573984065978E-13,
-      3.4728874615690586E-13,
-      4.755956137836443E-13,
-      1.6072696153395228E-13,
-      3.923326919507526E-13,
-      2.057709073277989E-13,
-      2.817935854597685E-13,
-      9.523180083681482E-14,
-      2.324597467969489E-13,
-      1.2192064030596472E-13,
-      1.6696458609981127E-13,
-      5.6425479608827106E-14,
-      1.377339563833356E-13,
-      7.223879568619792E-14,
-      9.892763515534778E-14,
-      3.3432474458210114E-14,
-      8.160829133818701E-14,
-      4.280197011019917E-14,
-      5.861528618756994E-14,
-      1.9808964959582118E-14,
-      4.8353459016328606E-14,
-      2.536045386571153E-14,
-      3.472994951770057E-14,
-      1.1736944367083503E-14
-    };
-
-    static double xi(double x, double y) {
-      if (y <= 0.) return 0;
-      if (y >= 1.) return Double.POSITIVE_INFINITY;
-      double z = x;
-      double sum = y;
-      double oldSum;
-      do {
-        y *= y;
-        oldSum = sum;
-        sum += y * z;
-        z *= x;
-      } while (oldSum < sum);
-      return sum;
-    }
-  }
-
-  static final class SmallRangeCorrected4GraEstimator
-      extends AbstractSmallRangeCorrectedGraEstimator {
-
-    static double calculateZ(int m, int alpha, int beta, int gamma) {
-      int mma = m - alpha;
-      int twom3b = ((m + beta) << 1) + (beta << 2);
-      double x =
-          (Math.sqrt((double) (Math.multiplyFull(gamma, twom3b) + Math.multiplyFull(mma, mma)))
-                  - mma)
-              / twom3b;
-      x *= x;
-      x *= x;
-      return x;
-    }
-
-    @Override
-    public double estimate(UltraLogLog ultraLogLog) {
-      byte[] state = ultraLogLog.state;
-      final int m = state.length;
-      final int p = ultraLogLog.getP();
-      final int off = (p + 1) << 2;
-      final int[] c = new int[4];
-      double sum = 0;
-
-      for (byte x : state) {
-        int t = (x & 0xFF) - off;
-        if (t >= 0) {
-          sum += REGISTER_CONTRIBUTIONS[t];
-        } else {
-          c[Integer.numberOfLeadingZeros((t + 8) | (~t << 28)) & 3] += 1;
-        }
-      }
-
-      int alpha = c[0] + c[1];
-      int beta = alpha + c[2] + c[3];
-
-      if (beta > 0) {
-        int gamma = ((beta + alpha) << 1) + ((c[0] + c[2]) << 2);
-        double z = calculateZ(m, alpha, beta, gamma);
-        if (alpha > 0) {
-          double z2 = z * z;
-          if (c[0] > 0)
-            sum += c[0] * (z + KAPPA_1 * (z2 + KAPPA_1 * (KAPPA_2 + xi(KAPPA_1, z2 * z2 * z) / z)));
-          if (c[1] > 0) sum += c[1] * (z + KAPPA_1 * (z2 + KAPPA_2));
-        }
-        if (c[2] > 0) sum += c[2] * (z + KAPPA_3);
-        if (c[3] > 0) sum += c[3] * (z + KAPPA_2);
-      }
-
-      return ESTIMATION_FACTORS[p - MIN_P] * Math.pow(sum, MINUS_TAU_INV);
-    }
-  }
-
-  private static final class SmallRangeCorrected1GraEstimator
-      extends AbstractSmallRangeCorrectedGraEstimator {
-    @Override
-    public double estimate(UltraLogLog ultraLogLog) {
-      byte[] state = ultraLogLog.state;
-      final int m = state.length;
-      final int p = ultraLogLog.getP();
-      final int off = (p + 1) << 2;
-      final int[] c = new int[4];
-      double sum = 0;
-
-      for (byte x : state) {
-        int t = (x & 0xFF) - off;
-        if (t >= 0) {
-          sum += REGISTER_CONTRIBUTIONS[t];
-        } else {
-          c[Integer.numberOfLeadingZeros((t + 8) | (~t << 28)) & 3] += 1;
-        }
-      }
-
-      int alpha = c[0] + c[1];
-      int beta = alpha + c[2] + c[3];
-
-      if (beta > 0) {
-        double z = c[0] / (double) m;
-        if (alpha > 0) {
-          double z2 = z * z;
-          if (c[0] > 0)
-            sum += c[0] * (z + KAPPA_1 * (z2 + KAPPA_1 * (KAPPA_2 + xi(KAPPA_1, z2 * z2 * z) / z)));
-          if (c[1] > 0) sum += c[1] * (z + KAPPA_1 * (z2 + KAPPA_2));
-        }
-        if (c[2] > 0) sum += c[2] * (z + KAPPA_3);
-        if (c[3] > 0) sum += c[3] * (z + KAPPA_2);
-      }
-
-      return ESTIMATION_FACTORS[p - MIN_P] * Math.pow(sum, MINUS_TAU_INV);
-    }
-  }
-
   private static final class MaximumLikelihoodEstimator implements Estimator {
 
     // = sqrt(ln(2)/zeta(2,5/4))
@@ -899,6 +504,449 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
           * DistinctCountUtil.solveMaximumLikelihoodEquation(
               a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
           / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
+    }
+  }
+
+  static final class OptimalFGRAEstimator implements Estimator {
+
+    static final double ETA_0 = 4.663135749698441;
+    static final double ETA_1 = 2.137850286535751;
+    static final double ETA_2 = 2.7811447941454626;
+    static final double ETA_3 = 0.9824082439220764;
+    static final double TAU = 0.8194911850376387;
+    static final double V = 0.6118931496978426;
+
+    static final double POW_2_TAU = pow(2., TAU);
+    static final double POW_2_MINUS_TAU = pow(2., -TAU);
+    static final double POW_4_MINUS_TAU = pow(4., -TAU);
+    private static final double MINUS_INV_TAU = -1 / TAU;
+    static final double ETA_X = ETA_0 - ETA_1 - ETA_2 + ETA_3;
+    private static final double ETA23X = (ETA_2 - ETA_3) / ETA_X;
+    private static final double ETA13X = (ETA_1 - ETA_3) / ETA_X;
+    private static final double ETA3012XX = (ETA_3 * ETA_0 - ETA_1 * ETA_2) / (ETA_X * ETA_X);
+    private static final double POW_4_MINUS_TAU_ETA_23 = POW_4_MINUS_TAU * (ETA_2 - ETA_3);
+    private static final double POW_4_MINUS_TAU_ETA_01 = POW_4_MINUS_TAU * (ETA_0 - ETA_1);
+    private static final double POW_4_MINUS_TAU_ETA_3 = POW_4_MINUS_TAU * ETA_3;
+    private static final double POW_4_MINUS_TAU_ETA_1 = POW_4_MINUS_TAU * ETA_1;
+    private static final double POW_2_MINUS_TAU_ETA_X = POW_2_MINUS_TAU * ETA_X;
+    private static final double PHI_1 = ETA_0 / (POW_2_TAU * (2. * POW_2_TAU - 1));
+    private static final double P_INITIAL = ETA_X * (POW_4_MINUS_TAU / (2 - POW_2_MINUS_TAU));
+    private static final double POW_2_MINUS_TAU_ETA_02 = POW_2_MINUS_TAU * (ETA_0 - ETA_2);
+    private static final double POW_2_MINUS_TAU_ETA_13 = POW_2_MINUS_TAU * (ETA_1 - ETA_3);
+    private static final double POW_2_MINUS_TAU_ETA_2 = POW_2_MINUS_TAU * ETA_2;
+    private static final double POW_2_MINUS_TAU_ETA_3 = POW_2_MINUS_TAU * ETA_3;
+
+    static double calculateTheoreticalRelativeStandardError(int p) {
+      return sqrt(V / (1 << p));
+    }
+
+    static final double[] ESTIMATION_FACTORS = {
+      94.59940317105753,
+      455.6357508097479,
+      2159.47633067634,
+      10149.50737889237,
+      47499.51084005241,
+      221818.67873312163,
+      1034754.2279126811,
+      4824372.022091801,
+      2.2486738498576667E7,
+      1.047980404094012E8,
+      4.8837154531911695E8,
+      2.27579316515324E9,
+      1.0604931024655107E10,
+      4.9417323383735405E10,
+      2.3027603606246478E11,
+      1.0730435513524987E12,
+      5.000178308875647E12,
+      2.329986496461238E13,
+      1.0857284075307834E14,
+      5.059282619272261E14,
+      2.35752686818917E15,
+      1.0985614301620942E16,
+      5.1190814073112568E16,
+      2.3853917967466928E17
+    };
+
+    static final double[] REGISTER_CONTRIBUTIONS = {
+      0.8484060852397345,
+      0.38895826537877115,
+      0.5059986013571249,
+      0.17873833769198574,
+      0.48074231113842836,
+      0.22039999321992973,
+      0.286719934334865,
+      0.10128060494380546,
+      0.272408665778737,
+      0.12488783845238811,
+      0.16246748612446876,
+      0.057389819499496945,
+      0.15435812382651734,
+      0.07076666367111045,
+      0.09206086109372673,
+      0.032519467908117806,
+      0.08746575782796642,
+      0.04009934633506583,
+      0.052165527684877616,
+      0.01842688829220614,
+      0.049561750316546825,
+      0.02272196388927665,
+      0.02955916603768511,
+      0.010441444278634157,
+      0.028083757066063253,
+      0.01287521344292119,
+      0.016749457651834092,
+      0.0059165582867257505,
+      0.01591342932621048,
+      0.007295633511635504,
+      0.009490942040547306,
+      0.0033525689575199494,
+      0.009017213484812202,
+      0.004134010560062819,
+      0.0053779640325944825,
+      0.0018997055501242264,
+      0.005109529653470475,
+      0.0023425029894189064,
+      0.003047378965366866,
+      0.0010764524825292335,
+      0.002895272838296102,
+      0.0013273599996205937,
+      0.0017267721580652433,
+      6.099629213946215E-4,
+      0.001640582475626021,
+      7.521375966439396E-4,
+      9.78461202153218E-4,
+      3.456304588587883E-4,
+      9.296225294315218E-4,
+      4.2619256603108554E-4,
+      5.544369705334033E-4,
+      1.9584864899296144E-4,
+      5.267629394230223E-4,
+      2.4149850260197735E-4,
+      3.141671367426608E-4,
+      1.1097602172856929E-4,
+      2.984858752501032E-4,
+      1.3684313478791045E-4,
+      1.780202170034317E-4,
+      6.288364745953644E-5,
+      1.691345595068001E-4,
+      7.754103374067414E-5,
+      1.0087368777819569E-4,
+      3.563250021240636E-5,
+      9.583870324044556E-5,
+      4.393798726469656E-5,
+      5.7159243243573585E-5,
+      2.019086237330832E-5,
+      5.430621078030427E-5,
+      2.489709811361428E-5,
+      3.238881377433127E-5,
+      1.1440985643660703E-5,
+      3.0772166458844975E-5,
+      1.4107735312149528E-5,
+      1.8352854204840335E-5,
+      6.4829401576968245E-6,
+      1.7436794336501408E-5,
+      7.994031863851523E-6,
+      1.0399493473609907E-5,
+      3.673504573582387E-6,
+      9.880415704239646E-6,
+      4.5297522264427E-6,
+      5.892787209039795E-6,
+      2.0815610701125073E-6,
+      5.598656072018156E-6,
+      2.5667467408713467E-6,
+      3.339099272396502E-6,
+      1.1794994131128855E-6,
+      3.1724322893920124E-6,
+      1.4544258719747923E-6,
+      1.8920730641376115E-6,
+      6.683536147505137E-7,
+      1.797632592771347E-6,
+      8.241384252626048E-7,
+      1.0721275972923483E-6,
+      3.787170636831222E-7,
+      1.0186136830719034E-6,
+      4.6699124175514954E-7,
+      6.075122608437811E-7,
+      2.1459690074139074E-7,
+      5.771890426962716E-7,
+      2.64616735721948E-7,
+      3.4424181226899694E-7,
+      1.2159956395929028E-7,
+      3.2705941079050064E-7,
+      1.499428909222517E-7,
+      1.9506178385544662E-7,
+      6.890339004899508E-8,
+      1.8532551776613992E-7,
+      8.496390251653092E-8,
+      1.10530151087912E-7,
+      3.9043537704077566E-8,
+      1.0501317620635024E-7,
+      4.814409463788256E-8,
+      6.263099853823858E-8,
+      2.2123698636101623E-8,
+      5.950485022176909E-8,
+      2.728045416758512E-8,
+      3.548933878482537E-8,
+      1.2536211371284819E-8,
+      3.371793262359259E-8,
+      1.5458244363870842E-8,
+      2.0109741131065348E-8,
+      7.103540783595807E-9,
+      1.9105988439127425E-8,
+      8.759286679951094E-9,
+      1.1395018960775247E-8,
+      4.025162799966202E-9,
+      1.082625077614191E-8,
+      4.963377556696614E-9,
+      6.45689351594096E-9,
+      2.2808253038606898E-9,
+      6.134605714922463E-9,
+      2.8124569580199258E-9,
+      3.6587454588460008E-9,
+      1.2924108477736359E-9,
+      3.4761237344042517E-9,
+      1.5936555400752456E-9,
+      2.073197939470036E-9,
+      7.323339479861321E-10,
+      1.969716845451942E-9,
+      9.030317684223642E-10,
+      1.1747605141076048E-9,
+      4.149709918458438E-10,
+      1.1161238056222668E-9,
+      5.116955039992654E-10,
+      6.656683567123106E-10,
+      2.351398901376407E-10,
+      6.324423494438382E-10,
+      2.899480372329477E-10,
+      3.771954843619131E-10,
+      1.3324007947640234E-10,
+      3.5836824136820584E-10,
+      1.64296664008522E-10,
+      2.1373471036795443E-10,
+      7.549939216389946E-11,
+      2.0306640839956248E-10,
+      9.309734965594018E-11,
+      1.2111101089492876E-10,
+      4.278110790325553E-11,
+      1.1506590556926544E-10,
+      5.27528453804198E-11,
+      6.862655548431996E-11,
+      2.424156196458913E-11,
+      6.520114640735252E-11,
+      2.9891964766076615E-11,
+      3.8886671681143153E-11,
+      1.3736281159710114E-11,
+      3.694569187806878E-11,
+      1.6938035306585002E-11,
+      2.2034811797927628E-11,
+      7.783550431866983E-12,
+      2.0934971600365387E-11,
+      9.597798013354695E-12,
+      1.2485844377510246E-11,
+      4.410484658912948E-12,
+      1.186262900027782E-11,
+      5.438513088312147E-12,
+      7.075000741965357E-12,
+      2.499164757366473E-12,
+      6.721860888303071E-12,
+      3.0816885884228205E-12,
+      4.0089908207546885E-12,
+      1.4161310983908962E-12,
+      3.808887035128585E-12,
+      1.7462134230080132E-12,
+      2.27166158521571E-12,
+      8.02439007639917E-13,
+      2.158274425407386E-12,
+      9.894774345950254E-13,
+      1.2872183021794324E-12,
+      4.546954457209435E-13,
+      1.2229684032123849E-12,
+      5.60679227792338E-13,
+      7.293916348496756E-13,
+      2.576494243063289E-13,
+      6.929849594884327E-13,
+      3.177042603366454E-13,
+      4.1330375437322283E-13,
+      1.459949213701249E-13,
+      3.926742120366818E-13,
+      1.8002449891623002E-13,
+      2.3419516377399323E-13,
+      8.272681812992227E-14,
+      2.2250560374709368E-13,
+      1.0200939759416105E-13,
+      1.3270475807388645E-13,
+      4.6876469220125044E-14,
+      1.260809652919964E-13,
+      5.780278384424677E-14,
+      7.51960567061224E-14,
+      2.6562164679104723E-14,
+      7.144273915469492E-14,
+      3.275347074822785E-14,
+      4.26092253678056E-14,
+      1.505123154917496E-14,
+      4.0482438932039044E-14,
+      1.855948407166197E-14,
+      2.41441661434439E-14,
+      8.528656225261955E-15,
+      2.2939040149870594E-14,
+      1.051657858350517E-14,
+      1.3681092620911158E-14,
+      4.832692711626445E-15,
+      1.299821791569287E-14,
+      5.959132520925467E-15,
+      7.752278301513157E-15,
+      2.7384054683585176E-15,
+      7.365332981676317E-15,
+      3.3766932962065717E-15,
+      4.392764564158709E-15,
+      1.5516948741837312E-15,
+      4.173505189928762E-15,
+      1.91337540768026E-15,
+      2.4891238118169875E-15,
+      8.792551031572981E-16
+    };
+
+    static double smallRangeEstimate(long c0, long c4, long c8, long c10, long m) {
+      long alpha = m + 3 * (c0 + c4 + c8 + c10);
+      long beta = m - c0 - c4;
+      long gamma = 4 * c0 + 2 * c4 + 3 * c8 + c10;
+      double quadRootZ = (sqrt(beta * beta + 4 * alpha * gamma) - beta) / (2 * alpha);
+      double rootZ = quadRootZ * quadRootZ;
+      return rootZ * rootZ;
+    }
+
+    static double largeRangeEstimate(long c4w0, long c4w1, long c4w2, long c4w3, long m) {
+      long alpha = m + 3 * (c4w0 + c4w1 + c4w2 + c4w3);
+      long beta = c4w0 + c4w1 + 2 * (c4w2 + c4w3);
+      long gamma = m + 2 * c4w0 + c4w2 - c4w3;
+      return sqrt((sqrt(beta * beta + 4 * alpha * gamma) - beta) / (2 * alpha));
+    }
+
+    // this is psi as defined in the paper divided by ETA_X
+    static double psiPrime(double z, double zSquare) {
+      return (z + ETA23X) * (zSquare + ETA13X) + ETA3012XX;
+    }
+
+    static double sigma(double z) {
+      if (z <= 0.) return ETA_3;
+      if (z >= 1.) return Double.POSITIVE_INFINITY;
+
+      double powZ = z;
+      double nextPowZ = powZ * powZ;
+      double s = 0;
+      double powTau = ETA_X;
+      while (true) {
+        double oldS = s;
+        double nextNextPowZ = nextPowZ * nextPowZ;
+        s += powTau * (powZ - nextPowZ) * psiPrime(nextPowZ, nextNextPowZ);
+        if (!(s > oldS)) return s / z;
+        powZ = nextPowZ;
+        nextPowZ = nextNextPowZ;
+        powTau *= POW_2_TAU;
+      }
+    }
+
+    private static double calculateContribution0(int c0, double z) {
+      return c0 * sigma(z);
+    }
+
+    private static double calculateContribution4(int c4, double z) {
+      return c4 * POW_2_MINUS_TAU_ETA_X * psiPrime(z, z * z);
+    }
+
+    private static double calculateContribution8(int c8, double z) {
+      return c8 * (z * POW_4_MINUS_TAU_ETA_01 + POW_4_MINUS_TAU_ETA_1);
+    }
+
+    private static double calculateContribution10(int c10, double z) {
+      return c10 * (z * POW_4_MINUS_TAU_ETA_23 + POW_4_MINUS_TAU_ETA_3);
+    }
+
+    static double phi(double z, double zSquare) {
+      if (z <= 0.) return 0.;
+      if (z >= 1.) return PHI_1;
+      double previousPowZ = zSquare;
+      double powZ = z;
+      double nextPowZ = sqrt(powZ);
+      double p = P_INITIAL / (1. + nextPowZ);
+      double ps = psiPrime(powZ, previousPowZ);
+      double s = nextPowZ * (ps + ps) * p;
+      while (true) {
+        previousPowZ = powZ;
+        powZ = nextPowZ;
+        double oldS = s;
+        nextPowZ = sqrt(powZ);
+        double nextPs = psiPrime(powZ, previousPowZ);
+        p *= POW_2_MINUS_TAU / (1. + nextPowZ);
+        s += nextPowZ * ((nextPs + nextPs) - (powZ + nextPowZ) * ps) * p;
+        if (!(s > oldS)) return s;
+        ps = nextPs;
+      }
+    }
+
+    private static double calculateLargeRangeContribution(
+        int c4w0, int c4w1, int c4w2, int c4w3, int m, int w) {
+
+      double z = largeRangeEstimate(c4w0, c4w1, c4w2, c4w3, m);
+
+      double rootZ = sqrt(z);
+      double s = phi(rootZ, z) * (c4w0 + c4w1 + c4w2 + c4w3);
+      s += z * (1 + rootZ) * (c4w0 * ETA_0 + c4w1 * ETA_1 + c4w2 * ETA_2 + c4w3 * ETA_3);
+      s +=
+          rootZ
+              * ((c4w0 + c4w1) * (z * POW_2_MINUS_TAU_ETA_02 + POW_2_MINUS_TAU_ETA_2)
+                  + (c4w2 + c4w3) * (z * POW_2_MINUS_TAU_ETA_13 + POW_2_MINUS_TAU_ETA_3));
+      return s * pow(POW_2_MINUS_TAU, w) / ((1 + rootZ) * (1 + z));
+    }
+
+    @Override
+    public double estimate(UltraLogLog ultraLogLog) {
+      final byte[] state = ultraLogLog.state;
+      final int m = state.length;
+      final int p = ultraLogLog.getP();
+
+      int c0 = 0;
+      int c4 = 0;
+      int c8 = 0;
+      int c10 = 0;
+
+      int c4w0 = 0;
+      int c4w1 = 0;
+      int c4w2 = 0;
+      int c4w3 = 0;
+
+      double sum = 0;
+      for (byte reg : state) {
+        int r = reg & 0xFF;
+        int r2 = r - (p << 2) - 4;
+        if (r2 < 0) {
+          if (r2 < -8) c0 += 1;
+          if (r2 == -8) c4 += 1;
+          if (r2 == -4) c8 += 1;
+          if (r2 == -2) c10 += 1;
+        } else if (r < 252) {
+          sum += REGISTER_CONTRIBUTIONS[r2];
+        } else {
+          if (r == 252) c4w0 += 1;
+          if (r == 253) c4w1 += 1;
+          if (r == 254) c4w2 += 1;
+          if (r == 255) c4w3 += 1;
+        }
+      }
+
+      if (c0 > 0 || c4 > 0 || c8 > 0 || c10 > 0) {
+        double z = smallRangeEstimate(c0, c4, c8, c10, m);
+        if (c0 > 0) sum += calculateContribution0(c0, z);
+        if (c4 > 0) sum += calculateContribution4(c4, z);
+        if (c8 > 0) sum += calculateContribution8(c8, z);
+        if (c10 > 0) sum += calculateContribution10(c10, z);
+      }
+
+      if (c4w0 > 0 || c4w1 > 0 || c4w2 > 0 || c4w3 > 0) {
+        sum += calculateLargeRangeContribution(c4w0, c4w1, c4w2, c4w3, m, 65 - p);
+      }
+
+      return ESTIMATION_FACTORS[p - MIN_P] * pow(sum, MINUS_INV_TAU);
     }
   }
 }

@@ -29,7 +29,7 @@ public class UltraLogLogEstimationErrorSimulation {
         "ultraloglog",
         UltraLogLog::create,
         Arrays.asList(
-            new EstimationErrorSimulationUtil.EstimatorConfig<UltraLogLog>(
+            new EstimationErrorSimulationUtil.EstimatorConfig<>(
                 (s, m) -> s.getDistinctCountEstimate(),
                 "default",
                 pp -> new UltraLogLogTest().calculateTheoreticalRelativeStandardErrorDefault(pp)),
@@ -39,13 +39,9 @@ public class UltraLogLogEstimationErrorSimulation {
                 pp ->
                     new UltraLogLogTest().calculateTheoreticalRelativeStandardErrorMartingale(pp)),
             new EstimationErrorSimulationUtil.EstimatorConfig<>(
-                (s, m) -> s.getDistinctCountEstimate(SMALL_RANGE_CORRECTED_1_GRA_ESTIMATOR),
-                "small range corrected 1 GRA",
-                pp -> new UltraLogLogTest().calculateTheoreticalRelativeStandardErrorGRA(pp)),
-            new EstimationErrorSimulationUtil.EstimatorConfig<>(
-                (s, m) -> s.getDistinctCountEstimate(SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR),
-                "small range corrected 4 GRA",
-                pp -> new UltraLogLogTest().calculateTheoreticalRelativeStandardErrorGRA(pp)),
+                (s, m) -> s.getDistinctCountEstimate(OPTIMAL_FGRA_ESTIMATOR),
+                "optimal FGRA estimator",
+                OptimalFGRAEstimator::calculateTheoreticalRelativeStandardError),
             new EstimationErrorSimulationUtil.EstimatorConfig<>(
                 (s, m) -> s.getDistinctCountEstimate(MAXIMUM_LIKELIHOOD_ESTIMATOR),
                 "maximum likelihood",
