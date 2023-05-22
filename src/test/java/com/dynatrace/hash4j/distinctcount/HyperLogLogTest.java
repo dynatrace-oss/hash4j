@@ -153,6 +153,11 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
+  protected int computeToken(long hashValue) {
+    return HyperLogLog.computeToken(hashValue);
+  }
+
+  @Override
   protected List<HyperLogLog.Estimator> getEstimators() {
     return Arrays.asList(CORRECTED_RAW_ESTIMATOR, MAXIMUM_LIKELIHOOD_ESTIMATOR);
   }

@@ -30,6 +30,16 @@ interface DistinctCounter<T extends DistinctCounter<T, R>, R extends DistinctCou
   T add(long hashValue);
 
   /**
+   * Adds a new element represented by a 32-bit token obtained from {@link #computeToken(long)}.
+   *
+   * <p>{@code addToken(computeToken(hash))} is equivalent to {@code add(hash)}
+   *
+   * @param token a 32-bit hash token
+   * @return this sketch
+   */
+  T addToken(int token);
+
+  /**
    * Adds another sketch.
    *
    * <p>The precision parameter of the added sketch must not be smaller than the precision parameter
@@ -133,5 +143,36 @@ interface DistinctCounter<T extends DistinctCounter<T, R>, R extends DistinctCou
      * @return estimated number of distinct elements
      */
     double estimate(T sketch);
+  }
+
+  /**
+   * Computes a token from a given 64-bit hash value.
+   *
+   * <p>Instead of updating the sketch with the hash value using the {@link #add(long)} method, it
+   * can alternatively be updated with the corresponding 32-bit token using the {@link
+   * #addToken(int)} method.
+   *
+   * <p>{@code addToken(computeToken(hash))} is equivalent to {@code add(hash)}
+   *
+   * <p>Tokens can be temporarily collected using for example an {@code int[] array} and added later
+   * using {@link #addToken(int)} into the sketch resulting exactly in the same final state. This
+   * can be used to realize a sparse mode, where the sketch is created only when there are enough
+   * tokens to justify the memory allocation. It is sufficient to store only distinct tokens.
+   * Deduplication does not result in any loss of information with respect to distinct count
+   * estimation.
+   *
+   * @param hashValue the 64-bit hash value
+   * @return the 32-bit token
+   */
+  static int computeToken(long hashValue) {
+    int idx = (int) (hashValue >>> 38);
+    int nlz = Long.numberOfLeadingZeros(~(~hashValue << 26));
+    return (idx << 6) | nlz;
+  }
+
+  static long reconstructHash(int token) {
+    long idx = token & 0xFFFFFFC0L;
+    int nlz = token & 0x3F;
+    return (0x3FFFFFFFFFL >>> nlz) | (idx << 32);
   }
 }
