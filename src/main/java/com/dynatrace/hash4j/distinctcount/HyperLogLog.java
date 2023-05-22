@@ -270,6 +270,40 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   }
 
   /**
+   * Adds a new element represented by a 32-bit token obtained from {@link #computeToken(long)}.
+   *
+   * @param token a 32-bit hash token
+   * @return this sketch
+   */
+  @Override
+  public HyperLogLog addToken(int token) {
+    return add(DistinctCounter.reconstructHash(token));
+  }
+
+  /**
+   * Computes a token from a given 64-bit hash value.
+   *
+   * <p>Instead of updating the sketch with the hash value using the {@link #add(long)} method, it
+   * can alternatively be updated with the corresponding 32-bit token using the {@link
+   * #addToken(int)} method.
+   *
+   * <p>{@code addToken(computeToken(hash))} is equivalent to {@code add(hash)}
+   *
+   * <p>Tokens can be temporarily collected using for example an {@code int[] array} and added later
+   * using {@link #addToken(int)} into the sketch resulting exactly in the same final state. This
+   * can be used to realize a sparse mode, where the sketch is created only when there are enough
+   * tokens to justify the memory allocation. It is sufficient to store only distinct tokens.
+   * Deduplication does not result in any loss of information with respect to distinct count
+   * estimation.
+   *
+   * @param hashValue the 64-bit hash value
+   * @return the 32-bit token
+   */
+  public static int computeToken(long hashValue) {
+    return DistinctCounter.computeToken(hashValue);
+  }
+
+  /**
    * Adds a new element represented by a 64-bit hash value to this sketch and passes, if the
    * internal state has changed, decrements of the state change probability to the given {@link
    * StateChangeObserver}.

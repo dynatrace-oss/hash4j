@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static com.dynatrace.hash4j.distinctcount.DistinctCounter.reconstructHash;
 import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 import static java.lang.Math.pow;
 import static org.assertj.core.api.Assertions.*;
@@ -64,6 +65,8 @@ abstract class DistinctCounterTest<
   protected abstract List<? extends R> getEstimators();
 
   protected abstract int getNumberOfExtraBits();
+
+  protected abstract int computeToken(long hashValue);
 
   @Test
   void testStateCompatibility() {
@@ -852,9 +855,13 @@ abstract class DistinctCounterTest<
   }
 
   static long createUpdateValue(int p, int registerIndex, int nlz) {
+    return createUpdateValue(p, registerIndex, nlz, 0L);
+  }
+
+  static long createUpdateValue(int p, int registerIndex, int nlz, long random) {
     checkArgument(nlz >= 0);
     checkArgument(nlz <= 64 - p);
-    return ((long) registerIndex << -p) | (0xFFFFFFFFFFFFFFFFL >>> p >>> nlz);
+    return ((long) registerIndex << -p) | ((random | 0x8000000000000000L) >>> p >>> nlz);
   }
 
   @Test
@@ -930,6 +937,30 @@ abstract class DistinctCounterTest<
         sketch.add(createUpdateValue(p, k, 0));
       }
       assertThat(sketch.getStateChangeProbability()).isEqualTo(0.5);
+    }
+  }
+
+  @Test
+  void testToken() {
+    SplittableRandom random = new SplittableRandom(0xe7213ba5106acddfL);
+    for (int p = MIN_P; p <= 10; ++p) {
+      T sketchToken = create(p);
+      T sketchHash = create(p);
+      for (int nlz = 0; nlz <= 64 - p; ++nlz) {
+        sketchToken.reset();
+        sketchHash.reset();
+        for (int k = 0; k < (1 << p); ++k) {
+
+          long hash = createUpdateValue(p, k, nlz, random.nextLong());
+          int token = computeToken(hash);
+
+          sketchToken.addToken(token);
+          sketchHash.add(hash);
+
+          assertThat(computeToken(reconstructHash(token))).isEqualTo(token);
+        }
+        assertThat(sketchToken.getState()).isEqualTo(sketchHash.getState());
+      }
     }
   }
 }

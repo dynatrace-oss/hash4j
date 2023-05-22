@@ -236,6 +236,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Override
+  protected int computeToken(long hashValue) {
+    return UltraLogLog.computeToken(hashValue);
+  }
+
+  @Override
   protected List<UltraLogLog.Estimator> getEstimators() {
     return Arrays.asList(MAXIMUM_LIKELIHOOD_ESTIMATOR, OPTIMAL_FGRA_ESTIMATOR);
   }
