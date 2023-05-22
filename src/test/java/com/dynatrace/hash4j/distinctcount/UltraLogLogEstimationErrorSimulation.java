@@ -40,7 +40,7 @@ public class UltraLogLogEstimationErrorSimulation {
                     new UltraLogLogTest().calculateTheoreticalRelativeStandardErrorMartingale(pp)),
             new EstimationErrorSimulationUtil.EstimatorConfig<>(
                 (s, m) -> s.getDistinctCountEstimate(OPTIMAL_FGRA_ESTIMATOR),
-                "optimal FGRA estimator",
+                "optimal FGRA",
                 OptimalFGRAEstimator::calculateTheoreticalRelativeStandardError),
             new EstimationErrorSimulationUtil.EstimatorConfig<>(
                 (s, m) -> s.getDistinctCountEstimate(MAXIMUM_LIKELIHOOD_ESTIMATOR),
