@@ -68,7 +68,7 @@ java {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.9.0'
+version = '0.10.0'
 
 spotless {
 	ratchetFrom 'origin/main'
@@ -79,7 +79,7 @@ spotless {
 	}
 	python {
 		target 'python/**/*.py'
-		black('23.1.0')
+		black('23.3.0')
 		licenseHeader readPythonLicense('APACHE_2_0_DYNATRACE'), '(import|from)'
 	}
 	cpp {
@@ -90,42 +90,42 @@ spotless {
 	java {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.16.0')
+		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
 		targetExclude 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java', 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java','src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java','src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
 	format 'javaImohash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.16.0')
+		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_IMOHASH')
 		target 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java'
 	}
 	format 'javaKomihash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.16.0')
+		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_KOMIHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
 	}
 	format 'javaSplitMix64', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.16.0')
+		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('CREATIVE_COMMONS_SPLITMIX64')
 		target 'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
 	}
 	format 'javaExponential', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.16.0')
+		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('BOOST_EXPONENTIAL_RANDOM_GENERATION')
 		target 'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
 	format 'javaConsistnetJumpHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.16.0')
+		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_GUAVA')
 		target 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java'
 	}

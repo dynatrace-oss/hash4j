@@ -18,7 +18,6 @@ package com.dynatrace.hash4j.distinctcount;
 class DistinctCountUtil {
 
   private DistinctCountUtil() {}
-  // visible for testing
 
   static boolean isUnsignedPowerOfTwo(int x) {
     return (x & (x - 1)) == 0;

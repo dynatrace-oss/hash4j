@@ -25,12 +25,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.9.0</version>
+  <version>0.10.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.9.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.10.0'
 ```
 
 ## Hash algorithms
