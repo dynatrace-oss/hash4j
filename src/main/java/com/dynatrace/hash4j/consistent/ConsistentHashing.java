@@ -29,7 +29,7 @@ public final class ConsistentHashing {
    * consistent hash algorithm." arXiv preprint <a
    * href="https://arxiv.org/abs/1406.2294">arXiv:1406.2294</a> (2014).
    *
-   * @param pseudoRandomGeneratorProvider a {@link} PseudoRandomGeneratorProvider
+   * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
    * @return a {@link ConsistentBucketHasher}
    */
   public static ConsistentBucketHasher jumpHash(
