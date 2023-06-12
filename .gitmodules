@@ -28,3 +28,12 @@
 [submodule "reference-implementations/wyhash_final_4/wyhash"]
 	path = reference-implementations/wyhash_final_4/wyhash
 	url = https://github.com/wangyi-fudan/wyhash.git
+[submodule "komihash_5_0"]
+	path = komihash_5_0
+	url = https://github.com/avaneev/komihash.git
+[submodule "reference-implementations/komihash_5_0"]
+	path = reference-implementations/komihash_5_0
+	url = https://github.com/avaneev/komihash.git
+[submodule "reference-implementations/komihash_5_0/komihash"]
+	path = reference-implementations/komihash_5_0/komihash
+	url = https://github.com/avaneev/komihash.git
