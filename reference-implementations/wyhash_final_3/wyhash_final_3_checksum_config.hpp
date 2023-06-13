@@ -16,7 +16,6 @@
 #ifndef WYHASH_FINAL_3_CHECKSUM_CONFIG_HPP
 #define WYHASH_FINAL_3_CHECKSUM_CONFIG_HPP
 
-#include "wyhash/wyhash.h"
 #include <string>
 
 class WyhashFinal3ChecksumConfig {
@@ -36,34 +35,7 @@ public:
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const {
-
-		uint64_t seed1, seed2;
-		memcpy(&seed1, seedBytes, 8);
-		memcpy(&seed2, seedBytes + 8, 8);
-
-		uint64_t rand;
-		memcpy(&rand, seedBytes + 16, 8);
-
-		uint64_t hash0 = wyhash(dataBytes, size, 0, _wyp);
-		uint64_t hash1 = wyhash(dataBytes, size, seed1, _wyp);
-		uint64_t hash2 = 0;
-		uint64_t hash3 = 0;
-
-		if ((rand & UINT64_C(0x3F)) == 0) {
-			// secret computation is relatively slow, therefore do it
-			// just in 1 out of 64 cases
-			uint64_t _wyp2[4];
-			make_secret(seed2, _wyp2);
-			hash2 = wyhash(dataBytes, size, 0, _wyp2);
-			hash3 = wyhash(dataBytes, size, seed1, _wyp2);
-		}
-
-		memcpy(hashBytes, &hash0, 8);
-		memcpy(hashBytes + 8, &hash1, 8);
-		memcpy(hashBytes + 16, &hash2, 8);
-		memcpy(hashBytes + 24, &hash3, 8);
-	}
+			const uint8_t *dataBytes, uint64_t size) const;
 
 };
 

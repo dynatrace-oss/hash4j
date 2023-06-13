@@ -13,29 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef KOMIHASH_4_3_CHECKSUM_CONFIG_HPP
-#define KOMIHASH_4_3_CHECKSUM_CONFIG_HPP
+#include "murmur3_32_checksum_config.hpp"
+#include "smhasher/src/MurmurHash3.h"
+#include <cstring>
 
-#include <string>
+void Murmur3_32_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
-class Komihash4_3ChecksumConfig {
+	uint32_t seed;
+	memcpy(&seed, seedBytes, 4);
+	MurmurHash3_x86_32(dataBytes, size, 0, hashBytes);
+	MurmurHash3_x86_32(dataBytes, size, seed, hashBytes + 4);
 
-public:
-
-	uint64_t getSeedSize() const {
-		return 8;
-	}
-
-	uint64_t getHashSize() const {
-		return 16;
-	}
-
-	std::string getName() const {
-		return "Komihash 4.3";
-	}
-
-	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const;
-};
-
-#endif // KOMIHASH_4_3_CHECKSUM_CONFIG_HPP
+}

@@ -16,7 +16,6 @@
 #ifndef KOMIHASH_4_7_CHECKSUM_CONFIG_HPP
 #define KOMIHASH_4_7_CHECKSUM_CONFIG_HPP
 
-#include "komihash/komihash.h"
 #include <string>
 
 class Komihash4_7ChecksumConfig {
@@ -36,17 +35,7 @@ public:
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const {
-
-		uint64_t seed;
-		memcpy(&seed, seedBytes, 8);
-
-		uint64_t hash0 = komihash((char*) (&dataBytes[0]), size, 0);
-		uint64_t hash1 = komihash((char*) (&dataBytes[0]), size, seed);
-
-		memcpy(hashBytes, &hash0, 8);
-		memcpy(hashBytes + 8, &hash1, 8);
-	}
+			const uint8_t *dataBytes, uint64_t size) const;
 
 };
 
