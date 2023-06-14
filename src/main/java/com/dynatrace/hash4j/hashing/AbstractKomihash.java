@@ -295,7 +295,7 @@ abstract class AbstractKomihash extends AbstractHasher64 {
     protected abstract void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7);
 
-    protected abstract long finalize(long se1, long se5, int off, int len);
+    protected abstract long finalizeGetAsLong(long se1, long se5, int off, int len);
 
     @Override
     public long getAsLong() {
@@ -339,7 +339,7 @@ abstract class AbstractKomihash extends AbstractHasher64 {
         len -= 16;
       }
 
-      return finalize(se1, se5, off, len);
+      return finalizeGetAsLong(se1, se5, off, len);
     }
 
     @Override

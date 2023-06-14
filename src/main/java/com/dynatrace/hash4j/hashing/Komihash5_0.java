@@ -321,7 +321,7 @@ class Komihash5_0 extends AbstractKomihash {
     }
 
     @Override
-    protected long finalize(long se1, long se5, int off, int len) {
+    protected long finalizeGetAsLong(long se1, long se5, int off, int len) {
       long r2h = se5;
       long r2l = se1;
       long y = 1L << (len << 3);
