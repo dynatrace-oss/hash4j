@@ -1,4 +1,30 @@
 acceptedBreaks:
+  "0.10.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.class.visibilityReduced"
+      old: "class com.dynatrace.hash4j.hashing.AbstractHashStream128"
+      new: "class com.dynatrace.hash4j.hashing.AbstractHashStream128"
+      justification: "reduced unintended visibility"
+    - code: "java.class.visibilityReduced"
+      old: "class com.dynatrace.hash4j.hashing.AbstractHashStream32"
+      new: "class com.dynatrace.hash4j.hashing.AbstractHashStream32"
+      justification: "reduced unintended visibility"
+    - code: "java.class.visibilityReduced"
+      old: "class com.dynatrace.hash4j.hashing.AbstractHashStream64"
+      new: "class com.dynatrace.hash4j.hashing.AbstractHashStream64"
+      justification: "reduced unintended visibility"
+    - code: "java.method.visibilityReduced"
+      old: "method void com.dynatrace.hash4j.hashing.AbstractHashStream128::<init>()"
+      new: "method void com.dynatrace.hash4j.hashing.AbstractHashStream128::<init>()"
+      justification: "reduced unintended visibility"
+    - code: "java.method.visibilityReduced"
+      old: "method void com.dynatrace.hash4j.hashing.AbstractHashStream32::<init>()"
+      new: "method void com.dynatrace.hash4j.hashing.AbstractHashStream32::<init>()"
+      justification: "reduced unintended visibility"
+    - code: "java.method.visibilityReduced"
+      old: "method void com.dynatrace.hash4j.hashing.AbstractHashStream64::<init>()"
+      new: "method void com.dynatrace.hash4j.hashing.AbstractHashStream64::<init>()"
+      justification: "reduced unintended visibility"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"
