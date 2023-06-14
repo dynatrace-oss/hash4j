@@ -84,7 +84,7 @@ spotless {
 	}
 	cpp {
 		target 'reference-implementations/*/*.cpp', 'reference-implementations/*/*.hpp', 'reference-implementations/*.cpp', 'reference-implementations/*.hpp'
-		eclipseCdt('11.1')
+		eclipseCdt('10.7') // version 10.7 seems to be the latest that can be used with Java 11
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
 	}
 	java {
