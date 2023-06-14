@@ -89,7 +89,7 @@ public final class Hashing {
    * <p>This implementation is compatible with the C++ reference implementation of {@code komihash}
    * defined in <a
    * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
-   * on an Intel x86 architecture.
+   * on an Intel x86 architecture. Furthermore, it is compatible with Komihash versions 4.5 and 4.7.
    *
    * @return a hasher instance
    */
@@ -104,7 +104,7 @@ public final class Hashing {
    * <p>This implementation is compatible with the C++ reference implementation of {@code komihash}
    * defined in <a
    * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
-   * on an Intel x86 architecture.
+   * on an Intel x86 architecture. Furthermore, it is compatible with Komihash versions 4.5 and 4.7.
    *
    * <p>This implementation is also compatible with Komihash versions 4.5 and 4.7.
    *
@@ -113,6 +113,37 @@ public final class Hashing {
    */
   public static Hasher64 komihash4_3(long seed) {
     return Komihash4_3.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Komihash (version 5.0) algorithm using a
+   * seed value of zero.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code komihash}
+   * defined in <a
+   * href="https://github.com/avaneev/komihash/blob/3f5ff057be1f4738e21b2d225c9d34cc089524bd/komihash.h">komihash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 komihash5_0() {
+    return Komihash5_0.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Komihash (version 5.0) algorithm using the
+   * given seed value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code komihash}
+   * defined in <a
+   * href="https://github.com/avaneev/komihash/blob/3f5ff057be1f4738e21b2d225c9d34cc089524bd/komihash.h">komihash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 komihash5_0(long seed) {
+    return Komihash5_0.create(seed);
   }
 
   /**
