@@ -106,7 +106,7 @@ spotless {
 		removeUnusedImports()
 		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_KOMIHASH')
-		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java'
+		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java', 'src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java'
 	}
 	format 'javaSplitMix64', JavaExtension, {
 		importOrder()
@@ -122,7 +122,7 @@ spotless {
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('BOOST_EXPONENTIAL_RANDOM_GENERATION')
 		target 'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
-	format 'javaConsistnetJumpHash', JavaExtension, {
+	format 'javaConsistentJumpHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
 		googleJavaFormat('1.17.0')

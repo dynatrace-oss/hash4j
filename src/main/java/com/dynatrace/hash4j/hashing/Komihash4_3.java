@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2021 Aleksey Vaneev
+ * Copyright (c) 2021-2023 Aleksey Vaneev
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,16 +42,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Komihash4_3 extends AbstractHasher64 {
-
-  private final long seed1;
-  private final long seed2;
-  private final long seed3;
-  private final long seed4;
-  private final long seed5;
-  private final long seed6;
-  private final long seed7;
-  private final long seed8;
+class Komihash4_3 extends AbstractKomihash {
 
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);
 
@@ -60,40 +51,11 @@ class Komihash4_3 extends AbstractHasher64 {
   }
 
   static Hasher64 create(long useSeed) {
-
-    long seed1 = 0x243F6A8885A308D3L ^ (useSeed & 0x5555555555555555L);
-    long seed5 = 0x452821E638D01377L ^ (useSeed & 0xAAAAAAAAAAAAAAAAL);
-    long l = seed1 * seed5;
-    long h = unsignedMultiplyHigh(seed1, seed5);
-    seed5 += h;
-    seed1 = seed5 ^ l;
-    long seed2 = 0x13198A2E03707344L ^ seed1;
-    long seed3 = 0xA4093822299F31D0L ^ seed1;
-    long seed4 = 0x082EFA98EC4E6C89L ^ seed1;
-    long seed6 = 0xBE5466CF34E90C6CL ^ seed5;
-    long seed7 = 0xC0AC29B7C97C50DDL ^ seed5;
-    long seed8 = 0x3F84D5B5B5470917L ^ seed5;
-
-    return new Komihash4_3(seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8);
+    return new Komihash4_3(useSeed);
   }
 
-  private Komihash4_3(
-      long seed1,
-      long seed2,
-      long seed3,
-      long seed4,
-      long seed5,
-      long seed6,
-      long seed7,
-      long seed8) {
-    this.seed1 = seed1;
-    this.seed2 = seed2;
-    this.seed3 = seed3;
-    this.seed4 = seed4;
-    this.seed5 = seed5;
-    this.seed6 = seed6;
-    this.seed7 = seed7;
-    this.seed8 = seed8;
+  private Komihash4_3(long seed) {
+    super(seed);
   }
 
   @Override
@@ -335,229 +297,10 @@ class Komihash4_3 extends AbstractHasher64 {
     return see1;
   }
 
-  private class HashStreamImpl extends AbstractHashStream64 {
-
-    private final byte[] buffer = new byte[64 + 7];
-    private long byteCount = 0;
-
-    private long see1 = Komihash4_3.this.seed1;
-    private long see2 = Komihash4_3.this.seed2;
-    private long see3 = Komihash4_3.this.seed3;
-    private long see4 = Komihash4_3.this.seed4;
-    private long see5 = Komihash4_3.this.seed5;
-    private long see6 = Komihash4_3.this.seed6;
-    private long see7 = Komihash4_3.this.seed7;
-    private long see8 = Komihash4_3.this.seed8;
+  private class HashStreamImpl extends AbstractKomihash.HashStreamImpl {
 
     @Override
-    public HashStream64 reset() {
-      see1 = Komihash4_3.this.seed1;
-      see2 = Komihash4_3.this.seed2;
-      see3 = Komihash4_3.this.seed3;
-      see4 = Komihash4_3.this.seed4;
-      see5 = Komihash4_3.this.seed5;
-      see6 = Komihash4_3.this.seed6;
-      see7 = Komihash4_3.this.seed7;
-      see8 = Komihash4_3.this.seed8;
-      byteCount = 0;
-      return this;
-    }
-
-    @Override
-    public HashStream64 putByte(byte v) {
-      buffer[(int) (byteCount & 0x3FL)] = v;
-      if ((byteCount & 0x3FL) >= 0x3FL) {
-        processBuffer();
-      }
-      byteCount += 1;
-      return this;
-    }
-
-    @Override
-    public HashStream64 putShort(short v) {
-      setShort(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x3EL) {
-        processBuffer();
-        buffer[0] = (byte) (v >>> -(byteCount << 3));
-      }
-      byteCount += 2;
-      return this;
-    }
-
-    @Override
-    public HashStream64 putChar(char v) {
-      setChar(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x3EL) {
-        processBuffer();
-        buffer[0] = (byte) (v >>> -(byteCount << 3));
-      }
-      byteCount += 2;
-      return this;
-    }
-
-    @Override
-    public HashStream64 putInt(int v) {
-      setInt(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x3CL) {
-        processBuffer();
-        setInt(buffer, 0, v >>> -(byteCount << 3));
-      }
-      byteCount += 4;
-      return this;
-    }
-
-    @Override
-    public HashStream64 putLong(long v) {
-      setLong(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x38L) {
-        processBuffer();
-        setLong(buffer, 0, v >>> -(byteCount << 3));
-      }
-      byteCount += 8;
-      return this;
-    }
-
-    @Override
-    public HashStream64 putBytes(byte[] b, int off, int len) {
-      int offset = ((int) byteCount) & 0x3F;
-      byteCount += len;
-      int x = 64 - offset;
-      if (len >= x) {
-        if (offset != 0) {
-          System.arraycopy(b, off, buffer, offset, x);
-          len -= x;
-          off += x;
-          offset = 0;
-          processBuffer();
-        }
-        while (len > 63) {
-          long b0 = getLong(b, off);
-          long b1 = getLong(b, off + 8);
-          long b2 = getLong(b, off + 16);
-          long b3 = getLong(b, off + 24);
-          long b4 = getLong(b, off + 32);
-          long b5 = getLong(b, off + 40);
-          long b6 = getLong(b, off + 48);
-          long b7 = getLong(b, off + 56);
-          processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-          off += 64;
-          len -= 64;
-        }
-        if (len == 0) {
-          buffer[63] = b[off - 1];
-        }
-      }
-      System.arraycopy(b, off, buffer, offset, len);
-      return this;
-    }
-
-    @Override
-    public HashStream64 putChars(CharSequence s) {
-      int remainingChars = s.length();
-      int offset = (int) byteCount & 0x3F;
-      byteCount += ((long) remainingChars) << 1;
-      int off = 0;
-      if (remainingChars >= ((65 - offset) >>> 1)) {
-        if (offset > 1) {
-          while (offset < 58) {
-            setLong(buffer, offset, getLong(s, off));
-            off += 4;
-            offset += 8;
-          }
-          if (offset < 62) {
-            setInt(buffer, offset, getInt(s, off));
-            off += 2;
-            offset += 4;
-          }
-          if (offset < 64) {
-            setChar(buffer, offset, s.charAt(off));
-            off += 1;
-          }
-          remainingChars -= off;
-          processBuffer();
-          offset &= 1;
-          if (offset != 0) {
-            buffer[0] = buffer[64];
-          }
-        }
-        if (remainingChars >= 32) {
-          long b0, b1, b2, b3, b4, b5, b6, b7;
-          if (offset == 0) {
-            do {
-              b0 = getLong(s, off);
-              b1 = getLong(s, off + 4);
-              b2 = getLong(s, off + 8);
-              b3 = getLong(s, off + 12);
-              b4 = getLong(s, off + 16);
-              b5 = getLong(s, off + 20);
-              b6 = getLong(s, off + 24);
-              b7 = getLong(s, off + 28);
-              processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-              remainingChars -= 32;
-              off += 32;
-            } while (remainingChars >= 32);
-            buffer[63] = (byte) (b7 >>> 56);
-          } else {
-            long z = buffer[0] & 0xFFL;
-            do {
-              b0 = getLong(s, off);
-              b1 = getLong(s, off + 4);
-              b2 = getLong(s, off + 8);
-              b3 = getLong(s, off + 12);
-              b4 = getLong(s, off + 16);
-              b5 = getLong(s, off + 20);
-              b6 = getLong(s, off + 24);
-              b7 = getLong(s, off + 28);
-              long y = b7 >>> 56;
-              b7 = (b6 >>> 56) | (b7 << 8);
-              b6 = (b5 >>> 56) | (b6 << 8);
-              b5 = (b4 >>> 56) | (b5 << 8);
-              b4 = (b3 >>> 56) | (b4 << 8);
-              b3 = (b2 >>> 56) | (b3 << 8);
-              b2 = (b1 >>> 56) | (b2 << 8);
-              b1 = (b0 >>> 56) | (b1 << 8);
-              b0 = z | (b0 << 8);
-              z = y;
-              processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-              remainingChars -= 32;
-              off += 32;
-            } while (remainingChars >= 32);
-            buffer[0] = (byte) (z);
-          }
-        }
-      }
-      while (remainingChars >= 4) {
-        setLong(buffer, offset, getLong(s, off));
-        off += 4;
-        offset += 8;
-        remainingChars -= 4;
-      }
-      if (remainingChars >= 2) {
-        setInt(buffer, offset, getInt(s, off));
-        off += 2;
-        offset += 4;
-        remainingChars -= 2;
-      }
-      if (remainingChars != 0) {
-        setChar(buffer, offset, s.charAt(off));
-      }
-      return this;
-    }
-
-    private void processBuffer() {
-      long b0 = getLong(buffer, 0);
-      long b1 = getLong(buffer, 8);
-      long b2 = getLong(buffer, 16);
-      long b3 = getLong(buffer, 24);
-      long b4 = getLong(buffer, 32);
-      long b5 = getLong(buffer, 40);
-      long b6 = getLong(buffer, 48);
-      long b7 = getLong(buffer, 56);
-
-      processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-    }
-
-    private void processBuffer(
+    protected void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
       b0 ^= see1;
       b1 ^= see5;
@@ -588,47 +331,7 @@ class Komihash4_3 extends AbstractHasher64 {
     }
 
     @Override
-    public long getAsLong() {
-
-      long se5 = this.see5;
-      long se1 = this.see1;
-      if (byteCount > 63) {
-        se5 ^= see6 ^ see7 ^ see8;
-        se1 ^= see2 ^ see3 ^ see4;
-      }
-
-      int len = (int) (byteCount & 0x3f);
-      int off = 0;
-
-      if (len > 31) {
-        long tmp1 = se1 ^ getLong(buffer, off);
-        long tmp2 = se5 ^ getLong(buffer, off + 8);
-        long r1l = tmp1 * tmp2;
-        long r1h = unsignedMultiplyHigh(tmp1, tmp2);
-        se5 += r1h;
-        se1 = se5 ^ r1l;
-        long tmp3 = se1 ^ getLong(buffer, off + 16);
-        long tmp4 = se5 ^ getLong(buffer, off + 24);
-        r1l = tmp3 * tmp4;
-        r1h = unsignedMultiplyHigh(tmp3, tmp4);
-        se5 += r1h;
-        se1 = se5 ^ r1l;
-        off += 32;
-        len -= 32;
-      }
-
-      if (len > 15) {
-        long tmp1 = se1 ^ getLong(buffer, off);
-        long tmp2 = se5 ^ getLong(buffer, off + 8);
-        long r1l = tmp1 * tmp2;
-        long r1h = unsignedMultiplyHigh(tmp1, tmp2);
-        se5 += r1h;
-        se1 = se5 ^ r1l;
-
-        off += 16;
-        len -= 16;
-      }
-
+    protected long finalize(long se1, long se5, int off, int len) {
       long r2h = se5;
       long r2l = se1;
       long y = 1L << (len << 3);
@@ -651,11 +354,6 @@ class Komihash4_3 extends AbstractHasher64 {
       se1 = se5 ^ r2l;
 
       return se1;
-    }
-
-    @Override
-    public int getHashBitSize() {
-      return 64;
     }
   }
 }
