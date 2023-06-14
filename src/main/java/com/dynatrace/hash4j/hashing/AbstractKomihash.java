@@ -54,20 +54,20 @@ abstract class AbstractKomihash extends AbstractHasher64 {
   protected final long seed8;
 
   protected AbstractKomihash(long seed) {
-    long seed1 = 0x243F6A8885A308D3L ^ (seed & 0x5555555555555555L);
-    long seed5 = 0x452821E638D01377L ^ (seed & 0xAAAAAAAAAAAAAAAAL);
-    long l = seed1 * seed5;
-    long h = unsignedMultiplyHigh(seed1, seed5);
-    seed5 += h;
-    seed1 = seed5 ^ l;
-    this.seed1 = seed1;
-    this.seed2 = 0x13198A2E03707344L ^ seed1;
-    this.seed3 = 0xA4093822299F31D0L ^ seed1;
-    this.seed4 = 0x082EFA98EC4E6C89L ^ seed1;
-    this.seed5 = seed5;
-    this.seed6 = 0xBE5466CF34E90C6CL ^ seed5;
-    this.seed7 = 0xC0AC29B7C97C50DDL ^ seed5;
-    this.seed8 = 0x3F84D5B5B5470917L ^ seed5;
+    long s1 = 0x243F6A8885A308D3L ^ (seed & 0x5555555555555555L);
+    long s5 = 0x452821E638D01377L ^ (seed & 0xAAAAAAAAAAAAAAAAL);
+    long l = s1 * s5;
+    long h = unsignedMultiplyHigh(s1, s5);
+    s5 += h;
+    s1 = s5 ^ l;
+    this.seed1 = s1;
+    this.seed2 = 0x13198A2E03707344L ^ s1;
+    this.seed3 = 0xA4093822299F31D0L ^ s1;
+    this.seed4 = 0x082EFA98EC4E6C89L ^ s1;
+    this.seed5 = s5;
+    this.seed6 = 0xBE5466CF34E90C6CL ^ s5;
+    this.seed7 = 0xC0AC29B7C97C50DDL ^ s5;
+    this.seed8 = 0x3F84D5B5B5470917L ^ s5;
   }
 
   protected abstract class HashStreamImpl extends AbstractHashStream64 {
