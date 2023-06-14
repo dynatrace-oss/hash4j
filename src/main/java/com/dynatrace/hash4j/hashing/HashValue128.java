@@ -20,23 +20,51 @@ public final class HashValue128 {
   private final long mostSignificantBits;
   private final long leastSignificantBits;
 
+  /**
+   * Constructor.
+   *
+   * @param mostSignificantBits the 64 most significant bits of the hash value
+   * @param leastSignificantBits the 64 least significant bits of the hash value
+   */
   public HashValue128(long mostSignificantBits, long leastSignificantBits) {
     this.mostSignificantBits = mostSignificantBits;
     this.leastSignificantBits = leastSignificantBits;
   }
 
+  /**
+   * Returns the 32 least significant bits of the hash value.
+   *
+   * @return a 32-bit hash value
+   */
   public int getAsInt() {
     return (int) getLeastSignificantBits();
   }
 
+  /**
+   * Returns the 64 most significant bits of the hash value.
+   *
+   * @return a 64-bit hash value
+   */
   public long getMostSignificantBits() {
     return mostSignificantBits;
   }
 
+  /**
+   * Returns the 64 least significant bits of the hash value.
+   *
+   * <p>Equivalent to {@link #getAsLong()}.
+   *
+   * @return a 64-bit hash value
+   */
   public long getLeastSignificantBits() {
     return leastSignificantBits;
   }
 
+  /**
+   * Returns the 64 least significant bits of the hash value.
+   *
+   * @return a 64-bit hash value
+   */
   public long getAsLong() {
     return getLeastSignificantBits();
   }

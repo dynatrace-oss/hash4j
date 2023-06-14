@@ -57,6 +57,15 @@ public final class MartingaleEstimator implements StateChangeObserver {
   private double distinctCountEstimate;
   private double stateChangeProbability;
 
+  /**
+   * Constructor.
+   *
+   * <p>Can be used to continue estimation if an estimate of the current distinct count is known and
+   * if the current state change probability of the accompanying sketch is known.
+   *
+   * @param distinctCountEstimate the current distinct count estimate
+   * @param stateChangeProbability the current state change probability of the accompanying sketch
+   */
   public MartingaleEstimator(double distinctCountEstimate, double stateChangeProbability) {
     checkArgument(
         distinctCountEstimate >= 0, "Initial distinct count estimate must be non-negative!");
@@ -72,6 +81,7 @@ public final class MartingaleEstimator implements StateChangeObserver {
     this.stateChangeProbability = stateChangeProbability;
   }
 
+  /** Constructor. */
   public MartingaleEstimator() {
     this.distinctCountEstimate = 0;
     this.stateChangeProbability = 1;
