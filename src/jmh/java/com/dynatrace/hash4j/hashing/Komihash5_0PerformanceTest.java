@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef KOMIHASH_4_3_CHECKSUM_CONFIG_HPP
-#define KOMIHASH_4_3_CHECKSUM_CONFIG_HPP
+package com.dynatrace.hash4j.hashing;
 
-#include <string>
+public class Komihash5_0PerformanceTest extends AbstactHasher64PerformanceTest {
 
-class Komihash4_3ChecksumConfig {
+  private static final Hasher64 HASHER_INSTANCE = Hashing.komihash5_0();
 
-public:
-
-	uint64_t getSeedSize() const {
-		return 8;
-	}
-
-	uint64_t getHashSize() const {
-		return 16;
-	}
-
-	std::string getName() const {
-		return "Komihash 4.3";
-	}
-
-	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const;
-};
-
-#endif // KOMIHASH_4_3_CHECKSUM_CONFIG_HPP
+  @Override
+  protected Hasher64 getHasherInstance() {
+    return HASHER_INSTANCE;
+  }
+}

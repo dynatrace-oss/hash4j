@@ -35,9 +35,15 @@ implementation 'com.dynatrace.hash4j:hash4j:0.10.0'
 
 ## Hash algorithms
 hash4j currently implements the following hash algorithms:
-* [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp) (128-bit and 32-bit)
-* [Wyhash](https://github.com/wangyi-fudan/wyhash) (final version 3 and final version 4)
-* [Komihash](https://github.com/avaneev/komihash) (version 4.3, compatible with 4.5 and 4.7)
+* [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp)
+  * 32-bit
+  * 128-bit
+* [Wyhash](https://github.com/wangyi-fudan/wyhash)
+  * [final version 3](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash)
+  * [final version 4](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash_final4)
+* [Komihash](https://github.com/avaneev/komihash)
+  * [version 4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [version 4.7](https://github.com/avaneev/komihash/releases/tag/4.7))
+  * [version 5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [version 5.1](https://github.com/avaneev/komihash/releases/tag/5.1))
 
 All hash functions are thoroughly tested against the native reference implementations and also other libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/latest/com/google/common/hash/package-summary.html), [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html), or [crypto](https://github.com/appmattus/crypto) (see [CrossCheckTest.java](src/test/java/com/dynatrace/hash4j/hashing/CrossCheckTest.java)).
  

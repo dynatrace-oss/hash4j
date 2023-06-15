@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,14 @@ package com.dynatrace.hash4j.similarity;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 
+/** Versions of MinHash implementations. */
 public enum MinHashVersion {
+  /**
+   * Default version.
+   *
+   * <p>Not stable! Use concrete version if compatibility is important, if for example hash
+   * signatures are persisted.
+   */
   DEFAULT {
     @Override
     SimilarityHashPolicy create(int numberOfComponents, int bitsPerComponent) {
@@ -25,6 +32,7 @@ public enum MinHashVersion {
           numberOfComponents, bitsPerComponent, PseudoRandomGeneratorProvider.splitMix64_V1());
     }
   },
+  /** Version 1. */
   V1 {
     @Override
     SimilarityHashPolicy create(int numberOfComponents, int bitsPerComponent) {

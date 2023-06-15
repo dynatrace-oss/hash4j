@@ -42,7 +42,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Komihash4_3 extends AbstractKomihash {
+class Komihash5_0 extends AbstractKomihash {
 
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);
 
@@ -51,10 +51,10 @@ class Komihash4_3 extends AbstractKomihash {
   }
 
   static Hasher64 create(long useSeed) {
-    return new Komihash4_3(useSeed);
+    return new Komihash5_0(useSeed);
   }
 
-  private Komihash4_3(long seed) {
+  private Komihash5_0(long seed) {
     super(seed);
   }
 
@@ -82,12 +82,12 @@ class Komihash4_3 extends AbstractKomihash {
       do {
 
         long tmp1 = see1 ^ getLong(input, off);
-        long tmp2 = see5 ^ getLong(input, off + 8);
-        long tmp3 = see2 ^ getLong(input, off + 16);
-        long tmp4 = see6 ^ getLong(input, off + 24);
-        long tmp5 = see3 ^ getLong(input, off + 32);
-        long tmp6 = see7 ^ getLong(input, off + 40);
-        long tmp7 = see4 ^ getLong(input, off + 48);
+        long tmp2 = see5 ^ getLong(input, off + 32);
+        long tmp3 = see2 ^ getLong(input, off + 8);
+        long tmp4 = see6 ^ getLong(input, off + 40);
+        long tmp5 = see3 ^ getLong(input, off + 16);
+        long tmp6 = see7 ^ getLong(input, off + 48);
+        long tmp7 = see4 ^ getLong(input, off + 24);
         long tmp8 = see8 ^ getLong(input, off + 56);
 
         see1 = tmp1 * tmp2;
@@ -146,23 +146,18 @@ class Komihash4_3 extends AbstractKomihash {
     if (len > 7) {
       r2l ^= getLong(input, off);
       long y = getLong(input, off + len - 8);
-      long fb = y >>> 1 >>> ~ml8;
-      fb |= 1L << ml8 << (y >>> 63);
-      r2h ^= fb;
+      r2h ^= (1L << ml8) | (y >>> 1 >>> (~ml8));
     } else if (len > 3) {
-      long fb = getInt(input, off) & 0xFFFFFFFFL;
-      long y = getInt(input, off + len - 4);
-      fb |= (y << 32) >>> (-ml8);
-      fb |= 1L << ml8 << (y >>> 63);
-      r2l ^= fb;
+      long mh = getInt(input, off + len - 4);
+      long ml = getInt(input, off) & 0xFFFFFFFFL;
+      r2l ^= (1L << ml8) | ml | (mh << 32 >>> (-ml8));
     } else if (len > 0) {
-      long fb = input[off] & 0xFFL;
-      if (len > 1) fb |= (input[off + 1] & 0xFFL) << 8;
-      if (len > 2) fb |= (input[off + 2] & 0xFFL) << 16;
-      fb |= 1L << ml8 << (fb >>> (ml8 - 1));
-      r2l ^= fb;
+      long m = (1L << ml8) | (input[off] & 0xFFL);
+      if (len > 1) m |= (input[off + 1] & 0xFFL) << 8;
+      if (len > 2) m |= (input[off + 2] & 0xFFL) << 16;
+      r2l ^= m;
     } else if (nonZeroLength) {
-      r2l ^= (input[off - 1] < 0) ? 2L : 1L;
+      r2l ^= 1L;
     }
 
     see5 += unsignedMultiplyHigh(r2l, r2h);
@@ -198,12 +193,12 @@ class Komihash4_3 extends AbstractKomihash {
       do {
 
         long tmp1 = see1 ^ getLong(input, off);
-        long tmp2 = see5 ^ getLong(input, off + 4);
-        long tmp3 = see2 ^ getLong(input, off + 8);
-        long tmp4 = see6 ^ getLong(input, off + 12);
-        long tmp5 = see3 ^ getLong(input, off + 16);
-        long tmp6 = see7 ^ getLong(input, off + 20);
-        long tmp7 = see4 ^ getLong(input, off + 24);
+        long tmp2 = see5 ^ getLong(input, off + 16);
+        long tmp3 = see2 ^ getLong(input, off + 4);
+        long tmp4 = see6 ^ getLong(input, off + 20);
+        long tmp5 = see3 ^ getLong(input, off + 8);
+        long tmp6 = see7 ^ getLong(input, off + 24);
+        long tmp7 = see4 ^ getLong(input, off + 12);
         long tmp8 = see8 ^ getLong(input, off + 28);
 
         long r1l = tmp1 * tmp2;
@@ -269,21 +264,16 @@ class Komihash4_3 extends AbstractKomihash {
     if (len > 3) {
       r2l ^= getLong(input, off);
       long y = getLong(input, off + len - 4);
-      long fb = y >>> 1 >>> ~ml8;
-      fb |= 1L << ml8 << (y >>> 63);
-      r2h ^= fb;
+      r2h ^= (1L << ml8) | (y >>> 1 >>> (~ml8));
     } else if (len > 1) {
-      long fb = getInt(input, off) & 0xFFFFFFFFL;
-      long y = getInt(input, off + len - 2);
-      fb |= (y << 32) >>> (-ml8);
-      fb |= 1L << ml8 << (y >>> 63);
-      r2l ^= fb;
+      long mh = getInt(input, off + len - 2);
+      long ml = getInt(input, off) & 0xFFFFFFFFL;
+      r2l ^= (1L << ml8) | ml | (mh << 32 >>> (-ml8));
     } else if (len > 0) {
-      long fb = input.charAt(off);
-      fb |= 0x10000L << (fb >>> 15);
-      r2l ^= fb;
+      long m = (1L << ml8) | input.charAt(off);
+      r2l ^= m;
     } else if (nonZeroLength) {
-      r2l ^= 0x1L << ((int) input.charAt(off - 1) >>> 15);
+      r2l ^= 1L;
     }
 
     see5 += unsignedMultiplyHigh(r2l, r2h);
@@ -303,22 +293,22 @@ class Komihash4_3 extends AbstractKomihash {
     protected void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
       b0 ^= see1;
-      b1 ^= see5;
-      b2 ^= see2;
-      b3 ^= see6;
-      b4 ^= see3;
-      b5 ^= see7;
-      b6 ^= see4;
+      b1 ^= see2;
+      b2 ^= see3;
+      b3 ^= see4;
+      b4 ^= see5;
+      b5 ^= see6;
+      b6 ^= see7;
       b7 ^= see8;
 
-      long r1l = b0 * b1;
-      long r1h = unsignedMultiplyHigh(b0, b1);
-      long r2l = b2 * b3;
-      long r2h = unsignedMultiplyHigh(b2, b3);
-      long r3l = b4 * b5;
-      long r3h = unsignedMultiplyHigh(b4, b5);
-      long r4l = b6 * b7;
-      long r4h = unsignedMultiplyHigh(b6, b7);
+      long r1l = b0 * b4;
+      long r1h = unsignedMultiplyHigh(b0, b4);
+      long r2l = b1 * b5;
+      long r2h = unsignedMultiplyHigh(b1, b5);
+      long r3l = b2 * b6;
+      long r3h = unsignedMultiplyHigh(b2, b6);
+      long r4l = b3 * b7;
+      long r4h = unsignedMultiplyHigh(b3, b7);
 
       see5 += r1h;
       see6 += r2h;
@@ -335,14 +325,11 @@ class Komihash4_3 extends AbstractKomihash {
       long r2h = se5;
       long r2l = se1;
       long y = 1L << (len << 3);
-      long fb = y << ((buffer[(off + len - 1) & 0x3f] < 0) ? 1 : 0);
       if (len > 7) {
-        fb |= getLong(buffer, off + 8) & (y - 1);
-        r2h ^= fb;
         r2l ^= getLong(buffer, off);
+        r2h ^= y | (getLong(buffer, off + 8) & (y - 1));
       } else if (byteCount > 0) {
-        fb |= getLong(buffer, off) & (y - 1);
-        r2l ^= fb;
+        r2l ^= y | (getLong(buffer, off) & (y - 1));
       }
 
       se5 += unsignedMultiplyHigh(r2l, r2h);

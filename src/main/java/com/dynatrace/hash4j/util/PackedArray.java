@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,7 @@ public final class PackedArray {
     long getValue(int index);
   }
 
+  /** A handler for a packed array with predefined element size. */
   public interface PackedArrayHandler {
 
     /**

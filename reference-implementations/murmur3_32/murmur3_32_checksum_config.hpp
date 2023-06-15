@@ -16,7 +16,6 @@
 #ifndef MURMUR3_32_CHECKSUM_CONFIG_HPP
 #define MURMUR3_32_CHECKSUM_CONFIG_HPP
 
-#include "smhasher/src/MurmurHash3.h"
 #include <string>
 
 class Murmur3_32_ChecksumConfig {
@@ -36,14 +35,7 @@ public:
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const {
-
-		uint32_t seed;
-		memcpy(&seed, seedBytes, 4);
-		MurmurHash3_x86_32(dataBytes, size, 0, hashBytes);
-		MurmurHash3_x86_32(dataBytes, size, seed, hashBytes + 4);
-
-	}
+			const uint8_t *dataBytes, uint64_t size) const;
 
 };
 
