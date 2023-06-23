@@ -24,7 +24,7 @@
 #include "komihash_4_7/komihash_4_7_checksum_config.hpp"
 #include "komihash_5_0/komihash_5_0_checksum_config.hpp"
 #include "komihash_5_1/komihash_5_1_checksum_config.hpp"
-#include "polymur-hash_1_0/polymur-hash_1_0_checksum_config.hpp"
+#include "polymur-hash_2_0/polymur-hash_2_0_checksum_config.hpp"
 #include "wyhash_final_3/wyhash_final_3_checksum_config.hpp"
 #include "wyhash_final_4/wyhash_final_4_checksum_config.hpp"
 #include "murmur3_128/murmur3_128_checksum_config.hpp"
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<WyhashFinal4ChecksumConfig>();
 	computeAndPrintChecksum<Murmur3_128_ChecksumConfig>();
 	computeAndPrintChecksum<Murmur3_32_ChecksumConfig>();
-	computeAndPrintChecksum<PolymurHash_1_0_ChecksumConfig>();
+	computeAndPrintChecksum<PolymurHash_2_0_ChecksumConfig>();
 
 	return 0;
 }

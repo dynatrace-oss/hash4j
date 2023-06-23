@@ -1,6 +1,6 @@
 g++ \
 calculate_checksums.cpp \
-polymur-hash_1_0/polymur-hash_1_0_checksum_config.cpp \
+polymur-hash_2_0/polymur-hash_2_0_checksum_config.cpp \
 wyhash_final_3/wyhash_final_3_checksum_config.cpp \
 wyhash_final_4/wyhash_final_4_checksum_config.cpp \
 komihash_4_3/komihash_4_3_checksum_config.cpp \

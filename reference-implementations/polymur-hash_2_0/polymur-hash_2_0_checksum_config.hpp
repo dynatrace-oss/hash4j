@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef POLYMURHASH_1_0_CHECKSUM_CONFIG_HPP
-#define POLYMURHASH_1_0_CHECKSUM_CONFIG_HPP
+#ifndef POLYMURHASH_2_0_CHECKSUM_CONFIG_HPP
+#define POLYMURHASH_2_0_CHECKSUM_CONFIG_HPP
 
 #include <string>
 
-class PolymurHash_1_0_ChecksumConfig {
+class PolymurHash_2_0_ChecksumConfig {
 
 public:
 
@@ -31,7 +31,7 @@ public:
 	}
 
 	std::string getName() const {
-		return "PolymurHash 1.0";
+		return "PolymurHash 2.0";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -39,4 +39,4 @@ public:
 
 };
 
-#endif // POLYMURHASH_1_0_CHECKSUM_CONFIG_HPP
+#endif // POLYMURHASH_2_0_CHECKSUM_CONFIG_HPP

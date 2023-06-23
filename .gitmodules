@@ -34,6 +34,6 @@
 [submodule "reference-implementations/komihash_5_1/komihash"]
 	path = reference-implementations/komihash_5_1/komihash
 	url = https://github.com/avaneev/komihash.git
-[submodule "reference-implementations/polymur-hash_1_0/polymur-hash"]
-	path = reference-implementations/polymur-hash_1_0/polymur-hash
+[submodule "reference-implementations/polymur-hash_2_0/polymur-hash"]
+	path = reference-implementations/polymur-hash_2_0/polymur-hash
 	url = https://github.com/orlp/polymur-hash.git

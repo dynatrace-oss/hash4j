@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "polymur-hash_1_0_checksum_config.hpp"
+#include "polymur-hash_2_0_checksum_config.hpp"
 #include "polymur-hash/polymur-hash.h"
 #include <cstring>
 
-void PolymurHash_1_0_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+void PolymurHash_2_0_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
 	uint64_t seed0;

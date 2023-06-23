@@ -97,6 +97,7 @@ spotless {
 			'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java',\
 			'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java',\
 			'src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java',\
+			'src/main/java/com/dynatrace/hash4j/hashing/PolymurHash2_0.java',\
 			'src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java',\
 			'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java',\
 			'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
@@ -114,6 +115,13 @@ spotless {
 		googleJavaFormat('1.17.0')
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_KOMIHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java', 'src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java'
+	}
+	format 'javaPolymurHash', JavaExtension, {
+		importOrder()
+		removeUnusedImports()
+		googleJavaFormat('1.17.0')
+		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('ZLIB_POLYMURHASH')
+		target 'src/main/java/com/dynatrace/hash4j/hashing/PolymurHash2_0.java'
 	}
 	format 'javaSplitMix64', JavaExtension, {
 		importOrder()
