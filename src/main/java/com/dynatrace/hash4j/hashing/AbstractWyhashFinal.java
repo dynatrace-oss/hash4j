@@ -519,11 +519,6 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
       }
       return finish(a, b, s, byteCount);
     }
-
-    @Override
-    public int getHashBitSize() {
-      return 64;
-    }
   }
 
   @Override
