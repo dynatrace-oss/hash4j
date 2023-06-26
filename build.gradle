@@ -68,7 +68,7 @@ java {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.10.0'
+version = '0.11.0'
 
 spotless {
 	ratchetFrom 'origin/main'
