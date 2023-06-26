@@ -23,9 +23,9 @@ void PolymurHash_2_0_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 	uint64_t seed0;
 	uint64_t seed1;
 	uint64_t tweak;
-	memcpy(&seed0, seedBytes, 8);
-	memcpy(&seed1, seedBytes + 8, 8);
-	memcpy(&tweak, seedBytes + 16, 8);
+	memcpy(&tweak, seedBytes, 8);
+	memcpy(&seed0, seedBytes + 8, 8);
+	memcpy(&seed1, seedBytes + 16, 8);
 	PolymurHashParams params0;
 	PolymurHashParams params1;
 

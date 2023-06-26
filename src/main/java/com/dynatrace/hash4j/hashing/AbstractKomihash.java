@@ -341,10 +341,5 @@ abstract class AbstractKomihash extends AbstractHasher64 {
 
       return finalizeGetAsLong(se1, se5, off, len);
     }
-
-    @Override
-    public int getHashBitSize() {
-      return 64;
-    }
   }
 }

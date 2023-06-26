@@ -151,6 +151,41 @@ public final class Hashing {
   }
 
   /**
+   * Returns a {@link Hasher64} implementing the 64-bit PolymurHash (version 2.0) algorithm using
+   * the given tweak and seed value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * polymur_hash} defined in <a
+   * href="https://github.com/orlp/polymur-hash/blob/c6cc6884459560443e696604e9db3b6bb61a9bfa/polymur-hash.h">polymur-hash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param tweak a 64-bit tweak
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 polymurHash2_0(long tweak, long seed) {
+    return PolymurHash2_0.create(tweak, seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit PolymurHash (version 2.0) algorithm using
+   * the given tweak and seed values.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * polymur_hash} defined in <a
+   * href="https://github.com/orlp/polymur-hash/blob/c6cc6884459560443e696604e9db3b6bb61a9bfa/polymur-hash.h">polymur-hash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param tweak a 64-bit tweak
+   * @param kSeed a 64-bit kSeed
+   * @param sSeed a 64-bit kSeed
+   * @return a hasher instance
+   */
+  public static Hasher64 polymurHash2_0(long tweak, long kSeed, long sSeed) {
+    return PolymurHash2_0.create(tweak, kSeed, sSeed);
+  }
+
+  /**
    * Returns a {@link Hasher64} implementing the 64-bit Wyhash (version final 3) algorithm using a
    * seed value of zero and the default secret.
    *
