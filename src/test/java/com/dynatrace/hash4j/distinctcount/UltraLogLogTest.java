@@ -524,20 +524,20 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     int m = 1 << p;
     List<Double> list = new ArrayList<>();
 
-    for (int h0 = 0; h0 <= 2; ++h0) {
-      for (int h1 = 0; h1 <= 2; ++h1) {
-        for (int h2 = 0; h2 <= 2; ++h2) {
-          int h3 = m - h0 - h1 - h2;
-          list.add(OptimalFGRAEstimator.largeRangeEstimate(h0, h1, h2, h3, m));
+    for (int c0 = 0; c0 <= 2; ++c0) {
+      for (int c4 = 0; c4 <= 2; ++c4) {
+        for (int c8 = 0; c8 <= 2; ++c8) {
+          int c10 = m - c0 - c4 - c8;
+          list.add(OptimalFGRAEstimator.largeRangeEstimate(c0, c4, c8, c10, m));
         }
       }
     }
 
-    for (int h0 = 0; h0 <= 2; ++h0) {
-      for (int h1 = 0; h1 <= 2; ++h1) {
-        for (int h2 = 0; h2 <= 2; ++h2) {
-          for (int h3 = 0; h3 <= 2; ++h3) {
-            list.add(OptimalFGRAEstimator.largeRangeEstimate(h0, h1, h2, h3, m));
+    for (int c0 = 0; c0 <= 2; ++c0) {
+      for (int c4 = 0; c4 <= 2; ++c4) {
+        for (int c8 = 0; c8 <= 2; ++c8) {
+          for (int c10 = 0; c10 <= 2; ++c10) {
+            list.add(OptimalFGRAEstimator.largeRangeEstimate(c0, c4, c8, c10, m));
           }
         }
       }
@@ -550,20 +550,20 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     int m = 1 << p;
     List<Double> list = new ArrayList<>();
 
-    for (int h1 = 0; h1 <= 2; ++h1) {
-      for (int h2 = 0; h2 <= 2; ++h2) {
-        for (int h3 = 0; h3 <= 2; ++h3) {
-          int h0 = m - h1 - h2 - h3;
-          list.add(OptimalFGRAEstimator.smallRangeEstimate(h0, h1, h2, h3, m));
+    for (int c4 = 0; c4 <= 2; ++c4) {
+      for (int c8 = 0; c8 <= 2; ++c8) {
+        for (int c10 = 0; c10 <= 2; ++c10) {
+          int c0 = m - c4 - c8 - c10;
+          list.add(OptimalFGRAEstimator.smallRangeEstimate(c0, c4, c8, c10, m));
         }
       }
     }
 
-    for (int h0 = 0; h0 <= 2; ++h0) {
-      for (int h1 = 0; h1 <= 2; ++h1) {
-        for (int h2 = 0; h2 <= 2; ++h2) {
-          for (int h3 = 0; h3 <= 2; ++h3) {
-            list.add(OptimalFGRAEstimator.smallRangeEstimate(h0, h1, h2, h3, m));
+    for (int c0 = 0; c0 <= 2; ++c0) {
+      for (int c4 = 0; c4 <= 2; ++c4) {
+        for (int c8 = 0; c8 <= 2; ++c8) {
+          for (int c10 = 0; c10 <= 2; ++c10) {
+            list.add(OptimalFGRAEstimator.smallRangeEstimate(c0, c4, c8, c10, m));
           }
         }
       }
