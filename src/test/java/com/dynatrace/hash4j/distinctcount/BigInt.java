@@ -20,7 +20,6 @@ import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 import com.dynatrace.hash4j.util.Preconditions;
 import java.math.BigInteger;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
 
 public class BigInt implements Comparable<BigInt> {
 
@@ -119,7 +118,7 @@ public class BigInt implements Comparable<BigInt> {
   }
 
   @Override
-  public int compareTo(@NotNull BigInt o) {
+  public int compareTo(BigInt o) {
     if (high > o.high) return 1;
     if (high < o.high) return -1;
     return Long.compare(low, o.low);
