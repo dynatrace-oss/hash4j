@@ -321,6 +321,23 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   }
 
   /**
+   * Adds a new element, represented by a 32-bit token obtained from {@link #computeToken(long)}, to
+   * this sketch and passes, if the internal state has changed, decrements of the state change
+   * probability to the given {@link StateChangeObserver}.
+   *
+   * <p>{@code addToken(computeToken(hash), stateChangeObserver)} is equivalent to {@code add(hash,
+   * stateChangeObserver)}
+   *
+   * @param token a 32-bit hash token
+   * @param stateChangeObserver a state change observer
+   * @return this sketch
+   */
+  @Override
+  public UltraLogLog addToken(int token, StateChangeObserver stateChangeObserver) {
+    return add(DistinctCounter.reconstructHash(token), stateChangeObserver);
+  }
+
+  /**
    * Adds another sketch.
    *
    * <p>The precision parameter of the added sketch must not be smaller than the precision parameter

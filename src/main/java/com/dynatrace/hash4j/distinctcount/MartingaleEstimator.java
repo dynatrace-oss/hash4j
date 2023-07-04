@@ -57,6 +57,17 @@ public final class MartingaleEstimator implements StateChangeObserver {
   private double distinctCountEstimate;
   private double stateChangeProbability;
 
+  /** Constructor. */
+  public MartingaleEstimator() {
+    reset();
+  }
+
+  /** Resets the martingale estimator to its initial state. */
+  public void reset() {
+    this.distinctCountEstimate = 0;
+    this.stateChangeProbability = 1;
+  }
+
   /**
    * Constructor.
    *
@@ -67,11 +78,24 @@ public final class MartingaleEstimator implements StateChangeObserver {
    * @param stateChangeProbability the current state change probability of the accompanying sketch
    */
   public MartingaleEstimator(double distinctCountEstimate, double stateChangeProbability) {
-    checkArgument(
-        distinctCountEstimate >= 0, "Initial distinct count estimate must be non-negative!");
+    set(distinctCountEstimate, stateChangeProbability);
+  }
+
+  /**
+   * Sets the martingale estimator to a given distinct count estimate and a given state change
+   * probability.
+   *
+   * <p>Can be used to continue estimation if an estimate of the current distinct count is known and
+   * if the current state change probability of the accompanying sketch is known.
+   *
+   * @param distinctCountEstimate the current distinct count estimate
+   * @param stateChangeProbability the current state change probability of the accompanying sketch
+   */
+  public void set(double distinctCountEstimate, double stateChangeProbability) {
+    checkArgument(distinctCountEstimate >= 0, "Distinct count estimate must be non-negative!");
     checkArgument(
         stateChangeProbability >= 0 && stateChangeProbability <= 1,
-        "Initial state change probability must be in the range [0,1]!");
+        "State change probability must be in the range [0,1]!");
     this.distinctCountEstimate = distinctCountEstimate;
     if (stateChangeProbability
         <= 0) { // if state change probability == -0.0 set it to +0.0, to avoid negative infinite
@@ -79,12 +103,6 @@ public final class MartingaleEstimator implements StateChangeObserver {
       stateChangeProbability = 0.;
     }
     this.stateChangeProbability = stateChangeProbability;
-  }
-
-  /** Constructor. */
-  public MartingaleEstimator() {
-    this.distinctCountEstimate = 0;
-    this.stateChangeProbability = 1;
   }
 
   /**
