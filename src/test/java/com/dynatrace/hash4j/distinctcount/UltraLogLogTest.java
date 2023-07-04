@@ -528,7 +528,9 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
       for (int c4 = 0; c4 <= 2; ++c4) {
         for (int c8 = 0; c8 <= 2; ++c8) {
           int c10 = m - c0 - c4 - c8;
-          list.add(OptimalFGRAEstimator.largeRangeEstimate(c0, c4, c8, c10, m));
+          if (c10 >= 0) {
+            list.add(OptimalFGRAEstimator.largeRangeEstimate(c0, c4, c8, c10, m));
+          }
         }
       }
     }
@@ -554,7 +556,9 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
       for (int c8 = 0; c8 <= 2; ++c8) {
         for (int c10 = 0; c10 <= 2; ++c10) {
           int c0 = m - c4 - c8 - c10;
-          list.add(OptimalFGRAEstimator.smallRangeEstimate(c0, c4, c8, c10, m));
+          if (c0 >= 0) {
+            list.add(OptimalFGRAEstimator.smallRangeEstimate(c0, c4, c8, c10, m));
+          }
         }
       }
     }

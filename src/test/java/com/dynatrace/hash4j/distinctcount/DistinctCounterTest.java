@@ -946,9 +946,17 @@ abstract class DistinctCounterTest<
     for (int p = MIN_P; p <= 10; ++p) {
       T sketchToken = create(p);
       T sketchHash = create(p);
+      T sketchTokenMartingale = create(p);
+      T sketchHashMartingale = create(p);
+      MartingaleEstimator tokenMartingaleEstimator = new MartingaleEstimator();
+      MartingaleEstimator hashMartingaleEstimator = new MartingaleEstimator();
       for (int nlz = 0; nlz <= 64 - p; ++nlz) {
         sketchToken.reset();
         sketchHash.reset();
+        sketchTokenMartingale.reset();
+        sketchHashMartingale.reset();
+        tokenMartingaleEstimator.reset();
+        hashMartingaleEstimator.reset();
         for (int k = 0; k < (1 << p); ++k) {
 
           long hash = createUpdateValue(p, k, nlz, random.nextLong());
@@ -956,10 +964,19 @@ abstract class DistinctCounterTest<
 
           sketchToken.addToken(token);
           sketchHash.add(hash);
+          sketchTokenMartingale.addToken(token, tokenMartingaleEstimator);
+          sketchHashMartingale.add(hash, hashMartingaleEstimator);
 
           assertThat(computeToken(reconstructHash(token))).isEqualTo(token);
         }
-        assertThat(sketchToken.getState()).isEqualTo(sketchHash.getState());
+        assertThat(sketchToken.getState())
+            .isEqualTo(sketchHash.getState())
+            .isEqualTo(sketchTokenMartingale.getState())
+            .isEqualTo(sketchHashMartingale.getState());
+        assertThat(tokenMartingaleEstimator.getDistinctCountEstimate())
+            .isEqualTo(hashMartingaleEstimator.getDistinctCountEstimate());
+        assertThat(tokenMartingaleEstimator.getStateChangeProbability())
+            .isEqualTo(hashMartingaleEstimator.getStateChangeProbability());
       }
     }
   }

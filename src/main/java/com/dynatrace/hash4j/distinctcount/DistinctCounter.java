@@ -122,6 +122,20 @@ interface DistinctCounter<T extends DistinctCounter<T, R>, R extends DistinctCou
   T add(long hashValue, StateChangeObserver stateChangeObserver);
 
   /**
+   * Adds a new element, represented by a 32-bit token obtained from {@link #computeToken(long)}, to
+   * this sketch and passes, if the internal state has changed, decrements of the state change
+   * probability to the given {@link StateChangeObserver}.
+   *
+   * <p>{@code addToken(computeToken(hash), stateChangeObserver)} is equivalent to {@code add(hash,
+   * stateChangeObserver)}
+   *
+   * @param token a 32-bit hash token
+   * @param stateChangeObserver a state change observer
+   * @return this sketch
+   */
+  T addToken(int token, StateChangeObserver stateChangeObserver);
+
+  /**
    * Returns the probability of an internal state change when a new distinct element is added.
    *
    * @return the state change probability

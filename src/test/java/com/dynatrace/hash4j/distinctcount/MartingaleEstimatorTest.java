@@ -15,8 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -57,5 +56,39 @@ class MartingaleEstimatorTest {
       assertThat(estimator.getStateChangeProbability()).isEqualTo(Math.pow(0.5, i));
       assertThat(estimator.getDistinctCountEstimate()).isEqualTo(Math.pow(2., i) - 1.);
     }
+  }
+
+  @Test
+  void testSet() {
+    double distinctCountEstimate = 23478952;
+    double stateChangeProbability = 0.823568;
+
+    MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
+    martingaleEstimator.set(distinctCountEstimate, stateChangeProbability);
+
+    assertThat(martingaleEstimator.getStateChangeProbability()).isEqualTo(stateChangeProbability);
+    assertThat(martingaleEstimator.getDistinctCountEstimate()).isEqualTo(distinctCountEstimate);
+  }
+
+  @Test
+  void testReset() {
+    double distinctCountEstimate = 23478952;
+    double stateChangeProbability = 0.823568;
+
+    MartingaleEstimator martingaleEstimator =
+        new MartingaleEstimator(distinctCountEstimate, stateChangeProbability);
+    martingaleEstimator.reset();
+
+    assertThat(martingaleEstimator.getStateChangeProbability()).isEqualTo(1.);
+    assertThat(martingaleEstimator.getDistinctCountEstimate()).isEqualTo(0.);
+  }
+
+  @Test
+  void testSetArguments() {
+    MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
+    assertThatIllegalArgumentException().isThrownBy(() -> martingaleEstimator.set(-2, 0.5));
+    assertThatIllegalArgumentException().isThrownBy(() -> martingaleEstimator.set(1, 1.5));
+    assertThatNoException().isThrownBy(() -> martingaleEstimator.set(2, -0.0));
+    assertThatIllegalArgumentException().isThrownBy(() -> martingaleEstimator.set(2, -0.1));
   }
 }
