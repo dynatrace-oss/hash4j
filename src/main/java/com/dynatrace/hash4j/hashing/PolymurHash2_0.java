@@ -430,7 +430,47 @@ class PolymurHash2_0 extends AbstractHasher64 {
     @Override
     public HashStream64 putBytes(byte[] b, int off, int len) {
       // TODO more efficient implementation
-      return super.putBytes(b, off, len);
+
+      if (len == 0) {
+        return this;
+      }
+
+      byteCount += len;
+
+      if (len + offset > 49) {
+
+        if (offset != 1) {
+          int x = 50 - offset;
+          System.arraycopy(b, off, buffer, offset, x);
+          processBuffer();
+          buffer[0] = buffer[49];
+          len -= x;
+          off += x;
+          offset = 1;
+        }
+
+        while (len >= 49) {
+          // processBuffer(b, off);
+          System.arraycopy(b, off, buffer, 1, 49);
+          processBuffer();
+          len -= 49;
+          off += 49;
+
+          buffer[0] = buffer[49];
+        }
+
+        if (len != 0) {
+          System.arraycopy(b, off, buffer, 1, len);
+          offset += len;
+        }
+
+      } else {
+        System.arraycopy(b, off, buffer, offset, len);
+        offset += len;
+      }
+
+      return this;
+
     }
 
     @Override
