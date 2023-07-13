@@ -439,28 +439,24 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
       if (len + offset > 49) {
 
-        if (offset != 1) {
-          int x = 50 - offset;
+        if (offset != 0) {
+          int x = 49 - offset;
           System.arraycopy(b, off, buffer, offset, x);
           processBuffer();
-          buffer[0] = buffer[49];
           len -= x;
           off += x;
-          offset = 1;
+          offset = 0;
         }
 
-        while (len >= 49) {
-          // processBuffer(b, off);
-          System.arraycopy(b, off, buffer, 1, 49);
-          processBuffer();
+        while (len > 49) {
+          processBuffer(b, off);
+
           len -= 49;
           off += 49;
-
-          buffer[0] = buffer[49];
         }
 
         if (len != 0) {
-          System.arraycopy(b, off, buffer, 1, len);
+          System.arraycopy(b, off, buffer, 0, len);
           offset += len;
         }
 
@@ -476,6 +472,20 @@ class PolymurHash2_0 extends AbstractHasher64 {
     @Override
     public HashStream64 putChars(CharSequence s) {
       // TODO more efficient implementation
+
+      /*
+        int len = s.length();
+        if (len == 0) {
+          return this;
+        }
+
+        byte[] b = new byte[len];
+        for (int i = 0; i < len; i++) {
+          b[i] = (byte) s.charAt(i) & 0x00FF;
+        }
+
+      */
+
       return super.putChars(s);
     }
 
@@ -488,6 +498,38 @@ class PolymurHash2_0 extends AbstractHasher64 {
       long m4 = (getLong(buffer, 28) & 0x00ffffffffffffffL) + k3x;
       long m5 = (getLong(buffer, 35) & 0x00ffffffffffffffL) + k4x;
       long m6 = (getLong(buffer, 42) & 0x00ffffffffffffffL) + h;
+
+      long t0Hi = unsignedMultiplyHigh(m0, m1);
+      long t0Lo = m0 * m1;
+      long t1Hi = unsignedMultiplyHigh(m2, m3);
+      long t1Lo = m2 * m3 + 0x8000000000000000L;
+      long t2Hi = unsignedMultiplyHigh(m4, m5);
+      long t2Lo = m4 * m5;
+      long t3Hi = unsignedMultiplyHigh(m6, k7);
+      long t3Lo = m6 * k7 + 0x8000000000000000L;
+
+      t0Lo += t1Lo;
+      t0Hi += t1Hi + ((t0Lo < t1Lo) ? 1 : 0);
+      t2Lo += t3Lo;
+      t2Hi += t3Hi + ((t2Lo < t3Lo) ? 1 : 0);
+      t0Lo += t2Lo;
+      t0Hi += t2Hi + ((t0Lo + 0x8000000000000000L < t2Lo) ? 1 : 0);
+      h = polymurRed611(t0Hi, t0Lo);
+    }
+
+    /*
+     * steps over the System.arraycopy() step (time optimization)
+     * do only call if offset == 0
+     */
+    private void processBuffer(byte[] directProcess, int off) {
+
+      long m0 = (getLong(directProcess, off) & 0x00ffffffffffffffL) + k;
+      long m1 = (getLong(directProcess, off + 7) & 0x00ffffffffffffffL) + k6;
+      long m2 = (getLong(directProcess, off + 14) & 0x00ffffffffffffffL) + k2;
+      long m3 = (getLong(directProcess, off + 21) & 0x00ffffffffffffffL) + k5;
+      long m4 = (getLong(directProcess, off + 28) & 0x00ffffffffffffffL) + k3x;
+      long m5 = (getLong(directProcess, off + 35) & 0x00ffffffffffffffL) + k4x;
+      long m6 = (getLong(directProcess, off + 41) >>> 8) + h;
 
       long t0Hi = unsignedMultiplyHigh(m0, m1);
       long t0Lo = m0 * m1;
