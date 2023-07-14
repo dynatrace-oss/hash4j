@@ -429,8 +429,6 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
     @Override
     public HashStream64 putBytes(byte[] b, int off, int len) {
-      // TODO more efficient implementation
-
       if (len == 0) {
         return this;
       }
@@ -454,16 +452,10 @@ class PolymurHash2_0 extends AbstractHasher64 {
           len -= 49;
           off += 49;
         }
-
-        if (len != 0) {
-          System.arraycopy(b, off, buffer, 0, len);
-          offset += len;
-        }
-
-      } else {
-        System.arraycopy(b, off, buffer, offset, len);
-        offset += len;
       }
+
+      System.arraycopy(b, off, buffer, offset, len);
+      offset += len;
 
       return this;
 
@@ -471,23 +463,133 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
     @Override
     public HashStream64 putChars(CharSequence s) {
-      // TODO more efficient implementation
+      int len = s.length();
 
-      /*
-        int len = s.length();
-        if (len == 0) {
-          return this;
+      if (len == 0) {
+        return this;
+      }
+
+      int off = 0;
+      byteCount += len * 2L;
+
+      if (len * 2 + offset > 98) {
+        // um offset auf null zu bringen für darauffolgende schnellere Methode
+        if (offset != 0) {
+          int left = (50 - offset) / 2;
+          len -= left;
+          off += left;
+
+          if (offset % 2 == 0) {
+            // gerader offset
+
+            int temp = Math.min(len, 24);
+
+            len -= temp;
+            off += temp;
+
+            for (int i = 0; i <= left - 4; i += 4) {
+              setLong(buffer, offset + i * 2, getLong(s, i));
+            }
+
+            if ((left & 3) > 0) {
+              setChar(buffer, 48, s.charAt(left - 1));
+              if ((left & 3) > 1) {
+                setChar(buffer, 46, s.charAt(left - 2));
+                if ((left & 3) > 2) {
+                  setChar(buffer, 44, s.charAt(left - 3));
+                }
+              }
+            }
+
+            processBuffer();
+            buffer[0] = buffer[49];
+
+            for (int i = 0; i < 24; i += 4) {
+              setLong(buffer, 1 + i * 2, getLong(s, left + i));
+            }
+
+          } else {
+            // ungerader offset
+            for (int i = 0; i <= left - 4; i += 4) {
+              setLong(buffer, offset + i * 2, getLong(s, i));
+            }
+
+            if ((left & 3) > 0) {
+              setChar(buffer, 47, s.charAt(left - 1));
+              if ((left & 3) > 1) {
+                setChar(buffer, 45, s.charAt(left - 2));
+                if ((left & 3) > 2) {
+                  setChar(buffer, 43, s.charAt(left - 3));
+                }
+              }
+            }
+          }
+
+          processBuffer();
+
+          offset = 0;
         }
 
-        byte[] b = new byte[len];
-        for (int i = 0; i < len; i++) {
-          b[i] = (byte) s.charAt(i) & 0x00FF;
+        if (len >= 49) {
+          for (int i = 0; i < 24; i += 4) {
+            setLong(buffer, i * 2, getLong(s, off + i));
+          }
+          setChar(buffer, 48, s.charAt(off + 24));
+
+          processBuffer();
+          buffer[0] = buffer[49];
+
+          for (int i = 0; i < 24; i += 4) {
+            setLong(buffer, 1 + i * 2, getLong(s, 25 + off + i));
+          }
+
+          len -= 49;
+          off += 49;
+
+          while (len > 49) {
+            processBuffer();
+            for (int i = 0; i < 24; i += 4) {
+              setLong(buffer, i * 2, getLong(s, off + i));
+            }
+            setChar(buffer, 48, s.charAt(off + 24));
+
+            processBuffer();
+            buffer[0] = buffer[49];
+
+            for (int i = 0; i < 24; i += 4) {
+              setLong(buffer, 1 + i * 2, getLong(s, 25 + off + i));
+            }
+
+            len -= 49;
+            off += 49;
+          }
+          offset = 49;
         }
+      }
 
-      */
+      while (len > 0) {
+        len--;
 
-      return super.putChars(s);
+        setChar(buffer, offset, s.charAt(off));
+        off++;
+
+        offset += 2;
+
+        if (offset == 51) {
+          processBuffer();
+          buffer[0] = buffer[49];
+          buffer[1] = buffer[50];
+          offset = 2;
+        } else if (offset == 50) {
+          processBuffer();
+          buffer[0] = buffer[49];
+          offset = 1;
+        }
+      }
+
+      return this;
     }
+
 
     private void processBuffer() {
 
