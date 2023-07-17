@@ -29,6 +29,8 @@
 #include "wyhash_final_4/wyhash_final_4_checksum_config.hpp"
 #include "murmur3_128/murmur3_128_checksum_config.hpp"
 #include "murmur3_32/murmur3_32_checksum_config.hpp"
+#include "farmhash_na/farmhash_na_checksum_config.hpp"
+#include "farmhash_uo/farmhash_uo_checksum_config.hpp"
 
 using namespace std;
 
@@ -103,6 +105,8 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<Murmur3_128_ChecksumConfig>();
 	computeAndPrintChecksum<Murmur3_32_ChecksumConfig>();
 	computeAndPrintChecksum<PolymurHash_2_0_ChecksumConfig>();
+	computeAndPrintChecksum<FarmHashNaChecksumConfig>();
+	computeAndPrintChecksum<FarmHashUoChecksumConfig>();
 
 	return 0;
 }
