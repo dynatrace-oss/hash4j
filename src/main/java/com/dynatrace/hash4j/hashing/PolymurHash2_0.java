@@ -458,7 +458,6 @@ class PolymurHash2_0 extends AbstractHasher64 {
       offset += len;
 
       return this;
-
     }
 
     @Override
@@ -473,15 +472,12 @@ class PolymurHash2_0 extends AbstractHasher64 {
       byteCount += len * 2L;
 
       if (len * 2 + offset > 98) {
-        // um offset auf null zu bringen für darauffolgende schnellere Methode
         if (offset != 0) {
           int left = (50 - offset) / 2;
           len -= left;
           off += left;
 
           if (offset % 2 == 0) {
-            // gerader offset
-
             int temp = Math.min(len, 24);
 
             len -= temp;
@@ -509,7 +505,6 @@ class PolymurHash2_0 extends AbstractHasher64 {
             }
 
           } else {
-            // ungerader offset
             for (int i = 0; i <= left - 4; i += 4) {
               setLong(buffer, offset + i * 2, getLong(s, i));
             }
@@ -589,7 +584,6 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
       return this;
     }
-
 
     private void processBuffer() {
 
