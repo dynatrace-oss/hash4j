@@ -622,6 +622,28 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(1.)).isZero();
     assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(Math.nextDown(1.))).isEqualTo(2);
     assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(Double.MIN_VALUE)).isEqualTo(30);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.9999)).isEqualTo(15);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.999)).isEqualTo(16);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.99)).isEqualTo(17);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.98)).isEqualTo(18);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.97)).isEqualTo(18);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.96)).isEqualTo(18);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.95)).isEqualTo(19);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.9)).isEqualTo(19);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.8)).isEqualTo(19);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.7)).isEqualTo(20);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.6)).isEqualTo(20);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.5)).isEqualTo(20);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.4)).isEqualTo(21);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.3)).isEqualTo(21);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.2)).isEqualTo(21);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.1)).isEqualTo(21);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.05)).isEqualTo(22);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.01)).isEqualTo(22);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.001)).isEqualTo(23);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.0001)).isEqualTo(23);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.00001)).isEqualTo(24);
+    assertThat(optimalFGRAEstimatorPhiNumTermsUntilConvergence(0.000001)).isEqualTo(24);
 
     for (int p = MIN_P; p <= MAX_P; ++p) {
       double[] zValues = determineZTestValuesForPhi(p);
@@ -670,6 +692,33 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(1.)).isZero();
     assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(Math.nextDown(1.))).isEqualTo(60);
     assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(Double.MIN_VALUE)).isEqualTo(2);
+
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(1. - Math.pow(2., -MAX_P)))
+        .isEqualTo(33);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.999999)).isEqualTo(27);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.99999)).isEqualTo(23);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.9999)).isEqualTo(20);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.999)).isEqualTo(17);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.99)).isEqualTo(13);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.98)).isEqualTo(12);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.97)).isEqualTo(12);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.96)).isEqualTo(11);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.95)).isEqualTo(11);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.9)).isEqualTo(10);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.8)).isEqualTo(9);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.7)).isEqualTo(8);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.6)).isEqualTo(8);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.5)).isEqualTo(7);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.4)).isEqualTo(7);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.3)).isEqualTo(7);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.2)).isEqualTo(6);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.1)).isEqualTo(6);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.05)).isEqualTo(5);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.01)).isEqualTo(5);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.001)).isEqualTo(4);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.0001)).isEqualTo(4);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.00001)).isEqualTo(4);
+    assertThat(optimalFGRAEstimatorSigmaNumTermsUntilConvergence(0.000001)).isEqualTo(3);
 
     for (int p = MIN_P; p <= MAX_P; ++p) {
       double[] zValues = determineZTestValuesForSigma(p);
