@@ -138,6 +138,7 @@ class FarmHashNa extends AbstractHasher64 {
     }
   }
 
+
   /**
    * Computes intermediate hash of 32 bytes of byte array from the given offset. Results are
    * returned in the output array because when we last measured, this was 12% faster than allocating
@@ -439,23 +440,25 @@ class FarmHashNa extends AbstractHasher64 {
       z = rotateRight(z + w1, 33) * K1;
       long a = v2 * K1;
       long b = x + w1;
+      long z1 = buffer3;
       a += buffer0;
-      b = rotateRight(b + a + buffer3, 21);
+      b = rotateRight(b + a + z1, 21);
       long c = a;
       a += buffer1;
       a += buffer2;
       b += rotateRight(a, 44);
-      v1 = a + buffer3;
+      v1 = a + z1;
       v2 = b + c;
       long a1 = z + w2;
       long b1 = y + buffer2;
+      long z2 = buffer7;
       a1 += buffer4;
-      b1 = rotateRight(b1 + a1 + buffer7, 21);
+      b1 = rotateRight(b1 + a1 + z2, 21);
       long c1 = a1;
       a1 += buffer5;
       a1 += buffer6;
       b1 += rotateRight(a1, 44);
-      w1 = a1 + buffer7;
+      w1 = a1 + z2;
       w2 = b1 + c1;
       long t = z;
       z = x;

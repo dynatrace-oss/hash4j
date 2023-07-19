@@ -201,9 +201,6 @@ jmh {
 	warmupForks = 0
 	warmupIterations = 5
 	warmupBatchSize = 1
-	includes = [
-			"FarmHashNaGuavaPerformanceTest.hashBytes.*Direct"
-	]
 	warmup = '1s'
 	iterations = 20
 	resultFormat = 'JSON'
@@ -295,8 +292,8 @@ tasks.jmh.finalizedBy copyBenchmarkReport
 tasks.copyBenchmarkReport.finalizedBy deleteBenchmarkReport
 tasks.deleteBenchmarkReport.finalizedBy evaluateBenchmarks
 check.dependsOn jacocoTestCoverageVerification
-// tasks.jmh.dependsOn checkStatusForBenchmarks
-// tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
+tasks.jmh.dependsOn checkStatusForBenchmarks
+tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
 tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
