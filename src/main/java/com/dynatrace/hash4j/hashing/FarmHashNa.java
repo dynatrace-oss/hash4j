@@ -138,7 +138,6 @@ class FarmHashNa extends AbstractHasher64 {
     }
   }
 
-
   /**
    * Computes intermediate hash of 32 bytes of byte array from the given offset. Results are
    * returned in the output array because when we last measured, this was 12% faster than allocating
