@@ -16,6 +16,8 @@ komihash_5_7/komihash_5_7_checksum_config.cpp \
 murmur3_32/murmur3_32_checksum_config.cpp \
 murmur3_128/murmur3_128_checksum_config.cpp \
 murmur3_128/smhasher/src/MurmurHash3.cpp \
+xxh3/xxh3_checksum_config.cpp \
+xxh3/xxHash/xxhash.c \
 farmna.a \
 farmuo.a \
 -O2 -lssl -lcrypto -o calculate_checksums
