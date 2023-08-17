@@ -407,7 +407,8 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     return estimator.estimate(this);
   }
 
-  private static double getRegisterChangeProbability(byte reg, int p) {
+  // visible for testing
+  static double getRegisterChangeProbability(byte reg, int p) {
     final int off = (p + 1) << 2;
     int r = (reg & 0xFF);
     int t = r - off;

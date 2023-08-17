@@ -820,4 +820,66 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
                 .mapToDouble(p -> calculateEstimationFactor(p))
                 .toArray());
   }
+
+  // this function maps a register value from the corresponding value as defined in the paper
+  private static byte mapRegisterFromReferenceDefinition(byte r, int p) {
+    if (r == 0) return 0;
+    return (byte) (r + 4 * (p - 2));
+  }
+
+  // this function maps a register value to the corresponding value as defined in the paper
+  private static byte mapRegisterToReferenceDefinition(byte r, int p) {
+    if (r == 0) return 0;
+    return (byte) (r - 4 * (p - 2));
+  }
+
+  @Test
+  void testRegisterStateChangeProbability() {
+    for (int p = MIN_P; p <= MAX_P; ++p) {
+      int m = 1 << p;
+      assertThat(getRegisterChangeProbability(mapRegisterFromReferenceDefinition((byte) 0, p), p))
+          .isEqualTo(1. / m);
+      assertThat(getRegisterChangeProbability(mapRegisterFromReferenceDefinition((byte) 4, p), p))
+          .isEqualTo(1. / (2. * m));
+      assertThat(getRegisterChangeProbability(mapRegisterFromReferenceDefinition((byte) 8, p), p))
+          .isEqualTo(3. / (4. * m));
+      assertThat(getRegisterChangeProbability(mapRegisterFromReferenceDefinition((byte) 10, p), p))
+          .isEqualTo(1. / (4. * m));
+      int w = 65 - p;
+      for (int u = 3; u < w; ++u) {
+        assertThat(
+                getRegisterChangeProbability(
+                    mapRegisterFromReferenceDefinition((byte) (4 * u + 0), p), p))
+            .isEqualTo(7. / (Math.pow(2., u) * m));
+        assertThat(
+                getRegisterChangeProbability(
+                    mapRegisterFromReferenceDefinition((byte) (4 * u + 1), p), p))
+            .isEqualTo(3. / (Math.pow(2., u) * m));
+        assertThat(
+                getRegisterChangeProbability(
+                    mapRegisterFromReferenceDefinition((byte) (4 * u + 2), p), p))
+            .isEqualTo(5. / (Math.pow(2., u) * m));
+        assertThat(
+                getRegisterChangeProbability(
+                    mapRegisterFromReferenceDefinition((byte) (4 * u + 3), p), p))
+            .isEqualTo(1. / (Math.pow(2., u) * m));
+      }
+      assertThat(
+              getRegisterChangeProbability(
+                  mapRegisterFromReferenceDefinition((byte) (4 * w + 0), p), p))
+          .isEqualTo(3. / (Math.pow(2., w - 1) * m));
+      assertThat(
+              getRegisterChangeProbability(
+                  mapRegisterFromReferenceDefinition((byte) (4 * w + 1), p), p))
+          .isEqualTo(1. / (Math.pow(2., w - 1) * m));
+      assertThat(
+              getRegisterChangeProbability(
+                  mapRegisterFromReferenceDefinition((byte) (4 * w + 2), p), p))
+          .isEqualTo(2. / (Math.pow(2., w - 1) * m));
+      assertThat(
+              getRegisterChangeProbability(
+                  mapRegisterFromReferenceDefinition((byte) (4 * w + 3), p), p))
+          .isZero();
+    }
+  }
 }
