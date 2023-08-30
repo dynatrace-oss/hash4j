@@ -77,47 +77,43 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Test
-  void testPrefixConversion() {
-    assertThat(UltraLogLog.hashPrefixToRegister(0x4L)).isEqualTo((byte) 8);
-    assertThat(UltraLogLog.hashPrefixToRegister(0x5L)).isEqualTo((byte) 9);
-    assertThat(UltraLogLog.hashPrefixToRegister(0x6L)).isEqualTo((byte) 10);
-    assertThat(UltraLogLog.hashPrefixToRegister(0x7L)).isEqualTo((byte) 11);
-    assertThat(UltraLogLog.hashPrefixToRegister(0x8L)).isEqualTo((byte) 12);
-    assertThat(UltraLogLog.hashPrefixToRegister(0x9L)).isEqualTo((byte) 12);
-    assertThat(UltraLogLog.hashPrefixToRegister(0xAL)).isEqualTo((byte) 13);
-    assertThat(UltraLogLog.hashPrefixToRegister(0xBL)).isEqualTo((byte) 13);
-    assertThat(UltraLogLog.hashPrefixToRegister(12)).isEqualTo((byte) 14);
-    assertThat(UltraLogLog.hashPrefixToRegister(1L << (12 - 1))).isEqualTo((byte) 44);
-    assertThat(UltraLogLog.hashPrefixToRegister(1L << 12)).isEqualTo((byte) 48);
-    assertThat(UltraLogLog.hashPrefixToRegister((1L << (12 - 1)) | (1L << (12))))
-        .isEqualTo((byte) 50);
-    assertThat(UltraLogLog.hashPrefixToRegister(1L << (12 + 1))).isEqualTo((byte) 52);
-    assertThat(UltraLogLog.hashPrefixToRegister(0x8000000000000000L)).isEqualTo((byte) 252);
-    assertThat(UltraLogLog.hashPrefixToRegister(0xFFFFFFFFFFFFFFFFL)).isEqualTo((byte) 255);
+  void testRegisterPacking() {
+    assertThat(UltraLogLog.pack(0x4L)).isEqualTo((byte) 8);
+    assertThat(UltraLogLog.pack(0x5L)).isEqualTo((byte) 9);
+    assertThat(UltraLogLog.pack(0x6L)).isEqualTo((byte) 10);
+    assertThat(UltraLogLog.pack(0x7L)).isEqualTo((byte) 11);
+    assertThat(UltraLogLog.pack(0x8L)).isEqualTo((byte) 12);
+    assertThat(UltraLogLog.pack(0x9L)).isEqualTo((byte) 12);
+    assertThat(UltraLogLog.pack(0xAL)).isEqualTo((byte) 13);
+    assertThat(UltraLogLog.pack(0xBL)).isEqualTo((byte) 13);
+    assertThat(UltraLogLog.pack(12)).isEqualTo((byte) 14);
+    assertThat(UltraLogLog.pack(1L << (12 - 1))).isEqualTo((byte) 44);
+    assertThat(UltraLogLog.pack(1L << 12)).isEqualTo((byte) 48);
+    assertThat(UltraLogLog.pack((1L << (12 - 1)) | (1L << (12)))).isEqualTo((byte) 50);
+    assertThat(UltraLogLog.pack(1L << (12 + 1))).isEqualTo((byte) 52);
+    assertThat(UltraLogLog.pack(0x8000000000000000L)).isEqualTo((byte) 252);
+    assertThat(UltraLogLog.pack(0xFFFFFFFFFFFFFFFFL)).isEqualTo((byte) 255);
 
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 0)).isZero();
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 4)).isZero();
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 8)).isEqualTo(4);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 9)).isEqualTo(5);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 10)).isEqualTo(6);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 11)).isEqualTo(7);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 12)).isEqualTo(8);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 13)).isEqualTo(10);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 14)).isEqualTo(12);
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 44)).isEqualTo(1L << (12 - 1));
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 45))
-        .isEqualTo((1L << (12 - 1)) + (1L << (12 - 3)));
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 46))
-        .isEqualTo((1L << (12 - 1)) + (1L << (12 - 2)));
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 47))
+    assertThat(UltraLogLog.unpack((byte) 0)).isZero();
+    assertThat(UltraLogLog.unpack((byte) 4)).isZero();
+    assertThat(UltraLogLog.unpack((byte) 8)).isEqualTo(4);
+    assertThat(UltraLogLog.unpack((byte) 9)).isEqualTo(5);
+    assertThat(UltraLogLog.unpack((byte) 10)).isEqualTo(6);
+    assertThat(UltraLogLog.unpack((byte) 11)).isEqualTo(7);
+    assertThat(UltraLogLog.unpack((byte) 12)).isEqualTo(8);
+    assertThat(UltraLogLog.unpack((byte) 13)).isEqualTo(10);
+    assertThat(UltraLogLog.unpack((byte) 14)).isEqualTo(12);
+    assertThat(UltraLogLog.unpack((byte) 44)).isEqualTo(1L << (12 - 1));
+    assertThat(UltraLogLog.unpack((byte) 45)).isEqualTo((1L << (12 - 1)) + (1L << (12 - 3)));
+    assertThat(UltraLogLog.unpack((byte) 46)).isEqualTo((1L << (12 - 1)) + (1L << (12 - 2)));
+    assertThat(UltraLogLog.unpack((byte) 47))
         .isEqualTo((1L << (12 - 1)) + (1L << (12 - 2)) + (1L << (12 - 3)));
-    assertThat(UltraLogLog.registerToHashPrefix((byte) 255)).isEqualTo(0xE000000000000000L);
+    assertThat(UltraLogLog.unpack((byte) 255)).isEqualTo(0xE000000000000000L);
 
     int smallestRegisterValue = (MIN_P << 2) - 4;
     for (int i = smallestRegisterValue; i < 256; i += 1) {
       byte b = (byte) i;
-      assertThat(UltraLogLog.hashPrefixToRegister(UltraLogLog.registerToHashPrefix(b)))
-          .isEqualTo(b);
+      assertThat(UltraLogLog.pack(UltraLogLog.unpack(b))).isEqualTo(b);
     }
   }
 
@@ -132,13 +128,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
       long hashPrefix6 = 6L << (p - 1);
       long hashPrefix7 = 7L << (p - 1);
 
-      byte register1 = UltraLogLog.hashPrefixToRegister(hashPrefix1);
-      byte register2 = UltraLogLog.hashPrefixToRegister(hashPrefix2);
-      byte register3 = UltraLogLog.hashPrefixToRegister(hashPrefix3);
-      byte register4 = UltraLogLog.hashPrefixToRegister(hashPrefix4);
-      byte register5 = UltraLogLog.hashPrefixToRegister(hashPrefix5);
-      byte register6 = UltraLogLog.hashPrefixToRegister(hashPrefix6);
-      byte register7 = UltraLogLog.hashPrefixToRegister(hashPrefix7);
+      byte register1 = UltraLogLog.pack(hashPrefix1);
+      byte register2 = UltraLogLog.pack(hashPrefix2);
+      byte register3 = UltraLogLog.pack(hashPrefix3);
+      byte register4 = UltraLogLog.pack(hashPrefix4);
+      byte register5 = UltraLogLog.pack(hashPrefix5);
+      byte register6 = UltraLogLog.pack(hashPrefix6);
+      byte register7 = UltraLogLog.pack(hashPrefix7);
 
       assertThat(register1).isEqualTo((byte) ((p << 2) - 4));
       assertThat(register2).isEqualTo((byte) (p << 2));
@@ -150,7 +146,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     }
 
     long hashPrefixLargest = 0xFFFFFFFFFFFFFFFFL;
-    byte registerLargest = UltraLogLog.hashPrefixToRegister(hashPrefixLargest);
+    byte registerLargest = UltraLogLog.pack(hashPrefixLargest);
     assertThat(registerLargest).isEqualTo((byte) 255);
   }
 

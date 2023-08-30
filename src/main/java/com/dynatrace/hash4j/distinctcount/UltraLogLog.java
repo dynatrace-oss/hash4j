@@ -308,9 +308,9 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     int idx = (int) (hashValue >>> q);
     int nlz = Long.numberOfLeadingZeros(~(~hashValue << (-q))); // nlz in {0, 1, ..., 64-p}
     byte oldState = state[idx];
-    long hashPrefix = registerToHashPrefix(oldState);
+    long hashPrefix = unpack(oldState);
     hashPrefix |= 1L << (nlz + (~q)); // (nlz + (~q)) = (nlz + p - 1) in {p-1, ... 63}
-    byte newState = hashPrefixToRegister(hashPrefix);
+    byte newState = pack(hashPrefix);
     state[idx] = newState;
     if (stateChangeObserver != null && newState != oldState) {
       int p = 64 - q;
@@ -359,7 +359,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     final int deltaP = otherP - p;
     int j = 0;
     for (int i = 0; i < state.length; ++i) {
-      long hashPrefix = registerToHashPrefix(state[i]) | registerToHashPrefix(otherData[j]);
+      long hashPrefix = unpack(state[i]) | unpack(otherData[j]);
       j += 1;
       for (long k = 1; k < 1L << deltaP; ++k) {
         if (otherData[j] != 0) {
@@ -368,19 +368,19 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
         j += 1;
       }
       if (hashPrefix != 0) {
-        state[i] = hashPrefixToRegister(hashPrefix);
+        state[i] = pack(hashPrefix);
       }
     }
     return this;
   }
 
   // visible for testing
-  static long registerToHashPrefix(byte register) {
+  static long unpack(byte register) {
     return (4L | (register & 3)) << ((register >>> 2) - 2);
   }
 
   // visible for testing
-  static byte hashPrefixToRegister(long hashPrefix) {
+  static byte pack(long hashPrefix) {
     int nlz = Long.numberOfLeadingZeros(hashPrefix) + 1;
     return (byte) (((-nlz) << 2) | ((hashPrefix << nlz) >>> 62));
   }
