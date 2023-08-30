@@ -127,7 +127,7 @@ corresponding to a relative error of $\frac{1.037}{\sqrt{m}}$, but has a worse w
 In case of non-distributed data streams, the [martingale estimator](src/main/java/com/dynatrace/hash4j/distinctcount/MartingaleEstimator.java)
 can be used, which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
 This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
-The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
+The theoretically predicted estimation errors  have been empirically confirmed by ![simulation results](doc/hyperloglog-estimation-error.md).
 * UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper.
 Like for HyperLogLog, a precision parameter $p$ defines the number of registers $m = 2^p$.
 However, since UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers, 
@@ -139,7 +139,7 @@ Alternatively, if performance is not an issue, the slower maximum-likelihood est
 a storage factor of $8\ln(2)/\zeta(2,\frac{5}{4}) \approx 4.631$ corresponding to a 28% reduction and a relative error of $\frac{0.761}{\sqrt{m}}$.
 If the martingale estimator can 
 be used, the storage factor will be just $5 \ln 2 = 3.466$ yielding an asymptotic relative standard error of
-$\frac{0.658}{\sqrt{m}}$. These theoretical formulas again agree well with the [simulation results](doc/ultraloglog-estimation-error.md).
+$\frac{0.658}{\sqrt{m}}$. These theoretical formulas again agree well with the ![simulation results](doc/ultraloglog-estimation-error.md).
 
 Both algorithms share the following properties:
 * Constant-time add-operations
