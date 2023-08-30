@@ -139,7 +139,7 @@ Alternatively, if performance is not an issue, the slower maximum-likelihood est
 a storage factor of $8\ln(2)/\zeta(2,\frac{5}{4}) \approx 4.631$ corresponding to a 28% reduction and a relative error of $\frac{0.761}{\sqrt{m}}$.
 If the martingale estimator can 
 be used, the storage factor will be just $5 \ln 2 = 3.466$ yielding an asymptotic relative standard error of
-$\frac{0.658}{\sqrt{m}}$. These theoretical formulas again agree well with the simulation results ([hyperloglog-estimation-error.md](doc/ultraloglog-estimation-error.md)).
+$\frac{0.658}{\sqrt{m}}$. These theoretical formulas again agree well with the simulation results ([ultraloglog-estimation-error.md](doc/ultraloglog-estimation-error.md)).
 
 Both algorithms share the following properties:
 * Constant-time add-operations
