@@ -124,7 +124,7 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/3f5ff057be1f4738e21b2d225c9d34cc089524bd/komihash.h">komihash.h</a>
    * on an Intel x86 architecture.
    *
-   * <p>This implementation is also compatible with Komihash version 5.1
+   * <p>This implementation is also compatible with Komihash versions 5.1 and 5.7
    *
    * @return a hasher instance
    */
@@ -141,7 +141,7 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/3f5ff057be1f4738e21b2d225c9d34cc089524bd/komihash.h">komihash.h</a>
    * on an Intel x86 architecture.
    *
-   * <p>This implementation is also compatible with Komihash version 5.1
+   * <p>This implementation is also compatible with Komihash versions 5.1 and 5.7
    *
    * @param seed a 64-bit seed
    * @return a hasher instance

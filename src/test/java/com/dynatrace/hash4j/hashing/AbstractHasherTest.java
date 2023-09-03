@@ -1070,4 +1070,80 @@ abstract class AbstractHasherTest {
     String checksum = byteArrayToHexString(md.digest());
     assertThat(checksum).isEqualTo(getExpectedChecksum());
   }
+
+  private static Hasher64 getHasherUsingDefaultImplementations(Hasher64 referenceHasher) {
+    return new AbstractHasher64() {
+
+      @Override
+      public HashStream64 hashStream() {
+
+        return new AbstractHashStream64() {
+
+          private final HashStream64 referenceHashStream = referenceHasher.hashStream();
+
+          @Override
+          public long getAsLong() {
+            return referenceHashStream.getAsLong();
+          }
+
+          @Override
+          public HashStream64 putByte(byte v) {
+            return referenceHashStream.putByte(v);
+          }
+
+          @Override
+          public HashStream64 reset() {
+            return referenceHashStream.reset();
+          }
+        };
+      }
+
+      @Override
+      public long hashBytesToLong(byte[] input, int off, int len) {
+        return referenceHasher.hashBytesToLong(input, off, len);
+      }
+
+      @Override
+      public long hashCharsToLong(CharSequence input) {
+        return referenceHasher.hashCharsToLong(input);
+      }
+    };
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashLongLongToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasherUsingDefaultImplementations(hasher64);
+    int numCycles = 100;
+    SplittableRandom random = new SplittableRandom(0x983c79631cff1b49L);
+    for (int i = 0; i < numCycles; ++i) {
+      long v1 = random.nextLong();
+      long v2 = random.nextLong();
+      assertThat(hasher64.hashLongLongToLong(v1, v2))
+          .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).getAsLong())
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongLongToLong(v1, v2));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashLongLongLongToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasherUsingDefaultImplementations(hasher64);
+    int numCycles = 100;
+    SplittableRandom random = new SplittableRandom(0xcbc1a1e7856cc27eL);
+    for (int i = 0; i < numCycles; ++i) {
+      long v1 = random.nextLong();
+      long v2 = random.nextLong();
+      long v3 = random.nextLong();
+      assertThat(hasher64.hashLongLongLongToLong(v1, v2, v3))
+          .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong())
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongLongLongToLong(v1, v2, v3));
+    }
+  }
 }
