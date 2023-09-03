@@ -128,7 +128,7 @@ In case of non-distributed data streams, the [martingale estimator](src/main/jav
 can be used, which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
 This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
 The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
-* UltraLogLog: This is a new algorithm that will be described in detail in an upcoming paper.
+* UltraLogLog: This algorithm is described in detail in this [paper](https://arxiv.org/abs/2308.16862).
 Like for HyperLogLog, a precision parameter $p$ defines the number of registers $m = 2^p$.
 However, since UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers, 
 $m$ is also the state size in bytes.
