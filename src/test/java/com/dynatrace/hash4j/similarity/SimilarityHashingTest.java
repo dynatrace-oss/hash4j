@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,6 +70,26 @@ class SimilarityHashingTest {
         SimilarityHashing.superMinHash(128, 64).createHasher().compute(ELEMENT_HASH_PROVIDER);
     byte[] signatureV1 =
         SimilarityHashing.superMinHash(128, 64, SuperMinHashVersion.DEFAULT)
+            .createHasher()
+            .compute(ELEMENT_HASH_PROVIDER);
+    assertThat(signatureV1).isEqualTo(signatureDefault);
+  }
+
+  @Test
+  void testFastSimHash() {
+    assertThat(SimilarityHashing.fastSimHash(3)).isInstanceOf(FastSimHashPolicy_v1.class);
+    assertThat(SimilarityHashing.fastSimHash(3, FastSimHashVersion.DEFAULT))
+        .isInstanceOf(FastSimHashPolicy_v1.class);
+    assertThat(SimilarityHashing.fastSimHash(3, FastSimHashVersion.V1))
+        .isInstanceOf(FastSimHashPolicy_v1.class);
+  }
+
+  @Test
+  void testFastSimHashDefault() {
+    byte[] signatureDefault =
+        SimilarityHashing.fastSimHash(128).createHasher().compute(ELEMENT_HASH_PROVIDER);
+    byte[] signatureV1 =
+        SimilarityHashing.fastSimHash(128, FastSimHashVersion.DEFAULT)
             .createHasher()
             .compute(ELEMENT_HASH_PROVIDER);
     assertThat(signatureV1).isEqualTo(signatureDefault);
