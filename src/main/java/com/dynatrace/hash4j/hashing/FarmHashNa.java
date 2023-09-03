@@ -592,4 +592,24 @@ class FarmHashNa extends AbstractHasher64 {
           mul);
     }
   }
+
+  @Override
+  public long hashLongLongToLong(long v1, long v2) {
+    long mul = K2 + 32;
+    long a = v1 + K2;
+    return finalizeHash(
+        hashLength16(rotateRight(v2, 37) * mul + a, (rotateRight(a, 25) + v2) * mul, mul));
+  }
+
+  @Override
+  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+    long mul = K2 + 48;
+    long a = v1 * K1;
+    long c = v3 * mul;
+    return finalizeHash(
+        hashLength16(
+            rotateRight(a + v2, 43) + rotateRight(c, 30) + v2 * K2,
+            a + rotateRight(v2 + K2, 18) + c,
+            mul));
+  }
 }
