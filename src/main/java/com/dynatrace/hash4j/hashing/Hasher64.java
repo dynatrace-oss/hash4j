@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,4 +72,27 @@ public interface Hasher64 extends Hasher32 {
    * @return the hash value
    */
   long hashCharsToLong(CharSequence input);
+
+  /**
+   * Hashes/Mixes two 64-bit {@code long} values into a 64-bit {@code long} value.
+   *
+   * <p>Equivalent to {@code hashStream().putLong(v1).putLong(v2).getAsLong();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @return the hash value
+   */
+  long hashLongLongToLong(long v1, long v2);
+
+  /**
+   * Hashes/Mixes three 64-bit {@code long} values into a 64-bit {@code long} value.
+   *
+   * <p>Equivalent to {@code hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @param v3 third value
+   * @return the hash value
+   */
+  long hashLongLongLongToLong(long v1, long v2, long v3);
 }

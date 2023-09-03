@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,19 @@ class Murmur3_128 extends AbstractHasher128 {
     h1 += h2;
     h2 += h1;
     return new HashValue128(h2, h1);
+  }
+
+  private static long finalizeHashToLong(long h1, long h2, long byteCount) {
+    h1 ^= byteCount;
+    h2 ^= byteCount;
+
+    h1 += h2;
+    h2 += h1;
+
+    h1 = fmix64(h1);
+    h2 = fmix64(h2);
+
+    return h1 + h2;
   }
 
   private final long seed;
@@ -429,19 +442,7 @@ class Murmur3_128 extends AbstractHasher128 {
         }
       }
 
-      final long byteCount = bitCount >>> 3;
-      g1 ^= byteCount;
-      g2 ^= byteCount;
-
-      g1 += g2;
-      g2 += g1;
-
-      g1 = fmix64(g1);
-      g2 = fmix64(g2);
-
-      g1 += g2;
-
-      return g1;
+      return finalizeHashToLong(g1, g2, bitCount >>> 3);
     }
 
     @Override
@@ -593,5 +594,32 @@ class Murmur3_128 extends AbstractHasher128 {
     public int getHashBitSize() {
       return 128;
     }
+  }
+
+  @Override
+  public long hashLongLongToLong(long v1, long v2) {
+    long h1 = seed;
+    long h2 = seed;
+
+    h1 ^= mixK1(v1);
+    h1 = mixH1(h1, h2);
+    h2 ^= mixK2(v2);
+    h2 = mixH2(h1, h2);
+
+    return finalizeHashToLong(h1, h2, 16);
+  }
+
+  @Override
+  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+    long h1 = seed;
+    long h2 = seed;
+
+    h1 ^= mixK1(v1);
+    h1 = mixH1(h1, h2);
+    h2 ^= mixK2(v2);
+    h2 = mixH2(h1, h2);
+    h1 ^= mixK1(v3);
+
+    return finalizeHashToLong(h1, h2, 24);
   }
 }

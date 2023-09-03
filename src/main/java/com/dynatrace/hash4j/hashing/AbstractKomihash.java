@@ -347,4 +347,16 @@ abstract class AbstractKomihash extends AbstractHasher64 {
       return 64;
     }
   }
+
+  protected static long finish(long r2h, long r2l, long see5) {
+    see5 += unsignedMultiplyHigh(r2l, r2h);
+    long see1 = see5 ^ (r2l * r2h);
+
+    r2h = unsignedMultiplyHigh(see1, see5);
+    see1 *= see5;
+    see5 += r2h;
+    see1 ^= see5;
+
+    return see1;
+  }
 }

@@ -25,6 +25,16 @@ acceptedBreaks:
       old: "method void com.dynatrace.hash4j.hashing.AbstractHashStream64::<init>()"
       new: "method void com.dynatrace.hash4j.hashing.AbstractHashStream64::<init>()"
       justification: "reduced unintended visibility"
+  "0.11.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongLongLongToLong(long,\
+        \ long, long)"
+      justification: "added new methods"
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongLongToLong(long,\
+        \ long)"
+      justification: "added new methods"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"

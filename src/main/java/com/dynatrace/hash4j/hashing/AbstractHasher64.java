@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,5 +40,15 @@ abstract class AbstractHasher64 extends AbstractHasher32 implements Hasher64 {
   @Override
   public int getHashBitSize() {
     return 64;
+  }
+
+  @Override
+  public long hashLongLongToLong(long v1, long v2) {
+    return hashStream().putLong(v1).putLong(v2).getAsLong();
+  }
+
+  @Override
+  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+    return hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong();
   }
 }

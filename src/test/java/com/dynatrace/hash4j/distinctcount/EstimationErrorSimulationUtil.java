@@ -153,7 +153,7 @@ public final class EstimationErrorSimulationUtil {
                 if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
                   while (transitionIndex < transitions.length
                       && transitions[transitionIndex].distinctCount.compareTo(targetDistinctCount)
-                          < 0) {
+                          <= 0) {
                     sketch.add(transitions[transitionIndex].hash, martingaleEstimator);
                     transitionIndex += 1;
                   }

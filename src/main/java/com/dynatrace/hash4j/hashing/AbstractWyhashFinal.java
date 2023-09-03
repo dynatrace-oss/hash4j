@@ -525,4 +525,15 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
       return 64;
     }
   }
+
+  @Override
+  public long hashLongLongToLong(long v1, long v2) {
+    return finish(
+        (v1 << 32) | (v2 & 0xFFFFFFFFL), (v2 & 0xFFFFFFFF00000000L) | (v1 >>> 32), seed, 16);
+  }
+
+  @Override
+  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+    return finish(v2, v3, wymix(v1 ^ secret1, v2 ^ seed), 24);
+  }
 }
