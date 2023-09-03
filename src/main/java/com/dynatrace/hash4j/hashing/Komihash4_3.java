@@ -165,15 +165,7 @@ class Komihash4_3 extends AbstractKomihash {
       r2l ^= (input[off - 1] < 0) ? 2L : 1L;
     }
 
-    see5 += unsignedMultiplyHigh(r2l, r2h);
-    see1 = see5 ^ (r2l * r2h);
-
-    r2h = unsignedMultiplyHigh(see1, see5);
-    see1 *= see5;
-    see5 += r2h;
-    see1 ^= see5;
-
-    return see1;
+    return finish(r2h, r2l, see5);
   }
 
   @Override
@@ -286,15 +278,7 @@ class Komihash4_3 extends AbstractKomihash {
       r2l ^= 0x1L << ((int) input.charAt(off - 1) >>> 15);
     }
 
-    see5 += unsignedMultiplyHigh(r2l, r2h);
-    see1 = see5 ^ (r2l * r2h);
-
-    r2l = see1 * see5;
-    r2h = unsignedMultiplyHigh(see1, see5);
-    see5 += r2h;
-    see1 = see5 ^ r2l;
-
-    return see1;
+    return finish(r2h, r2l, see5);
   }
 
   private class HashStreamImpl extends AbstractKomihash.HashStreamImpl {
@@ -345,15 +329,23 @@ class Komihash4_3 extends AbstractKomihash {
         r2l ^= fb;
       }
 
-      se5 += unsignedMultiplyHigh(r2l, r2h);
-      se1 = se5 ^ (r2l * r2h);
-
-      r2l = se1 * se5;
-      r2h = unsignedMultiplyHigh(se1, se5);
-      se5 += r2h;
-      se1 = se5 ^ r2l;
-
-      return se1;
+      return finish(r2h, r2l, se5);
     }
+  }
+
+  @Override
+  public long hashLongLongToLong(long v1, long v2) {
+    long tmp1 = this.seed1 ^ v1;
+    long tmp2 = this.seed5 ^ v2;
+    long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
+    return finish(see5, (tmp1 * tmp2) ^ (see5 ^ (1L << (v2 >>> 63))), see5);
+  }
+
+  @Override
+  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+    long tmp1 = this.seed1 ^ v1;
+    long tmp2 = this.seed5 ^ v2;
+    long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
+    return finish(see5 ^ (1L << (v3 >>> 63)), (tmp1 * tmp2) ^ (see5 ^ v3), see5);
   }
 }
