@@ -253,7 +253,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * farmhashna::Hash64} defined in <a
-   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">wyhash.h</a>
+   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">farmhash.cc</a>
    * on an Intel x86 architecture.
    *
    * @return a hasher instance
@@ -268,7 +268,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * farmhashna::Hash64WithSeed} defined in <a
-   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">wyhash.h</a>
+   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">farmhash.cc</a>
    * on an Intel x86 architecture.
    *
    * @param seed the seed
@@ -284,7 +284,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * farmhashna::Hash64WithSeeds} defined in <a
-   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">wyhash.h</a>
+   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">farmhash.cc</a>
    * on an Intel x86 architecture.
    *
    * @param seed0 the first seed value

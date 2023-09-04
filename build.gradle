@@ -122,7 +122,7 @@ spotless {
 		importOrder()
 		removeUnusedImports()
 		googleJavaFormat('1.17.0')
-		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_FARMHASH')
+		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_APACHE_2_0_FARMHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java','src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java'
 	}
 	format 'javaPolymurHash', JavaExtension, {

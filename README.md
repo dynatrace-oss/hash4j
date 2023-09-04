@@ -44,6 +44,7 @@ hash4j currently implements the following hash algorithms:
 * [Komihash](https://github.com/avaneev/komihash)
   * [version 4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [version 4.7](https://github.com/avaneev/komihash/releases/tag/4.7))
   * [version 5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [version 5.1](https://github.com/avaneev/komihash/releases/tag/5.1) and [version 5.7](https://github.com/avaneev/komihash/releases/tag/5.7))
+* [FarmHash](https://github.com/google/farmhash) (farmhashna)
 
 All hash functions are thoroughly tested against the native reference implementations and also other libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/latest/com/google/common/hash/package-summary.html), [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html), or [crypto](https://github.com/appmattus/crypto) (see [CrossCheckTest.java](src/test/java/com/dynatrace/hash4j/hashing/CrossCheckTest.java)).
  

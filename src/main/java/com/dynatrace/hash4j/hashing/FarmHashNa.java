@@ -37,6 +37,23 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ *
+ *
+ * Parts of the implementation in this file have also been derived from Guava's  FarmHash implementation available at
+ * https://github.com/google/guava/blob/f491b8922f9dc8003ffdf0cbde110b76bcec4b6e/guava/src/com/google/common/hash/FarmHashFingerprint64.java
+ * which was published under the following license:
+ *
+ * Copyright (C) 2015 The Guava Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
  */
 package com.dynatrace.hash4j.hashing;
 
@@ -125,44 +142,24 @@ class FarmHashNa extends AbstractHasher64 {
 
   @Override
   public long hashBytesToLong(byte[] input, int off, int len) {
+    long r;
     if (len <= 32) {
       if (len <= 16) {
-        return finalizeHash(hashLength0to16(input, off, len));
+        r = hashBytesToLongLength0to16(input, off, len);
       } else {
-        return finalizeHash(hashLength17to32(input, off, len));
+        r = hashBytesToLongLength17to32(input, off, len);
       }
     } else if (len <= 64) {
-      return finalizeHash(hashLength33To64(input, off, len));
+      r = hashBytesToLongLength33To64(input, off, len);
     } else {
-      return finalizeHash(hashLength65Plus(input, off, len));
+      r = hashBytesToLongLength65Plus(input, off, len);
     }
+    return finalizeHash(r);
   }
 
-  /**
-   * Computes intermediate hash of 32 bytes of byte array from the given offset. Results are
-   * returned in the output array because when we last measured, this was 12% faster than allocating
-   * new arrays every time.
-   */
-  private static void weakHashLength32WithSeeds(
-      byte[] bytes, int offset, long seedA, long seedB, long[] output) {
-    long part1 = getLong(bytes, offset);
-    long part2 = getLong(bytes, offset + 8);
-    long part3 = getLong(bytes, offset + 16);
-    long part4 = getLong(bytes, offset + 24);
-
-    seedA += part1;
-    seedB = rotateRight(seedB + seedA + part4, 21);
-    long c = seedA;
-    seedA += part2;
-    seedA += part3;
-    seedB += rotateRight(seedA, 44);
-    output[0] = seedA + part4;
-    output[1] = seedB + c;
-  }
-
-  private static long hashLength0to16(byte[] bytes, int offset, int length) {
+  private static long hashBytesToLongLength0to16(byte[] bytes, int offset, int length) {
     if (length >= 8) {
-      long mul = K2 + length * 2L;
+      long mul = K2 + (length << 1);
       long a = getLong(bytes, offset) + K2;
       long b = getLong(bytes, offset + length - 8);
       long c = rotateRight(b, 37) * mul + a;
@@ -170,7 +167,7 @@ class FarmHashNa extends AbstractHasher64 {
       return hashLength16(c, d, mul);
     }
     if (length >= 4) {
-      long mul = K2 + length * 2;
+      long mul = K2 + (length << 1);
       long a = getInt(bytes, offset) & 0xFFFFFFFFL;
       return hashLength16(length + (a << 3), getInt(bytes, offset + length - 4) & 0xFFFFFFFFL, mul);
     }
@@ -185,8 +182,52 @@ class FarmHashNa extends AbstractHasher64 {
     return K2;
   }
 
-  private static long hashLength17to32(byte[] bytes, int offset, int length) {
-    long mul = K2 + length * 2L;
+  private static long hashCharsToLongLength0to8(CharSequence input) {
+    int len = input.length();
+    if (len >= 4) {
+      long mul = K2 + (len << 2);
+      long b = getLong(input, 0);
+      long a = b + K2;
+      if (len >= 5) {
+        b >>>= 16;
+        b |= (long) input.charAt(4) << 48;
+        if (len >= 6) {
+          b >>>= 16;
+          b |= (long) input.charAt(5) << 48;
+          if (len >= 7) {
+            b >>>= 16;
+            b |= (long) input.charAt(6) << 48;
+            if (len >= 8) {
+              b >>>= 16;
+              b |= (long) input.charAt(7) << 48;
+            }
+          }
+        }
+      }
+      long c = rotateRight(b, 37) * mul + a;
+      long d = (rotateRight(a, 25) + b) * mul;
+      return hashLength16(c, d, mul);
+    }
+    if (len >= 2) {
+      long mul = K2 + (len << 2);
+      long a = getInt(input, 0) & 0xFFFFFFFFL;
+      long b = a;
+      if (len >= 3) {
+        b >>>= 16;
+        b |= (long) input.charAt(2) << 16;
+      }
+      return hashLength16((len << 1) + (a << 3), b, mul);
+    }
+    if (len >= 1) {
+      int y = input.charAt(0);
+      int z = (len << 1) + ((y >>> 8) << 2);
+      return shiftMix(y * K2 ^ z * K0) * K2;
+    }
+    return K2;
+  }
+
+  private static long hashBytesToLongLength17to32(byte[] bytes, int offset, int length) {
+    long mul = K2 + (length << 1);
     long a = getLong(bytes, offset) * K1;
     long b = getLong(bytes, offset + 8);
     long c = getLong(bytes, offset + length - 8) * mul;
@@ -195,8 +236,19 @@ class FarmHashNa extends AbstractHasher64 {
         rotateRight(a + b, 43) + rotateRight(c, 30) + d, a + rotateRight(b + K2, 18) + c, mul);
   }
 
-  private static long hashLength33To64(byte[] bytes, int offset, int length) {
-    long mul = K2 + length * 2L;
+  private static long hashCharsToLongLength9to16(CharSequence input) {
+    int len = input.length();
+    long mul = K2 + (len << 2);
+    long a = getLong(input, 0) * K1;
+    long b = getLong(input, 4);
+    long c = getLong(input, len - 4) * mul;
+    long d = getLong(input, len - 8) * K2;
+    return hashLength16(
+        rotateRight(a + b, 43) + rotateRight(c, 30) + d, a + rotateRight(b + K2, 18) + c, mul);
+  }
+
+  private static long hashBytesToLongLength33To64(byte[] bytes, int offset, int length) {
+    long mul = K2 + (length << 1);
     long a = getLong(bytes, offset) * K2;
     long b = getLong(bytes, offset + 8);
     long c = getLong(bytes, offset + length - 8) * mul;
@@ -211,53 +263,220 @@ class FarmHashNa extends AbstractHasher64 {
         rotateRight(e + f, 43) + rotateRight(g, 30) + h, e + rotateRight(f + a, 18) + g, mul);
   }
 
-  /*
-   * Compute an 8-byte hash of a byte array of length greater than 64 bytes.
-   */
-  private static long hashLength65Plus(byte[] bytes, int offset, int length) {
+  private static long hashCharsToLongLength17To32(CharSequence input) {
+    int len = input.length();
+    long mul = K2 + (len << 2);
+    long a = getLong(input, 0) * K2;
+    long b = getLong(input, 4);
+    long c = getLong(input, len - 4) * mul;
+    long d = getLong(input, len - 8) * K2;
+    long y = rotateRight(a + b, 43) + rotateRight(c, 30) + d;
+    long z = hashLength16(y, a + rotateRight(b + K2, 18) + c, mul);
+    long e = getLong(input, 8) * mul;
+    long f = getLong(input, 12);
+    long g = (y + getLong(input, len - 16)) * mul;
+    long h = (z + getLong(input, len - 12)) * mul;
+    return hashLength16(
+        rotateRight(e + f, 43) + rotateRight(g, 30) + h, e + rotateRight(f + a, 18) + g, mul);
+  }
+
+  private static long hashBytesToLongLength65Plus(byte[] bytes, int offset, int length) {
     int seed = 81;
-    // For strings over 64 bytes we loop. Internal state consists of 56 bytes: v, w, x, y, and z.
     long x = seed;
-    @SuppressWarnings("ConstantOverflow")
     long y = seed * K1 + 113;
     long z = shiftMix(y * K2 + 113) * K2;
-    long[] v = new long[2];
-    long[] w = new long[2];
+    long v1 = 0;
+    long v2 = 0;
+    long w1 = 0;
+    long w2 = 0;
+    int end = offset + ((length - 1) & 0xFFFFFFC0);
+    int last64offset = offset + length - 64;
     x = x * K2 + getLong(bytes, offset);
-
-    // Set end so that after the loop we have 1 to 64 bytes left to process.
-    int end = offset + ((length - 1) / 64) * 64;
-    int last64offset = end + ((length - 1) & 63) - 63;
     do {
-      x = rotateRight(x + y + v[0] + getLong(bytes, offset + 8), 37) * K1;
-      y = rotateRight(y + v[1] + getLong(bytes, offset + 48), 42) * K1;
-      x ^= w[1];
-      y += v[0] + getLong(bytes, offset + 40);
-      z = rotateRight(z + w[0], 33) * K1;
-      weakHashLength32WithSeeds(bytes, offset, v[1] * K1, x + w[0], v);
-      weakHashLength32WithSeeds(bytes, offset + 32, z + w[1], y + getLong(bytes, offset + 16), w);
-      long tmp = x;
-      x = z;
-      z = tmp;
+      long b0 = getLong(bytes, offset);
+      long b1 = getLong(bytes, offset + 8);
+      long b2 = getLong(bytes, offset + 16);
+      long b3 = getLong(bytes, offset + 24);
+      long b4 = getLong(bytes, offset + 32);
+      long b5 = getLong(bytes, offset + 40);
+      long b6 = getLong(bytes, offset + 48);
+      long b7 = getLong(bytes, offset + 56);
+
+      x = rotateRight(x + y + v1 + b1, 37) * K1;
+      y = rotateRight(y + v2 + b6, 42) * K1;
+      x ^= w2;
+      y += v1 + b5;
+      z = rotateRight(z + w1, 33) * K1;
+      long a = v2 * K1;
+      long b = x + w1;
+      long z1 = b3;
+      a += b0;
+      b = rotateRight(b + a + z1, 21);
+      long c = a;
+      a += b1;
+      a += b2;
+      b += rotateRight(a, 44);
+      v1 = a + z1;
+      v2 = b + c;
+      long a1 = z + w2;
+      long q = y + b2;
+      long z2 = b7;
+      a1 += b4;
+      q = rotateRight(q + a1 + z2, 21);
+      long c1 = a1;
+      a1 += b5;
+      a1 += b6;
+      q += rotateRight(a1, 44);
+
+      w1 = a1 + z2;
+      w2 = q + c1;
+      long t = z;
+      z = x;
+      x = t;
+
       offset += 64;
     } while (offset != end);
-    long mul = K1 + ((z & 0xFF) << 1);
-    // Operate on the last 64 bytes of input.
-    offset = last64offset;
-    w[0] += ((length - 1) & 63);
-    v[0] += w[0];
-    w[0] += v[0];
-    x = rotateRight(x + y + v[0] + getLong(bytes, offset + 8), 37) * mul;
-    y = rotateRight(y + v[1] + getLong(bytes, offset + 48), 42) * mul;
-    x ^= w[1] * 9;
-    y += v[0] * 9 + getLong(bytes, offset + 40);
-    z = rotateRight(z + w[0], 33) * mul;
-    weakHashLength32WithSeeds(bytes, offset, v[1] * mul, x + w[0], v);
-    weakHashLength32WithSeeds(bytes, offset + 32, z + w[1], y + getLong(bytes, offset + 16), w);
-    return hashLength16(
-        hashLength16(v[0], w[0], mul) + shiftMix(y) * K0 + x,
-        hashLength16(v[1], w[1], mul) + z,
-        mul);
+
+    long b0 = getLong(bytes, last64offset);
+    long b1 = getLong(bytes, last64offset + 8);
+    long b2 = getLong(bytes, last64offset + 16);
+    long b3 = getLong(bytes, last64offset + 24);
+    long b4 = getLong(bytes, last64offset + 32);
+    long b5 = getLong(bytes, last64offset + 40);
+    long b6 = getLong(bytes, last64offset + 48);
+    long b7 = getLong(bytes, last64offset + 56);
+
+    long mul = K1 + ((z & 0xff) << 1);
+    w1 += ((length - 1) & 63);
+    v1 += w1;
+    w1 += v1;
+
+    x = rotateRight(x + y + v1 + b1, 37) * mul;
+    y = rotateRight(y + v2 + b6, 42) * mul;
+    x ^= w2 * 9;
+    y += v1 * 9 + b5;
+    z = rotateRight(z + w1, 33) * mul;
+    long a = v2 * mul;
+    long b = x + w1;
+    a += b0;
+    b = rotateRight(b + a + b3, 21);
+    long c = a;
+    a += b1;
+    a += b2;
+    b += rotateRight(a, 44);
+    v1 = a + b3;
+    long a1 = z + w2;
+    long q = y + b2;
+    a1 += b4;
+    q = rotateRight(q + a1 + b7, 21);
+    long c1 = a1;
+    a1 += b5;
+    a1 += b6;
+    q += rotateRight(a1, 44);
+
+    return hashLen16(
+        hashLen16(v1, a1 + b7, mul) + shiftMix(y) * K0 + x, hashLen16(b + c, q + c1, mul) + z, mul);
+  }
+
+  private static long hashCharsToLongLength33Plus(CharSequence input) {
+    int len = input.length();
+    int seed = 81;
+    long x = seed;
+    long y = seed * K1 + 113;
+    long z = shiftMix(y * K2 + 113) * K2;
+    long v1 = 0;
+    long v2 = 0;
+    long w1 = 0;
+    long w2 = 0;
+
+    int end = ((len - 1) & 0xFFFFFFE0);
+    int last64offset = len - 32;
+    x = x * K2 + getLong(input, 0);
+    int offset = 0;
+    do {
+      long b0 = getLong(input, offset + 0);
+      long b1 = getLong(input, offset + 4);
+      long b2 = getLong(input, offset + 8);
+      long b3 = getLong(input, offset + 12);
+      long b4 = getLong(input, offset + 16);
+      long b5 = getLong(input, offset + 20);
+      long b6 = getLong(input, offset + 24);
+      long b7 = getLong(input, offset + 28);
+
+      x = rotateRight(x + y + v1 + b1, 37) * K1;
+      y = rotateRight(y + v2 + b6, 42) * K1;
+      x ^= w2;
+      y += v1 + b5;
+      z = rotateRight(z + w1, 33) * K1;
+      long a = v2 * K1;
+      long b = x + w1;
+      long z1 = b3;
+      a += b0;
+      b = rotateRight(b + a + z1, 21);
+      long c = a;
+      a += b1;
+      a += b2;
+      b += rotateRight(a, 44);
+      v1 = a + z1;
+      v2 = b + c;
+      long a1 = z + w2;
+      long q = y + b2;
+      long z2 = b7;
+      a1 += b4;
+      q = rotateRight(q + a1 + z2, 21);
+      long c1 = a1;
+      a1 += b5;
+      a1 += b6;
+      q += rotateRight(a1, 44);
+
+      w1 = a1 + z2;
+      w2 = q + c1;
+      long t = z;
+      z = x;
+      x = t;
+
+      offset += 32;
+    } while (offset != end);
+
+    long b0 = getLong(input, last64offset);
+    long b1 = getLong(input, last64offset + 4);
+    long b2 = getLong(input, last64offset + 8);
+    long b3 = getLong(input, last64offset + 12);
+    long b4 = getLong(input, last64offset + 16);
+    long b5 = getLong(input, last64offset + 20);
+    long b6 = getLong(input, last64offset + 24);
+    long b7 = getLong(input, last64offset + 28);
+
+    long mul = K1 + ((z & 0xff) << 1);
+    w1 += (((len << 1) - 1) & 63);
+    v1 += w1;
+    w1 += v1;
+
+    x = rotateRight(x + y + v1 + b1, 37) * mul;
+    y = rotateRight(y + v2 + b6, 42) * mul;
+    x ^= w2 * 9;
+    y += v1 * 9 + b5;
+    z = rotateRight(z + w1, 33) * mul;
+    long a = v2 * mul;
+    long b = x + w1;
+    a += b0;
+    b = rotateRight(b + a + b3, 21);
+    long c = a;
+    a += b1;
+    a += b2;
+    b += rotateRight(a, 44);
+    v1 = a + b3;
+    long a1 = z + w2;
+    long q = y + b2;
+    a1 += b4;
+    q = rotateRight(q + a1 + b7, 21);
+    long c1 = a1;
+    a1 += b5;
+    a1 += b6;
+    q += rotateRight(a1, 44);
+
+    return hashLen16(
+        hashLen16(v1, a1 + b7, mul) + shiftMix(y) * K0 + x, hashLen16(b + c, q + c1, mul) + z, mul);
   }
 
   private static long hashLength16(long u, long v, long mul) {
@@ -271,8 +490,20 @@ class FarmHashNa extends AbstractHasher64 {
 
   @Override
   public long hashCharsToLong(CharSequence input) {
-    // TODO optimize
-    return hashStream().putChars(input).getAsLong();
+    long r;
+    long len = input.length();
+    if (len <= 16) {
+      if (len <= 8) {
+        r = hashCharsToLongLength0to8(input);
+      } else {
+        r = hashCharsToLongLength9to16(input);
+      }
+    } else if (len <= 32) {
+      r = hashCharsToLongLength17To32(input);
+    } else {
+      r = hashCharsToLongLength33Plus(input);
+    }
+    return finalizeHash(r);
   }
 
   private class HashStreamImpl extends AbstractHashStream64 {
@@ -423,42 +654,35 @@ class FarmHashNa extends AbstractHasher64 {
     }
 
     private void processBufferWithoutInit(
-        long buffer0,
-        long buffer1,
-        long buffer2,
-        long buffer3,
-        long buffer4,
-        long buffer5,
-        long buffer6,
-        long buffer7) {
+        long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
 
-      x = rotateRight(x + y + v1 + buffer1, 37) * K1;
-      y = rotateRight(y + v2 + buffer6, 42) * K1;
+      x = rotateRight(x + y + v1 + b1, 37) * K1;
+      y = rotateRight(y + v2 + b6, 42) * K1;
       x ^= w2;
-      y += v1 + buffer5;
+      y += v1 + b5;
       z = rotateRight(z + w1, 33) * K1;
       long a = v2 * K1;
       long b = x + w1;
-      long z1 = buffer3;
-      a += buffer0;
+      long z1 = b3;
+      a += b0;
       b = rotateRight(b + a + z1, 21);
       long c = a;
-      a += buffer1;
-      a += buffer2;
+      a += b1;
+      a += b2;
       b += rotateRight(a, 44);
       v1 = a + z1;
       v2 = b + c;
       long a1 = z + w2;
-      long b1 = y + buffer2;
-      long z2 = buffer7;
-      a1 += buffer4;
-      b1 = rotateRight(b1 + a1 + z2, 21);
+      long q = y + b2;
+      long z2 = b7;
+      a1 += b4;
+      q = rotateRight(q + a1 + z2, 21);
       long c1 = a1;
-      a1 += buffer5;
-      a1 += buffer6;
-      b1 += rotateRight(a1, 44);
+      a1 += b5;
+      a1 += b6;
+      q += rotateRight(a1, 44);
       w1 = a1 + z2;
-      w2 = b1 + c1;
+      w2 = q + c1;
       long t = z;
       z = x;
       x = t;
@@ -534,30 +758,6 @@ class FarmHashNa extends AbstractHasher64 {
       long g5 = getLong(buffer, (bufferCount + 40) & 0x3f);
       long g6 = getLong(buffer, (bufferCount + 48) & 0x3f);
       long g7 = getLong(buffer, bufferCount - 8);
-
-      // alternative implementation of code block above
-      /*long g1 = getLong(buffer, ((bufferCount + 0) & 0x38) + 8);
-      long g2 = getLong(buffer, ((bufferCount + 8) & 0x38) + 8);
-      long g3 = getLong(buffer, ((bufferCount + 16) & 0x38) + 8);
-      long g4 = getLong(buffer, ((bufferCount + 24) & 0x38) + 8);
-      long g5 = getLong(buffer, ((bufferCount + 32) & 0x38) + 8);
-      long g6 = getLong(buffer, ((bufferCount + 40) & 0x38) + 8);
-      long g7 = getLong(buffer, ((bufferCount + 48) & 0x38) + 8);
-      long g0 = getLong(buffer, ((bufferCount + 56) & 0x38) + 8);
-
-      int shift = bufferCount << 3;
-
-      if ((shift & 0x3f) != 0) {
-        long g8 = g0;
-        g0 = (g0 >>> shift) | (g1 << -shift);
-        g1 = (g1 >>> shift) | (g2 << -shift);
-        g2 = (g2 >>> shift) | (g3 << -shift);
-        g3 = (g3 >>> shift) | (g4 << -shift);
-        g4 = (g4 >>> shift) | (g5 << -shift);
-        g5 = (g5 >>> shift) | (g6 << -shift);
-        g6 = (g6 >>> shift) | (g7 << -shift);
-        g7 = (g7 >>> shift) | (g8 << -shift);
-      }*/
 
       long mul = K1 + ((z & 0xff) << 1);
 
