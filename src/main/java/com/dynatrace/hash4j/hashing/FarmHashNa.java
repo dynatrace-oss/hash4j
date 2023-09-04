@@ -115,7 +115,7 @@ class FarmHashNa extends AbstractHasher64 {
       int bufferCount, int firstByte, int midOrLastByte, int lastByte) {
     int y = firstByte + (midOrLastByte << 8);
     int z = bufferCount - 8 + (lastByte << 2);
-    return shiftMix((((long) y) * K2) ^ (((long) z) * K0)) * K2;
+    return shiftMix((y * K2) ^ (z * K0)) * K2;
   }
 
   private static long hash4To7Bytes(int bufferCount, long first4Bytes, long last4Bytes) {
