@@ -32,6 +32,7 @@
 #include "murmur3_32/murmur3_32_checksum_config.hpp"
 #include "farmhash_na/farmhash_na_checksum_config.hpp"
 #include "farmhash_uo/farmhash_uo_checksum_config.hpp"
+#include "xxh3/xxh3_checksum_config.hpp"
 
 using namespace std;
 
@@ -109,6 +110,7 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<PolymurHash_2_0_ChecksumConfig>();
 	computeAndPrintChecksum<FarmHashNaChecksumConfig>();
 	computeAndPrintChecksum<FarmHashUoChecksumConfig>();
+	computeAndPrintChecksum<XXH3ChecksumConfig>();
 
 	return 0;
 }
