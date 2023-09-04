@@ -723,12 +723,12 @@ class FarmHashNa extends AbstractHasher64 {
       long b = getLong(buffer, 16);
       long c = getLong(buffer, bufferCount - 8) * mul;
       long d = getLong(buffer, bufferCount - 16) * K2;
-      long y = rotateRight(a + b, 43) + rotateRight(c, 30) + d;
-      long z = hashLen16(y, a + rotateRight(b + K2, 18) + c, mul);
+      long yy = rotateRight(a + b, 43) + rotateRight(c, 30) + d;
+      long zz = hashLen16(yy, a + rotateRight(b + K2, 18) + c, mul);
       long e = getLong(buffer, 24) * mul;
       long f = getLong(buffer, 32);
-      long g = (y + getLong(buffer, bufferCount - 32)) * mul;
-      long h = (z + getLong(buffer, bufferCount - 24)) * mul;
+      long g = (yy + getLong(buffer, bufferCount - 32)) * mul;
+      long h = (zz + getLong(buffer, bufferCount - 24)) * mul;
       return hashLen16(
           rotateRight(e + f, 43) + rotateRight(g, 30) + h, e + rotateRight(f + a, 18) + g, mul);
     }
