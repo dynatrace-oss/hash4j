@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 
-Parts of the implementation in this file have also been derived from Guava's  FarmHash implementation available at
+Parts of the implementation in this file have also been derived from Guava's
+FarmHash implementation available at
 https://github.com/google/guava/blob/f491b8922f9dc8003ffdf0cbde110b76bcec4b6e/guava/src/com/google/common/hash/FarmHashFingerprint64.java
 which was published under the following license:
 

@@ -39,7 +39,8 @@
  * THE SOFTWARE.
  *
  *
- * Parts of the implementation in this file have also been derived from Guava's  FarmHash implementation available at
+ * Parts of the implementation in this file have also been derived from Guava's
+ * FarmHash implementation available at
  * https://github.com/google/guava/blob/f491b8922f9dc8003ffdf0cbde110b76bcec4b6e/guava/src/com/google/common/hash/FarmHashFingerprint64.java
  * which was published under the following license:
  *
@@ -619,15 +620,15 @@ class FarmHashNa extends AbstractHasher64 {
           init = false;
         }
         for (int i = off + regularBlockStartIdx; i < off + regularBlockEndIdx; i += 64) {
-          long w0 = getLong(b, i);
-          long w1 = getLong(b, i + 8);
-          long w2 = getLong(b, i + 16);
-          long w3 = getLong(b, i + 24);
-          long w4 = getLong(b, i + 32);
-          long w5 = getLong(b, i + 40);
-          long w6 = getLong(b, i + 48);
-          long w7 = getLong(b, i + 56);
-          processBufferWithoutInit(w0, w1, w2, w3, w4, w5, w6, w7);
+          long b0 = getLong(b, i);
+          long b1 = getLong(b, i + 8);
+          long b2 = getLong(b, i + 16);
+          long b3 = getLong(b, i + 24);
+          long b4 = getLong(b, i + 32);
+          long b5 = getLong(b, i + 40);
+          long b6 = getLong(b, i + 48);
+          long b7 = getLong(b, i + 56);
+          processBufferWithoutInit(b0, b1, b2, b3, b4, b5, b6, b7);
         }
 
         System.arraycopy(b, off - 64 + len, buffer, 8 + remainingBytes, 64 - remainingBytes);
@@ -761,25 +762,25 @@ class FarmHashNa extends AbstractHasher64 {
 
       long mul = K1 + ((z & 0xff) << 1);
 
-      long w1 = this.w1 + bufferCount - 9;
-      long v1 = this.v1 + w1;
-      w1 += v1;
-      long x = rotateRight(this.x + y + v1 + g1, 37) * mul;
-      long y = rotateRight(this.y + v2 + g6, 42) * mul;
-      x ^= w2 * 9;
-      y += v1 * 9 + g5;
-      long z = rotateRight(this.z + w1, 33) * mul;
+      long w1Local = w1 + bufferCount - 9;
+      long v1Local = v1 + w1Local;
+      w1Local += v1Local;
+      long xLocal = rotateRight(x + y + v1Local + g1, 37) * mul;
+      long yLocal = rotateRight(y + v2 + g6, 42) * mul;
+      xLocal ^= w2 * 9;
+      yLocal += v1Local * 9 + g5;
+      long zLocal = rotateRight(z + w1Local, 33) * mul;
       long a = v2 * mul;
-      long b = x + w1;
+      long b = xLocal + w1Local;
       a += g0;
       b = rotateRight(b + a + g3, 21);
       long c = a;
       a += g1;
       a += g2;
       b += rotateRight(a, 44);
-      v1 = a + g3;
-      long a1 = z + w2;
-      long b1 = y + g2;
+      v1Local = a + g3;
+      long a1 = zLocal + w2;
+      long b1 = yLocal + g2;
       a1 += g4;
       b1 = rotateRight(b1 + a1 + g7, 21);
       long c1 = a1;
@@ -787,8 +788,8 @@ class FarmHashNa extends AbstractHasher64 {
       a1 += g6;
       b1 += rotateRight(a1, 44);
       return hashLen16(
-          hashLen16(v1, a1 + g7, mul) + shiftMix(y) * K0 + x,
-          hashLen16(b + c, b1 + c1, mul) + z,
+          hashLen16(v1Local, a1 + g7, mul) + shiftMix(yLocal) * K0 + xLocal,
+          hashLen16(b + c, b1 + c1, mul) + zLocal,
           mul);
     }
   }
