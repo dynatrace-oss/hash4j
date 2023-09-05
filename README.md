@@ -153,7 +153,7 @@ Both algorithms share the following properties:
 
 ### Usage
 ```java
-Hasher64 hasher = Hashing.wyhashFinal3(); // create a hasher instance
+Hasher64 hasher = Hashing.wyhashFinal4(); // create a hasher instance
 
 UltraLogLog sketch = UltraLogLog.create(12); // corresponds to a standard error of 1.2% and requires 4kB
 

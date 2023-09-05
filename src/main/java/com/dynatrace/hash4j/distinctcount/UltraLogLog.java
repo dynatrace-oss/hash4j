@@ -24,74 +24,9 @@ import static java.util.Objects.requireNonNull;
 import java.util.Arrays;
 
 /**
- * A sketch for approximate distinct counting that is more space efficient than HyperLogLog.
- *
- * <p>Like HyperLogLog using 6-bit registers (Heule2013), UltraLogLog supports distinct counts up to
- * an order of {@code 2^64 (> 10^19)} which is sufficient for all practical applications.
- *
- * <p>This sketch was inspired by ExtendedHyperLogLog (Ohayon2021) which extends 6-bit HyperLogLog
- * registers by a single extra bit to improve the memory efficiency. In this implementation we use 2
- * additional bits, such that a single register fits exactly into a byte, which improves the memory
- * efficiency even further and simplifies register access.
- *
- * <p>UltraLogLog does not allocate any memory during updates (adding new elements or another sketch
- * to an existing sketch). The add-operation for single elements is even branch-free and thus always
- * takes constant time. The sketch is idempotent as repeated additions of the same element will
- * never alter the internal state. The sketch is fully mergeable and supports merging of sketches
- * with different precisions. The internal state does not depend on the order of add- or
- * merge-operations.
- *
- * <p>This sketch comes with different estimation algorithms. Dependent on the chosen estimator up
- * to 28% less space is needed to achieve a comparable estimation accuracy as HyperLogLog with 6-bit
- * registers.
- *
- * <ul>
- *   <li>The default estimator is a further generalized remaining area (FGRA) estimator with optimal
- *       tau parameter that is a generalization of the GRA estimator (Pettie2022). In addition, the
- *       FGRA estimator includes small and large range correction techniques based on ideas
- *       presented in earlier works (Ertl2017, Ertl2021). Using this estimator a 24% space reduction
- *       compared to HyperLogLog with 6-bit registers can be achieved.
- *   <li>The maximum-likelihood (ML) estimator is more efficient but has a worse runtime behavior.
- *       It is able to use almost all information collected and stored within UltraLogLog to get
- *       more accurate distinct count estimates. When using the ML estimator, the space reduction is
- *       28% compared to HyperLogLog with 6-bit registers. The ML estimator implementation is based
- *       on the algorithm developed for HyperLogLog described in (Ertl2017).
- * </ul>
- *
- * <p>The internal state has a smaller entropy than the state of HyperLogLog. Therefore, it is
- * expected that any compression techniques developed for HyperLogLog (Scheuermann2007, Lang2017,
- * Karppa2022) could also be adopted for this sketch to further reduce the memory footprint or the
- * serialization size. However, this is the scope of future work.
- *
- * <p>References:
- *
- * <ul>
- *   <li>Ertl, Otmar. "New cardinality estimation algorithms for HyperLogLog sketches." arXiv
- *       preprint <a href=https://arxiv.org/abs/1702.01284>arXiv:1702.01284</a> (2017).
- *   <li>Ertl, Otmar. "SetSketch: filling the gap between MinHash and HyperLogLog." arXiv preprint
- *       <a href=https://arxiv.org/abs/2101.00314>arXiv:2101.00314</a> (2021).
- *   <li>Flajolet, Philippe, et al. "Hyperloglog: the analysis of a near-optimal cardinality
- *       estimation algorithm." Discrete Mathematics and Theoretical Computer Science. Discrete
- *       Mathematics and Theoretical Computer Science, 2007.
- *   <li>Heule, Stefan, Marc Nunkesser, and Alexander Hall. "Hyperloglog in practice: Algorithmic
- *       engineering of a state of the art cardinality estimation algorithm." Proceedings of the
- *       16th International Conference on Extending Database Technology. 2013.
- *   <li>Karppa, Matti, and Rasmus Pagh. "HyperLogLogLog: Cardinality Estimation With One Log More."
- *       arXiv preprint <a href=https://arxiv.org/abs/2205.11327>arXiv:2205.11327</a> (2022).
- *   <li>Lang, Kevin J. "Back to the future: an even more nearly optimal cardinality estimation
- *       algorithm." arXiv preprint <a href=https://arxiv.org/abs/1708.06839>arXiv:1708.06839</a>
- *       (2017).
- *   <li>Ohayon, Tal. "ExtendedHyperLogLog: Analysis of a new Cardinality Estimator." arXiv preprint
- *       <a href=https://arxiv.org/abs/2106.06525>arXiv:2106.06525</a> (2021).
- *   <li>Qin, Jason, Denys Kim, and Yumei Tung. "LogLog-beta and more: a new algorithm for
- *       cardinality estimation based on LogLog counting." arXiv preprint <a
- *       href=https://arxiv.org/abs/1612.02284>arXiv:1612.02284</a> (2016).
- *   <li>Pettie, Seth, and Dingyu Wang. "Simpler and Better Cardinality Estimators for HyperLogLog
- *       and PCSA." arXiv preprint <a href=https://arxiv.org/abs/2208.10578>arXiv:2208.10578</a>
- *       (2022).
- *   <li>Scheuermann, Björn, and Martin Mauve. "Near-Optimal Compression of Probabilistic Counting
- *       Sketches for Networking Applications." DIALM-POMC. 2007.
- * </ul>
+ * A sketch for approximate distinct counting that is more space efficient than HyperLogLog as
+ * described in <a href="https://arxiv.org/abs/2308.16862">Otmar Ertl, UltraLogLog: A Practical and
+ * More Space-Efficient Alternative to HyperLogLog for Approximate Distinct Counting, 2023</a>
  */
 public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogLog.Estimator> {
 

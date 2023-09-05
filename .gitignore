@@ -19,3 +19,8 @@
 /test-results/hyperloglog-estimation-error-p??-small-range-corrected-raw.png
 /test-results/hyperloglog-estimation-error-p??-corrected-raw.png
 /reference-implementations/calculate_checksums
+/reference-implementations/farmhash.o
+/reference-implementations/farmhash_na_checksum_config.o
+/reference-implementations/farmhash_uo_checksum_config.o
+/reference-implementations/farmna.a
+/reference-implementations/farmuo.a

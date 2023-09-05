@@ -43,7 +43,7 @@ class UltraLogLogDemo {
   @Test
   void demoMerging() {
 
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.wyhashFinal4();
 
     UltraLogLog sketch1 =
         UltraLogLog.create(12)
@@ -61,7 +61,7 @@ class UltraLogLogDemo {
   @Test
   void demoMartingaleEstimation() {
 
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.wyhashFinal4();
 
     UltraLogLog sketch = UltraLogLog.create(12);
     MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
