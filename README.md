@@ -79,25 +79,23 @@ Similarity hashing algorithms are able to compute hash signature of sets that al
 ### Usage
 
 ```java
+ToLongFunction<String> stringHashFunc = s -> Hashing.komihash5_0().hashCharsToLong(s);
+
 Set<String> setA = IntStream.range(0, 90000).mapToObj(Integer::toString).collect(toSet());
 Set<String> setB = IntStream.range(10000, 100000).mapToObj(Integer::toString).collect(toSet());
 // intersection size = 80000, union size = 100000
 // => exact Jaccard similarity of sets A and B is J = 80000 / 100000 = 0.8
-
-ToLongFunction<String> stringToHash = s -> Hashing.komihash4_3().hashCharsToLong(s);
-long[] hashesA = setA.stream().mapToLong(stringToHash).toArray();
-long[] hashesB = setB.stream().mapToLong(stringToHash).toArray();
 
 int numberOfComponents = 1024;
 int bitsPerComponent = 1;
 // => each signature will take 1 * 1024 bits = 128 bytes
 
 SimilarityHashPolicy policy =
-    SimilarityHashing.superMinHash(numberOfComponents, bitsPerComponent);
-SimilarityHasher hasher = policy.createHasher();
+SimilarityHashing.superMinHash(numberOfComponents, bitsPerComponent);
+SimilarityHasher simHasher = policy.createHasher();
 
-byte[] signatureA = hasher.compute(ElementHashProvider.ofValues(hashesA));
-byte[] signatuerB = hasher.compute(ElementHashProvider.ofValues(hashesB));
+byte[] signatureA = simHasher.compute(ElementHashProvider.ofCollection(setA, stringHashFunc));
+byte[] signatuerB = simHasher.compute(ElementHashProvider.ofCollection(setB, stringHashFunc));
 
 double fractionOfEqualComponents = policy.getFractionOfEqualComponents(signatureA, signatuerB);
 

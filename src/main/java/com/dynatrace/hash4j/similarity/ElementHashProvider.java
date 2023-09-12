@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ package com.dynatrace.hash4j.similarity;
 import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collection;
 import java.util.function.IntToLongFunction;
+import java.util.function.ToLongFunction;
 
 /** An element hash provider. */
 public interface ElementHashProvider {
@@ -29,7 +31,7 @@ public interface ElementHashProvider {
    * <p>The function must be defined for all nonnegative indices less than {@link
    * #getNumberOfElements()}. Multiple calls with the same element index must always return the same
    * hash value. The hash values must have a high quality, meaning that they can be considered as
-   * uniformly distributed and mutual independent in practice.
+   * uniformly distributed and mutually independent in practice.
    *
    * @param elementIndex the element index
    * @return the hash value
@@ -97,5 +99,22 @@ public interface ElementHashProvider {
         return numberOfElements;
       }
     };
+  }
+
+  /**
+   * Creates an {@link ElementHashProvider} given a collection of elements and a function that maps
+   * an element to a 64-bit hash value.
+   *
+   * @param <T> the element type
+   * @param collection a collection of elements
+   * @param elementHashFunction a function that maps an element to a 64-bit hash value
+   * @return an element hash provider
+   * @throws IllegalArgumentException if any argument is null or the collection is empty
+   */
+  static <T> ElementHashProvider ofCollection(
+      Collection<T> collection, ToLongFunction<? super T> elementHashFunction) {
+    requireNonNull(collection);
+    requireNonNull(elementHashFunction);
+    return ofValues(collection.stream().mapToLong(elementHashFunction).toArray());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.dynatrace.hash4j.similarity;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 class ElementHashProviderTest {
@@ -29,11 +30,17 @@ class ElementHashProviderTest {
   @Test
   void testEmpty() {
     assertThatIllegalArgumentException().isThrownBy(() -> ElementHashProvider.ofValues());
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> ElementHashProvider.ofCollection(Collections.emptySet(), x -> 0));
   }
 
   @Test
   void testNullFunction() {
     assertThatNullPointerException().isThrownBy(() -> ElementHashProvider.ofFunction(null, 5));
+    assertThatNullPointerException()
+        .isThrownBy(() -> ElementHashProvider.ofCollection(null, x -> 0));
+    assertThatNullPointerException()
+        .isThrownBy(() -> ElementHashProvider.ofCollection(Collections.emptySet(), null));
   }
 
   @Test
