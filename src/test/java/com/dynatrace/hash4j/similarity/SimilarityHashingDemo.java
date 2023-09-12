@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 
 import com.dynatrace.hash4j.hashing.Hashing;
+import java.util.Collection;
 import java.util.Set;
 import java.util.function.ToLongFunction;
 import java.util.stream.IntStream;
@@ -30,14 +31,12 @@ class SimilarityHashingDemo {
   @Test
   void demoBasicUsage() {
 
+    ToLongFunction<String> stringHashFunc = s -> Hashing.komihash5_0().hashCharsToLong(s);
+
     Set<String> setA = IntStream.range(0, 90000).mapToObj(Integer::toString).collect(toSet());
     Set<String> setB = IntStream.range(10000, 100000).mapToObj(Integer::toString).collect(toSet());
     // intersection size = 80000, union size = 100000
     // => exact Jaccard similarity of sets A and B is J = 80000 / 100000 = 0.8
-
-    ToLongFunction<String> stringToHash = s -> Hashing.komihash4_3().hashCharsToLong(s);
-    long[] hashesA = setA.stream().mapToLong(stringToHash).toArray();
-    long[] hashesB = setB.stream().mapToLong(stringToHash).toArray();
 
     int numberOfComponents = 1024;
     int bitsPerComponent = 1;
@@ -45,10 +44,10 @@ class SimilarityHashingDemo {
 
     SimilarityHashPolicy policy =
         SimilarityHashing.superMinHash(numberOfComponents, bitsPerComponent);
-    SimilarityHasher hasher = policy.createHasher();
+    SimilarityHasher simHasher = policy.createHasher();
 
-    byte[] signatureA = hasher.compute(ElementHashProvider.ofValues(hashesA));
-    byte[] signatuerB = hasher.compute(ElementHashProvider.ofValues(hashesB));
+    byte[] signatureA = simHasher.compute(ElementHashProvider.ofCollection(setA, stringHashFunc));
+    byte[] signatuerB = simHasher.compute(ElementHashProvider.ofCollection(setB, stringHashFunc));
 
     double fractionOfEqualComponents = policy.getFractionOfEqualComponents(signatureA, signatuerB);
 
@@ -59,5 +58,36 @@ class SimilarityHashingDemo {
 
     // System.out.println(estimatedJaccardSimilarity); // 0.80078125
     assertThat(estimatedJaccardSimilarity).isCloseTo(0.8, withPercentage(2));
+  }
+
+  @Test
+  void demoFastSimHash() {
+
+    ToLongFunction<String> stringHashFunc = s -> Hashing.komihash5_0().hashCharsToLong(s);
+
+    Collection<String> setA = Set.of("small", "set", "of", "some", "words");
+    Collection<String> setB = Set.of("similar", "set", "of", "some", "words");
+    Collection<String> setC = Set.of("disjoint", "collection", "containing", "a", "few", "strings");
+
+    int numberOfComponents = 1024;
+    // => each signature will take 1024 bits = 128 bytes
+
+    SimilarityHashPolicy policy = SimilarityHashing.fastSimHash(numberOfComponents);
+    SimilarityHasher simHasher = policy.createHasher();
+
+    byte[] signatureA = simHasher.compute(ElementHashProvider.ofCollection(setA, stringHashFunc));
+    byte[] signatureB = simHasher.compute(ElementHashProvider.ofCollection(setB, stringHashFunc));
+    byte[] signatureC = simHasher.compute(ElementHashProvider.ofCollection(setC, stringHashFunc));
+
+    double fractionOfEqualComponentsAB =
+        policy.getFractionOfEqualComponents(signatureA, signatureB);
+    double fractionOfEqualComponentsAC =
+        policy.getFractionOfEqualComponents(signatureA, signatureC);
+    double fractionOfEqualComponentsBC =
+        policy.getFractionOfEqualComponents(signatureB, signatureC);
+
+    assertThat(fractionOfEqualComponentsAB).isCloseTo(0.830078125, withPercentage(1));
+    assertThat(fractionOfEqualComponentsAC).isCloseTo(0.4931640625, withPercentage(1));
+    assertThat(fractionOfEqualComponentsBC).isCloseTo(0.5048828125, withPercentage(1));
   }
 }
