@@ -27,6 +27,11 @@ import java.util.Arrays;
  * A sketch for approximate distinct counting that is more space efficient than HyperLogLog as
  * described in <a href="https://arxiv.org/abs/2308.16862">Otmar Ertl, UltraLogLog: A Practical and
  * More Space-Efficient Alternative to HyperLogLog for Approximate Distinct Counting, 2023</a>
+ *
+ * <p>This implementation varies from the algorithm described in the paper by redefining nonzero
+ * register values by the mapping {@code r -> r + 4*p - 8}. Since the maximum register value in the
+ * paper is given by {@code 4*w+3 = 263-4*p} with {@code w = 65-p}, the maximum register value in
+ * this implementation is given by {@code (263 - 4*p) + 4*p - 8 = 255} which is independent of p.
  */
 public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogLog.Estimator> {
 
