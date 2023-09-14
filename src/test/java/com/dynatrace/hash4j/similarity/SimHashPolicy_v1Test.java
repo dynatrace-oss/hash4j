@@ -21,7 +21,7 @@ import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.dynatrace.hash4j.testutils.TestUtils;
 import org.junit.jupiter.api.Test;
 
-class FastSimHashPolicy_v1Test extends AbstractSimHashPolicyTest {
+class SimHashPolicy_v1Test extends AbstractSimHashPolicyTest {
 
   @Test
   void testStability() {
@@ -34,22 +34,22 @@ class FastSimHashPolicy_v1Test extends AbstractSimHashPolicyTest {
     assertThat(
             TestUtils.byteArrayToHexString(
                 hasher.compute(ElementHashProvider.ofValues(0xb8583da3ea9931faL))))
-        .isEqualTo("5c378e22");
+        .isEqualTo("628e0735");
     assertThat(
             TestUtils.byteArrayToHexString(
                 hasher.compute(ElementHashProvider.ofValues(0x5b6acf5022cfa644L))))
-        .isEqualTo("a5c2fb3f");
+        .isEqualTo("2dfe392c");
     assertThat(
             TestUtils.byteArrayToHexString(
                 hasher.compute(
                     ElementHashProvider.ofValues(0x14fccc4459b81a17L, 0x6540fea72ebf8598L))))
-        .isEqualTo("6aeb883b");
+        .isEqualTo("6aaa8a2a");
     assertThat(
             TestUtils.byteArrayToHexString(
                 hasher.compute(
                     ElementHashProvider.ofValues(
                         0x14fccc4459b81a17L, 0x6540fea72ebf8598L, 0x14fccc4459b81a17L))))
-        .isEqualTo("6eef0033");
+        .isEqualTo("6aab9323");
     assertThat(
             TestUtils.byteArrayToHexString(
                 hasher.compute(
@@ -60,46 +60,16 @@ class FastSimHashPolicy_v1Test extends AbstractSimHashPolicyTest {
                         0x1b990d3329aa0644L,
                         0xe7b85af3207824f8L,
                         0x2b6d7cc88681f07bL))))
-        .isEqualTo("86bb8229");
-  }
-
-  @Test
-  void testCalculateBulkMask() {
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(0)).isEqualTo(0x0000000000000001L);
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(1)).isEqualTo(0x0000000100000001L);
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(2)).isEqualTo(0x0001000100010001L);
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(3)).isEqualTo(0x0101010101010101L);
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(4)).isEqualTo(0x1111111111111111L);
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(5)).isEqualTo(0x5555555555555555L);
-    assertThat(FastSimHashPolicy_v1.calculateBulkMask(6)).isEqualTo(0xffffffffffffffffL);
-  }
-
-  @Test
-  void testCalculateTemporaryCounterLimit() {
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(0))
-        .isEqualTo(0xffffffffffffffffL);
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(1))
-        .isEqualTo(0x00000000ffffffffL);
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(2))
-        .isEqualTo(0x000000000000ffffL);
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(3))
-        .isEqualTo(0x00000000000000ffL);
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(4))
-        .isEqualTo(0x000000000000000fL);
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(5))
-        .isEqualTo(0x0000000000000003L);
-    assertThat(FastSimHashPolicy_v1.calculateTemporaryCounterLimit(6))
-        .isEqualTo(0x0000000000000001L);
+        .isEqualTo("2a06812a");
   }
 
   @Override
   protected SimilarityHashPolicy getSimilarityHashPolicy(int numberOfComponents) {
-    return new FastSimHashPolicy_v1(
-        numberOfComponents, PseudoRandomGeneratorProvider.splitMix64_V1());
+    return new SimHashPolicy_v1(numberOfComponents, PseudoRandomGeneratorProvider.splitMix64_V1());
   }
 
   @Override
   protected long getCheckSum() {
-    return -4724860042207891761L;
+    return 0xb635843299e3fc94L;
   }
 }
