@@ -20,7 +20,6 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 
 import com.dynatrace.hash4j.hashing.Hashing;
-import java.util.Collection;
 import java.util.Set;
 import java.util.function.ToLongFunction;
 import java.util.stream.IntStream;
@@ -63,27 +62,28 @@ class SimilarityHashingDemo {
   @Test
   void demoFastSimHash() {
 
-    ToLongFunction<String> stringHashFunc = s -> Hashing.komihash5_0().hashCharsToLong(s);
+    // define sets
+    Set<String> setA = Set.of("small", "set", "of", "some", "words");
+    Set<String> setB = Set.of("similar", "set", "of", "some", "words");
+    Set<String> setC = Set.of("disjoint", "collection", "containing", "a", "few", "strings");
 
-    Collection<String> setA = Set.of("small", "set", "of", "some", "words");
-    Collection<String> setB = Set.of("similar", "set", "of", "some", "words");
-    Collection<String> setC = Set.of("disjoint", "collection", "containing", "a", "few", "strings");
-
-    int numberOfComponents = 1024;
-    // => each signature will take 1024 bits = 128 bytes
-
+    // configure similarity hash algorithm
+    int numberOfComponents = 1024; // signature takes 1024 bits = 128 bytes
     SimilarityHashPolicy policy = SimilarityHashing.fastSimHash(numberOfComponents);
     SimilarityHasher simHasher = policy.createHasher();
+    ToLongFunction<String> stringHashFunc = s -> Hashing.komihash5_0().hashCharsToLong(s);
 
+    // calculate signatures
     byte[] signatureA = simHasher.compute(ElementHashProvider.ofCollection(setA, stringHashFunc));
     byte[] signatureB = simHasher.compute(ElementHashProvider.ofCollection(setB, stringHashFunc));
     byte[] signatureC = simHasher.compute(ElementHashProvider.ofCollection(setC, stringHashFunc));
 
-    double fractionOfEqualComponentsAB =
+    // compare signatures
+    double fractionOfEqualComponentsAB = // 0.830078125
         policy.getFractionOfEqualComponents(signatureA, signatureB);
-    double fractionOfEqualComponentsAC =
+    double fractionOfEqualComponentsAC = // 0.4931640625
         policy.getFractionOfEqualComponents(signatureA, signatureC);
-    double fractionOfEqualComponentsBC =
+    double fractionOfEqualComponentsBC = // 0.5048828125
         policy.getFractionOfEqualComponents(signatureB, signatureC);
 
     assertThat(fractionOfEqualComponentsAB).isCloseTo(0.830078125, withPercentage(1));
