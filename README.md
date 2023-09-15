@@ -74,7 +74,8 @@ More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/has
 Similarity hashing algorithms are able to compute hash signature of sets that allow estimation of set similarity without using the original sets. Following algorithms are currently available:
 * [MinHash](https://en.wikipedia.org/wiki/MinHash)
 * [SuperMinHash](https://arxiv.org/abs/1706.05698)
-* FastSimHash: A fast implementation of [SimHash](https://en.wikipedia.org/wiki/SimHash)
+* [SimHash](https://en.wikipedia.org/wiki/SimHash)
+* FastSimHash: A fast implementation of SimHash using a bit hack
 
 ### Usage
 
