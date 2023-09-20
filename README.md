@@ -25,12 +25,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.12.0</version>
+  <version>0.13.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.12.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.13.0'
 ```
 
 ## Hash algorithms
@@ -74,7 +74,8 @@ More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/has
 Similarity hashing algorithms are able to compute hash signature of sets that allow estimation of set similarity without using the original sets. Following algorithms are currently available:
 * [MinHash](https://en.wikipedia.org/wiki/MinHash)
 * [SuperMinHash](https://arxiv.org/abs/1706.05698)
-* FastSimHash: A fast implementation of [SimHash](https://en.wikipedia.org/wiki/SimHash)
+* [SimHash](https://en.wikipedia.org/wiki/SimHash)
+* FastSimHash: A fast implementation of SimHash using a bit hack
 
 ### Usage
 

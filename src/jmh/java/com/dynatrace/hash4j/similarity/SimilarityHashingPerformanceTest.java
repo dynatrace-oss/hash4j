@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,14 @@ public class SimilarityHashingPerformanceTest {
     public final SplittableRandom random = new SplittableRandom();
     public final SimilarityHasher similarityHasher;
 
-    @Param({"1", "10", "100", "1000", "10000"})
+    @Param({"1", "10", "100", "1000", "10000", "100000"})
     public int numElements;
 
     public StateBase(SimilarityHasher similarityHasher) {
       this.similarityHasher = similarityHasher;
     }
 
-    public final long[] elementHashes = new long[10000]; // maximum number of elements
+    public final long[] elementHashes = new long[100000]; // maximum number of elements
 
     @Override
     public long getElementHash(int elementIndex) {
@@ -52,9 +52,7 @@ public class SimilarityHashingPerformanceTest {
       state.elementHashes[i] = state.random.nextLong();
     }
     byte[] signature = state.similarityHasher.compute(state);
-    for (byte b : signature) {
-      blackhole.consume(b);
-    }
+    blackhole.consume(signature);
   }
 
   protected static PseudoRandomGeneratorProvider getPseudoRandomGeneratorProvider() {

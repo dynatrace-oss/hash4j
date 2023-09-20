@@ -125,4 +125,39 @@ public interface SimilarityHashing {
       int numberOfComponents, FastSimHashVersion fastSimHashVersion) {
     return fastSimHashVersion.create(numberOfComponents);
   }
+
+  /**
+   * Returns a {@link SimilarityHashPolicy} for SimHash as introduced in <a
+   * href="https://dl.acm.org/doi/abs/10.1145/509907.509965?casa_token=LO2phP3daHEAAAAA%3Ad2zE2ktXOGP8JqCsSo0jqsQcfOx8-Jclq7_katfP_FRpXWJMPU3OuDE8QZATbYdePl7VRbibDUqWdQ">Moses
+   * S. Charikar, Similarity estimation techniques from rounding algorithms, 2002.</a>
+   *
+   * <p>As SimHash is significantly slower than FastSimHash, prefer using {@link #fastSimHash(int)}
+   * instead!
+   *
+   * @param numberOfComponents the number of components of the similarity hash
+   * @return a policy
+   */
+  static SimilarityHashPolicy simHash(int numberOfComponents) {
+    return simHash(numberOfComponents, SimHashVersion.DEFAULT);
+  }
+
+  /**
+   * Returns a {@link SimilarityHashPolicy} for SimHash as introduced in <a
+   * href="https://dl.acm.org/doi/abs/10.1145/509907.509965?casa_token=LO2phP3daHEAAAAA%3Ad2zE2ktXOGP8JqCsSo0jqsQcfOx8-Jclq7_katfP_FRpXWJMPU3OuDE8QZATbYdePl7VRbibDUqWdQ">Moses
+   * S. Charikar, Similarity estimation techniques from rounding algorithms, 2002.</a>
+   *
+   * <p>As SimHash is significantly slower than FastSimHash, prefer using {@link #fastSimHash(int,
+   * FastSimHashVersion)} instead!
+   *
+   * <p>Specifying the version of the implementation ensures compatibility with later hash4j
+   * versions that may change the default implementation. This is especially important if the
+   * signatures are persisted.
+   *
+   * @param numberOfComponents the number of components of the similarity hash
+   * @param simHashVersion the version of the implementation
+   * @return a policy
+   */
+  static SimilarityHashPolicy simHash(int numberOfComponents, SimHashVersion simHashVersion) {
+    return simHashVersion.create(numberOfComponents);
+  }
 }

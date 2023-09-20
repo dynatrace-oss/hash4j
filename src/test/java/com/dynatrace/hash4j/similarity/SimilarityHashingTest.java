@@ -94,4 +94,24 @@ class SimilarityHashingTest {
             .compute(ELEMENT_HASH_PROVIDER);
     assertThat(signatureV1).isEqualTo(signatureDefault);
   }
+
+  @Test
+  void testSimHash() {
+    assertThat(SimilarityHashing.simHash(3)).isInstanceOf(SimHashPolicy_v1.class);
+    assertThat(SimilarityHashing.simHash(3, SimHashVersion.DEFAULT))
+        .isInstanceOf(SimHashPolicy_v1.class);
+    assertThat(SimilarityHashing.simHash(3, SimHashVersion.V1))
+        .isInstanceOf(SimHashPolicy_v1.class);
+  }
+
+  @Test
+  void testSimHashDefault() {
+    byte[] signatureDefault =
+        SimilarityHashing.simHash(128).createHasher().compute(ELEMENT_HASH_PROVIDER);
+    byte[] signatureV1 =
+        SimilarityHashing.simHash(128, SimHashVersion.DEFAULT)
+            .createHasher()
+            .compute(ELEMENT_HASH_PROVIDER);
+    assertThat(signatureV1).isEqualTo(signatureDefault);
+  }
 }

@@ -81,15 +81,16 @@ final class FastSimHashPolicy_v1 extends AbstractSimilarityHashPolicy {
 
         for (int h = 0; h < numTmpCountChunks; ++h) {
           long randomValue = pseudoRandomGenerator.nextLong();
+          int off = h << (6 - BULK_CONSTANT);
           for (int j = 0; j < (1 << (6 - BULK_CONSTANT)); ++j) {
-            tmpCounts[(h << (6 - BULK_CONSTANT)) + j] += (randomValue >>> j) & BULK_MASK;
+            tmpCounts[off + j] += (randomValue >>> j) & BULK_MASK;
           }
         }
         if (numTmpCountRemaining > 0) {
           long randomValue = pseudoRandomGenerator.nextLong();
+          int off = numTmpCountChunks << (6 - BULK_CONSTANT);
           for (int j = 0; j < numTmpCountRemaining; ++j) {
-            tmpCounts[(numTmpCountChunks << (6 - BULK_CONSTANT)) + j] +=
-                (randomValue >>> j) & BULK_MASK;
+            tmpCounts[off + j] += (randomValue >>> j) & BULK_MASK;
           }
         }
         c += 1;
@@ -99,16 +100,18 @@ final class FastSimHashPolicy_v1 extends AbstractSimilarityHashPolicy {
           for (int h = 0; h < (counts.length >>> BULK_CONSTANT); ++h) {
             long tmp = tmpCounts[h];
             tmpCounts[h] = 0;
+            int off = h << BULK_CONSTANT;
             for (int g = 0; g < (1 << BULK_CONSTANT); ++g) {
-              counts[g + (h << BULK_CONSTANT)] +=
+              counts[off + g] +=
                   (int) ((tmp >>> (g << (6 - BULK_CONSTANT))) & TEMPORARY_COUNTER_LIMIT);
             }
           }
           for (int h = (counts.length >>> BULK_CONSTANT); h < tmpCounts.length; ++h) {
             long tmp = tmpCounts[h];
             tmpCounts[h] = 0;
+            int off = h << BULK_CONSTANT;
             for (int g = 0; g < counts.length - (h << BULK_CONSTANT); ++g) {
-              counts[g + (h << BULK_CONSTANT)] +=
+              counts[off + g] +=
                   (int) ((tmp >>> (g << (6 - BULK_CONSTANT))) & TEMPORARY_COUNTER_LIMIT);
             }
           }
