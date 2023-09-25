@@ -11,7 +11,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        java: [ '11', '17' ]
         os: [ 'ubuntu-latest', 'windows-latest', 'macos-latest' ]
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +19,7 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: ${{ matrix.java }}
+          java-version: 11
           distribution: 'adopt'
       - name: Set up Python
         uses: actions/setup-python@v4
