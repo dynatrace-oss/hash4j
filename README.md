@@ -75,7 +75,7 @@ Similarity hashing algorithms are able to compute hash signature of sets that al
 * [MinHash](https://en.wikipedia.org/wiki/MinHash)
 * [SuperMinHash](https://arxiv.org/abs/1706.05698)
 * [SimHash](https://en.wikipedia.org/wiki/SimHash)
-* FastSimHash: A fast implementation of SimHash using a bit hack
+* FastSimHash: A fast implementation of SimHash using a bit hack (see [this blog post](https://medium.com/dynatrace-engineering/speeding-up-simhash-by-10x-using-a-bit-hack-e7b69e701624))
 
 ### Usage
 
