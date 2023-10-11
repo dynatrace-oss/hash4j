@@ -174,7 +174,7 @@ dependencies {
 	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.24.2'
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.0'
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.0'
-	testImplementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'
+	testImplementation group: 'com.google.guava', name: 'guava', version: '32.1.3-jre'
 	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.16.0'
 	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
