@@ -245,11 +245,11 @@ public final class PackedArray {
 
     @Override
     public int numEqualComponents(byte[] array1, byte[] array2, int length) {
-      PackedArrayReadIterator it1 = readIterator(array1, length);
-      PackedArrayReadIterator it2 = readIterator(array2, length);
+      ParallelXorPackedArrayReadIterator x =
+          new ParallelXorPackedArrayReadIterator(array1, array2, length);
       int c = 0;
       for (int i = 0; i < length; ++i) {
-        if (it1.next() == it2.next()) c += 1;
+        if (x.next() == 0) c += 1;
       }
       return c;
     }
@@ -675,6 +675,69 @@ public final class PackedArray {
     @Override
     public PackedArrayReadIterator readIterator(byte[] array, int length) {
       return new PackedArrayReadIteratorImpl(array, length);
+    }
+
+    private class ParallelXorPackedArrayReadIterator {
+      private long buffer;
+      private int availableBits;
+
+      private int readPos;
+
+      private final byte[] array1;
+      private final byte[] array2;
+
+      public ParallelXorPackedArrayReadIterator(byte[] array1, byte[] array2, int length) {
+        requireNonNull(array1);
+
+        this.array1 = array1;
+        this.array2 = array2;
+        int remainingBytes = numBytes(length) & 0x7;
+        this.availableBits = remainingBytes << 3;
+
+        if (array1.length >= 8) {
+          buffer = ((long) LONG_HANDLE.get(array1, 0)) ^ ((long) LONG_HANDLE.get(array2, 0));
+          readPos = remainingBytes;
+        } else {
+          readPos = 0;
+          buffer = 0;
+          if (remainingBytes >= 4) {
+            buffer |=
+                (((int) INT_HANDLE.get(array1, readPos)) ^ ((int) INT_HANDLE.get(array2, readPos)))
+                    & 0xFFFFFFFFL;
+            readPos += 4;
+            remainingBytes -= 4;
+          }
+          if (remainingBytes >= 2) {
+            buffer |=
+                ((((short) SHORT_HANDLE.get(array1, readPos))
+                            ^ ((short) SHORT_HANDLE.get(array2, readPos)))
+                        & 0xFFFFL)
+                    << (readPos << 3);
+            readPos += 2;
+            remainingBytes -= 2;
+          }
+          if (remainingBytes >= 1) {
+            buffer |= ((array1[readPos] ^ array2[readPos]) & 0xFFL) << (readPos << 3);
+            readPos += 1;
+          }
+        }
+      }
+
+      public long next() {
+        long result = buffer;
+        buffer >>>= bitSize;
+        if (availableBits < bitSize) {
+          buffer =
+              ((long) LONG_HANDLE.get(array1, readPos)) ^ ((long) LONG_HANDLE.get(array2, readPos));
+          result |= buffer << availableBits;
+          buffer >>>= 1;
+          buffer >>>= ~(availableBits - bitSize);
+          readPos += 8;
+          availableBits += 64;
+        }
+        availableBits -= bitSize;
+        return result & mask;
+      }
     }
   }
 
