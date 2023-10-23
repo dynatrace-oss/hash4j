@@ -146,4 +146,27 @@ class DistinctCountUtilTest {
           .isCloseTo(solve1(a, b0), withPercentage(1e-6));
     }
   }
+
+  @Test
+  void testComputeToken1() {
+    SplittableRandom random = new SplittableRandom(0xbafc97ad730480acL);
+
+    int numCycles = 100;
+
+    for (int nlz = 0; nlz <= 38; ++nlz) {
+
+      for (int i = 0; i < numCycles; ++i) {
+
+        long r = random.nextLong();
+        long mask = 0xFFFFFFC000000000L | (0x0000003FFFFFFFFFL >>> nlz);
+        long hash = (r | (0x0000002000000000L >>> nlz)) & mask;
+
+        int token = DistinctCountUtil.computeToken1(hash);
+        long reconstructedHash = DistinctCountUtil.reconstructHash1(token);
+        int tokenFromReconstructedHash = DistinctCountUtil.computeToken1(reconstructedHash);
+        assertThat(reconstructedHash).isEqualTo(hash | (0x0000001FFFFFFFFFL >>> nlz));
+        assertThat(tokenFromReconstructedHash).isEqualTo(token);
+      }
+    }
+  }
 }

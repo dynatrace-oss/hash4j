@@ -15,8 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
-import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static java.util.Objects.requireNonNull;
@@ -50,7 +49,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    * <p>This minimum is necessary to use of some bit twiddling hacks. The use of even smaller
    * precision parameters hardly makes sense anyway.
    */
-  private static final int MIN_P = 3;
+  static final int MIN_P = 3;
 
   /**
    * The maximum allowed precision parameter.
@@ -59,7 +58,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    * bits) can be packed into a 32-bit integer, which could be useful for future sparse
    * representations. The use of even greater precision parameters hardly makes sense anyway.
    */
-  private static final int MAX_P = Integer.SIZE - 6;
+  static final int MAX_P = Integer.SIZE - 6;
 
   private static final int MIN_STATE_SIZE = 1 << MIN_P;
   private static final int MAX_STATE_SIZE = 1 << MAX_P;
@@ -106,7 +105,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     if (state.length > MAX_STATE_SIZE
         || state.length < MIN_STATE_SIZE
         || !isUnsignedPowerOfTwo(state.length)) {
-      throw new IllegalArgumentException("illegal array length");
+      throw getUnexpectedStateLengthException();
     }
     return new UltraLogLog(state);
   }
@@ -204,7 +203,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    */
   @Override
   public UltraLogLog addToken(int token) {
-    return add(DistinctCounter.reconstructHash(token));
+    return add(DistinctCountUtil.reconstructHash1(token));
   }
 
   /**
@@ -227,7 +226,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    * @return the 32-bit token
    */
   public static int computeToken(long hashValue) {
-    return DistinctCounter.computeToken(hashValue);
+    return DistinctCountUtil.computeToken1(hashValue);
   }
 
   /**
@@ -274,7 +273,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    */
   @Override
   public UltraLogLog addToken(int token, StateChangeObserver stateChangeObserver) {
-    return add(DistinctCounter.reconstructHash(token), stateChangeObserver);
+    return add(DistinctCountUtil.reconstructHash1(token), stateChangeObserver);
   }
 
   /**

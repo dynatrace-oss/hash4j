@@ -46,6 +46,7 @@ public class UltraLogLogEstimationErrorSimulation {
                 (s, m) -> s.getDistinctCountEstimate(MAXIMUM_LIKELIHOOD_ESTIMATOR),
                 "maximum likelihood",
                 pp -> new UltraLogLogTest().calculateTheoreticalRelativeStandardErrorML(pp))),
-        outputFile);
+        outputFile,
+        TestUtils.getHashGenerators1(p));
   }
 }

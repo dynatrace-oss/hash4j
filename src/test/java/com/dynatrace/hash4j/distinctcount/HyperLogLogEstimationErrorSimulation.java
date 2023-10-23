@@ -46,6 +46,7 @@ public class HyperLogLogEstimationErrorSimulation {
                 (s, m) -> s.getDistinctCountEstimate(CORRECTED_RAW_ESTIMATOR),
                 "corrected raw",
                 pp -> new HyperLogLogTest().calculateTheoreticalRelativeStandardErrorRaw(pp))),
-        outputFile);
+        outputFile,
+        TestUtils.getHashGenerators1(p));
   }
 }

@@ -22,6 +22,7 @@ import static java.lang.Math.*;
 import static java.lang.Math.sqrt;
 import static org.assertj.core.api.Assertions.*;
 
+import com.dynatrace.hash4j.distinctcount.TestUtils.HashGenerator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -164,6 +165,16 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Override
+  protected int getMinP() {
+    return UltraLogLog.MIN_P;
+  }
+
+  @Override
+  protected int getMaxP() {
+    return UltraLogLog.MAX_P;
+  }
+
+  @Override
   protected UltraLogLog create(int p) {
     return UltraLogLog.create(p);
   }
@@ -206,8 +217,8 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Override
-  protected int getStateLength(int p) {
-    return 1 << p;
+  protected int getBitsPerRegister(int p) {
+    return 8;
   }
 
   @Override
@@ -216,7 +227,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Override
-  protected double getCompressedStorageFactorLowerBound() {
+  protected double getTheoreticalCompressedMemoryVarianceProduct() {
     // = (4/5 + int_0^1 z^(-3/4) (1-z)*ln(1-z)/ln(z) dz) / (ln(2) * zeta(2,5/4))
     // where zeta denotes the Hurvitz zeta function,
     // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
@@ -227,13 +238,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Override
-  protected int getNumberOfExtraBits() {
-    return 2;
+  protected int computeToken(long hashValue) {
+    return UltraLogLog.computeToken(hashValue);
   }
 
   @Override
-  protected int computeToken(long hashValue) {
-    return UltraLogLog.computeToken(hashValue);
+  protected List<HashGenerator> getHashGenerators(int p) {
+    return TestUtils.getHashGenerators1(p);
   }
 
   @Override
@@ -370,98 +381,17 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Test
-  void testStateChangeProbabilityForAlmostFullSketch251() {
-    for (int p = MIN_P; p <= 16; ++p) {
-      UltraLogLog sketch = create(p);
-      for (int k = 0; k < (1 << p); ++k) {
-        sketch.add(createUpdateValue(p, k, 63 - p));
-        sketch.add(createUpdateValue(p, k, 62 - p));
-        sketch.add(createUpdateValue(p, k, 61 - p));
-      }
-      assertThat(sketch.getState()).containsOnly((byte) 251);
-      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
-    }
-  }
-
-  @Test
-  void testStateChangeProbabilityForAlmostFullSketch252() {
-    for (int p = MIN_P; p <= 16; ++p) {
-      UltraLogLog sketch = create(p);
-      for (int k = 0; k < (1 << p); ++k) {
-        sketch.add(createUpdateValue(p, k, 64 - p));
-      }
-      assertThat(sketch.getState()).containsOnly((byte) 252);
-      assertThat(sketch.getStateChangeProbability())
-          .isEqualTo(Math.pow(0.5, 63 - p) + Math.pow(0.5, 64 - p));
-    }
-  }
-
-  @Test
-  void testStateChangeProbabilityForAlmostFullSketch253() {
-    for (int p = MIN_P; p <= 16; ++p) {
-      UltraLogLog sketch = create(p);
-      for (int k = 0; k < (1 << p); ++k) {
-        sketch.add(createUpdateValue(p, k, 64 - p));
-        sketch.add(createUpdateValue(p, k, 62 - p));
-      }
-      assertThat(sketch.getState()).containsOnly((byte) 253);
-      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
-    }
-  }
-
-  @Test
-  void testStateChangeProbabilityForAlmostFullSketch254() {
-    for (int p = MIN_P; p <= 16; ++p) {
-      UltraLogLog sketch = create(p);
-      for (int k = 0; k < (1 << p); ++k) {
-        sketch.add(createUpdateValue(p, k, 64 - p));
-        sketch.add(createUpdateValue(p, k, 63 - p));
-      }
-      assertThat(sketch.getState()).containsOnly((byte) 254);
-      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 63 - p));
-    }
-  }
-
-  @Test
-  void testStateChangeProbabilityForAlmostFullSketch255() {
-    for (int p = MIN_P; p <= 16; ++p) {
-      UltraLogLog sketch = create(p);
-      for (int k = 0; k < (1 << p); ++k) {
-        sketch.add(createUpdateValue(p, k, 64 - p));
-        sketch.add(createUpdateValue(p, k, 63 - p));
-        sketch.add(createUpdateValue(p, k, 62 - p));
-      }
-      assertThat(sketch.getState()).containsOnly((byte) 255);
-      assertThat(sketch.getStateChangeProbability()).isZero();
-    }
-  }
-
-  @Test
   void testLargeDistinctCountEstimation() {
-    long[] distinctCountSteps = {1L << 16};
-    SplittableRandom random = new SplittableRandom(0xd77b9e4ea99553e0L);
     testLargeDistinctCountEstimation(
         10,
-        random.nextLong(),
-        48,
-        distinctCountSteps,
+        0x3c446eca19fff12fL,
+        1_000_000_000L,
         Arrays.asList(MAXIMUM_LIKELIHOOD_ESTIMATOR, OPTIMAL_FGRA_ESTIMATOR),
         Arrays.asList(
             this::calculateTheoreticalRelativeStandardErrorML,
             OptimalFGRAEstimator::calculateTheoreticalRelativeStandardError),
-        new double[] {0.06, 0.06},
-        new double[] {0.15, 0.15});
-  }
-
-  @Test
-  void testDistinctCountEstimationFromFullSketch() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      for (UltraLogLog.Estimator estimator :
-          Arrays.asList(MAXIMUM_LIKELIHOOD_ESTIMATOR, OPTIMAL_FGRA_ESTIMATOR)) {
-        UltraLogLog sketch = createFullSketch(p);
-        assertThat(sketch.getDistinctCountEstimate(estimator)).isInfinite();
-      }
-    }
+        0.02,
+        0.03);
   }
 
   private static double omega0(double tau) {

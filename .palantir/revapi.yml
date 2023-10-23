@@ -35,6 +35,26 @@ acceptedBreaks:
       new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongLongToLong(long,\
         \ long)"
       justification: "added new methods"
+  "0.13.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.method.removed"
+      old: "method long com.dynatrace.hash4j.distinctcount.DistinctCounter<T extends\
+        \ com.dynatrace.hash4j.distinctcount.DistinctCounter<T extends com.dynatrace.hash4j.distinctcount.DistinctCounter<T,\
+        \ R extends com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T>>,\
+        \ R>, R extends com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T\
+        \ extends com.dynatrace.hash4j.distinctcount.DistinctCounter<T, R extends\
+        \ com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T>>>>::reconstructHash(int)\
+        \ @ com.dynatrace.hash4j.distinctcount.HyperLogLog"
+      justification: "removed non-public method"
+    - code: "java.method.removed"
+      old: "method long com.dynatrace.hash4j.distinctcount.DistinctCounter<T extends\
+        \ com.dynatrace.hash4j.distinctcount.DistinctCounter<T extends com.dynatrace.hash4j.distinctcount.DistinctCounter<T,\
+        \ R extends com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T>>,\
+        \ R>, R extends com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T\
+        \ extends com.dynatrace.hash4j.distinctcount.DistinctCounter<T, R extends\
+        \ com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T>>>>::reconstructHash(int)\
+        \ @ com.dynatrace.hash4j.distinctcount.UltraLogLog"
+      justification: "removed non-public method"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"
