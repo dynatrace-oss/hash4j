@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static java.util.Comparator.comparing;
-
+import com.dynatrace.hash4j.distinctcount.TestUtils.HashGenerator;
+import com.dynatrace.hash4j.distinctcount.TestUtils.Transition;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.io.FileWriter;
@@ -56,43 +56,24 @@ public final class EstimationErrorSimulationUtil {
     }
   }
 
-  private static final class Transition {
-    private final BigInt distinctCount;
-    private final long hash;
-
-    public Transition(BigInt distinctCount, long hash) {
-      this.distinctCount = distinctCount;
-      this.hash = hash;
-    }
-  }
-
   private static final class LocalState<T> {
     private final T sketch;
     private final Transition[] transitions;
-    private final int p;
     private final PseudoRandomGenerator prg;
+    private final List<HashGenerator> hashGenerators;
+    private final int p;
 
-    public LocalState(T sketch, int p, PseudoRandomGenerator prg) {
-      int transitionListLen = (1 << p) * (65 - p);
+    public LocalState(
+        T sketch, PseudoRandomGenerator prg, List<HashGenerator> hashGenerators, int p) {
       this.sketch = sketch;
-      this.transitions = new Transition[transitionListLen];
-      this.p = p;
+      this.transitions = new Transition[hashGenerators.size() * (1 << p)];
       this.prg = prg;
+      this.hashGenerators = hashGenerators;
+      this.p = p;
     }
 
     public void generateTransitions(BigInt distinctCountOffset) {
-      int counter = 0;
-      for (int nlz = 0; nlz <= 64 - p; ++nlz) {
-        double factor = Math.pow(2., Math.min(64, 1 + p + nlz));
-        for (int registerIdx = 0; registerIdx < (1 << p); ++registerIdx) {
-          BigInt transitionDistinctCount = BigInt.floor(prg.nextExponential() * factor);
-          transitionDistinctCount.increment(); // 1-based geometric distribution
-          transitionDistinctCount.add(distinctCountOffset);
-          long hash = DistinctCounterTest.createUpdateValue(p, registerIdx, nlz);
-          transitions[counter++] = new Transition(transitionDistinctCount, hash);
-        }
-      }
-      Arrays.sort(transitions, comparing(transition -> transition.distinctCount));
+      TestUtils.generateTransitions(transitions, distinctCountOffset, hashGenerators, p, prg);
     }
   }
 
@@ -102,7 +83,8 @@ public final class EstimationErrorSimulationUtil {
           String sketchName,
           IntFunction<T> supplier,
           List<EstimatorConfig<T>> estimatorConfigs,
-          String outputFile) {
+          String outputFile,
+          List<HashGenerator> hashGenerators) {
 
     // parameters
     int numCycles = 100000;
@@ -122,7 +104,8 @@ public final class EstimationErrorSimulationUtil {
 
     PseudoRandomGeneratorProvider prgProvider = PseudoRandomGeneratorProvider.splitMix64_V1();
     ThreadLocal<LocalState<T>> localStates =
-        ThreadLocal.withInitial(() -> new LocalState<>(supplier.apply(p), p, prgProvider.create()));
+        ThreadLocal.withInitial(
+            () -> new LocalState<>(supplier.apply(p), prgProvider.create(), hashGenerators, p));
 
     IntStream.range(0, numCycles)
         .parallel()
@@ -152,9 +135,11 @@ public final class EstimationErrorSimulationUtil {
                 }
                 if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
                   while (transitionIndex < transitions.length
-                      && transitions[transitionIndex].distinctCount.compareTo(targetDistinctCount)
+                      && transitions[transitionIndex]
+                              .getDistinctCount()
+                              .compareTo(targetDistinctCount)
                           <= 0) {
-                    sketch.add(transitions[transitionIndex].hash, martingaleEstimator);
+                    sketch.add(transitions[transitionIndex].getHash(), martingaleEstimator);
                     transitionIndex += 1;
                   }
                   trueDistinctCount.set(targetDistinctCount);

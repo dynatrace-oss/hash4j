@@ -15,8 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
-import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.util.PackedArray;
@@ -85,7 +84,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    * could be used in future for indicating alternative state representations. Precisions with p < 3
    * do not make much sense anyway.
    */
-  private static final int MIN_P = 3;
+  static final int MIN_P = 3;
 
   /**
    * The maximum allowed precision parameter.
@@ -94,7 +93,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    * bits) can be packed into a 32-bit integer, which could be useful for future sparse
    * representations. The use of even greater precision parameters hardly makes sense anyway.
    */
-  private static final int MAX_P = Integer.SIZE - 6;
+  static final int MAX_P = Integer.SIZE - 6;
 
   private static final int MIN_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MIN_P);
   private static final int MAX_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MAX_P);
@@ -170,7 +169,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     if (state.length > MAX_STATE_SIZE
         || state.length < MIN_STATE_SIZE
         || !isUnsignedPowerOfTwo(mul4DivideBy3(state.length))) {
-      throw new IllegalArgumentException("illegal array length");
+      throw getUnexpectedStateLengthException();
     }
     return new HyperLogLog(state);
   }
@@ -277,7 +276,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    */
   @Override
   public HyperLogLog addToken(int token) {
-    return add(DistinctCounter.reconstructHash(token));
+    return add(DistinctCountUtil.reconstructHash1(token));
   }
 
   /**
@@ -300,7 +299,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    * @return the 32-bit token
    */
   public static int computeToken(long hashValue) {
-    return DistinctCounter.computeToken(hashValue);
+    return DistinctCountUtil.computeToken1(hashValue);
   }
 
   /**
@@ -342,7 +341,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    */
   @Override
   public HyperLogLog addToken(int token, StateChangeObserver stateChangeObserver) {
-    return add(DistinctCounter.reconstructHash(token), stateChangeObserver);
+    return add(DistinctCountUtil.reconstructHash1(token), stateChangeObserver);
   }
 
   private double getRegisterChangeProbability(int registerValue) {

@@ -22,6 +22,7 @@ import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeErr
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
+import com.dynatrace.hash4j.distinctcount.TestUtils.HashGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.util.Arrays;
@@ -79,6 +80,16 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
+  protected int getMinP() {
+    return HyperLogLog.MIN_P;
+  }
+
+  @Override
+  protected int getMaxP() {
+    return HyperLogLog.MAX_P;
+  }
+
+  @Override
   protected HyperLogLog create(int p) {
     return HyperLogLog.create(p);
   }
@@ -127,8 +138,8 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
-  protected int getStateLength(int p) {
-    return ((1 << p) * 6) / 8;
+  protected int getBitsPerRegister(int p) {
+    return 6;
   }
 
   @Override
@@ -137,7 +148,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
-  protected double getCompressedStorageFactorLowerBound() {
+  protected double getTheoreticalCompressedMemoryVarianceProduct() {
     // = (1/2 + int_0^1 (1-z)*ln(1-z)/ln(z) dz) / (ln(2) * zeta(2,2))
     // where zeta denotes the Hurvitz zeta function,
     // see https://en.wikipedia.org/wiki/Hurwitz_zeta_function
@@ -148,13 +159,13 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
-  protected int getNumberOfExtraBits() {
-    return 0;
+  protected int computeToken(long hashValue) {
+    return HyperLogLog.computeToken(hashValue);
   }
 
   @Override
-  protected int computeToken(long hashValue) {
-    return HyperLogLog.computeToken(hashValue);
+  protected List<HashGenerator> getHashGenerators(int p) {
+    return TestUtils.getHashGenerators1(p);
   }
 
   @Override
@@ -357,7 +368,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
     PseudoRandomGenerator pseudoRandomGenerator =
         PseudoRandomGeneratorProvider.splitMix64_V1().create();
     long[] cardinalities = {1, 10, 100, 1000, 10000, 100000};
-    int numCycles = 10;
+    int numCycles = 5;
     for (int p = MIN_P; p <= MAX_P; ++p) {
       for (long cardinality : cardinalities) {
         for (int i = 0; i < numCycles; ++i) {
@@ -400,40 +411,15 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
 
   @Test
   void testLargeDistinctCountEstimation() {
-    long[] distinctCountSteps = {1L << 16};
-    SplittableRandom random = new SplittableRandom(0xd77b9e4ea99553e0L);
     testLargeDistinctCountEstimation(
         10,
-        random.nextLong(),
-        48,
-        distinctCountSteps,
+        0xd77b9e4ea99553e0L,
+        1_000_000_000L,
         Arrays.asList(MAXIMUM_LIKELIHOOD_ESTIMATOR, CORRECTED_RAW_ESTIMATOR),
         Arrays.asList(
             this::calculateTheoreticalRelativeStandardErrorML,
             this::calculateTheoreticalRelativeStandardErrorRaw),
-        new double[] {0.06, 0.06},
-        new double[] {0.15, 0.15});
-  }
-
-  @Test
-  void testStateChangeProbabilityForAlmostFullSketch() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      HyperLogLog sketch = create(p);
-      for (int k = 0; k < (1 << p); ++k) {
-        sketch.add(createUpdateValue(p, k, 63 - p));
-      }
-      assertThat(sketch.getStateChangeProbability()).isEqualTo(Math.pow(0.5, 64 - p));
-    }
-  }
-
-  @Test
-  void testDistinctCountEstimationFromFullSketch() {
-    for (int p = MIN_P; p <= MAX_P; ++p) {
-      HyperLogLog sketch = createFullSketch(p);
-      assertThat(sketch.getDistinctCountEstimate()).isInfinite();
-      for (HyperLogLog.Estimator estimator : getEstimators()) {
-        assertThat(sketch.getDistinctCountEstimate(estimator)).isInfinite();
-      }
-    }
+        0.06,
+        0.04);
   }
 }

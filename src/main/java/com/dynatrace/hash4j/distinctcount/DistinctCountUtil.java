@@ -19,6 +19,10 @@ class DistinctCountUtil {
 
   private DistinctCountUtil() {}
 
+  static IllegalArgumentException getUnexpectedStateLengthException() {
+    return new IllegalArgumentException("unexpected state length!");
+  }
+
   static boolean isUnsignedPowerOfTwo(int x) {
     return (x & (x - 1)) == 0;
   }
@@ -173,5 +177,16 @@ class DistinctCountUtil {
       gPrevious = g;
     }
     return x;
+  }
+
+  static int computeToken1(long hashValue) {
+    int idx = (int) (hashValue >>> 38);
+    int nlz = Long.numberOfLeadingZeros(~(~hashValue << 26));
+    return (idx << 6) | nlz;
+  }
+
+  static long reconstructHash1(int token) {
+    long idx = token & 0xFFFFFFC0L;
+    return (0x3FFFFFFFFFL >>> token) | (idx << 32);
   }
 }
