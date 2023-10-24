@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
+import static java.util.Objects.requireNonNull;
+
 class DistinctCountUtil {
 
   private DistinctCountUtil() {}
@@ -188,5 +190,112 @@ class DistinctCountUtil {
   static long reconstructHash1(int token) {
     long idx = token & 0xFFFFFFC0L;
     return (0x3FFFFFFFFFL >>> token) | (idx << 32);
+  }
+
+  /**
+   * An iterable over hash tokens.
+   *
+   * <p>A 32-bit hash token is computed from a 64-bit hash value. It stores 26 bits of the hash
+   * value in the most significant part of its 32 bits. The remaining 6 bits are used to store the
+   * number of leading zeros of the remaining 38 bits of the hash value, which can be in the range
+   * [0, 38].
+   *
+   * <p>Implementations of this interface must ensure that the iteration over tokens is ordered,
+   * which means that tokens with the same most significant bits are output one after the other and
+   * not interleaved with tokens with different most significant bits. However, it is allowed to
+   * output invalid tokens, where the lower 6 bits represent a value greater than 38, at any time as
+   * it is expected that they are ignored during later processing.
+   */
+  interface TokenIterable {
+
+    /**
+     * Returns a token iterator.
+     *
+     * @return a token iterator
+     */
+    TokenIterator iterator();
+  }
+
+  /** A token iterator. */
+  interface TokenIterator {
+
+    /**
+     * Returns true if the iteration has more tokens.
+     *
+     * @return true if the iteration has more tokens
+     */
+    boolean hasNext();
+
+    /**
+     * Returns the next token.
+     *
+     * <p>Invalid token may be returned, which can be identified using {@link #isValidToken(int)}.
+     * Invalid tokens are expected to be ignored during further processing.
+     *
+     * @return the next token
+     */
+    int nextToken();
+  }
+
+  /**
+   * Returns {@code true}, if the token is valid.
+   *
+   * <p>A token is valid if the value of its least significant 6 bits does not exceed 38.
+   *
+   * @param token the token
+   * @return true, if the token is valid
+   */
+  static boolean isValidToken(int token) {
+    int nlz = token & 0x3f;
+    return nlz <= MAX_NLZ_IN_TOKEN;
+  }
+
+  private static final int MAX_NLZ_IN_TOKEN = 38;
+  private static final double RELATIVE_ERROR_LIMIT = 1e-6;
+  private static final int INVALID_TOKEN_INDEX = 0xFFFFFFFF;
+
+  /**
+   * Estimates the distinct count from a list of tokens.
+   *
+   * @param tokenIterable a iterable for tokens
+   * @return the estimated distinct count
+   */
+  static double estimateDistinctCountFromTokens(TokenIterable tokenIterable) {
+
+    requireNonNull(tokenIterable);
+
+    TokenIterator tokenIterator = tokenIterable.iterator();
+
+    int[] b = new int[MAX_NLZ_IN_TOKEN];
+
+    int currentIdx = INVALID_TOKEN_INDEX;
+    long currentFlags = 0;
+    while (tokenIterator.hasNext()) {
+      int token = tokenIterator.nextToken();
+      if (!isValidToken(token)) continue;
+      int idx = token >>> 6;
+      if (currentIdx != idx) {
+        currentFlags = 0;
+        currentIdx = idx;
+      }
+      long mask = (1L << token);
+      if ((currentFlags & mask) == 0L) {
+        currentFlags |= mask;
+        int nlz = token & 0x3f;
+        if (nlz < MAX_NLZ_IN_TOKEN) {
+          b[nlz] += 1;
+        } else {
+          b[MAX_NLZ_IN_TOKEN - 1] += 1;
+        }
+      }
+    }
+
+    double a = 0x1p27;
+    for (int i = 0; i < MAX_NLZ_IN_TOKEN; ++i) {
+      if (b[i] != 0) {
+        a -= b[i] * Double.longBitsToDouble((0x3FFL - i) << 52);
+      }
+    }
+    return DistinctCountUtil.solveMaximumLikelihoodEquation(a, b, RELATIVE_ERROR_LIMIT) * 0x1p27;
   }
 }
