@@ -441,27 +441,27 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       int r2 = r - (p << 2) - 4;
       if (r2 < 0) {
         if (r2 == -8) {
+          b[0] += 1;
+          return 1;
+        } else if (r2 == -4) {
+          b[1] += 1;
+          return 1.5;
+        } else if (r2 == -2) {
+          b[0] += 1;
           b[1] += 1;
           return 0.5;
-        } else if (r2 == -4) {
-          b[2] += 1;
-          return 0.75;
-        } else if (r2 == -2) {
-          b[1] += 1;
-          b[2] += 1;
-          return 0.25;
         } else {
-          return 1.;
+          return 2.;
         }
       } else {
         int k;
         double ret = 0;
         if (r < 252) {
-          k = (r2 >>> 2) + 3;
+          k = (r2 >>> 2) + 2;
           b[k] += 1;
           ret += Double.longBitsToDouble(0x3FF0000000000000L - ((long) k << 52)); // += 2^(-k)
         } else {
-          k = 65 - p;
+          k = 64 - p;
           b[k - 1] += 1;
         }
         if ((r & 1) == 0) {
@@ -485,13 +485,13 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       int p = ultraLogLog.getP();
 
       double a = 0;
-      int[] b = new int[64];
+      int[] b = new int[61]; // an array of size 64 - p would suffice
 
       for (byte r : state) {
         a += contribute(r & 0xff, b, p);
       }
       int m = state.length;
-      return m
+      return (2 * m)
           * DistinctCountUtil.solveMaximumLikelihoodEquation(
               a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
           / (1. + ML_BIAS_CORRECTION_CONSTANT / m);

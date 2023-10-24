@@ -19,7 +19,11 @@ import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
+import com.dynatrace.hash4j.random.PseudoRandomGenerator;
+import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+import java.util.Arrays;
 import java.util.SplittableRandom;
+import org.assertj.core.data.Percentage;
 import org.hipparchus.analysis.UnivariateFunction;
 import org.hipparchus.analysis.solvers.BisectionSolver;
 import org.junit.jupiter.api.Test;
@@ -168,5 +172,95 @@ class DistinctCountUtilTest {
         assertThat(tokenFromReconstructedHash).isEqualTo(token);
       }
     }
+  }
+
+  private static TokenIterable fromSortedArray(int[] tokens) {
+    return new TokenIterable() {
+      @Override
+      public TokenIterator iterator() {
+        return new TokenIterator() {
+          private int idx = 0;
+
+          @Override
+          public boolean hasNext() {
+            return idx < tokens.length;
+          }
+
+          @Override
+          public int nextToken() {
+            return tokens[idx++];
+          }
+        };
+      }
+    };
+  }
+
+  private static void testEstimationFromTokens(int distinctCount) {
+
+    PseudoRandomGenerator prg = PseudoRandomGeneratorProvider.splitMix64_V1().create();
+    prg.reset(0L);
+
+    int numIterations = 10;
+    int[] tokens = new int[distinctCount];
+
+    for (int i = 0; i < numIterations; ++i) {
+      for (int c = 0; c < distinctCount; ++c) {
+        tokens[c] = DistinctCountUtil.computeToken1(prg.nextLong());
+      }
+      Arrays.sort(tokens);
+
+      double estimate = DistinctCountUtil.estimateDistinctCountFromTokens(fromSortedArray(tokens));
+      assertThat(estimate).isCloseTo(distinctCount, Percentage.withPercentage(1));
+    }
+  }
+
+  @Test
+  void testEstimationFromTokens() {
+    testEstimationFromTokens(1);
+    testEstimationFromTokens(2);
+    testEstimationFromTokens(3);
+    testEstimationFromTokens(5);
+    testEstimationFromTokens(10);
+    testEstimationFromTokens(100);
+    testEstimationFromTokens(1000);
+    testEstimationFromTokens(10000);
+    testEstimationFromTokens(100000);
+    testEstimationFromTokens(1000000);
+    testEstimationFromTokens(10000000);
+  }
+
+  private static TokenIterable getTestTokens(long maxTokenExclusive) {
+    return () ->
+        new TokenIterator() {
+          private long state = 0;
+
+          @Override
+          public boolean hasNext() {
+            return state < maxTokenExclusive;
+          }
+
+          @Override
+          public int nextToken() {
+            return (int) state++;
+          }
+        };
+  }
+
+  @Test
+  void testEstimationFromZeroTokens() {
+    double estimate = DistinctCountUtil.estimateDistinctCountFromTokens(getTestTokens(0));
+    assertThat(estimate).isZero();
+  }
+
+  @Test
+  void testEstimationFromAllTokens() {
+    double estimate = DistinctCountUtil.estimateDistinctCountFromTokens(getTestTokens(0xffffffe7L));
+    assertThat(estimate).isInfinite();
+  }
+
+  @Test
+  void testEstimationFromAlmostAllTokens() {
+    double estimate = DistinctCountUtil.estimateDistinctCountFromTokens(getTestTokens(0xffffffe6L));
+    assertThat(estimate).isFinite().isGreaterThan(3e20);
   }
 }
