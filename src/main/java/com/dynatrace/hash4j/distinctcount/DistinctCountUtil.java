@@ -61,7 +61,6 @@ class DistinctCountUtil {
     // corresponds to maximizing the function
     //
     // f(x) := -x*a + b[0]*ln(1 - e^{-x}) + b[1]*ln(1 - e^{-x/2}) + b[2]*ln(1 - e^{-x/2^2}) + ...
-    // and returns the corresponding value for x.
     //
     // The first derivative is given by
     // f'(x) = -a + b[0]*1/(e^{x} - 1) + b[1]/2 * 1/(e^{x/2} - 1) + b[2]/2^2 * 1/(e^{x/2^2} - 1) +
@@ -149,13 +148,19 @@ class DistinctCountUtil {
 
     double deltaX = x;
     while (deltaX > x * relativeErrorLimit) {
-      int kappa = Math.getExponent(x) + 2;
+
+      long rawX = Double.doubleToRawLongBits(x);
+      int kappa = (int) ((rawX & 0x7FF0000000000000L) >> 52) - 1021;
       double xPrime =
           Double.longBitsToDouble(
-              Double.doubleToRawLongBits(x)
-                  - ((Math.max(kMax, kappa) + 1L) << 52)); // xPrime in [0, 0.25]
+              rawX - ((Math.max(kMax, kappa) + 1L) << 52)); // xPrime in [0, 0.25]
+
       double xPrime2 = xPrime * xPrime;
-      double h = xPrime + xPrime2 * (-(1. / 3.) + xPrime2 * ((1. / 45.) - xPrime2 * (1. / 472.5)));
+      double h =
+          xPrime
+              + xPrime2
+                  * (-0.3333333333333333
+                      + xPrime2 * (0.022222222222222223 - xPrime2 * 0.0021164021164021165));
       for (int k = kappa - 1; k >= kMax; --k) {
         double hPrime = 1. - h;
         h = (xPrime + h * hPrime) / (xPrime + hPrime);

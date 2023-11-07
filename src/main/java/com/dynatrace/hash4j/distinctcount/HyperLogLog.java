@@ -604,7 +604,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       int p = hyperLogLog.p;
       long agg = 0;
       int[] c = new int[66 - p];
-      long inc = 1L << -hyperLogLog.p;
+      long inc = 1L << -p;
 
       for (int off = 0; off + 2 < state.length; off += 3) {
         int s0 = state[off];
@@ -625,8 +625,6 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       }
       int m = 1 << p;
 
-      // if c[0] == m agg could have overflown and would be zero, but sum would become infinite
-      // anyway due to the sigma function below, so this does not matter
       if (c[0] == m) return 0.;
       c[0] = 0;
       c[c.length - 2] += c[c.length - 1];
