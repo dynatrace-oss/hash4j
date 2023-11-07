@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.SplittableRandom;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -26,9 +27,9 @@ import org.openjdk.jmh.infra.Blackhole;
 public class UltraLogLogPerformanceTest {
 
   private static UltraLogLog generate(SplittableRandom random, long numElements, int precision) {
-    UltraLogLog ultraLogLog = UltraLogLog.create(precision);
-    random.longs(numElements).forEach(ultraLogLog::add);
-    return ultraLogLog;
+    UltraLogLog sketch = UltraLogLog.create(precision);
+    random.longs(numElements).forEach(sketch::add);
+    return sketch;
   }
 
   @State(Scope.Thread)
@@ -40,31 +41,32 @@ public class UltraLogLogPerformanceTest {
     // @Param({"8", "10", "12", "14"})
     @Param({"10", "14"})
     public int precision;
-  }
 
-  @State(Scope.Thread)
-  public static class RandomState {
-    public final SplittableRandom random = new SplittableRandom();
+    public SplittableRandom random;
+
+    @Setup(Level.Trial)
+    public void init() {
+      random = new SplittableRandom();
+    }
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
-  public void distinctCountAdd(AddState addState, RandomState randomState, Blackhole blackhole) {
-    final UltraLogLog ultraLogLog = UltraLogLog.create(addState.precision);
-    for (int i = 0; i < addState.numElements; ++i) {
-      ultraLogLog.add(randomState.random.nextLong());
+  public void distinctCountAdd(AddState addState, Blackhole blackhole) {
+    final UltraLogLog sketch = UltraLogLog.create(addState.precision);
+    for (long i = 0; i < addState.numElements; ++i) {
+      sketch.add(addState.random.nextLong());
     }
-    byte[] ultraLogLogState = ultraLogLog.getState();
-    blackhole.consume(ultraLogLogState[randomState.random.nextInt(ultraLogLogState.length)]);
+    blackhole.consume(sketch);
   }
 
   public enum Estimator {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(UltraLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
     OPTIMAL_FGRA_ESTIMATOR(UltraLogLog.OPTIMAL_FGRA_ESTIMATOR);
 
-    private final DistinctCounter.Estimator<UltraLogLog> estimator;
+    private final UltraLogLog.Estimator estimator;
 
-    Estimator(DistinctCounter.Estimator estimator) {
+    Estimator(UltraLogLog.Estimator estimator) {
       this.estimator = estimator;
     }
   }
@@ -72,9 +74,7 @@ public class UltraLogLogPerformanceTest {
   @State(Scope.Benchmark)
   public static class EstimationState {
 
-    private static final int NUM_EXAMPLES = 1000;
-
-    List<UltraLogLog> ultraLogLogs = null;
+    UltraLogLog[] sketches = null;
 
     @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
     public int numElements;
@@ -85,39 +85,39 @@ public class UltraLogLogPerformanceTest {
 
     @Param public Estimator estimator;
 
-    @Setup
+    @Param({"1000"})
+    public int numExamples;
+
+    @Setup(Level.Trial)
     public void init() {
-      SplittableRandom random = new SplittableRandom(0xdf12f8a7a8569e6aL);
-      ultraLogLogs =
+      SplittableRandom random = new SplittableRandom(ThreadLocalRandom.current().nextLong());
+      sketches =
           Stream.generate(() -> generate(random, numElements, precision))
-              .limit(NUM_EXAMPLES)
-              .collect(toList());
+              .limit(numExamples)
+              .toArray(i -> new UltraLogLog[i]);
     }
 
-    @TearDown
+    @TearDown(Level.Trial)
     public void finish() {
-      ultraLogLogs = null;
+      sketches = null;
     }
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
-    double sum = 0;
-    DistinctCounter.Estimator estimator = estimationState.estimator.estimator;
-    for (UltraLogLog ultraLogLog : estimationState.ultraLogLogs) {
-      sum += estimator.estimate(ultraLogLog);
+    UltraLogLog.Estimator estimator = estimationState.estimator.estimator;
+    for (int i = 0; i < estimationState.sketches.length; ++i) {
+      double estimate = estimator.estimate(estimationState.sketches[i]);
+      blackhole.consume(estimate);
     }
-    blackhole.consume(sum);
   }
 
   @State(Scope.Benchmark)
   public static class MergeState {
 
-    static final int NUM_EXAMPLES = 1000;
-
-    List<UltraLogLog> ultraLogLogs1 = null;
-    List<UltraLogLog> ultraLogLogs2 = null;
+    List<UltraLogLog> sketches1 = null;
+    List<UltraLogLog> sketches2 = null;
 
     @Param({"30000"})
     public int numElements1;
@@ -131,38 +131,36 @@ public class UltraLogLogPerformanceTest {
     @Param({"10", "14"})
     public int precision2;
 
-    @Setup
+    @Param({"1000"})
+    public int numExamples;
+
+    @Setup(Level.Trial)
     public void init() {
-      SplittableRandom random = new SplittableRandom(0x247bb0c84ca4bf78L);
-      ultraLogLogs1 =
+      SplittableRandom random = new SplittableRandom(ThreadLocalRandom.current().nextLong());
+      sketches1 =
           Stream.generate(() -> generate(random, numElements1, precision1))
-              .limit(NUM_EXAMPLES)
+              .limit(numExamples)
               .collect(toList());
-      ultraLogLogs2 =
+      sketches2 =
           Stream.generate(() -> generate(random, numElements2, precision2))
-              .limit(NUM_EXAMPLES)
+              .limit(numExamples)
               .collect(toList());
     }
 
     @TearDown
     public void finish() {
-      ultraLogLogs1 = null;
-      ultraLogLogs2 = null;
+      sketches1 = null;
+      sketches2 = null;
     }
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
-  public void distinctCountMerge(
-      MergeState mergeState, RandomState randomState, Blackhole blackhole) {
-    long sum = 0;
-    for (int i = 0; i < MergeState.NUM_EXAMPLES; ++i) {
-      UltraLogLog mergedUltraLogLog =
-          UltraLogLog.merge(mergeState.ultraLogLogs1.get(i), mergeState.ultraLogLogs2.get(i));
-      sum +=
-          mergedUltraLogLog
-              .getState()[randomState.random.nextInt(mergedUltraLogLog.getState().length)];
+  public void distinctCountMerge(MergeState mergeState, Blackhole blackhole) {
+    for (int i = 0; i < mergeState.numExamples; ++i) {
+      UltraLogLog mergedSketch =
+          UltraLogLog.merge(mergeState.sketches1.get(i), mergeState.sketches2.get(i));
+      blackhole.consume(mergedSketch);
     }
-    blackhole.consume(sum);
   }
 }
