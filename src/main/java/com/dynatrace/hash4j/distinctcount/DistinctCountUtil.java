@@ -303,4 +303,10 @@ class DistinctCountUtil {
     }
     return DistinctCountUtil.solveMaximumLikelihoodEquation(a, b, RELATIVE_ERROR_LIMIT) * 0x1p27;
   }
+
+  static double unsignedLongToDouble(long l) {
+    double d = l & 0x7fffffffffffffffL;
+    if (l < 0) d += 0x1.0p63;
+    return d;
+  }
 }

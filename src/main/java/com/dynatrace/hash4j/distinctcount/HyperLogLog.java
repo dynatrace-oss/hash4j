@@ -457,12 +457,6 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   /** A distinct count estimator for HyperLogLog. */
   public interface Estimator extends DistinctCounter.Estimator<HyperLogLog> {}
 
-  private static double unsignedLongToDouble(long l) {
-    double d = l & 0x7fffffffffffffffL;
-    if (l < 0) d += 0x1.0p63;
-    return d;
-  }
-
   static final class CorrectedRawEstimator implements Estimator {
 
     private CorrectedRawEstimator() {}

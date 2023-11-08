@@ -263,4 +263,11 @@ class DistinctCountUtilTest {
     double estimate = DistinctCountUtil.estimateDistinctCountFromTokens(getTestTokens(0xffffffe6L));
     assertThat(estimate).isFinite().isGreaterThan(3e20);
   }
+
+  @Test
+  void testUnsignedLongToDouble() {
+    assertThat(DistinctCountUtil.unsignedLongToDouble(0)).isZero();
+    assertThat(DistinctCountUtil.unsignedLongToDouble(1)).isOne();
+    assertThat(DistinctCountUtil.unsignedLongToDouble(0x8000000000000000L)).isEqualTo(0x1p63);
+  }
 }

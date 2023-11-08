@@ -464,12 +464,6 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       }
     }
 
-    private static double unsignedLongToDouble(long l) {
-      double d = l & 0x7fffffffffffffffL;
-      if (l < 0) d += 0x1.0p63;
-      return d;
-    }
-
     @Override
     public double estimate(UltraLogLog ultraLogLog) {
 
