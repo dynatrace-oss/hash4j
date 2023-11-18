@@ -889,35 +889,35 @@ public final class PackedArray {
           while (length >= 64) {
             long l1 = getLong(array1, bytePos);
             long l2 = getLong(array2, bytePos);
-            result += 64 - Long.bitCount(l1 ^ l2);
+            result += Long.bitCount(~(l1 ^ l2));
             bytePos += 8;
             length -= 64;
           }
           if (length >= 32) {
             int l1 = getInt(array1, bytePos);
             int l2 = getInt(array2, bytePos);
-            result += 32 - Integer.bitCount(l1 ^ l2);
+            result += Integer.bitCount(~(l1 ^ l2));
             bytePos += 4;
             length -= 32;
           }
           if (length >= 16) {
             int l1 = getShort(array1, bytePos);
             int l2 = getShort(array2, bytePos);
-            result += 16 - Integer.bitCount((l1 ^ l2) & 0xFFFF);
+            result += Integer.bitCount((~(l1 ^ l2)) & 0xFFFF);
             bytePos += 2;
             length -= 16;
           }
           if (length >= 8) {
             int l1 = array1[bytePos];
             int l2 = array2[bytePos];
-            result += 8 - Integer.bitCount((l1 ^ l2) & 0xFF);
+            result += Integer.bitCount((~(l1 ^ l2)) & 0xFF);
             bytePos += 1;
             length -= 8;
           }
           if (length > 0) {
             int l1 = array1[bytePos];
             int l2 = array2[bytePos];
-            result += length - Integer.bitCount((l1 ^ l2) & ((0xFF << length) >>> 8));
+            result += Integer.bitCount((~(l1 ^ l2)) & ((0xFF << length) >>> 8));
           }
           return result;
         }
