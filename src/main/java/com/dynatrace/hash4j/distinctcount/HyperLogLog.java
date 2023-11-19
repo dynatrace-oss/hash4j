@@ -98,10 +98,6 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   private static final int MIN_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MIN_P);
   private static final int MAX_STATE_SIZE = ARRAY_HANDLER.numBytes(1 << MAX_P);
 
-  private static double powHalf(int x) {
-    return Double.longBitsToDouble((0x3FFL - x) << 52);
-  }
-
   private final int p;
   private final byte[] state;
 
@@ -321,7 +317,9 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     int oldValue = (int) ARRAY_HANDLER.update(state, idx, newValue, Math::max);
     if (stateChangeObserver != null && newValue > oldValue) {
       double stateChangeProbabilityDecrement =
-          getRegisterChangeProbability(oldValue) - getRegisterChangeProbability(newValue);
+          (getScaledRegisterChangeProbability(oldValue)
+                  - getScaledRegisterChangeProbability(newValue))
+              * 0x1p-64;
       stateChangeObserver.stateChanged(stateChangeProbabilityDecrement);
     }
     return this;
@@ -344,13 +342,9 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     return add(DistinctCountUtil.reconstructHash1(token), stateChangeObserver);
   }
 
-  private double getRegisterChangeProbability(int registerValue) {
-    int r = registerValue + p;
-    if (r <= 64) {
-      return powHalf(r);
-    } else {
-      return 0;
-    }
+  // returns register change probability scaled by 2^64
+  private long getScaledRegisterChangeProbability(int registerValue) {
+    return 0x4000000000000000L >>> (p + registerValue - 2);
   }
 
   /**
@@ -426,7 +420,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    */
   @Override
   public double getStateChangeProbability() {
-    double sum = 0;
+    long sum = 0;
     for (int off = 0; off + 2 < state.length; off += 3) {
       int s0 = state[off];
       int s1 = state[off + 1];
@@ -435,12 +429,18 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
       int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
       int r3 = (s2 >>> 2) & 0x3F;
-      sum += getRegisterChangeProbability(r0);
-      sum += getRegisterChangeProbability(r1);
-      sum += getRegisterChangeProbability(r2);
-      sum += getRegisterChangeProbability(r3);
+      sum += getScaledRegisterChangeProbability(r0);
+      sum += getScaledRegisterChangeProbability(r1);
+      sum += getScaledRegisterChangeProbability(r2);
+      sum += getScaledRegisterChangeProbability(r3);
     }
-    return sum;
+    if (sum == 0 && state[0] == 0) {
+      // sum can only be zero if either all registers are 0 or all registers are saturated
+      // therefore, it is sufficient to check if the first byte of the state is zero or not to
+      // distinguish both cases
+      return 1.;
+    }
+    return DistinctCountUtil.unsignedLongToDouble(sum) * 0x1p-64;
   }
 
   /**
