@@ -60,6 +60,17 @@ public class HyperLogLogPerformanceTest {
     blackhole.consume(sketch);
   }
 
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void distinctCountAddWithMartingaleEstimator(AddState addState, Blackhole blackhole) {
+    final HyperLogLog sketch = HyperLogLog.create(addState.precision);
+    final MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
+    for (long i = 0; i < addState.numElements; ++i) {
+      sketch.add(addState.random.nextLong(), martingaleEstimator);
+    }
+    blackhole.consume(martingaleEstimator.getDistinctCountEstimate());
+  }
+
   public enum Estimator {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
     CORRECTED_RAW_ESTIMATOR(HyperLogLog.CORRECTED_RAW_ESTIMATOR);

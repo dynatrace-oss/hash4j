@@ -254,7 +254,9 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     if (stateChangeObserver != null && newState != oldState) {
       int p = 64 - q;
       stateChangeObserver.stateChanged(
-          getRegisterChangeProbability(oldState, p) - getRegisterChangeProbability(newState, p));
+          (getScaledRegisterChangeProbability(oldState, p)
+                  - getScaledRegisterChangeProbability(newState, p))
+              * 0x1p-64);
     }
     return this;
   }
@@ -347,41 +349,27 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   }
 
   // visible for testing
-  static double getRegisterChangeProbability(byte reg, int p) {
-    final int off = (p + 1) << 2;
-    int r = (reg & 0xFF);
-    int t = r - off;
-    long x;
-    if (t < 0) {
-      if (t == -2) {
-        x = 0x3fd0000000000000L; // = 1/4
-      } else if (t == -4) {
-        x = 0x3fe8000000000000L; // = 3/4
-      } else if (t == -8) {
-        x = 0x3fe0000000000000L; // = 1/2
-      } else {
-        x = 0x3ff0000000000000L; // = 1
+  // returns register change probability scaled by 2^64
+  static long getScaledRegisterChangeProbability(byte reg, int p) {
+    int r = reg & 0xFF;
+    int r2 = r - (p << 2) - 4;
+    if (r2 < 0) {
+      long ret = 4L;
+      if (r2 == -2 || r2 == -8) {
+        ret -= 2;
       }
-      return Double.longBitsToDouble(x - ((long) p << 52));
-    } else if (r < 252) {
-      if ((r & 3) == 0) {
-        x = 0x3fec000000000000L; // = 7/8
-      } else if ((r & 3) == 1) {
-        x = 0x3fd8000000000000L; // = 3/8
-      } else if ((r & 3) == 2) {
-        x = 0x3fe4000000000000L; // = 5/8
-      } else {
-        x = 0x3fc0000000000000L; // = 1/8
+      if (r2 == -2 || r2 == -4) {
+        ret -= 1;
       }
-      return Double.longBitsToDouble(x - (((r >>> 2) - 1L) << 52));
-    } else if (r == 252) {
-      return 0x1.8p-63; // = 2^-64 + 2^-63
-    } else if (r == 253) {
-      return 0x1.0p-64; // = 2^-64
-    } else if (r == 254) {
-      return 0x1.0p-63; // = 2^-63
+      return ret << (62 - p);
     } else {
-      return 0;
+      int k = r2 >>> 2;
+      long ret = 0xE000000000000000L;
+      int y0 = r & 1;
+      int y1 = (r >>> 1) & 1;
+      ret -= (long) y0 << 63;
+      ret -= (long) y1 << 62;
+      return ret >>> (k + p);
     }
   }
 
@@ -393,11 +381,17 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   @Override
   public double getStateChangeProbability() {
     final int p = getP();
-    double sum = 0;
+    long sum = 0;
     for (byte x : state) {
-      sum += getRegisterChangeProbability(x, p);
+      sum += getScaledRegisterChangeProbability(x, p);
     }
-    return sum;
+    if (sum == 0 && state[0] == 0) {
+      // sum can only be zero if either all registers are 0 or all registers are saturated
+      // therefore, it is sufficient to check if the first byte of the state is zero or not to
+      // distinguish both cases
+      return 1.;
+    }
+    return DistinctCountUtil.unsignedLongToDouble(sum) * 0x1p-64;
   }
 
   /**
@@ -437,6 +431,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     private static final double ML_BIAS_CORRECTION_CONSTANT =
         0.4814737652772006629514810906704298203396203932131028763547546717;
 
+    // returns contribution to alpha, scaled by 2^64
     private static long contribute(int r, int[] b, int p) {
       int r2 = r - (p << 2) - 4;
       if (r2 < 0) {
@@ -470,20 +465,23 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       byte[] state = ultraLogLog.state;
       int p = ultraLogLog.getP();
 
-      long agg = 0;
+      long sum = 0;
       int[] b = new int[65 - p];
 
       for (byte r : state) {
-        agg += contribute(r & 0xff, b, p);
+        sum += contribute(r & 0xff, b, p);
       }
       int m = state.length;
-      if (agg == 0) {
-        return (b[64 - p] == 0) ? 0 : Double.POSITIVE_INFINITY;
+      if (sum == 0) {
+        // sum can only be zero if either all registers are 0 or all registers are saturated
+        // therefore, it is sufficient to check if the first byte of the state is zero or not to
+        // distinguish both cases
+        return (state[0] == 0) ? 0 : Double.POSITIVE_INFINITY;
       }
       b[63 - p] += b[64 - p];
       b[64 - p] = 0;
       double factor = m << 1;
-      double a = unsignedLongToDouble(agg) * factor * 0x1p-64;
+      double a = unsignedLongToDouble(sum) * factor * 0x1p-64;
 
       return factor
           * DistinctCountUtil.solveMaximumLikelihoodEquation(
