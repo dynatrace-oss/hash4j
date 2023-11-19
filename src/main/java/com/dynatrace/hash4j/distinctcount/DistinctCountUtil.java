@@ -35,6 +35,10 @@ class DistinctCountUtil {
     }
   }
 
+  private static final double C0 = -1. / 3.;
+  private static final double C1 = 1. / 45.;
+  private static final double C2 = 1. / 472.5;
+
   /**
    * Maximizes the expression
    *
@@ -156,11 +160,7 @@ class DistinctCountUtil {
               rawX - ((Math.max(kMax, kappa) + 1L) << 52)); // xPrime in [0, 0.25]
 
       double xPrime2 = xPrime * xPrime;
-      double h =
-          xPrime
-              + xPrime2
-                  * (-0.3333333333333333
-                      + xPrime2 * (0.022222222222222223 - xPrime2 * 0.0021164021164021165));
+      double h = xPrime + xPrime2 * (C0 + xPrime2 * (C1 - xPrime2 * C2));
       for (int k = kappa - 1; k >= kMax; --k) {
         double hPrime = 1. - h;
         h = (xPrime + h * hPrime) / (xPrime + hPrime);
