@@ -471,7 +471,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       int p = ultraLogLog.getP();
 
       long agg = 0;
-      int[] b = new int[65 - MIN_P];
+      int[] b = new int[65 - p];
 
       for (byte r : state) {
         agg += contribute(r & 0xff, b, p);
