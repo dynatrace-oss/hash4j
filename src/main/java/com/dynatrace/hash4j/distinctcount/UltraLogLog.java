@@ -901,9 +901,10 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       int c4w3 = 0;
 
       double sum = 0;
+      int off = (p << 2) + 4;
       for (byte reg : state) {
         int r = reg & 0xFF;
-        int r2 = r - (p << 2) - 4;
+        int r2 = r - off;
         if (r2 < 0) {
           if (r2 < -8) c0 += 1;
           if (r2 == -8) c4 += 1;
