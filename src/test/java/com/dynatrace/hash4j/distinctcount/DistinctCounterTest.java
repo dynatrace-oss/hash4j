@@ -45,8 +45,6 @@ abstract class DistinctCounterTest<
 
   protected abstract int getMaxP();
 
-  protected static final double RELATIVE_ERROR = 1e-12;
-
   protected abstract T create(int p);
 
   protected abstract T merge(T sketch1, T sketch2);

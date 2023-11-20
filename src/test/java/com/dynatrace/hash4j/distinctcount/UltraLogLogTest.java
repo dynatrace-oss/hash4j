@@ -16,9 +16,8 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.distinctcount.UltraLogLog.*;
-import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.ETA_0;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
-import static java.lang.Math.*;
 import static java.lang.Math.sqrt;
 import static org.assertj.core.api.Assertions.*;
 
@@ -37,43 +36,46 @@ import org.junit.jupiter.api.Test;
 class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estimator> {
 
   // see https://www.wolframalpha.com/input?i=ln%282%29%2Fzeta%282%2C+5%2F4%29
-  private static final double VARIANCE_FACTOR_ML =
-      0.5789111356311075471022417636427943448393849646878849257018607764;
+  private static final double VARIANCE_FACTOR_ML = 0.5789111356311075;
+
+  private static final double GAMMA_TAU = 1.1430292525408;
+
+  private static final double GAMMA_TWO_TAU = 0.8984962499780026;
 
   @Test
   void testRelativeStandardErrorOfOptimalFGRAEstimatorAgainstConstants() {
     double[] expected = {
-      0.276562187784647,
-      0.19555899840231122,
-      0.1382810938923235,
-      0.09777949920115561,
-      0.06914054694616174,
-      0.048889749600577806,
-      0.03457027347308087,
-      0.024444874800288903,
-      0.017285136736540436,
-      0.012222437400144451,
-      0.008642568368270218,
-      0.006111218700072226,
-      0.004321284184135109,
-      0.003055609350036113,
-      0.0021606420920675545,
-      0.0015278046750180564,
-      0.0010803210460337772,
-      7.639023375090282E-4,
-      5.401605230168886E-4,
-      3.819511687545141E-4,
-      2.700802615084443E-4,
-      1.9097558437725705E-4,
-      1.3504013075422215E-4,
-      9.548779218862853E-5
+      0.2765621877846472,
+      0.1955589984023114,
+      0.1382810938923236,
+      0.0977794992011557,
+      0.0691405469461618,
+      0.04888974960057785,
+      0.0345702734730809,
+      0.024444874800288924,
+      0.01728513673654045,
+      0.012222437400144462,
+      0.008642568368270225,
+      0.006111218700072231,
+      0.004321284184135112,
+      0.0030556093500361155,
+      0.002160642092067556,
+      0.0015278046750180577,
+      0.001080321046033778,
+      7.639023375090289E-4,
+      5.40160523016889E-4,
+      3.8195116875451443E-4,
+      2.700802615084445E-4,
+      1.9097558437725722E-4,
+      1.3504013075422226E-4,
+      9.548779218862861E-5
     };
     double[] actual =
         IntStream.range(MIN_P, MAX_P + 1)
             .mapToDouble(OptimalFGRAEstimator::calculateTheoreticalRelativeStandardError)
             .toArray();
     assertThat(actual)
-        .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
+        .usingElementComparator(compareWithMaxRelativeError(1e-15))
         .isEqualTo(expected);
   }
 
@@ -202,13 +204,13 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   }
 
   @Override
-  protected double calculateTheoreticalRelativeStandardErrorML(int p) {
-    return Math.sqrt(VARIANCE_FACTOR_ML / (1 << p));
+  protected strictfp double calculateTheoreticalRelativeStandardErrorML(int p) {
+    return StrictMath.sqrt(VARIANCE_FACTOR_ML / (1 << p));
   }
 
   @Override
-  protected double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
-    return Math.sqrt(Math.log(2.) * 5. / (8. * (1L << p)));
+  protected strictfp double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
+    return StrictMath.sqrt(StrictMath.log(2.) * 5. / (8. * (1L << p)));
   }
 
   @Override
@@ -394,56 +396,70 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
         0.03);
   }
 
-  private static double omega0(double tau) {
-    return pow(7, -tau) - pow(8, -tau);
+  private static strictfp double omega0(double tau) {
+    return StrictMath.pow(7, -tau) - StrictMath.pow(8, -tau);
   }
 
-  private static double omega1(double tau) {
-    return pow(3, -tau) - pow(4, -tau) - pow(7, -tau) + pow(8, -tau);
+  private static strictfp double omega1(double tau) {
+    return StrictMath.pow(3, -tau)
+        - StrictMath.pow(4, -tau)
+        - StrictMath.pow(7, -tau)
+        + StrictMath.pow(8, -tau);
   }
 
-  private static double omega2(double tau) {
-    return pow(5, -tau) - pow(6, -tau) - pow(7, -tau) + pow(8, -tau);
+  private static strictfp double omega2(double tau) {
+    return StrictMath.pow(5, -tau)
+        - StrictMath.pow(6, -tau)
+        - StrictMath.pow(7, -tau)
+        + StrictMath.pow(8, -tau);
   }
 
-  private static double omega3(double tau) {
+  private static strictfp double omega3(double tau) {
     return 1
-        - pow(2, -tau)
-        - pow(3, -tau)
-        + pow(4, -tau)
-        - pow(5, -tau)
-        + pow(6, -tau)
-        + pow(7, -tau)
-        - pow(8, -tau);
+        - StrictMath.pow(2, -tau)
+        - StrictMath.pow(3, -tau)
+        + StrictMath.pow(4, -tau)
+        - StrictMath.pow(5, -tau)
+        + StrictMath.pow(6, -tau)
+        + StrictMath.pow(7, -tau)
+        - StrictMath.pow(8, -tau);
   }
 
-  private static double calculateEtaPreFactor(double tau) {
-    return (Math.log(2) / Gamma.gamma(tau))
-        / (pow(omega0(tau), 2) / omega0(2 * tau)
-            + pow(omega1(tau), 2) / omega1(2 * tau)
-            + pow(omega2(tau), 2) / omega2(2 * tau)
-            + pow(omega3(tau), 2) / omega3(2 * tau));
+  private static strictfp double calculateEtaPreFactor(double tau, double gammaTau) {
+    return (StrictMath.log(2) / gammaTau)
+        / (StrictMath.pow(omega0(tau), 2) / omega0(2 * tau)
+            + StrictMath.pow(omega1(tau), 2) / omega1(2 * tau)
+            + StrictMath.pow(omega2(tau), 2) / omega2(2 * tau)
+            + StrictMath.pow(omega3(tau), 2) / omega3(2 * tau));
   }
 
-  private static double calculateEta0(double tau) {
-    return calculateEtaPreFactor(tau) * (omega0(tau) / omega0(2 * tau));
+  private static strictfp double calculateEta0(double tau, double gammaTau) {
+    return calculateEtaPreFactor(tau, gammaTau) * (omega0(tau) / omega0(2 * tau));
   }
 
-  private static double calculateEta1(double tau) {
-    return calculateEtaPreFactor(tau) * (omega1(tau) / omega1(2 * tau));
+  private static strictfp double calculateEta1(double tau, double gammaTau) {
+    return calculateEtaPreFactor(tau, gammaTau) * (omega1(tau) / omega1(2 * tau));
   }
 
-  private static double calculateEta2(double tau) {
-    return calculateEtaPreFactor(tau) * (omega2(tau) / omega2(2 * tau));
+  private static strictfp double calculateEta2(double tau, double gammaTau) {
+    return calculateEtaPreFactor(tau, gammaTau) * (omega2(tau) / omega2(2 * tau));
   }
 
-  private static double calculateEta3(double tau) {
-    return calculateEtaPreFactor(tau) * (omega3(tau) / omega3(2 * tau));
+  private static strictfp double calculateEta3(double tau, double gammaTau) {
+    return calculateEtaPreFactor(tau, gammaTau) * (omega3(tau) / omega3(2 * tau));
   }
 
-  private static double calculateVarianceFactor(double tau) {
-    return (calculateEtaPreFactor(tau) * (Gamma.gamma(2 * tau) / Gamma.gamma(tau)) - 1)
-        / pow(tau, 2);
+  private static strictfp double calculateVarianceFactor(
+      double tau, double gammaTau, double gammaTwoTau) {
+    return (calculateEtaPreFactor(tau, gammaTau) * (gammaTwoTau / gammaTau) - 1) // TODO
+        / StrictMath.pow(tau, 2);
+  }
+
+  private static strictfp double calculateVarianceFactor(double tau) {
+    double gammaTau = Gamma.gamma(tau);
+    double gammaTwoTau = Gamma.gamma(2 * tau);
+    return (calculateEtaPreFactor(tau, gammaTau) * (gammaTwoTau / gammaTau) - 1)
+        / StrictMath.pow(tau, 2);
   }
 
   private double[] determineZTestValuesForPhi(int p) {
@@ -585,7 +601,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     double expectedResult = OptimalFGRAEstimator.sigma(z);
 
     if (z <= 0.) {
-      assertThat(OptimalFGRAEstimator.ETA_3).isEqualTo(expectedResult);
+      assertThat(ETA_3).isEqualTo(expectedResult);
       return numTerms;
     }
     if (z >= 1.) {
@@ -657,36 +673,36 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   @Test
   void testOptimalFGRAEstimatorEta0() {
     assertThat(ETA_0)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateEta0(OptimalFGRAEstimator.TAU));
+        .usingComparator(compareWithMaxRelativeError(1e-15))
+        .isEqualTo(calculateEta0(OptimalFGRAEstimator.TAU, GAMMA_TAU));
   }
 
   @Test
   void testOptimalFGRAEstimatorEta1() {
-    assertThat(OptimalFGRAEstimator.ETA_1)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateEta1(OptimalFGRAEstimator.TAU));
+    assertThat(ETA_1)
+        .usingComparator(compareWithMaxRelativeError(1e-15))
+        .isEqualTo(calculateEta1(OptimalFGRAEstimator.TAU, GAMMA_TAU));
   }
 
   @Test
   void testOptimalFGRAEstimatorEta2() {
-    assertThat(OptimalFGRAEstimator.ETA_2)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateEta2(OptimalFGRAEstimator.TAU));
+    assertThat(ETA_2)
+        .usingComparator(compareWithMaxRelativeError(1e-15))
+        .isEqualTo(calculateEta2(OptimalFGRAEstimator.TAU, GAMMA_TAU));
   }
 
   @Test
   void testOptimalFGRAEstimatorEta3() {
-    assertThat(OptimalFGRAEstimator.ETA_3)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateEta3(OptimalFGRAEstimator.TAU));
+    assertThat(ETA_3)
+        .usingComparator(compareWithMaxRelativeError(1e-15))
+        .isEqualTo(calculateEta3(OptimalFGRAEstimator.TAU, GAMMA_TAU));
   }
 
   @Test
   void testOptimalFGRAEstimatorVarianceFactor() {
     assertThat(OptimalFGRAEstimator.V)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(calculateVarianceFactor(OptimalFGRAEstimator.TAU));
+        .usingComparator(compareWithMaxRelativeError(1e-15))
+        .isEqualTo(calculateVarianceFactor(OptimalFGRAEstimator.TAU, GAMMA_TAU, GAMMA_TWO_TAU));
   }
 
   @Test
@@ -702,24 +718,24 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     double optimalTau = result.getPoint();
 
     assertThat(OptimalFGRAEstimator.TAU)
-        .usingComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
+        .usingComparator(compareWithMaxRelativeError(1e-6))
         .isEqualTo(optimalTau);
   }
 
-  private static double calculateOptimalFGRARegisterContribution(int r) {
+  private static strictfp double calculateOptimalFGRARegisterContribution(int r) {
     int q10 = r & 3;
     int q765432 = (r + 12) >>> 2;
     final double f;
     if (q10 == 0) {
       f = OptimalFGRAEstimator.ETA_0;
     } else if (q10 == 1) {
-      f = OptimalFGRAEstimator.ETA_1;
+      f = ETA_1;
     } else if (q10 == 2) {
-      f = OptimalFGRAEstimator.ETA_2;
+      f = ETA_2;
     } else {
-      f = OptimalFGRAEstimator.ETA_3;
+      f = ETA_3;
     }
-    return f * pow(2., -OptimalFGRAEstimator.TAU * q765432);
+    return f * StrictMath.pow(2., -OptimalFGRAEstimator.TAU * q765432);
   }
 
   @Test
@@ -731,11 +747,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
                 .toArray());
   }
 
-  private static double calculateEstimationFactor(int p) {
+  private static strictfp double calculateEstimationFactor(int p) {
     int m = 1 << p;
     double biasCorrectionFactor =
         1. / (1. + OptimalFGRAEstimator.V * (1. + OptimalFGRAEstimator.TAU) / (2. * m));
-    return biasCorrectionFactor * m * Math.pow(m, 1. / OptimalFGRAEstimator.TAU);
+    return biasCorrectionFactor * m * StrictMath.pow(m, 1. / OptimalFGRAEstimator.TAU);
   }
 
   @Test
@@ -815,5 +831,19 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
                   mapRegisterFromReferenceDefinition((byte) (4 * w + 3), p), p))
           .isZero();
     }
+  }
+
+  @Test
+  void testGammaTau() {
+    assertThat(GAMMA_TAU)
+        .usingComparator(compareWithMaxRelativeError(1e-9))
+        .isEqualTo(Gamma.gamma(TAU));
+  }
+
+  @Test
+  void testGammaTwoTau() {
+    assertThat(GAMMA_TWO_TAU)
+        .usingComparator(compareWithMaxRelativeError(1e-9))
+        .isEqualTo(Gamma.gamma(2 * TAU));
   }
 }
