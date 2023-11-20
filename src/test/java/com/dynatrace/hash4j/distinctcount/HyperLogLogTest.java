@@ -18,7 +18,6 @@ package com.dynatrace.hash4j.distinctcount;
 import static com.dynatrace.hash4j.distinctcount.HyperLogLog.*;
 import static com.dynatrace.hash4j.distinctcount.HyperLogLog.CorrectedRawEstimator.sigma;
 import static com.dynatrace.hash4j.distinctcount.HyperLogLog.CorrectedRawEstimator.tau;
-import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
 import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.data.Percentage.withPercentage;
 
@@ -34,13 +33,12 @@ import org.junit.jupiter.api.Test;
 
 class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estimator> {
 
-  private static final double VARIANCE_FACTOR_RAW = 3. * Math.log(2) - 1.;
+  private static final double VARIANCE_FACTOR_RAW = 3. * StrictMath.log(2) - 1.;
 
-  private static final double VARIANCE_FACTOR_MARTINGALE = Math.log(2);
+  private static final double VARIANCE_FACTOR_MARTINGALE = StrictMath.log(2);
 
   // see https://www.wolframalpha.com/input?i=ln%282%29%2Fzeta%282%2C+2%29
-  private static final double VARIANCE_FACTOR_ML =
-      1.0747566552769260937701392307869745509357687653622079625754435936;
+  private static final double VARIANCE_FACTOR_ML = 1.074756655276926;
 
   @Test
   void testRelativeStandardErrorAgainstConstants() {
@@ -74,9 +72,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
         IntStream.range(MIN_P, MAX_P + 1)
             .mapToDouble(this::calculateTheoreticalRelativeStandardErrorRaw)
             .toArray();
-    assertThat(actual)
-        .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(expected);
+    assertThat(actual).isEqualTo(expected);
   }
 
   @Override
@@ -114,8 +110,8 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
    * @param p the precision parameter
    * @return the relative standard error
    */
-  protected double calculateTheoreticalRelativeStandardErrorRaw(int p) {
-    return Math.sqrt(VARIANCE_FACTOR_RAW / (1 << p));
+  protected strictfp double calculateTheoreticalRelativeStandardErrorRaw(int p) {
+    return StrictMath.sqrt(VARIANCE_FACTOR_RAW / (1 << p));
   }
 
   protected double calculateTheoreticalRelativeStandardErrorDefault(int p) {
@@ -123,13 +119,13 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
   }
 
   @Override
-  protected double calculateTheoreticalRelativeStandardErrorML(int p) {
-    return Math.sqrt(VARIANCE_FACTOR_ML / (1 << p));
+  protected strictfp double calculateTheoreticalRelativeStandardErrorML(int p) {
+    return StrictMath.sqrt(VARIANCE_FACTOR_ML / (1 << p));
   }
 
   @Override
-  protected double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
-    return Math.sqrt(VARIANCE_FACTOR_MARTINGALE / (1L << p));
+  protected strictfp double calculateTheoreticalRelativeStandardErrorMartingale(int p) {
+    return StrictMath.sqrt(VARIANCE_FACTOR_MARTINGALE / (1L << p));
   }
 
   @Override
@@ -155,7 +151,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
     //
     // for a numerical evaluation see
     // https://www.wolframalpha.com/input?i=%281%2F2+%2B+int_0%5E1+%281-z%29*ln%281-z%29%2Fln%28z%29+dz%29+%2F+%28ln%282%29+*+zeta%282%2C2%29%29
-    return 3.0436599734226085615249901682841889998940943134541648920053615832;
+    return 3.0436599734226086;
   }
 
   @Override
@@ -337,11 +333,9 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
     }
   }
 
-  private static final double RELATIVE_ERROR = 1e-10;
-
-  private double calculateEstimationFactor(int p) {
+  private strictfp double calculateEstimationFactor(int p) {
     double m = 1 << p;
-    return m * m / (2. * Math.log(2) * (1. + VARIANCE_FACTOR_RAW / m));
+    return m * m / (2. * StrictMath.log(2) * (1. + VARIANCE_FACTOR_RAW / m));
   }
 
   @Test
@@ -350,9 +344,7 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
     for (int p = MIN_P; p <= MAX_P; ++p) {
       expectedEstimationFactors[p - MIN_P] = calculateEstimationFactor(p);
     }
-    assertThat(CorrectedRawEstimator.ESTIMATION_FACTORS)
-        .usingElementComparator(compareWithMaxRelativeError(RELATIVE_ERROR))
-        .isEqualTo(expectedEstimationFactors);
+    assertThat(CorrectedRawEstimator.ESTIMATION_FACTORS).isEqualTo(expectedEstimationFactors);
   }
 
   @Test
@@ -421,5 +413,10 @@ class HyperLogLogTest extends DistinctCounterTest<HyperLogLog, HyperLogLog.Estim
             this::calculateTheoreticalRelativeStandardErrorRaw),
         0.06,
         0.04);
+  }
+
+  @Test
+  strictfp void testVarianceFactorML() {
+    assertThat(VARIANCE_FACTOR_ML).isEqualTo(6 * StrictMath.log(2.) / (Math.PI * Math.PI - 6));
   }
 }
