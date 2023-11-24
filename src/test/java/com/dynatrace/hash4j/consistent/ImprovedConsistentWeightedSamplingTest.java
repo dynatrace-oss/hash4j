@@ -22,7 +22,7 @@ import com.dynatrace.hash4j.random.PseudoRandomGeneratorProviderForTesting;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-public class ImprovedConsistentWeightedSamplingTest extends AbstractConsistentBucketHasherTest {
+class ImprovedConsistentWeightedSamplingTest extends AbstractConsistentBucketHasherTest {
 
   @Override
   protected ConsistentBucketHasher getConsistentBucketHasher(
