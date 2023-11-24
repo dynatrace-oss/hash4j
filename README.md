@@ -25,12 +25,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.13.0</version>
+  <version>0.14.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.13.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.14.0'
 ```
 
 ## Hash algorithms
@@ -193,11 +193,20 @@ HashValue128 hash = FileHashing.imohash1_0_2().hashFileTo128Bits(file);
 See also [FileHashingDemo.java](src/test/java/com/dynatrace/hash4j/file/FileHashingDemo.java).
 
 ## Consistent hashing
-This library contains an implementation of [JumpHash](https://arxiv.org/abs/1406.2294)
-that can be used to achieve distributed agreement when assigning hash values to a given number of buckets.
-The hash values are distributed uniformly over the buckets.
-The algorithm also minimizes the number of reassignments needed for balancing when the number of buckets changes.
+This library contains various algorithms for the distributed agreement on the assignment of hash values to a given number of buckets.
+In the naive approach, the hash values are assigned to the buckets with the modulo operation according to
+`bucketIdx = abs(hash) % numBuckets`.
+If the number of buckets is changed, the bucket index will change for most hash values.
+With a consistent hash algorithm, the above expression can be replaced by
+`bucketIdx = consistentBucketHasher.getBucket(hash, numBuckets)`
+to minimize the number of reassignments while still ensuring a fair distribution across all buckets.
 
+The following consistent hashing algorithms are available:
+* [JumpHash](https://arxiv.org/abs/1406.2294): This algorithm has a calculation time that scales logarithmically with the number of buckets  
+* [Improved Consistent Weighted Sampling](https://doi.org/10.1109/ICDM.2010.80): This algorithm is based on improved
+consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
+JumpHash for large numbers of buckets.
+  
 ### Usage
 ```java
 // create a consistent bucket hasher

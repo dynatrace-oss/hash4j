@@ -54,7 +54,7 @@ class ConsistentJumpBucketHasher implements ConsistentBucketHasher {
   // see
   // https://github.com/google/guava/blob/0a17f4a429323589396c38d8ce75ca058faa6c64/guava/src/com/google/common/hash/Hashing.java#L559
   @Override
-  public int getBucket(long hash, int numBuckets) {
+  public strictfp int getBucket(long hash, int numBuckets) {
     checkArgument(numBuckets > 0, "buckets must be positive");
     pseudoRandomGenerator.reset(hash);
 
@@ -64,11 +64,10 @@ class ConsistentJumpBucketHasher implements ConsistentBucketHasher {
     // Jump from bucket to bucket until we go out of range
     while (true) {
       next = (int) ((candidate + 1) / pseudoRandomGenerator.nextDouble());
-      if (next > candidate && next < numBuckets) {
-        candidate = next;
-      } else {
-        return candidate;
-      }
+      if (next >= numBuckets || next <= candidate)
+        return candidate; // second condition protects against infinite loops caused by bad random
+      // values such as NaN or values outside of [0,1)
+      candidate = next;
     }
   }
 }
