@@ -38,4 +38,23 @@ public final class ConsistentHashing {
       PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
     return new ConsistentJumpBucketHasher(pseudoRandomGeneratorProvider);
   }
+
+  /**
+   * Returns a {@link ConsistentBucketHasher}.
+   *
+   * <p>This algorithm is based on the method described in Sergey Ioffe, "Improved Consistent
+   * Sampling, Weighted Minhash and L1 Sketching," 2010, doi: <a
+   * href="https://doi.org/10.1109/ICDM.2010.80">10.1109/ICDM.2010.80.</a> which is applied to a
+   * one-dimensional input vector whose value is equal to the number of buckets.
+   *
+   * <p>The computation time is constant independent of the number of buckets. This method is faster
+   * than {@link #jumpHash(PseudoRandomGeneratorProvider)} for large number of buckets.
+   *
+   * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
+   * @return a {@link ConsistentBucketHasher}
+   */
+  public static ConsistentBucketHasher improvedConsistentWeightedSampling(
+      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
+    return new ImprovedConsistentWeightedSampling(pseudoRandomGeneratorProvider);
+  }
 }

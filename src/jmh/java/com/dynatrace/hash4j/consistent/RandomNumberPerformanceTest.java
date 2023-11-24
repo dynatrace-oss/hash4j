@@ -15,20 +15,26 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-import static org.assertj.core.api.Assertions.*;
+import java.util.SplittableRandom;
+import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.infra.Blackhole;
 
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+public class RandomNumberPerformanceTest {
 
-class ConsistentJumpBucketHasherTest extends AbstractConsistentBucketHasherTest {
+  @State(Scope.Thread)
+  public static class TestState {
 
-  @Override
-  protected ConsistentBucketHasher getConsistentBucketHasher(
-      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
-    return ConsistentHashing.jumpHash(pseudoRandomGeneratorProvider);
+    SplittableRandom random;
+
+    @Setup
+    public void init() {
+      random = new SplittableRandom(0x87c5950e6677341eL);
+    }
   }
 
-  @Override
-  protected long getCheckSum() {
-    return 0x42cf069c52a4ee21L;
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void getBucket(TestState testState, Blackhole blackhole) {
+    blackhole.consume(testState.random.nextLong());
   }
 }

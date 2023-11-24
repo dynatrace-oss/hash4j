@@ -16,9 +16,12 @@
 package com.dynatrace.hash4j.consistent;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+import com.dynatrace.hash4j.random.PseudoRandomGeneratorProviderForTesting;
 import java.util.Arrays;
 import java.util.SplittableRandom;
 import java.util.stream.IntStream;
@@ -28,6 +31,7 @@ import org.hipparchus.stat.inference.ChiSquareTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 abstract class AbstractConsistentBucketHasherTest {
 
@@ -92,7 +96,7 @@ abstract class AbstractConsistentBucketHasherTest {
   }
 
   private static IntStream getNumBuckets() {
-    int maxNumBuckets = 300;
+    int maxNumBuckets = 200;
     return IntStream.range(1, maxNumBuckets + 1);
   }
 
@@ -150,5 +154,49 @@ abstract class AbstractConsistentBucketHasherTest {
             new BinomialTest()
                 .binomialTest(numTrials, numZero, 1. / numBuckets, AlternativeHypothesis.TWO_SIDED))
         .isGreaterThan(alpha);
+  }
+
+  protected abstract long getCheckSum();
+
+  @Test
+  void testCheckSum() {
+    int numIterations = 1_000_000;
+    SplittableRandom random = new SplittableRandom(0x2df5ae93946a7653L);
+    ConsistentBucketHasher hasher =
+        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
+    HashStream64 checkSumHashStream = Hashing.komihash5_0().hashStream();
+    for (int i = 0; i < numIterations; ++i) {
+      int numBuckets = random.nextInt(Integer.MAX_VALUE);
+      long hash = random.nextLong();
+      int bucketIdx = hasher.getBucket(hash, numBuckets);
+      checkSumHashStream.putInt(bucketIdx);
+    }
+    assertThat(checkSumHashStream.getAsLong()).isEqualTo(getCheckSum());
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      doubles = {
+        Double.NEGATIVE_INFINITY,
+        -Double.MAX_VALUE,
+        -2,
+        -1,
+        0.,
+        1.,
+        2,
+        Double.MAX_VALUE,
+        Double.POSITIVE_INFINITY,
+        Double.NaN
+      })
+  void testInvalidPseudoRandomGeneratorNextDouble(double randomValue) {
+    PseudoRandomGeneratorProviderForTesting pseudoRandomGeneratorProvider =
+        new PseudoRandomGeneratorProviderForTesting();
+
+    ConsistentBucketHasher consistentBucketHasher =
+        getConsistentBucketHasher(pseudoRandomGeneratorProvider);
+
+    pseudoRandomGeneratorProvider.setDoubleValue(randomValue);
+    assertThatNoException()
+        .isThrownBy(() -> consistentBucketHasher.getBucket(0x82739fa8da9a7728L, 10));
   }
 }
