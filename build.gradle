@@ -70,27 +70,33 @@ java {
 group = 'com.dynatrace.hash4j'
 version = '0.14.0'
 
+
 spotless {
+	def googleJavaFormatVersion = '1.18.1'
+	def eclipseCdtVersion = '10.7' // version 10.7 seems to be the latest compatible with Java 11
+	def blackVersion = '23.11.0'
+	def greclipseVersion = '4.26' // version 4.26 seems to be the latest compatible with Java 11
+
 	ratchetFrom 'origin/main'
 	apply plugin: 'groovy'
 	groovyGradle {
 		target '*.gradle' // default target of groovyGradle
-		greclipse('4.26')
+		greclipse(greclipseVersion)
 	}
 	python {
 		target 'python/**/*.py'
-		black('23.3.0')
+		black(blackVersion)
 		licenseHeader readPythonLicense('APACHE_2_0_DYNATRACE'), '(import|from)'
 	}
 	cpp {
 		target 'reference-implementations/*/*.cpp', 'reference-implementations/*/*.hpp', 'reference-implementations/*.cpp', 'reference-implementations/*.hpp'
-		eclipseCdt('10.7') // version 10.7 seems to be the latest that can be used with Java 11
+		eclipseCdt(eclipseCdtVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
 	}
 	java {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
 		targetExclude \
 			'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java',\
@@ -107,49 +113,49 @@ spotless {
 	format 'javaImohash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_IMOHASH')
 		target 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java'
 	}
 	format 'javaKomihash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_KOMIHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java', 'src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java'
 	}
 	format 'javaFarmHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_APACHE_2_0_FARMHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java','src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java'
 	}
 	format 'javaPolymurHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('ZLIB_POLYMURHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/PolymurHash2_0.java'
 	}
 	format 'javaSplitMix64', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('CREATIVE_COMMONS_SPLITMIX64')
 		target 'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
 	}
 	format 'javaExponential', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('BOOST_EXPONENTIAL_RANDOM_GENERATION')
 		target 'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
 	format 'javaConsistentJumpHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
-		googleJavaFormat('1.17.0')
+		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_GUAVA')
 		target 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java'
 	}
