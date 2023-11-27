@@ -59,14 +59,14 @@ class TestClass {
 
 TestClass obj = new TestClass(); // create an instance of some test class
     
-Hasher64 hasher = Hashing.wyhashFinal4(); // create a hasher instance
+Hasher64 hasher = Hashing.komihash5_0(); // create a hasher instance
 
 // variant 1: hash object by passing data into a hash stream
 long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong(); // gives 0x89a90f343c3d4862L
 
 // variant 2: hash object by defining a funnel
 HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putString(o.c);
-long hash2 = hasher.hashToLong(obj, funnel); // gives 0x89a90f343c3d4862L
+long hash2 = hasher.hashToLong(obj, funnel); // gives 0x90553fd9c675dfb2L
 ```
 More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/hash4j/hashing/HashingDemo.java).
 
@@ -152,7 +152,7 @@ Both algorithms share the following properties:
 
 ### Usage
 ```java
-Hasher64 hasher = Hashing.wyhashFinal4(); // create a hasher instance
+Hasher64 hasher = Hashing.komihash5_0(); // create a hasher instance
 
 UltraLogLog sketch = UltraLogLog.create(12); // corresponds to a standard error of 1.2% and requires 4kB
 

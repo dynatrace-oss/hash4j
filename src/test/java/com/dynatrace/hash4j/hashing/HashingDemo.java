@@ -34,7 +34,7 @@ class HashingDemo {
     TestClass obj = new TestClass();
 
     // create a hasher instance
-    Hasher64 hasher = Hashing.wyhashFinal4();
+    Hasher64 hasher = Hashing.komihash5_0();
 
     // variant 1: hash object by passing data into a hash stream
     long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong();
@@ -44,7 +44,7 @@ class HashingDemo {
     long hash2 = hasher.hashToLong(obj, funnel);
 
     // both variants lead to same hash value
-    assertThat(hash1).isEqualTo(hash2).isEqualTo(0x89a90f343c3d4862L);
+    assertThat(hash1).isEqualTo(hash2).isEqualTo(0x90553fd9c675dfb2L);
   }
 
   // Some class with two string fields.
@@ -221,7 +221,7 @@ class HashingDemo {
   void demoHashStringsWithPotentialCollision() {
 
     // create a hasher instance
-    Hasher64 hasher = Komihash4_3.create();
+    Hasher64 hasher = Komihash5_0.create();
 
     // hash multiple variable length fields together
     long hash1 = hasher.hashStream().putString("ANDRE").putString("WRIGHT").getAsLong();
@@ -236,7 +236,7 @@ class HashingDemo {
   void demoHashListOfStrings() {
 
     // create a hasher instance
-    Hasher64 hasher = Komihash4_3.create();
+    Hasher64 hasher = Komihash5_0.create();
 
     // three ways to compute a hash value of the character sequence "A", "B", "C",
     // by grouping them differently in strings and lists
@@ -267,7 +267,7 @@ class HashingDemo {
   void demoHashMultiSetOfStrings() {
 
     // create a hasher instance
-    Hasher64 hasher = Komihash4_3.create();
+    Hasher64 hasher = Komihash5_0.create();
 
     long hash1 =
         hasher

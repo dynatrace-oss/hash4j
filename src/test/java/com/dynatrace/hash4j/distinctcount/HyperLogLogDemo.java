@@ -27,7 +27,7 @@ class HyperLogLogDemo {
   @Test
   void demoBasicUsage() {
 
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.komihash5_0();
 
     HyperLogLog sketch = HyperLogLog.create(12);
 
@@ -43,7 +43,7 @@ class HyperLogLogDemo {
   @Test
   void demoMerging() {
 
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.komihash5_0();
 
     HyperLogLog sketch1 =
         HyperLogLog.create(12)
@@ -61,7 +61,7 @@ class HyperLogLogDemo {
   @Test
   void demoMartingaleEstimation() {
 
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.komihash5_0();
 
     HyperLogLog sketch = HyperLogLog.create(12);
     MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
