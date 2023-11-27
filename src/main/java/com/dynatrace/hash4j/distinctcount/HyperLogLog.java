@@ -20,6 +20,9 @@ import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.util.PackedArray;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayHandler;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
@@ -42,6 +45,13 @@ import java.util.Arrays;
  * </ul>
  */
 public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogLog.Estimator> {
+
+  private static final VarHandle INT_HANDLE =
+      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
+
+  private static int getInt(byte[] b, int off) {
+    return (int) INT_HANDLE.get(b, off);
+  }
 
   /**
    * Bias-reduced version of the standard HyperLogLog estimator using small range and large range
@@ -421,18 +431,25 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   @Override
   public double getStateChangeProbability() {
     long sum = 0;
-    for (int off = 0; off + 2 < state.length; off += 3) {
-      int s0 = state[off];
-      int s1 = state[off + 1];
-      int s2 = state[off + 2];
+    for (int off = 0; off + 5 < state.length; off += 6) {
+      int s0 = getInt(state, off);
+      int s1 = getInt(state, off + 2);
       int r0 = s0 & 0x3F;
-      int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
-      int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
-      int r3 = (s2 >>> 2) & 0x3F;
+      int r1 = (s0 >>> 6) & 0x3F;
+      int r2 = (s0 >>> 12) & 0x3F;
+      int r3 = (s0 >>> 18) & 0x3F;
+      int r4 = (s1 >>> 8) & 0x3F;
+      int r5 = (s1 >>> 14) & 0x3F;
+      int r6 = (s1 >>> 20) & 0x3F;
+      int r7 = (s1 >>> 26) & 0x3F;
       sum += getScaledRegisterChangeProbability(r0);
       sum += getScaledRegisterChangeProbability(r1);
       sum += getScaledRegisterChangeProbability(r2);
       sum += getScaledRegisterChangeProbability(r3);
+      sum += getScaledRegisterChangeProbability(r4);
+      sum += getScaledRegisterChangeProbability(r5);
+      sum += getScaledRegisterChangeProbability(r6);
+      sum += getScaledRegisterChangeProbability(r7);
     }
     if (sum == 0 && state[0] == 0) {
       // sum can only be zero if either all registers are 0 or all registers are saturated
@@ -528,26 +545,41 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       long agg = 0;
       int maxR = 65 - hyperLogLog.p;
       long inc = 1L << -hyperLogLog.p;
-      for (int off = 0; off + 2 < state.length; off += 3) {
-        int s0 = state[off];
-        int s1 = state[off + 1];
-        int s2 = state[off + 2];
+      for (int off = 0; off + 5 < state.length; off += 6) {
+        int s0 = getInt(state, off);
+        int s1 = getInt(state, off + 2);
         int r0 = s0 & 0x3F;
-        int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
-        int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
-        int r3 = (s2 >>> 2) & 0x3F;
+        int r1 = (s0 >>> 6) & 0x3F;
+        int r2 = (s0 >>> 12) & 0x3F;
+        int r3 = (s0 >>> 18) & 0x3F;
+        int r4 = (s1 >>> 8) & 0x3F;
+        int r5 = (s1 >>> 14) & 0x3F;
+        int r6 = (s1 >>> 20) & 0x3F;
+        int r7 = (s1 >>> 26) & 0x3F;
         agg += inc >>> r0;
         agg += inc >>> r1;
         agg += inc >>> r2;
         agg += inc >>> r3;
+        agg += inc >>> r4;
+        agg += inc >>> r5;
+        agg += inc >>> r6;
+        agg += inc >>> r7;
         if (r0 >= maxR) cMax += 1;
         if (r1 >= maxR) cMax += 1;
         if (r2 >= maxR) cMax += 1;
         if (r3 >= maxR) cMax += 1;
+        if (r4 >= maxR) cMax += 1;
+        if (r5 >= maxR) cMax += 1;
+        if (r6 >= maxR) cMax += 1;
+        if (r7 >= maxR) cMax += 1;
         if (r0 == 0) c0 += 1;
         if (r1 == 0) c0 += 1;
         if (r2 == 0) c0 += 1;
         if (r3 == 0) c0 += 1;
+        if (r4 == 0) c0 += 1;
+        if (r5 == 0) c0 += 1;
+        if (r6 == 0) c0 += 1;
+        if (r7 == 0) c0 += 1;
       }
       double sum = 0;
 
@@ -600,22 +632,33 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       int[] c = new int[66 - p];
       long inc = 1L << -p;
 
-      for (int off = 0; off + 2 < state.length; off += 3) {
-        int s0 = state[off];
-        int s1 = state[off + 1];
-        int s2 = state[off + 2];
+      for (int off = 0; off + 5 < state.length; off += 6) {
+        int s0 = getInt(state, off);
+        int s1 = getInt(state, off + 2);
         int r0 = s0 & 0x3F;
-        int r1 = (((s0 >>> 6) & 0x3) | (s1 << 2)) & 0x3F;
-        int r2 = (((s1 >>> 4) & 0xF) | (s2 << 4)) & 0x3F;
-        int r3 = (s2 >>> 2) & 0x3F;
+        int r1 = (s0 >>> 6) & 0x3F;
+        int r2 = (s0 >>> 12) & 0x3F;
+        int r3 = (s0 >>> 18) & 0x3F;
+        int r4 = (s1 >>> 8) & 0x3F;
+        int r5 = (s1 >>> 14) & 0x3F;
+        int r6 = (s1 >>> 20) & 0x3F;
+        int r7 = (s1 >>> 26) & 0x3F;
         agg += inc >>> r0;
         agg += inc >>> r1;
         agg += inc >>> r2;
         agg += inc >>> r3;
+        agg += inc >>> r4;
+        agg += inc >>> r5;
+        agg += inc >>> r6;
+        agg += inc >>> r7;
         if (r0 < c.length) c[r0] += 1;
         if (r1 < c.length) c[r1] += 1;
         if (r2 < c.length) c[r2] += 1;
         if (r3 < c.length) c[r3] += 1;
+        if (r4 < c.length) c[r4] += 1;
+        if (r5 < c.length) c[r5] += 1;
+        if (r6 < c.length) c[r6] += 1;
+        if (r7 < c.length) c[r7] += 1;
       }
       int m = 1 << p;
 
