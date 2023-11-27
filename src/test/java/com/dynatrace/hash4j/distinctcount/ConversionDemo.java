@@ -26,7 +26,7 @@ class ConversionDemo {
   @Test
   void demoUltraLogLogToHyperLogLogConversion() {
 
-    Hasher64 hasher = Hashing.wyhashFinal3();
+    Hasher64 hasher = Hashing.komihash5_0();
 
     HyperLogLog hllSketch = HyperLogLog.create(12);
     UltraLogLog ullSketch = UltraLogLog.create(12);

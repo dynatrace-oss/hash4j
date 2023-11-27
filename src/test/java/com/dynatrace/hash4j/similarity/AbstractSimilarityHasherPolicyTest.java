@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,9 +62,9 @@ abstract class AbstractSimilarityHasherPolicyTest {
     long difference2Size = (long) set2.size() - intersectionSize;
 
     long[] elementHashesSet1 =
-        set1.stream().mapToLong(Hashing.wyhashFinal3()::hashCharsToLong).toArray();
+        set1.stream().mapToLong(Hashing.komihash5_0()::hashCharsToLong).toArray();
     long[] elementHashesSet2 =
-        set2.stream().mapToLong(Hashing.wyhashFinal3()::hashCharsToLong).toArray();
+        set2.stream().mapToLong(Hashing.komihash5_0()::hashCharsToLong).toArray();
 
     SimilarityHasher hasher = policy.createHasher();
 
