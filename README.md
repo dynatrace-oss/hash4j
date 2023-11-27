@@ -205,7 +205,7 @@ The following consistent hashing algorithms are available:
 * [JumpHash](https://arxiv.org/abs/1406.2294): This algorithm has a calculation time that scales logarithmically with the number of buckets  
 * [Improved Consistent Weighted Sampling](https://doi.org/10.1109/ICDM.2010.80): This algorithm is based on improved
 consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
-JumpHash for large numbers of buckets.
+JumpHash for a large number of buckets.
   
 ### Usage
 ```java

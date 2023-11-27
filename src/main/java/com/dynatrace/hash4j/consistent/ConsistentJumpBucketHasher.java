@@ -35,7 +35,7 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.consistent.ConsistentHashingUtil.checkNumberOfBuckets;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
@@ -55,7 +55,10 @@ class ConsistentJumpBucketHasher implements ConsistentBucketHasher {
   // https://github.com/google/guava/blob/0a17f4a429323589396c38d8ce75ca058faa6c64/guava/src/com/google/common/hash/Hashing.java#L559
   @Override
   public strictfp int getBucket(long hash, int numBuckets) {
-    checkArgument(numBuckets > 0, "buckets must be positive");
+    if (numBuckets <= 1) {
+      checkNumberOfBuckets(numBuckets);
+      return 0;
+    }
     pseudoRandomGenerator.reset(hash);
 
     int candidate = 0;

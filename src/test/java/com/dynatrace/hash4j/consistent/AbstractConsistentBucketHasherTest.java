@@ -161,12 +161,12 @@ abstract class AbstractConsistentBucketHasherTest {
   @Test
   void testCheckSum() {
     int numIterations = 1_000_000;
-    SplittableRandom random = new SplittableRandom(0x2df5ae93946a7653L);
+    SplittableRandom random = new SplittableRandom(0x0a55871a9d9103b7L);
     ConsistentBucketHasher hasher =
         getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
     HashStream64 checkSumHashStream = Hashing.komihash5_0().hashStream();
     for (int i = 0; i < numIterations; ++i) {
-      int numBuckets = random.nextInt(Integer.MAX_VALUE);
+      int numBuckets = Math.max(1, random.nextInt() >>> 1 >>> random.nextInt());
       long hash = random.nextLong();
       int bucketIdx = hasher.getBucket(hash, numBuckets);
       checkSumHashStream.putInt(bucketIdx);
