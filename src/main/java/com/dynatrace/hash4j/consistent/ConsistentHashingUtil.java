@@ -15,20 +15,13 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-import static org.assertj.core.api.Assertions.*;
+import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+class ConsistentHashingUtil {
 
-class ConsistentJumpBucketHasherTest extends AbstractConsistentBucketHasherTest {
+  private ConsistentHashingUtil() {}
 
-  @Override
-  protected ConsistentBucketHasher getConsistentBucketHasher(
-      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
-    return ConsistentHashing.jumpHash(pseudoRandomGeneratorProvider);
-  }
-
-  @Override
-  protected long getCheckSum() {
-    return 0xfd5390c955b998f7L;
+  static void checkNumberOfBuckets(int numBuckets) {
+    checkArgument(numBuckets > 0, "number of buckets must be positive");
   }
 }
