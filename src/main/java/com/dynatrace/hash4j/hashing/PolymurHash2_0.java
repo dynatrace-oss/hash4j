@@ -247,104 +247,265 @@ class PolymurHash2_0 extends AbstractHasher64 {
     return lo | (hi << ((len - 4) << 3));
   }
 
-  private long polymurHashPoly611(byte[] input, int off, int len) {
-    long polyAcc = tweak;
-    if (len >= 8) {
-      long k3 = this.k3;
-      long k4 = this.k4;
-      if (len >= 50) {
-        k3 = k3x;
-        k4 = k4x;
-        long h = 0;
-        do {
-          long m0 = (getLong(input, off) & 0x00ffffffffffffffL) + k;
-          long m1 = (getLong(input, off + 7) & 0x00ffffffffffffffL) + k6;
-          long m2 = (getLong(input, off + 14) & 0x00ffffffffffffffL) + k2;
-          long m3 = (getLong(input, off + 21) & 0x00ffffffffffffffL) + k5;
-          long m4 = (getLong(input, off + 28) & 0x00ffffffffffffffL) + k3x;
-          long m5 = (getLong(input, off + 35) & 0x00ffffffffffffffL) + k4x;
-          long m6 = (getLong(input, off + 42) & 0x00ffffffffffffffL) + h;
-
-          long t0Hi = unsignedMultiplyHigh(m0, m1);
-          long t0Lo = m0 * m1;
-          long t1Hi = unsignedMultiplyHigh(m2, m3);
-          long t1Lo = m2 * m3 + 0x8000000000000000L;
-          long t2Hi = unsignedMultiplyHigh(m4, m5);
-          long t2Lo = m4 * m5;
-          long t3Hi = unsignedMultiplyHigh(m6, k7);
-          long t3Lo = m6 * k7 + 0x8000000000000000L;
-
-          t0Lo += t1Lo;
-          t0Hi += t1Hi + ((t0Lo < t1Lo) ? 1 : 0);
-          t2Lo += t3Lo;
-          t2Hi += t3Hi + ((t2Lo < t3Lo) ? 1 : 0);
-          t0Lo += t2Lo;
-          t0Hi += t2Hi + ((t0Lo + 0x8000000000000000L < t2Lo) ? 1 : 0);
-          h = polymurRed611(t0Hi, t0Lo);
-          len -= 49;
-          off += 49;
-        } while (len >= 50);
-
-        long ph = polymurExtrared611(h);
-        long hk14 = polymurRed611(unsignedMultiplyHigh(ph, k14), ph * k14);
-        polyAcc += polymurExtrared611(hk14);
-      }
-
-      if (len >= 8) {
-        long m0 = (getLong(input, off) & 0x00ffffffffffffffL) + k2;
-        long m1 = (getLong(input, off + ((len - 7) >>> 1)) & 0x00ffffffffffffffL) + k7;
-        long m2 = (getLong(input, off + len - 8) >>> 8) + k;
-        long t0Hi = unsignedMultiplyHigh(m0, m1);
-        long t0Lo = m0 * m1;
-        k3 += len;
-        long t1Hi = unsignedMultiplyHigh(m2, k3);
-        long t1Lo = m2 * k3;
-
-        if (len <= 21) {
-          t1Lo += t0Lo;
-          t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
-        } else {
-          long t0r = polymurRed611(t0Hi, t0Lo);
-
-          long m3 = (getLong(input, off + 7) & 0x00ffffffffffffffL) + k2;
-          long m4 = (getLong(input, off + 14) & 0x00ffffffffffffffL) + k7;
-          long m5 = (getLong(input, off + len - 21) & 0x00ffffffffffffffL) + t0r;
-          long m6 = (getLong(input, off + len - 14) & 0x00ffffffffffffffL) + k4;
-
-          long t2Hi = unsignedMultiplyHigh(m3, m4);
-          long t2Lo = m3 * m4;
-          long t3Hi = unsignedMultiplyHigh(m5, m6);
-          long t3Lo = m5 * m6;
-
-          t2Lo += 0x8000000000000000L;
-          t3Lo += 0x8000000000000000L;
-          t1Lo += t2Lo;
-          t1Hi += t2Hi + ((t1Lo < t2Lo) ? 1 : 0);
-          t1Lo += t3Lo;
-          t1Hi += t3Hi + ((t1Lo + 0x8000000000000000L < t3Lo) ? 1 : 0);
-        }
-        return polyAcc + polymurRed611(t1Hi, t1Lo);
-      }
-    }
-    long m0 = polymurLoadLeU64_0_8(input, off, len) + k;
-    long lenk2 = len + k2;
-    return polyAcc + polymurRed611(unsignedMultiplyHigh(m0, lenk2), m0 * lenk2);
-  }
-
   @Override
   public long hashBytesToLong(byte[] input, int off, int len) {
-    return polymurMix(polymurHashPoly611(input, off, len)) + s;
+    long polyAcc = tweak;
+    long t1Hi;
+    long t1Lo;
+    long k3 = this.k3;
+    long k4 = this.k4;
+
+    if (len >= 50) {
+      k3 = k3x;
+      k4 = k4x;
+      long h = 0;
+      do {
+        h = processBuffer(input, off, h);
+        len -= 49;
+        off += 49;
+      } while (len >= 50);
+
+      long ph = polymurExtrared611(h);
+      long hk14 = polymurRed611(unsignedMultiplyHigh(ph, k14), ph * k14);
+      polyAcc += polymurExtrared611(hk14);
+    }
+
+    if (len >= 8) {
+      long m0 = getLong7(input, off) + k2;
+      long m1 = getLong7(input, off + ((len - 7) >>> 1)) + k7;
+      long m2 = (getLong(input, off + len - 8) >>> 8) + k;
+      long t0Hi = unsignedMultiplyHigh(m0, m1);
+      long t0Lo = m0 * m1;
+      k3 += len;
+      t1Hi = unsignedMultiplyHigh(m2, k3);
+      t1Lo = m2 * k3;
+
+      if (len <= 21) {
+        t1Lo += t0Lo;
+        t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
+      } else {
+        long t0r = polymurRed611(t0Hi, t0Lo);
+
+        long m3 = getLong7(input, off + 7) + k2;
+        long m4 = getLong7(input, off + 14) + k7;
+        long m5 = getLong7(input, off + len - 21) + t0r;
+        long m6 = getLong7(input, off + len - 14) + k4;
+
+        long t2Hi = unsignedMultiplyHigh(m3, m4);
+        long t2Lo = m3 * m4;
+        long t3Hi = unsignedMultiplyHigh(m5, m6);
+        long t3Lo = m5 * m6;
+
+        t2Lo += 0x8000000000000000L;
+        t3Lo += 0x8000000000000000L;
+        t1Lo += t2Lo;
+        t1Hi += t2Hi + ((t1Lo < t2Lo) ? 1 : 0);
+        t1Lo += t3Lo;
+        t1Hi += t3Hi + ((t1Lo + 0x8000000000000000L < t3Lo) ? 1 : 0);
+      }
+    } else {
+      long m0 = polymurLoadLeU64_0_8(input, off, len) + k;
+      long lenk2 = len + k2;
+      t1Hi = unsignedMultiplyHigh(m0, lenk2);
+      t1Lo = m0 * lenk2;
+    }
+    return polymurMix(polyAcc + polymurRed611(t1Hi, t1Lo)) + s;
   }
 
   @Override
   public long hashCharsToLong(CharSequence input) {
-    // TODO more efficient implementation
-    return hashStream().putChars(input).getAsLong();
+    long polyAcc = tweak;
+    long t1Hi;
+    long t1Lo;
+    long k3 = this.k3;
+    long k4 = this.k4;
+
+    long len = 2L * input.length();
+    int off = 0;
+
+    if (len >= 50) {
+      k3 = k3x;
+      k4 = k4x;
+      long h = 0;
+      do {
+        h = processBuffer(input, off, h);
+        len -= 49;
+        off += 49;
+      } while (len >= 50);
+
+      long ph = polymurExtrared611(h);
+      long hk14 = polymurRed611(unsignedMultiplyHigh(ph, k14), ph * k14);
+      polyAcc += polymurExtrared611(hk14);
+    }
+
+    if (len >= 8) {
+      long m0 = (getLong7(input, off)) + k2;
+      long m1 = (getLong7(input, off + ((len - 7) >>> 1))) + k7;
+      long m2 = (getLong7(input, off + len - 7)) + k;
+      long t0Hi = unsignedMultiplyHigh(m0, m1);
+      long t0Lo = m0 * m1;
+      k3 += len;
+      t1Hi = unsignedMultiplyHigh(m2, k3);
+      t1Lo = m2 * k3;
+
+      if (len <= 21) {
+        t1Lo += t0Lo;
+        t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
+      } else {
+        long t0r = polymurRed611(t0Hi, t0Lo);
+
+        long m3 = (getLong7(input, off + 7)) + k2;
+        long m4 = (getLong7(input, off + 14)) + k7;
+        long m5 = (getLong7(input, off + len - 21)) + t0r;
+        long m6 = (getLong7(input, off + len - 14)) + k4;
+
+        long t2Hi = unsignedMultiplyHigh(m3, m4);
+        long t2Lo = m3 * m4;
+        long t3Hi = unsignedMultiplyHigh(m5, m6);
+        long t3Lo = m5 * m6;
+
+        t2Lo += 0x8000000000000000L;
+        t3Lo += 0x8000000000000000L;
+        t1Lo += t2Lo;
+        t1Hi += t2Hi + ((t1Lo < t2Lo) ? 1 : 0);
+        t1Lo += t3Lo;
+        t1Hi += t3Hi + ((t1Lo + 0x8000000000000000L < t3Lo) ? 1 : 0);
+      }
+    } else {
+      long m0 = polymurLoadLeU64_0_8(input, off, len) + k;
+      long lenk2 = len + k2;
+      t1Hi = unsignedMultiplyHigh(m0, lenk2);
+      t1Lo = m0 * lenk2;
+    }
+    return polymurMix(polyAcc + polymurRed611(t1Hi, t1Lo)) + s;
+  }
+
+  private long polymurLoadLeU64_0_8(CharSequence input, int off, long len) {
+    int o = (int) ((off + len) >>> 1) - 1;
+    long r = 0;
+    if (o >= 0) {
+      r |= (long) input.charAt(o) << 48;
+      if (o - 1 >= 0) {
+        r |= (long) input.charAt(o - 1) << 32;
+        if (o - 2 >= 0) {
+          r |= (long) input.charAt(o - 2) << 16;
+          if (o - 3 >= 0) {
+            r |= (long) input.charAt(o - 3) << 0;
+          }
+        }
+      }
+    }
+    return r >>> (-(len << 3));
+  }
+
+  private static long getLong7(CharSequence input, long off) {
+    return getLong(input, (int) (off >>> 1)) << ((~off & 1) << 3) >>> 8;
+  }
+
+  private long processBuffer(CharSequence input, int off, long h) {
+    int o = off >>> 1;
+    long c0 = input.charAt(o + 0);
+    long c1 = input.charAt(o + 1);
+    long c2 = input.charAt(o + 2);
+    long c3 = input.charAt(o + 3);
+    long c4 = input.charAt(o + 4);
+    long c5 = input.charAt(o + 5);
+    long c6 = input.charAt(o + 6);
+    long c7 = input.charAt(o + 7);
+    long c8 = input.charAt(o + 8);
+    long c9 = input.charAt(o + 9);
+    long c10 = input.charAt(o + 10);
+    long c11 = input.charAt(o + 11);
+    long c12 = input.charAt(o + 12);
+    long c13 = input.charAt(o + 13);
+    long c14 = input.charAt(o + 14);
+    long c15 = input.charAt(o + 15);
+    long c16 = input.charAt(o + 16);
+    long c17 = input.charAt(o + 17);
+    long c18 = input.charAt(o + 18);
+    long c19 = input.charAt(o + 19);
+    long c20 = input.charAt(o + 20);
+    long c21 = input.charAt(o + 21);
+    long c22 = input.charAt(o + 22);
+    long c23 = input.charAt(o + 23);
+    long c24 = input.charAt(o + 24);
+
+    long v0;
+    long v1;
+    long v2;
+    long v3;
+    long v4;
+    long v5;
+    long v6;
+
+    if ((off & 1) == 0) {
+      v0 = (c0 << 8) | (c1 << 24) | (c2 << 40) | (c3 << 56);
+      v1 = c3 | (c4 << 16) | (c5 << 32) | (c6 << 48);
+      v2 = (c7 << 8) | (c8 << 24) | (c9 << 40) | (c10 << 56);
+      v3 = c10 | (c11 << 16) | (c12 << 32) | (c13 << 48);
+      v4 = (c14 << 8) | (c15 << 24) | (c16 << 40) | (c17 << 56);
+      v5 = c17 | (c18 << 16) | (c19 << 32) | (c20 << 48);
+      v6 = (c21 << 8) | (c22 << 24) | (c23 << 40) | (c24 << 56);
+    } else {
+      v0 = c0 | (c1 << 16) | (c2 << 32) | (c3 << 48);
+      v1 = (c4 << 8) | (c5 << 24) | (c6 << 40) | (c7 << 56);
+      v2 = c7 | (c8 << 16) | (c9 << 32) | (c10 << 48);
+      v3 = (c11 << 8) | (c12 << 24) | (c13 << 40) | (c14 << 56);
+      v4 = c14 | (c15 << 16) | (c16 << 32) | (c17 << 48);
+      v5 = (c18 << 8) | (c19 << 24) | (c20 << 40) | (c21 << 56);
+      v6 = c21 | (c22 << 16) | (c23 << 32) | (c24 << 48);
+    }
+    return processBuffer(v0 >>> 8, v1 >>> 8, v2 >>> 8, v3 >>> 8, v4 >>> 8, v5 >>> 8, v6 >>> 8, h);
   }
 
   @Override
   public HashStream64 hashStream() {
     return new HashStreamImpl();
+  }
+
+  private long processBuffer(byte[] b, int off, long h) {
+    return processBuffer(
+        getLong7(b, off),
+        getLong7(b, off + 7),
+        getLong7(b, off + 14),
+        getLong7(b, off + 21),
+        getLong7(b, off + 28),
+        getLong7(b, off + 35),
+        getLong7(b, off + 42),
+        h);
+  }
+
+  private static long getLong7(byte[] b, int off) {
+    return getLong(b, off) & 0x00ffffffffffffffL;
+  }
+
+  private long processBuffer(
+      long v0, long v1, long v2, long v3, long v4, long v5, long v6, long h) {
+
+    long m0 = v0 + k;
+    long m1 = v1 + k6;
+    long m2 = v2 + k2;
+    long m3 = v3 + k5;
+    long m4 = v4 + k3x;
+    long m5 = v5 + k4x;
+    long m6 = v6 + h;
+
+    long t0Hi = unsignedMultiplyHigh(m0, m1);
+    long t0Lo = m0 * m1;
+    long t1Hi = unsignedMultiplyHigh(m2, m3);
+    long t1Lo = m2 * m3 + 0x8000000000000000L;
+    long t2Hi = unsignedMultiplyHigh(m4, m5);
+    long t2Lo = m4 * m5;
+    long t3Hi = unsignedMultiplyHigh(m6, k7);
+    long t3Lo = m6 * k7 + 0x8000000000000000L;
+
+    t0Lo += t1Lo;
+    t0Hi += t1Hi + ((t0Lo < t1Lo) ? 1 : 0);
+    t2Lo += t3Lo;
+    t2Hi += t3Hi + ((t2Lo < t3Lo) ? 1 : 0);
+    t0Lo += t2Lo;
+    t0Hi += t2Hi + ((t0Lo + 0x8000000000000000L < t2Lo) ? 1 : 0);
+    return polymurRed611(t0Hi, t0Lo);
   }
 
   private class HashStreamImpl extends AbstractHashStream64 {
@@ -447,7 +608,7 @@ class PolymurHash2_0 extends AbstractHasher64 {
         }
 
         while (len > 49) {
-          processBuffer(b, off);
+          h = PolymurHash2_0.this.processBuffer(b, off, h);
 
           len -= 49;
           off += 49;
@@ -462,187 +623,96 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
     @Override
     public HashStream64 putChars(CharSequence s) {
-      int len = s.length();
 
-      if (len == 0) {
-        return this;
-      }
-
-      int off = 0;
-      byteCount += len * 2L;
-
-      if (len * 2 + offset > 98) {
-        if (offset != 0) {
-          int left = (50 - offset) / 2;
-          len -= left;
-          off += left;
-
-          if (offset % 2 == 0) {
-            int temp = Math.min(len, 24);
-
-            len -= temp;
-            off += temp;
-
-            for (int i = 0; i <= left - 4; i += 4) {
-              setLong(buffer, offset + i * 2, getLong(s, i));
-            }
-
-            if ((left & 3) > 0) {
-              setChar(buffer, 48, s.charAt(left - 1));
-              if ((left & 3) > 1) {
-                setChar(buffer, 46, s.charAt(left - 2));
-                if ((left & 3) > 2) {
-                  setChar(buffer, 44, s.charAt(left - 3));
-                }
-              }
-            }
-
-            processBuffer();
-            buffer[0] = buffer[49];
-
-            for (int i = 0; i < 24; i += 4) {
-              setLong(buffer, 1 + i * 2, getLong(s, left + i));
-            }
-
-          } else {
-            for (int i = 0; i <= left - 4; i += 4) {
-              setLong(buffer, offset + i * 2, getLong(s, i));
-            }
-
-            if ((left & 3) > 0) {
-              setChar(buffer, 47, s.charAt(left - 1));
-              if ((left & 3) > 1) {
-                setChar(buffer, 45, s.charAt(left - 2));
-                if ((left & 3) > 2) {
-                  setChar(buffer, 43, s.charAt(left - 3));
-                }
-              }
-            }
-          }
-
-          processBuffer();
-
-          offset = 0;
-        }
-
-        if (len >= 49) {
-          for (int i = 0; i < 24; i += 4) {
-            setLong(buffer, i * 2, getLong(s, off + i));
-          }
-          setChar(buffer, 48, s.charAt(off + 24));
-
-          processBuffer();
-          buffer[0] = buffer[49];
-
-          for (int i = 0; i < 24; i += 4) {
-            setLong(buffer, 1 + i * 2, getLong(s, 25 + off + i));
-          }
-
-          len -= 49;
-          off += 49;
-
-          while (len > 49) {
-            processBuffer();
-            for (int i = 0; i < 24; i += 4) {
-              setLong(buffer, i * 2, getLong(s, off + i));
-            }
-            setChar(buffer, 48, s.charAt(off + 24));
-
-            processBuffer();
-            buffer[0] = buffer[49];
-
-            for (int i = 0; i < 24; i += 4) {
-              setLong(buffer, 1 + i * 2, getLong(s, 25 + off + i));
-            }
-
-            len -= 49;
-            off += 49;
-          }
-          offset = 49;
-        }
-      }
-
-      while (len > 0) {
-        len--;
-
-        setChar(buffer, offset, s.charAt(off));
-        off++;
-
+      int i = 0;
+      byteCount += (long) s.length() << 1;
+      while (i < s.length() && offset <= 49) {
+        char v = s.charAt(i);
+        setChar(buffer, offset, v);
         offset += 2;
-
-        if (offset == 51) {
-          processBuffer();
-          buffer[0] = buffer[49];
-          buffer[1] = buffer[50];
-          offset = 2;
-        } else if (offset == 50) {
-          processBuffer();
-          buffer[0] = buffer[49];
-          offset = 1;
-        }
+        i += 1;
       }
-
+      if (offset > 49) {
+        offset -= 49;
+        processBuffer();
+        setChar(buffer, 0, getChar(buffer, 49));
+      }
+      if (i <= s.length() - ((51 - offset) >>> 1)) {
+        long x = getChar(buffer, 0);
+        do {
+          long c1 = s.charAt(i + 0);
+          long c2 = s.charAt(i + 1);
+          long c3 = s.charAt(i + 2);
+          long c4 = s.charAt(i + 3);
+          long c5 = s.charAt(i + 4);
+          long c6 = s.charAt(i + 5);
+          long c7 = s.charAt(i + 6);
+          long c8 = s.charAt(i + 7);
+          long c9 = s.charAt(i + 8);
+          long c10 = s.charAt(i + 9);
+          long c11 = s.charAt(i + 10);
+          long c12 = s.charAt(i + 11);
+          long c13 = s.charAt(i + 12);
+          long c14 = s.charAt(i + 13);
+          long c15 = s.charAt(i + 14);
+          long c16 = s.charAt(i + 15);
+          long c17 = s.charAt(i + 16);
+          long c18 = s.charAt(i + 17);
+          long c19 = s.charAt(i + 18);
+          long c20 = s.charAt(i + 19);
+          long c21 = s.charAt(i + 20);
+          long c22 = s.charAt(i + 21);
+          long c23 = s.charAt(i + 22);
+          long c24 = s.charAt(i + 23);
+          long v0;
+          long v1;
+          long v2;
+          long v3;
+          long v4;
+          long v5;
+          long v6;
+          if (offset == 1) {
+            long c0 = (x & 0xFFL) << 8;
+            v0 = c0 | (c1 << 16) | (c2 << 32) | (c3 << 48);
+            v1 = (c4 << 8) | (c5 << 24) | (c6 << 40) | (c7 << 56);
+            v2 = c7 | (c8 << 16) | (c9 << 32) | (c10 << 48);
+            v3 = (c11 << 8) | (c12 << 24) | (c13 << 40) | (c14 << 56);
+            v4 = c14 | (c15 << 16) | (c16 << 32) | (c17 << 48);
+            v5 = (c18 << 8) | (c19 << 24) | (c20 << 40) | (c21 << 56);
+            v6 = c21 | (c22 << 16) | (c23 << 32) | (c24 << 48);
+            offset = 2;
+            x = s.charAt(i + 24);
+            i += 25;
+          } else {
+            long c0 = x;
+            v0 = (c0 << 8) | (c1 << 24) | (c2 << 40) | (c3 << 56);
+            v1 = c3 | (c4 << 16) | (c5 << 32) | (c6 << 48);
+            v2 = (c7 << 8) | (c8 << 24) | (c9 << 40) | (c10 << 56);
+            v3 = c10 | (c11 << 16) | (c12 << 32) | (c13 << 48);
+            v4 = (c14 << 8) | (c15 << 24) | (c16 << 40) | (c17 << 56);
+            v5 = c17 | (c18 << 16) | (c19 << 32) | (c20 << 48);
+            v6 = (c21 << 8) | (c22 << 24) | (c23 << 40) | (c24 << 56);
+            offset = 1;
+            x = c24 >>> 8;
+            i += 24;
+          }
+          h =
+              PolymurHash2_0.this.processBuffer(
+                  v0 >>> 8, v1 >>> 8, v2 >>> 8, v3 >>> 8, v4 >>> 8, v5 >>> 8, v6 >>> 8, h);
+        } while (i <= s.length() - ((51 - offset) >>> 1));
+        setChar(buffer, 0, (char) x);
+      }
+      while (i < s.length()) {
+        char v = s.charAt(i);
+        setChar(buffer, offset, v);
+        offset += 2;
+        i += 1;
+      }
       return this;
     }
 
     private void processBuffer() {
-
-      long m0 = (getLong(buffer, 0) & 0x00ffffffffffffffL) + k;
-      long m1 = (getLong(buffer, 7) & 0x00ffffffffffffffL) + k6;
-      long m2 = (getLong(buffer, 14) & 0x00ffffffffffffffL) + k2;
-      long m3 = (getLong(buffer, 21) & 0x00ffffffffffffffL) + k5;
-      long m4 = (getLong(buffer, 28) & 0x00ffffffffffffffL) + k3x;
-      long m5 = (getLong(buffer, 35) & 0x00ffffffffffffffL) + k4x;
-      long m6 = (getLong(buffer, 42) & 0x00ffffffffffffffL) + h;
-
-      long t0Hi = unsignedMultiplyHigh(m0, m1);
-      long t0Lo = m0 * m1;
-      long t1Hi = unsignedMultiplyHigh(m2, m3);
-      long t1Lo = m2 * m3 + 0x8000000000000000L;
-      long t2Hi = unsignedMultiplyHigh(m4, m5);
-      long t2Lo = m4 * m5;
-      long t3Hi = unsignedMultiplyHigh(m6, k7);
-      long t3Lo = m6 * k7 + 0x8000000000000000L;
-
-      t0Lo += t1Lo;
-      t0Hi += t1Hi + ((t0Lo < t1Lo) ? 1 : 0);
-      t2Lo += t3Lo;
-      t2Hi += t3Hi + ((t2Lo < t3Lo) ? 1 : 0);
-      t0Lo += t2Lo;
-      t0Hi += t2Hi + ((t0Lo + 0x8000000000000000L < t2Lo) ? 1 : 0);
-      h = polymurRed611(t0Hi, t0Lo);
-    }
-
-    /*
-     * steps over the System.arraycopy() step (time optimization)
-     * do only call if offset == 0
-     */
-    private void processBuffer(byte[] directProcess, int off) {
-
-      long m0 = (getLong(directProcess, off) & 0x00ffffffffffffffL) + k;
-      long m1 = (getLong(directProcess, off + 7) & 0x00ffffffffffffffL) + k6;
-      long m2 = (getLong(directProcess, off + 14) & 0x00ffffffffffffffL) + k2;
-      long m3 = (getLong(directProcess, off + 21) & 0x00ffffffffffffffL) + k5;
-      long m4 = (getLong(directProcess, off + 28) & 0x00ffffffffffffffL) + k3x;
-      long m5 = (getLong(directProcess, off + 35) & 0x00ffffffffffffffL) + k4x;
-      long m6 = (getLong(directProcess, off + 41) >>> 8) + h;
-
-      long t0Hi = unsignedMultiplyHigh(m0, m1);
-      long t0Lo = m0 * m1;
-      long t1Hi = unsignedMultiplyHigh(m2, m3);
-      long t1Lo = m2 * m3 + 0x8000000000000000L;
-      long t2Hi = unsignedMultiplyHigh(m4, m5);
-      long t2Lo = m4 * m5;
-      long t3Hi = unsignedMultiplyHigh(m6, k7);
-      long t3Lo = m6 * k7 + 0x8000000000000000L;
-
-      t0Lo += t1Lo;
-      t0Hi += t1Hi + ((t0Lo < t1Lo) ? 1 : 0);
-      t2Lo += t3Lo;
-      t2Hi += t3Hi + ((t2Lo < t3Lo) ? 1 : 0);
-      t0Lo += t2Lo;
-      t0Hi += t2Hi + ((t0Lo + 0x8000000000000000L < t2Lo) ? 1 : 0);
-      h = polymurRed611(t0Hi, t0Lo);
+      h = PolymurHash2_0.this.processBuffer(buffer, 0, h);
     }
 
     private long finish() {
@@ -659,8 +729,8 @@ class PolymurHash2_0 extends AbstractHasher64 {
         }
 
         if (offset >= 8) {
-          long m0 = (getLong(buffer, 0) & 0x00ffffffffffffffL) + k2;
-          long m1 = (getLong(buffer, ((offset - 7) >>> 1)) & 0x00ffffffffffffffL) + k7;
+          long m0 = getLong7(buffer, 0) + k2;
+          long m1 = getLong7(buffer, ((offset - 7) >>> 1)) + k7;
           long m2 = (getLong(buffer, offset - 8) >>> 8) + k;
           long t0Hi = unsignedMultiplyHigh(m0, m1);
           long t0Lo = m0 * m1;
@@ -674,10 +744,10 @@ class PolymurHash2_0 extends AbstractHasher64 {
           } else {
             long t0r = polymurRed611(t0Hi, t0Lo);
 
-            long m3 = (getLong(buffer, 7) & 0x00ffffffffffffffL) + k2;
-            long m4 = (getLong(buffer, 14) & 0x00ffffffffffffffL) + k7;
-            long m5 = (getLong(buffer, offset - 21) & 0x00ffffffffffffffL) + t0r;
-            long m6 = (getLong(buffer, offset - 14) & 0x00ffffffffffffffL) + k4;
+            long m3 = getLong7(buffer, 7) + k2;
+            long m4 = getLong7(buffer, 14) + k7;
+            long m5 = getLong7(buffer, offset - 21) + t0r;
+            long m6 = getLong7(buffer, offset - 14) + k4;
 
             long t2Hi = unsignedMultiplyHigh(m3, m4);
             long t2Lo = m3 * m4;
@@ -706,5 +776,52 @@ class PolymurHash2_0 extends AbstractHasher64 {
     public long getAsLong() {
       return polymurMix(finish()) + s;
     }
+  }
+
+  @Override
+  public long hashLongLongToLong(long v1, long v2) {
+    long m0 = (v1 & 0x00ffffffffffffffL) + k2;
+    long m1 = (((v1 >>> 32) | (v2 << 32)) & 0x00ffffffffffffffL) + k7;
+    long m2 = (v2 >>> 8) + k;
+    long t0Hi = unsignedMultiplyHigh(m0, m1);
+    long t0Lo = m0 * m1;
+    long k31 = this.k3 + 16;
+    long t1Hi = unsignedMultiplyHigh(m2, k31);
+    long t1Lo = m2 * k31 + t0Lo;
+    t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
+    return polymurMix(tweak + polymurRed611(t1Hi, t1Lo)) + s;
+  }
+
+  @Override
+  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+    long k31 = this.k3 + 24;
+
+    long m0 = (v1 & 0x00ffffffffffffffL) + k2;
+    long m1 = (v2 & 0x00ffffffffffffffL) + k7;
+    long m2 = (v3 >>> 8) + k;
+    long t0Hi = unsignedMultiplyHigh(m0, m1);
+    long t0Lo = m0 * m1;
+    long t1Hi = unsignedMultiplyHigh(m2, k31);
+    long t1Lo = m2 * k31;
+    long t0r = polymurRed611(t0Hi, t0Lo);
+
+    long m3 = (((v1 >>> 56) | (v2 << 8)) & 0x00ffffffffffffffL) + k2;
+    long m4 = (((v2 >>> 48) | (v3 << 16)) & 0x00ffffffffffffffL) + k7;
+    long m5 = (((v1 >>> 24) | (v2 << 40)) & 0x00ffffffffffffffL) + t0r;
+    long m6 = (((v2 >>> 16) | (v3 << 48)) & 0x00ffffffffffffffL) + this.k4;
+
+    long t2Hi = unsignedMultiplyHigh(m3, m4);
+    long t2Lo = m3 * m4;
+    long t3Hi = unsignedMultiplyHigh(m5, m6);
+    long t3Lo = m5 * m6;
+
+    t2Lo += 0x8000000000000000L;
+    t3Lo += 0x8000000000000000L;
+    t1Lo += t2Lo;
+    t1Hi += t2Hi + ((t1Lo < t2Lo) ? 1 : 0);
+    t1Lo += t3Lo;
+    t1Hi += t3Hi + ((t1Lo + 0x8000000000000000L < t3Lo) ? 1 : 0);
+
+    return polymurMix(tweak + polymurRed611(t1Hi, t1Lo)) + s;
   }
 }
