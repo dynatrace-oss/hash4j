@@ -175,8 +175,9 @@ class PolymurHash2_0 extends AbstractHasher64 {
   }
 
   private PolymurHash2_0(long tweak, long kSeed, long sSeed) {
-    long k, k2, k7, s;
-    s = sSeed ^ POLYMUR_ARBITRARY1;
+    long kTmp;
+    long k2Tmp;
+    long k7Tmp;
 
     while (true) {
       kSeed += POLYMUR_ARBITRARY2;
@@ -205,27 +206,27 @@ class PolymurHash2_0 extends AbstractHasher64 {
         }
       }
 
-      k =
+      kTmp =
           polymurExtrared611(
               polymurExtrared611(polymurRed611(unsignedMultiplyHigh(ka, kb), ka * kb)));
-      k2 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k, k), k * k));
-      long k3 = polymurRed611(unsignedMultiplyHigh(k, k2), k * k2);
-      long k4 = polymurRed611(unsignedMultiplyHigh(k2, k2), k2 * k2);
-      k7 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k3, k4), k3 * k4));
-      if (k7 < (1L << 60) - (1L << 56)) break;
+      k2Tmp = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(kTmp, kTmp), kTmp * kTmp));
+      long k3 = polymurRed611(unsignedMultiplyHigh(kTmp, k2Tmp), kTmp * k2Tmp);
+      long k4 = polymurRed611(unsignedMultiplyHigh(k2Tmp, k2Tmp), k2Tmp * k2Tmp);
+      k7Tmp = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k3, k4), k3 * k4));
+      if (k7Tmp < (1L << 60) - (1L << 56)) break;
     }
-    this.k = k;
-    this.k7 = k7;
-    this.k2 = k2;
-    this.s = s;
+    this.k = kTmp;
+    this.k7 = k7Tmp;
+    this.k2 = k2Tmp;
+    this.s = sSeed ^ POLYMUR_ARBITRARY1;
     this.tweak = tweak;
-    this.k3 = polymurRed611(unsignedMultiplyHigh(k, k2), k * k2);
+    this.k3 = polymurRed611(unsignedMultiplyHigh(kTmp, k2Tmp), kTmp * k2Tmp);
     this.k3x = polymurExtrared611(k3);
-    this.k4 = polymurRed611(unsignedMultiplyHigh(k2, k2), k2 * k2);
+    this.k4 = polymurRed611(unsignedMultiplyHigh(k2Tmp, k2Tmp), k2Tmp * k2Tmp);
     this.k4x = polymurExtrared611(k4);
-    this.k5 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k, k4), k * k4));
-    this.k6 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k2, k4), k2 * k4));
-    this.k14 = polymurRed611(unsignedMultiplyHigh(k7, k7), k7 * k7);
+    this.k5 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(kTmp, k4), kTmp * k4));
+    this.k6 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k2Tmp, k4), k2Tmp * k4));
+    this.k14 = polymurRed611(unsignedMultiplyHigh(k7Tmp, k7Tmp), k7Tmp * k7Tmp);
   }
 
   public static Hasher64 create(long tweak, long seed) {
@@ -339,9 +340,9 @@ class PolymurHash2_0 extends AbstractHasher64 {
     }
 
     if (len >= 8) {
-      long m0 = (getLong7(input, off)) + k2;
-      long m1 = (getLong7(input, off + ((len - 7) >>> 1))) + k7;
-      long m2 = (getLong7(input, off + len - 7)) + k;
+      long m0 = getLong7(input, off) + k2;
+      long m1 = getLong7(input, off + (int) (((len - 7) >>> 1))) + k7;
+      long m2 = getLong7(input, off + (int) len - 7) + k;
       long t0Hi = unsignedMultiplyHigh(m0, m1);
       long t0Lo = m0 * m1;
       k3 += len;
@@ -354,10 +355,10 @@ class PolymurHash2_0 extends AbstractHasher64 {
       } else {
         long t0r = polymurRed611(t0Hi, t0Lo);
 
-        long m3 = (getLong7(input, off + 7)) + k2;
-        long m4 = (getLong7(input, off + 14)) + k7;
-        long m5 = (getLong7(input, off + len - 21)) + t0r;
-        long m6 = (getLong7(input, off + len - 14)) + k4;
+        long m3 = getLong7(input, off + 7) + k2;
+        long m4 = getLong7(input, off + 14) + k7;
+        long m5 = getLong7(input, off + (int) len - 21) + t0r;
+        long m6 = getLong7(input, off + (int) len - 14) + k4;
 
         long t2Hi = unsignedMultiplyHigh(m3, m4);
         long t2Lo = m3 * m4;
@@ -398,8 +399,8 @@ class PolymurHash2_0 extends AbstractHasher64 {
     return r >>> (-(len << 3));
   }
 
-  private static long getLong7(CharSequence input, long off) {
-    return getLong(input, (int) (off >>> 1)) << ((~off & 1) << 3) >>> 8;
+  private static long getLong7(CharSequence input, int off) {
+    return getLong(input, (off >>> 1)) << ((~off & 1) << 3) >>> 8;
   }
 
   private long processBuffer(CharSequence input, int off, long h) {
