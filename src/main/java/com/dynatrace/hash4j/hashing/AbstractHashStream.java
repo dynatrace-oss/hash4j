@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -305,12 +305,20 @@ abstract class AbstractHashStream implements HashStream {
     return this;
   }
 
+  // maximum array length that can be allocated on VMs
+  // compare ArrayList implementation
+  private static final int SOFT_MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
+
   // visible for testing
   static int increaseArraySize(int currentSize) {
-    if (currentSize <= 0x3fffffff) {
+    if (currentSize <= (SOFT_MAX_ARRAY_LENGTH >>> 1)) {
       return currentSize << 1; // increase by 100%
+    } else if (currentSize < SOFT_MAX_ARRAY_LENGTH) {
+      return SOFT_MAX_ARRAY_LENGTH;
+    } else if (currentSize < Integer.MAX_VALUE) {
+      return currentSize + 1;
     } else {
-      return Integer.MAX_VALUE;
+      throw new OutOfMemoryError();
     }
   }
 

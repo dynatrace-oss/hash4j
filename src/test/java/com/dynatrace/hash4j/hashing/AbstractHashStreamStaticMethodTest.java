@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,10 +27,30 @@ class AbstractHashStreamStaticMethodTest {
     assertThat(AbstractHashStream.increaseArraySize(2)).isEqualTo(4);
     assertThat(AbstractHashStream.increaseArraySize(3)).isEqualTo(6);
     assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2))
-        .isEqualTo(Integer.MAX_VALUE - 1);
+        .isEqualTo(Integer.MAX_VALUE - 8);
     assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2 + 1))
-        .isEqualTo(Integer.MAX_VALUE);
+        .isEqualTo(Integer.MAX_VALUE - 8);
     assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE / 2 + 2))
+        .isEqualTo(Integer.MAX_VALUE - 8);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 9))
+        .isEqualTo(Integer.MAX_VALUE - 8);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 8))
+        .isEqualTo(Integer.MAX_VALUE - 7);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 7))
+        .isEqualTo(Integer.MAX_VALUE - 6);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 6))
+        .isEqualTo(Integer.MAX_VALUE - 5);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 5))
+        .isEqualTo(Integer.MAX_VALUE - 4);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 4))
+        .isEqualTo(Integer.MAX_VALUE - 3);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 3))
+        .isEqualTo(Integer.MAX_VALUE - 2);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 2))
+        .isEqualTo(Integer.MAX_VALUE - 1);
+    assertThat(AbstractHashStream.increaseArraySize(Integer.MAX_VALUE - 1))
         .isEqualTo(Integer.MAX_VALUE);
+    assertThatThrownBy(() -> AbstractHashStream.increaseArraySize(Integer.MAX_VALUE))
+        .isInstanceOf(OutOfMemoryError.class);
   }
 }
