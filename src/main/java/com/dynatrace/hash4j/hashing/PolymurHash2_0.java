@@ -210,9 +210,9 @@ class PolymurHash2_0 extends AbstractHasher64 {
           polymurExtrared611(
               polymurExtrared611(polymurRed611(unsignedMultiplyHigh(ka, kb), ka * kb)));
       k2Tmp = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(kTmp, kTmp), kTmp * kTmp));
-      long k3 = polymurRed611(unsignedMultiplyHigh(kTmp, k2Tmp), kTmp * k2Tmp);
-      long k4 = polymurRed611(unsignedMultiplyHigh(k2Tmp, k2Tmp), k2Tmp * k2Tmp);
-      k7Tmp = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k3, k4), k3 * k4));
+      long k3Tmp = polymurRed611(unsignedMultiplyHigh(kTmp, k2Tmp), kTmp * k2Tmp);
+      long k4Tmp = polymurRed611(unsignedMultiplyHigh(k2Tmp, k2Tmp), k2Tmp * k2Tmp);
+      k7Tmp = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k3Tmp, k4Tmp), k3Tmp * k4Tmp));
       if (k7Tmp < (1L << 60) - (1L << 56)) break;
     }
     this.k = kTmp;
@@ -341,7 +341,7 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
     if (len >= 8) {
       long m0 = getLong7(input, off) + k2;
-      long m1 = getLong7(input, off + (int) (((len - 7) >>> 1))) + k7;
+      long m1 = getLong7(input, off + (int) ((len - 7) >>> 1)) + k7;
       long m2 = getLong7(input, off + (int) len - 7) + k;
       long t0Hi = unsignedMultiplyHigh(m0, m1);
       long t0Lo = m0 * m1;
@@ -391,7 +391,7 @@ class PolymurHash2_0 extends AbstractHasher64 {
         if (o - 2 >= 0) {
           r |= (long) input.charAt(o - 2) << 16;
           if (o - 3 >= 0) {
-            r |= (long) input.charAt(o - 3) << 0;
+            r |= (long) input.charAt(o - 3);
           }
         }
       }
@@ -597,10 +597,10 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
       byteCount += len;
 
-      if (len + offset > 49) {
+      int x = 49 - offset;
+      if (len > x) {
 
         if (offset != 0) {
-          int x = 49 - offset;
           System.arraycopy(b, off, buffer, offset, x);
           processBuffer();
           len -= x;
