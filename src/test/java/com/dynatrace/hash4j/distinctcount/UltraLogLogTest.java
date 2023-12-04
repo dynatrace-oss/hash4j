@@ -451,7 +451,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
 
   private static strictfp double calculateVarianceFactor(
       double tau, double gammaTau, double gammaTwoTau) {
-    return (calculateEtaPreFactor(tau, gammaTau) * (gammaTwoTau / gammaTau) - 1) // TODO
+    return (calculateEtaPreFactor(tau, gammaTau) * (gammaTwoTau / gammaTau) - 1)
         / StrictMath.pow(tau, 2);
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -595,6 +595,8 @@ public interface HashSink {
    * @param elementHashFunction 64-bit hash function used for individual elements
    * @param <T> the element type
    * @return this
+   * @throws OutOfMemoryError if the allocation of a long array, that is able to keep a 64-bit hash
+   *     for each element in the Iterable, fails
    */
   <T> HashSink putUnorderedIterable(
       Iterable<T> data, ToLongFunction<? super T> elementHashFunction);
@@ -607,6 +609,8 @@ public interface HashSink {
    * @param hasher a 64-bit hasher
    * @param <T> the element type
    * @return this
+   * @throws OutOfMemoryError if the allocation of a long array, that is able to keep a 64-bit hash
+   *     for each element in the Iterable, fails
    */
   <T> HashSink putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher);

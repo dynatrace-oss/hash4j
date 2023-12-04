@@ -32,6 +32,8 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -1144,6 +1146,176 @@ abstract class AbstractHasherTest {
       assertThat(hasher64.hashLongLongLongToLong(v1, v2, v3))
           .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong())
           .isEqualTo(hasherUsingDefaultImplementation.hashLongLongLongToLong(v1, v2, v3));
+    }
+  }
+
+  @Disabled("long running unit test")
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testVeryLongCharSequence(Hasher hasher) {
+    CharSequence data =
+        new CharSequence() {
+          @Override
+          public int length() {
+            return Integer.MAX_VALUE;
+          }
+
+          @Override
+          public char charAt(int index) {
+            return (char) (index * 0x5851f42d4c957f2dL >>> 48);
+          }
+
+          @NotNull
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            throw new UnsupportedOperationException();
+          }
+        };
+
+    if (hasher instanceof Hasher128) {
+      Hasher128 hasher128 = (Hasher128) hasher;
+      HashStream128 hashStream1 = hasher128.hashStream();
+      HashStream128 hashStream2 = hasher128.hashStream();
+      for (int i = 0; i < data.length(); ++i) {
+        hashStream1.putChar(data.charAt(i));
+      }
+      hashStream2.putChars(data);
+      HashValue128 hash1 = hashStream1.get();
+      HashValue128 hash2 = hashStream2.get();
+      HashValue128 hash3 = hasher128.hashCharsTo128Bits(data);
+      assertThat(hash1).isEqualTo(hash2).isEqualTo(hash3);
+    } else if (hasher instanceof Hasher64) {
+      Hasher64 hasher64 = (Hasher64) hasher;
+      HashStream64 hashStream1 = hasher64.hashStream();
+      HashStream64 hashStream2 = hasher64.hashStream();
+      for (int i = 0; i < data.length(); ++i) {
+        hashStream1.putChar(data.charAt(i));
+      }
+      hashStream2.putChars(data);
+      long hash1 = hashStream1.getAsLong();
+      long hash2 = hashStream2.getAsLong();
+      long hash3 = hasher64.hashCharsToLong(data);
+      assertThat(hash1).isEqualTo(hash2).isEqualTo(hash3);
+    } else if (hasher instanceof Hasher32) {
+      Hasher32 hasher32 = (Hasher32) hasher;
+      HashStream32 hashStream1 = hasher32.hashStream();
+      HashStream32 hashStream2 = hasher32.hashStream();
+      for (int i = 0; i < data.length(); ++i) {
+        hashStream1.putChar(data.charAt(i));
+      }
+      hashStream2.putChars(data);
+      int hash1 = hashStream1.getAsInt();
+      int hash2 = hashStream2.getAsInt();
+      int hash3 = hasher32.hashCharsToInt(data);
+      assertThat(hash1).isEqualTo(hash2).isEqualTo(hash3);
+    }
+  }
+
+  @Disabled("long running unit test")
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testVeryLongCharSequenceAfterFirstByte(Hasher hasher) {
+    final byte firstByte = 79;
+    CharSequence data =
+        new CharSequence() {
+          @Override
+          public int length() {
+            return Integer.MAX_VALUE;
+          }
+
+          @Override
+          public char charAt(int index) {
+            return (char) (index * 0x5851f42d4c957f2dL >>> 48);
+          }
+
+          @NotNull
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            throw new UnsupportedOperationException();
+          }
+        };
+
+    if (hasher instanceof Hasher128) {
+      Hasher128 hasher128 = (Hasher128) hasher;
+      HashStream128 hashStream1 = hasher128.hashStream().putByte(firstByte);
+      HashStream128 hashStream2 = hasher128.hashStream().putByte(firstByte);
+      for (int i = 0; i < data.length(); ++i) {
+        hashStream1.putChar(data.charAt(i));
+      }
+      hashStream2.putChars(data);
+      HashValue128 hash1 = hashStream1.get();
+      HashValue128 hash2 = hashStream2.get();
+      assertThat(hash1).isEqualTo(hash2);
+    } else if (hasher instanceof Hasher64) {
+      Hasher64 hasher64 = (Hasher64) hasher;
+      HashStream64 hashStream1 = hasher64.hashStream().putByte(firstByte);
+      HashStream64 hashStream2 = hasher64.hashStream().putByte(firstByte);
+      for (int i = 0; i < data.length(); ++i) {
+        hashStream1.putChar(data.charAt(i));
+      }
+      hashStream2.putChars(data);
+      long hash1 = hashStream1.getAsLong();
+      long hash2 = hashStream2.getAsLong();
+      assertThat(hash1).isEqualTo(hash2);
+    } else if (hasher instanceof Hasher32) {
+      Hasher32 hasher32 = (Hasher32) hasher;
+      HashStream32 hashStream1 = hasher32.hashStream().putByte(firstByte);
+      HashStream32 hashStream2 = hasher32.hashStream().putByte(firstByte);
+      for (int i = 0; i < data.length(); ++i) {
+        hashStream1.putChar(data.charAt(i));
+      }
+      hashStream2.putChars(data);
+      int hash1 = hashStream1.getAsInt();
+      int hash2 = hashStream2.getAsInt();
+      assertThat(hash1).isEqualTo(hash2);
+    }
+  }
+
+  @Disabled("long running unit test allocating a lot of memory")
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testVeryLongByteSequence(Hasher hasher) {
+    byte[] data =
+        new byte[Integer.MAX_VALUE - 2]; // see https://www.baeldung.com/java-arrays-max-size
+    SplittableRandom random = new SplittableRandom(0L);
+    random.nextBytes(data);
+
+    if (hasher instanceof Hasher128) {
+      Hasher128 hasher128 = (Hasher128) hasher;
+      HashStream128 hashStream1 = hasher128.hashStream();
+      HashStream128 hashStream2 = hasher128.hashStream();
+      for (byte b : data) {
+        hashStream1.putByte(b);
+      }
+      hashStream2.putBytes(data);
+      HashValue128 hash1 = hashStream1.get();
+      HashValue128 hash2 = hashStream2.get();
+      HashValue128 hash3 = hasher128.hashBytesTo128Bits(data);
+      assertThat(hash1).isEqualTo(hash2).isEqualTo(hash3);
+    } else if (hasher instanceof Hasher64) {
+      Hasher64 hasher64 = (Hasher64) hasher;
+      HashStream64 hashStream1 = hasher64.hashStream();
+      HashStream64 hashStream2 = hasher64.hashStream();
+      for (byte b : data) {
+        hashStream1.putByte(b);
+      }
+      hashStream2.putBytes(data);
+      long hash1 = hashStream1.getAsLong();
+      long hash2 = hashStream2.getAsLong();
+      long hash3 = hasher64.hashBytesToLong(data);
+      assertThat(hash1).isEqualTo(hash2).isEqualTo(hash3);
+    } else if (hasher instanceof Hasher32) {
+      Hasher32 hasher32 = (Hasher32) hasher;
+      HashStream32 hashStream1 = hasher32.hashStream();
+      HashStream32 hashStream2 = hasher32.hashStream();
+      for (byte b : data) {
+        hashStream1.putByte(b);
+      }
+      hashStream2.putBytes(data);
+      int hash1 = hashStream1.getAsInt();
+      int hash2 = hashStream2.getAsInt();
+      int hash3 = hasher32.hashBytesToInt(data);
+      assertThat(hash1).isEqualTo(hash2).isEqualTo(hash3);
     }
   }
 }
