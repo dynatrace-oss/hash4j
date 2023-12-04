@@ -15,11 +15,16 @@
  */
 package com.dynatrace.hash4j.consistent;
 
+import com.dynatrace.hash4j.random.PseudoRandomGenerator;
+import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.util.SplittableRandom;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-public class ModuloPerformanceTest {
+public class RandomAssignmentPerformanceTest {
+
+  private static final PseudoRandomGenerator PSEUDO_RANDOM_GENERATOR =
+      PseudoRandomGeneratorProvider.splitMix64_V1().create();
 
   @State(Scope.Thread)
   public static class TestState {
@@ -38,7 +43,8 @@ public class ModuloPerformanceTest {
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void getBucket(TestState testState, Blackhole blackhole) {
-    int bucket = (int) ((testState.random.nextLong() & 0x7FFFFFFFFFFFFFFFL) % testState.numBuckets);
+    PSEUDO_RANDOM_GENERATOR.reset(testState.random.nextLong());
+    int bucket = PSEUDO_RANDOM_GENERATOR.uniformInt(testState.numBuckets);
     blackhole.consume(bucket);
   }
 }

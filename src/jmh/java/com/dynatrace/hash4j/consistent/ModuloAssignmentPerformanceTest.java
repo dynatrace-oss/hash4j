@@ -19,11 +19,13 @@ import java.util.SplittableRandom;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-// test to measure costs for random value generation to simulate hash values
-public class RandomNumberPerformanceTest {
+public class ModuloAssignmentPerformanceTest {
 
   @State(Scope.Thread)
   public static class TestState {
+
+    @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
+    int numBuckets;
 
     SplittableRandom random;
 
@@ -36,6 +38,7 @@ public class RandomNumberPerformanceTest {
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void getBucket(TestState testState, Blackhole blackhole) {
-    blackhole.consume(testState.random.nextLong());
+    int bucket = (int) ((testState.random.nextLong() & 0x7FFFFFFFFFFFFFFFL) % testState.numBuckets);
+    blackhole.consume(bucket);
   }
 }
