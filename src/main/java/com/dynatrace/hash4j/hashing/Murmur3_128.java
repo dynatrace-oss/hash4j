@@ -186,7 +186,7 @@ class Murmur3_128 extends AbstractHasher128 {
 
     final int len = s.length();
     int i = 0;
-    for (; i + 8 <= len; i += 8) {
+    for (; i <= len - 8; i += 8) {
       long b0 = getLong(s, i);
       long b1 = getLong(s, i + 4);
 
@@ -488,7 +488,7 @@ class Murmur3_128 extends AbstractHasher128 {
           processBuffer(buffer0, buffer1);
           buffer1 = 0;
         }
-        for (; i + 8 <= len; i += 8) {
+        for (; i <= len - 8; i += 8) {
           long b0 = getLong(s, i);
           long b1 = getLong(s, i + 4);
           processBuffer(b0, b1);
@@ -546,7 +546,7 @@ class Murmur3_128 extends AbstractHasher128 {
           buffer1 = (l >>> 8);
         }
 
-        for (; i + 8 <= len; i += 8) {
+        for (; i <= len - 8; i += 8) {
           long c0 = s.charAt(i);
           long c1 = s.charAt(i + 1);
           long c2 = s.charAt(i + 2);
