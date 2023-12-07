@@ -7,7 +7,7 @@ on:
     types: [opened, synchronize, reopened]
 jobs:
   build:
-    name: Build Java ${{ matrix.Java }} (${{ matrix.os }})
+    name: Build Java (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
