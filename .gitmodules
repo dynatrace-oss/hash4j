@@ -40,3 +40,6 @@
 [submodule "reference-implementations/komihash_5_7/komihash"]
 	path = reference-implementations/komihash_5_7/komihash
 	url = https://github.com/avaneev/komihash.git
+[submodule "reference-implementations/komihash_5_8/komihash"]
+	path = reference-implementations/komihash_5_8/komihash
+	url = https://github.com/avaneev/komihash.git
