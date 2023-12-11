@@ -17,6 +17,7 @@ hash4j is a Java library by Dynatrace that includes various non-cryptographic ha
 - [Approximate distinct counting](#approximate-distinct-counting)
 - [File hashing](#file-hashing)
 - [Consistent hashing](#consistent-hashing)
+- [Benchmark results](#benchmark-results)
 - [Contribution FAQ](#contribution-faq)
 
 ## First steps
@@ -233,6 +234,9 @@ Map<Integer, List<Long>> assignment3Buckets =
 // probability of reassignment is equal to 1/3
 ```
 See also [ConsistentHashingDemo.java](src/test/java/com/dynatrace/hash4j/consistent/ConsistentHashingDemo.java).
+
+## Benchmark results
+Benchmark results for different revisions can be found [here](https://github.com/dynatrace-oss/hash4j-benchmarks).
 
 ## Contribution FAQ
 
