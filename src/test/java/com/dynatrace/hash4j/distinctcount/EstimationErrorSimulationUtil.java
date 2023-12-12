@@ -22,6 +22,8 @@ import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.IntFunction;
 import java.util.function.IntToDoubleFunction;
 import java.util.function.ToDoubleBiFunction;
@@ -88,6 +90,7 @@ public final class EstimationErrorSimulationUtil {
 
     // parameters
     int numCycles = 100000;
+    int maxParallelism = 32;
     final BigInt largeScaleSimulationModeDistinctCountLimit = BigInt.fromLong(1000000);
     List<BigInt> targetDistinctCounts = TestUtils.getDistinctCountValues(1e21, 0.05);
 
@@ -107,50 +110,65 @@ public final class EstimationErrorSimulationUtil {
         ThreadLocal.withInitial(
             () -> new LocalState<>(supplier.apply(p), prgProvider.create(), hashGenerators, p));
 
-    IntStream.range(0, numCycles)
-        .parallel()
-        .forEach(
-            i -> {
-              LocalState<T> state = localStates.get();
-              final PseudoRandomGenerator prg = state.prg;
-              prg.reset(seeds[i]);
-              final T sketch = state.sketch;
-              sketch.reset();
-              MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
-              final Transition[] transitions = state.transitions;
-              state.generateTransitions(largeScaleSimulationModeDistinctCountLimit);
+    try {
+      ForkJoinPool forkJoinPool =
+          new ForkJoinPool(Math.min(ForkJoinPool.getCommonPoolParallelism(), maxParallelism));
+      forkJoinPool
+          .submit(
+              () ->
+                  IntStream.range(0, numCycles)
+                      .parallel()
+                      .forEach(
+                          i -> {
+                            LocalState<T> state = localStates.get();
+                            final PseudoRandomGenerator prg = state.prg;
+                            prg.reset(seeds[i]);
+                            final T sketch = state.sketch;
+                            sketch.reset();
+                            MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
+                            final Transition[] transitions = state.transitions;
+                            state.generateTransitions(largeScaleSimulationModeDistinctCountLimit);
 
-              BigInt trueDistinctCount = BigInt.createZero();
-              int transitionIndex = 0;
-              for (int distinctCountIndex = 0;
-                  distinctCountIndex < targetDistinctCounts.size();
-                  ++distinctCountIndex) {
-                BigInt targetDistinctCount = targetDistinctCounts.get(distinctCountIndex);
-                BigInt limit = targetDistinctCount.copy();
-                limit.min(largeScaleSimulationModeDistinctCountLimit);
+                            BigInt trueDistinctCount = BigInt.createZero();
+                            int transitionIndex = 0;
+                            for (int distinctCountIndex = 0;
+                                distinctCountIndex < targetDistinctCounts.size();
+                                ++distinctCountIndex) {
+                              BigInt targetDistinctCount =
+                                  targetDistinctCounts.get(distinctCountIndex);
+                              BigInt limit = targetDistinctCount.copy();
+                              limit.min(largeScaleSimulationModeDistinctCountLimit);
 
-                while (trueDistinctCount.compareTo(limit) < 0) {
-                  sketch.add(prg.nextLong(), martingaleEstimator);
-                  trueDistinctCount.increment();
-                }
-                if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
-                  while (transitionIndex < transitions.length
-                      && transitions[transitionIndex]
-                              .getDistinctCount()
-                              .compareTo(targetDistinctCount)
-                          <= 0) {
-                    sketch.add(transitions[transitionIndex].getHash(), martingaleEstimator);
-                    transitionIndex += 1;
-                  }
-                  trueDistinctCount.set(targetDistinctCount);
-                }
+                              while (trueDistinctCount.compareTo(limit) < 0) {
+                                sketch.add(prg.nextLong(), martingaleEstimator);
+                                trueDistinctCount.increment();
+                              }
+                              if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
+                                while (transitionIndex < transitions.length
+                                    && transitions[transitionIndex]
+                                            .getDistinctCount()
+                                            .compareTo(targetDistinctCount)
+                                        <= 0) {
+                                  sketch.add(
+                                      transitions[transitionIndex].getHash(), martingaleEstimator);
+                                  transitionIndex += 1;
+                                }
+                                trueDistinctCount.set(targetDistinctCount);
+                              }
 
-                for (int k = 0; k < estimatorConfigs.size(); ++k) {
-                  estimatedDistinctCounts[k][distinctCountIndex][i] =
-                      estimatorConfigs.get(k).estimator.applyAsDouble(sketch, martingaleEstimator);
-                }
-              }
-            });
+                              for (int k = 0; k < estimatorConfigs.size(); ++k) {
+                                estimatedDistinctCounts[k][distinctCountIndex][i] =
+                                    estimatorConfigs
+                                        .get(k)
+                                        .estimator
+                                        .applyAsDouble(sketch, martingaleEstimator);
+                              }
+                            }
+                          }))
+          .get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
 
     double[] theoreticalRelativeStandardErrors =
         estimatorConfigs.stream()
