@@ -351,26 +351,11 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   // visible for testing
   // returns register change probability scaled by 2^64
   static long getScaledRegisterChangeProbability(byte reg, int p) {
-    int r = reg & 0xFF;
-    int r2 = r - (p << 2) - 4;
-    if (r2 < 0) {
-      long ret = 4L;
-      if (r2 == -2 || r2 == -8) {
-        ret -= 2;
-      }
-      if (r2 == -2 || r2 == -4) {
-        ret -= 1;
-      }
-      return ret << (62 - p);
-    } else {
-      int k = r2 >>> 2;
-      long ret = 0xE000000000000000L;
-      int y0 = r & 1;
-      int y1 = (r >>> 1) & 1;
-      ret -= (long) y0 << 63;
-      ret -= (long) y1 << 62;
-      return ret >>> (k + p);
-    }
+    if (reg == 0) return 1L << -p;
+    int k = (reg >> 2) - p + 1; // is in the range [0, 64-p]
+    int l0 = ~reg & 1;
+    int l1 = ~reg & 2;
+    return (long) (l1 | (l0 << 2) | 1) << ~k >>> p;
   }
 
   /**
@@ -431,30 +416,14 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
 
     // returns contribution to alpha, scaled by 2^64
     private static long contribute(int r, int[] b, int p) {
-      int r2 = r - (p << 2) - 4;
-      if (r2 < 0) {
-        long ret = 4L;
-        if (r2 == -2 || r2 == -8) {
-          b[0] += 1;
-          ret -= 2;
-        }
-        if (r2 == -2 || r2 == -4) {
-          b[1] += 1;
-          ret -= 1;
-        }
-        return ret << (62 - p);
-      } else {
-        int k = r2 >>> 2;
-        long ret = 0xE000000000000000L;
-        int y0 = r & 1;
-        int y1 = (r >>> 1) & 1;
-        ret -= (long) y0 << 63;
-        ret -= (long) y1 << 62;
-        b[k] += y0;
-        b[k + 1] += y1;
-        b[k + 2] += 1;
-        return ret >>> (k + p);
-      }
+      if (r == 0) return 1L << -p;
+      int k = (r >>> 2) - p + 1; // is in the range [0, 64-p]
+      int l0 = ~r & 1;
+      int l1 = ~r & 2;
+      if (l0 == 0 && k - 2 >= 0) b[k - 2] += 1;
+      if (l1 == 0 && k - 1 >= 0) b[k - 1] += 1;
+      if (k >= 0) b[k] += 1;
+      return (long) (l1 | (l0 << 2) | 1) << ~k >>> p;
     }
 
     @Override
