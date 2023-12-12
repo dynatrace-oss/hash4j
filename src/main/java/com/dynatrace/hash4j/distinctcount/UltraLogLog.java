@@ -855,35 +855,30 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       final int m = state.length;
       final int p = ultraLogLog.getP();
 
-      int c0 = 0;
-      int c4 = 0;
-      int c8 = 0;
-      int c10 = 0;
+      int[] c = new int[256];
+      for (byte reg : state) {
+        c[reg & 0xFF] += 1;
+      }
 
-      int c4w0 = 0;
-      int c4w1 = 0;
-      int c4w2 = 0;
-      int c4w3 = 0;
+      int off = (p << 2) + 4;
 
       double sum = 0;
-      int off = (p << 2) + 4;
-      for (byte reg : state) {
-        int r = reg & 0xFF;
-        int r2 = r - off;
-        if (r2 < 0) {
-          if (r2 < -8) c0 += 1;
-          if (r2 == -8) c4 += 1;
-          if (r2 == -4) c8 += 1;
-          if (r2 == -2) c10 += 1;
-        } else if (r < 252) {
-          sum += REGISTER_CONTRIBUTIONS[r2];
-        } else {
-          if (r == 252) c4w0 += 1;
-          if (r == 253) c4w1 += 1;
-          if (r == 254) c4w2 += 1;
-          if (r == 255) c4w3 += 1;
+      for (int r = 0; r < 252 - off; ++r) {
+        int cTmp = c[r + off];
+        if (cTmp > 0) {
+          sum += cTmp * REGISTER_CONTRIBUTIONS[r];
         }
       }
+
+      int c0 = c[0];
+      int c4 = c[off - 8];
+      int c8 = c[off - 4];
+      int c10 = c[off - 2];
+
+      int c4w0 = c[252];
+      int c4w1 = c[253];
+      int c4w2 = c[254];
+      int c4w3 = c[255];
 
       if (c0 > 0 || c4 > 0 || c8 > 0 || c10 > 0) {
         double z = smallRangeEstimate(c0, c4, c8, c10, m);
