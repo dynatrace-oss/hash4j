@@ -38,8 +38,7 @@ public class UltraLogLogPerformanceTest {
     @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
     public int numElements;
 
-    // @Param({"8", "10", "12", "14"})
-    @Param({"10", "14"})
+    @Param({"6", "8", "10", "12", "14"})
     public int precision;
 
     public SplittableRandom random;
@@ -90,8 +89,7 @@ public class UltraLogLogPerformanceTest {
     @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
     public int numElements;
 
-    // @Param({"8", "10", "12", "14"})
-    @Param({"10", "14"})
+    @Param({"6", "8", "10", "12", "14"})
     public int precision;
 
     @Param public Estimator estimator;

@@ -196,7 +196,7 @@ jacocoTestReport {
 
 test {
 	useJUnitPlatform()
-	maxHeapSize '4g'
+	maxHeapSize '8g'
 }
 
 jmh {
@@ -296,7 +296,6 @@ tasks.register('deleteBenchmarkReport', Delete) {
 tasks.test.finalizedBy jacocoTestReport
 tasks.jmh.finalizedBy copyBenchmarkReport
 tasks.copyBenchmarkReport.finalizedBy deleteBenchmarkReport
-tasks.deleteBenchmarkReport.finalizedBy evaluateBenchmarks
 check.dependsOn jacocoTestCoverageVerification
 tasks.jmh.dependsOn checkStatusForBenchmarks
 tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
@@ -380,4 +379,8 @@ nexusPublishing {
 			password = System.getenv('OSSRH_PASSWORD')
 		}
 	}
+}
+
+if (file("extra-configuration.gradle").exists()) {
+	apply from: 'extra-configuration.gradle'
 }
