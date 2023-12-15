@@ -82,7 +82,7 @@ public class BigInt implements Comparable<BigInt> {
     return fromIntDouble(Math.ceil(d));
   }
 
-  private static BigInt fromIntDouble(double d) {
+  private static strictfp BigInt fromIntDouble(double d) {
     checkArgument(d < TWO_POW_PLUS_126_DOUBLE);
     if (d >= TWO_POW_PLUS_63_DOUBLE) {
       long high = (long) (d * TWO_POW_MINUS_63_DOUBLE);
@@ -93,7 +93,7 @@ public class BigInt implements Comparable<BigInt> {
     }
   }
 
-  public double asDouble() {
+  public strictfp double asDouble() {
     return high * TWO_POW_PLUS_63_DOUBLE + low;
   }
 
