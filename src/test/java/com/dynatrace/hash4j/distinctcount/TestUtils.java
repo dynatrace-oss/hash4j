@@ -26,26 +26,27 @@ public final class TestUtils {
 
   private TestUtils() {}
 
-  public static long[] getDistinctCountValues(long min, long max, double relativeIncrement) {
+  public static strictfp long[] getDistinctCountValues(
+      long min, long max, double relativeIncrement) {
     List<Long> distinctCounts = new ArrayList<>();
-    for (long c = max;
-        c >= min;
-        c = Math.min(c - 1, (long) Math.ceil(c / (1. + relativeIncrement)))) {
+    final double factor = 1. / (1. + relativeIncrement);
+    for (long c = max; c >= min; c = Math.min(c - 1, (long) Math.ceil(c * factor))) {
       distinctCounts.add(c);
     }
     Collections.reverse(distinctCounts);
     return distinctCounts.stream().mapToLong(Long::valueOf).toArray();
   }
 
-  public static List<BigInt> getDistinctCountValues(double max, double relativeIncrement) {
+  public static strictfp List<BigInt> getDistinctCountValues(double max, double relativeIncrement) {
     checkArgument(max >= 1.);
     List<BigInt> distinctCounts = new ArrayList<>();
     BigInt c = BigInt.ceil(max);
+    final double factor = 1. / (1. + relativeIncrement);
     while (c.isPositive()) {
       distinctCounts.add(c.copy());
       double d = c.asDouble();
       c.decrement();
-      c.min(BigInt.ceil(d / (1. + relativeIncrement)));
+      c.min(BigInt.ceil(d * factor));
     }
     Collections.reverse(distinctCounts);
     return distinctCounts;
