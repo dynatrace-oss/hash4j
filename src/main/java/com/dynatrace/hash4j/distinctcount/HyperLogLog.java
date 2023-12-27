@@ -354,7 +354,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
 
   // returns register change probability scaled by 2^64
   private long getScaledRegisterChangeProbability(int registerValue) {
-    return 0x4000000000000000L >>> (p + registerValue - 2);
+    return 0x4000000000000000L >>> (p - 2 + registerValue);
   }
 
   /**
@@ -431,25 +431,17 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   @Override
   public double getStateChangeProbability() {
     long sum = 0;
-    for (int off = 0; off + 5 < state.length; off += 6) {
+    for (int off = 0; off + 6 <= state.length; off += 6) {
       int s0 = getInt(state, off);
       int s1 = getInt(state, off + 2);
-      int r0 = s0 & 0x3F;
-      int r1 = (s0 >>> 6) & 0x3F;
-      int r2 = (s0 >>> 12) & 0x3F;
-      int r3 = (s0 >>> 18) & 0x3F;
-      int r4 = (s1 >>> 8) & 0x3F;
-      int r5 = (s1 >>> 14) & 0x3F;
-      int r6 = (s1 >>> 20) & 0x3F;
-      int r7 = (s1 >>> 26) & 0x3F;
-      sum += getScaledRegisterChangeProbability(r0);
-      sum += getScaledRegisterChangeProbability(r1);
-      sum += getScaledRegisterChangeProbability(r2);
-      sum += getScaledRegisterChangeProbability(r3);
-      sum += getScaledRegisterChangeProbability(r4);
-      sum += getScaledRegisterChangeProbability(r5);
-      sum += getScaledRegisterChangeProbability(r6);
-      sum += getScaledRegisterChangeProbability(r7);
+      sum += getScaledRegisterChangeProbability(s0);
+      sum += getScaledRegisterChangeProbability(s0 >>> 6);
+      sum += getScaledRegisterChangeProbability(s0 >>> 12);
+      sum += getScaledRegisterChangeProbability(s0 >>> 18);
+      sum += getScaledRegisterChangeProbability(s1 >>> 8);
+      sum += getScaledRegisterChangeProbability(s1 >>> 14);
+      sum += getScaledRegisterChangeProbability(s1 >>> 20);
+      sum += getScaledRegisterChangeProbability(s1 >>> 26);
     }
     if (sum == 0 && state[0] == 0) {
       // sum can only be zero if either all registers are 0 or all registers are saturated
@@ -540,12 +532,13 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     @Override
     public double estimate(HyperLogLog hyperLogLog) {
       byte[] state = hyperLogLog.state;
+      int p = hyperLogLog.p;
       int c0 = 0;
       int cMax = 0;
       long agg = 0;
-      int maxR = 65 - hyperLogLog.p;
-      long inc = 1L << -hyperLogLog.p;
-      for (int off = 0; off + 5 < state.length; off += 6) {
+      int maxR = 65 - p;
+      long inc = 1L << -p;
+      for (int off = 0; off + 6 <= state.length; off += 6) {
         int s0 = getInt(state, off);
         int s1 = getInt(state, off + 2);
         int r0 = s0 & 0x3F;
@@ -583,23 +576,20 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       }
       double sum = 0;
 
+      double m = 1 << p;
       if (cMax > 0) {
-        double m = 1 << hyperLogLog.p;
         sum +=
-            Double.longBitsToDouble(0x3FF0000000000000L - ((32L - hyperLogLog.p) << 53))
-                * tau(1. - cMax / m);
+            Double.longBitsToDouble(0x3FF0000000000000L - ((32L - p) << 53)) * tau(1. - cMax / m);
       }
-
-      // if c0 == m agg could have overflown and would be zero, but sum would become infinite anyway
-      // due to the sigma function below, so this does not matter
-      sum += unsignedLongToDouble(agg) / inc;
+      // if c0 == m, agg could have overflown and would be zero, but sum would become infinite
+      // anyway due to the sigma function below, so this does not matter
+      sum += unsignedLongToDouble(agg) * m * 0x1p-64;
 
       if (c0 > 0) {
-        double m = 1 << hyperLogLog.p;
         sum += m * sigma(c0 / m);
       }
 
-      return ESTIMATION_FACTORS[hyperLogLog.p - MIN_P] / sum;
+      return ESTIMATION_FACTORS[p - MIN_P] / sum;
     }
   }
 
@@ -629,10 +619,10 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       byte[] state = hyperLogLog.state;
       int p = hyperLogLog.p;
       long agg = 0;
-      int[] c = new int[66 - p];
+      int[] c = new int[64];
       long inc = 1L << -p;
 
-      for (int off = 0; off + 5 < state.length; off += 6) {
+      for (int off = 0; off + 6 <= state.length; off += 6) {
         int s0 = getInt(state, off);
         int s1 = getInt(state, off + 2);
         int r0 = s0 & 0x3F;
@@ -651,25 +641,24 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
         agg += inc >>> r5;
         agg += inc >>> r6;
         agg += inc >>> r7;
-        if (r0 < c.length) c[r0] += 1;
-        if (r1 < c.length) c[r1] += 1;
-        if (r2 < c.length) c[r2] += 1;
-        if (r3 < c.length) c[r3] += 1;
-        if (r4 < c.length) c[r4] += 1;
-        if (r5 < c.length) c[r5] += 1;
-        if (r6 < c.length) c[r6] += 1;
-        if (r7 < c.length) c[r7] += 1;
+        c[r0] += 1;
+        c[r1] += 1;
+        c[r2] += 1;
+        c[r3] += 1;
+        c[r4] += 1;
+        c[r5] += 1;
+        c[r6] += 1;
+        c[r7] += 1;
       }
       int m = 1 << p;
 
       if (c[0] == m) return 0.;
       c[0] = 0;
-      c[c.length - 2] += c[c.length - 1];
-      c[c.length - 1] = 0;
-      double a = unsignedLongToDouble(agg) / inc;
+      c[64 - p] += c[65 - p];
+      double a = unsignedLongToDouble(agg) * m * 0x1p-64;
       return m
           * DistinctCountUtil.solveMaximumLikelihoodEquation(
-              a, c, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
+              a, c, 64 - p, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
           / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
     }
   }
