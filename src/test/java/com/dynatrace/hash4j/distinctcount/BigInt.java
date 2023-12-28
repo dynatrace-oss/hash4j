@@ -21,7 +21,7 @@ import com.dynatrace.hash4j.util.Preconditions;
 import java.math.BigInteger;
 import java.util.Objects;
 
-public class BigInt implements Comparable<BigInt> {
+public final class BigInt implements Comparable<BigInt> {
 
   private static final BigInteger TWO_POW_63 = BigInteger.valueOf(2).pow(63);
   private static final double TWO_POW_PLUS_63_DOUBLE = Math.pow(2., 63);
@@ -131,7 +131,7 @@ public class BigInt implements Comparable<BigInt> {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (!(o instanceof BigInt)) return false;
     BigInt bigInt = (BigInt) o;
     return low == bigInt.low && high == bigInt.high;
   }

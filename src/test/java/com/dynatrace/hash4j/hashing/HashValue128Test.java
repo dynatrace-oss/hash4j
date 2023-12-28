@@ -65,7 +65,7 @@ class HashValue128Test {
     assertThat(hash1a.equals(hash2)).isFalse();
     assertThat(hash1a.equals(hash3)).isFalse();
     assertThat(hash1a.equals(hash4)).isFalse();
-    assertThat(hash1a.equals((new Object()))).isFalse();
+    assertThat(hash1a.equals(new Object())).isFalse();
   }
 
   @Test

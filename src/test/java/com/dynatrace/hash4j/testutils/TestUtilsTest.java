@@ -40,10 +40,10 @@ class TestUtilsTest {
       (byte) 0xef
     };
     CharSequence charSequence = TestUtils.byteArrayToCharSequence(expected);
-    assertThat(charSequence.charAt(0)).isEqualTo((char) (0x2301));
-    assertThat(charSequence.charAt(1)).isEqualTo((char) (0x6745));
-    assertThat(charSequence.charAt(2)).isEqualTo((char) (0xab89));
-    assertThat(charSequence.charAt(3)).isEqualTo((char) (0xefcd));
+    assertThat(charSequence.charAt(0)).isEqualTo((char) 0x2301);
+    assertThat(charSequence.charAt(1)).isEqualTo((char) 0x6745);
+    assertThat(charSequence.charAt(2)).isEqualTo((char) 0xab89);
+    assertThat(charSequence.charAt(3)).isEqualTo((char) 0xefcd);
     assertThat(charSequence)
         .hasToString(String.valueOf((char) 0x2301) + (char) 0x6745 + (char) 0xab89 + (char) 0xefcd);
 

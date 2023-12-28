@@ -54,6 +54,6 @@ class SplitMix64_v1Test extends AbstractPseudoRandomGeneratorTest {
 
   @Override
   protected long getExpectedStabilityCheckSum() {
-    return 4691221998854044216L;
+    return 0x6a781f39f817d0a6L;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
     HashFunnel<Set<String>> funnelB =
         (set, out) ->
             out.putUnorderedIterable(
-                set::iterator,
+                asIterable(set),
                 s -> Hashing.murmur3_128().hashToLong(s, (data, out1) -> out1.putString(data)));
 
     long hash1a = Hashing.murmur3_128().hashToLong(set1, funnelA);
@@ -154,7 +154,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
     HashFunnel<List<String>> funnelA =
         (list, out) -> out.putOrderedIterable(list, (s, o) -> o.putString(s));
     HashFunnel<List<String>> funnelB =
-        (list, out) -> out.putOrderedIterable(list::iterator, (s, o) -> o.putString(s));
+        (list, out) -> out.putOrderedIterable(asIterable(list), (s, o) -> o.putString(s));
 
     long hash1a = Hashing.murmur3_128().hashToLong(list1, funnelA);
     long hash2a = Hashing.murmur3_128().hashToLong(list2, funnelA);
@@ -195,7 +195,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
         List<Long> longList = asLongRandomAccessList(values);
         sinkRandomAccessList.putUnorderedIterable(longList, v -> v);
         sinkCollection.putUnorderedIterable(asCollection(longList), v -> v);
-        sinkIterable.putUnorderedIterable(longList::iterator, v -> v);
+        sinkIterable.putUnorderedIterable(asIterable(longList), v -> v);
 
         assertThat(sinkRandomAccessList.getData()).isEqualTo(expected);
         assertThat(sinkCollection.getData()).isEqualTo(expected);

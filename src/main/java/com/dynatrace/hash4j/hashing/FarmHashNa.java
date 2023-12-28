@@ -66,10 +66,9 @@ class FarmHashNa extends AbstractHasher64 {
   private static final long K1 = 0xb492b66fbe98f273L;
   protected static final long K2 = 0x9ae16a3b2f90404fL;
   private static final long K_MUL = 0x9ddfea08eb382d69L;
-  private static final long SEED = 81;
-  private static final long START_X = SEED * K2;
-  private static final long START_Y = SEED * K1 + 113;
-  private static final long START_Z = shiftMix(START_Y * K2 + 113) * K2;
+  private static final long START_X = 0x1529cba0ca458ffL;
+  private static final long START_Y = 0x226bb95b4e64b6d4L;
+  private static final long START_Z = 0x134a747f856d0526L;
 
   private static final FarmHashNa INSTANCE = new FarmHashNa();
 
@@ -733,6 +732,7 @@ class FarmHashNa extends AbstractHasher64 {
           rotateRight(e + f, 43) + rotateRight(g, 30) + h, e + rotateRight(f + a, 18) + g, mul);
     }
 
+    @Override
     public long getAsLong() {
       return finalizeHash(processRemaining());
     }

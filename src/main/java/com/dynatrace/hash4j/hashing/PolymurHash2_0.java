@@ -397,7 +397,7 @@ class PolymurHash2_0 extends AbstractHasher64 {
         }
       }
     }
-    return r >>> (-(len << 3));
+    return r >>> -(len << 3);
   }
 
   private static long getLong7(CharSequence input, long off) {
@@ -768,7 +768,7 @@ class PolymurHash2_0 extends AbstractHasher64 {
       }
       long m0 = k;
       if (offset > 0) {
-        m0 += getLong(buffer, 0) & (0xFFFFFFFFFFFFFFFFL >>> (-(offset << 3)));
+        m0 += getLong(buffer, 0) & (0xFFFFFFFFFFFFFFFFL >>> -(offset << 3));
       }
       long lenk2 = offset + k2;
       return polyAcc + polymurRed611(unsignedMultiplyHigh(m0, lenk2), m0 * lenk2);

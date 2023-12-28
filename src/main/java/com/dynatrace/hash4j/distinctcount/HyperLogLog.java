@@ -322,7 +322,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    */
   @Override
   public HyperLogLog add(long hashValue, StateChangeObserver stateChangeObserver) {
-    int idx = (int) (hashValue >>> (-p));
+    int idx = (int) (hashValue >>> -p);
     int newValue = Long.numberOfLeadingZeros(~(~hashValue << p)) + 1;
     int oldValue = (int) ARRAY_HANDLER.update(state, idx, newValue, Math::max);
     if (stateChangeObserver != null && newValue > oldValue) {
@@ -601,7 +601,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     //
     // for a numerical evaluation see
     // https://www.wolframalpha.com/input?i=sqrt%28ln%282%29%2Fzeta%282%2C2%29%29
-    private static final double INV_SQRT_FISHER_INFORMATION = 1.0367047097785011;
+    private static final double INV_SQRT_FISHER_INFORMATION = 1.0367047097785012;
     private static final double ML_EQUATION_SOLVER_EPS =
         0.001 * INV_SQRT_FISHER_INFORMATION; // 0.1% of theoretical relative error
 

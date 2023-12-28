@@ -20,6 +20,7 @@ plugins {
 	id 'signing'
 	id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
 	id "com.palantir.revapi" version "1.7.0"
+	id "net.ltgt.errorprone" version "3.1.0"
 }
 
 static def readJavaLicense(licenseName) {
@@ -185,6 +186,7 @@ dependencies {
 	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
+	errorprone("com.google.errorprone:error_prone_core:2.24.0")
 }
 
 jacocoTestReport {
@@ -383,4 +385,10 @@ nexusPublishing {
 
 if (file("extra-configuration.gradle").exists()) {
 	apply from: 'extra-configuration.gradle'
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs << "-Werror"
+	options.errorprone.disableWarningsInGeneratedCode = false
+	// options.errorprone.enabled = false
 }

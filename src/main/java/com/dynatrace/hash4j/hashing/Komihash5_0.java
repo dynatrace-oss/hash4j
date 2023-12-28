@@ -146,11 +146,11 @@ class Komihash5_0 extends AbstractKomihash {
     if (len > 7) {
       r2l ^= getLong(input, off);
       long y = getLong(input, off + len - 8);
-      r2h ^= (1L << ml8) | (y >>> 1 >>> (~ml8));
+      r2h ^= (1L << ml8) | (y >>> 1 >>> ~ml8);
     } else if (len > 3) {
       long mh = getInt(input, off + len - 4);
       long ml = getInt(input, off) & 0xFFFFFFFFL;
-      r2l ^= (1L << ml8) | ml | (mh << 32 >>> (-ml8));
+      r2l ^= (1L << ml8) | ml | (mh << 32 >>> -ml8);
     } else if (len > 0) {
       long m = (1L << ml8) | (input[off] & 0xFFL);
       if (len > 1) m |= (input[off + 1] & 0xFFL) << 8;
@@ -256,11 +256,11 @@ class Komihash5_0 extends AbstractKomihash {
     if (len > 3) {
       r2l ^= getLong(input, off);
       long y = getLong(input, off + len - 4);
-      r2h ^= (1L << ml8) | (y >>> 1 >>> (~ml8));
+      r2h ^= (1L << ml8) | (y >>> 1 >>> ~ml8);
     } else if (len > 1) {
       long mh = getInt(input, off + len - 2);
       long ml = getInt(input, off) & 0xFFFFFFFFL;
-      r2l ^= (1L << ml8) | ml | (mh << 32 >>> (-ml8));
+      r2l ^= (1L << ml8) | ml | (mh << 32 >>> -ml8);
     } else if (len > 0) {
       long m = (1L << ml8) | input.charAt(off);
       r2l ^= m;

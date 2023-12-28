@@ -257,7 +257,7 @@ abstract class AbstractKomihash extends AbstractHasher64 {
               remainingChars -= 32;
               off += 32;
             } while (remainingChars >= 32);
-            buffer[0] = (byte) (z);
+            buffer[0] = (byte) z;
           }
         }
       }

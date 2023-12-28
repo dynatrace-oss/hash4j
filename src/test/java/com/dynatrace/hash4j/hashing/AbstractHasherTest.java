@@ -554,7 +554,7 @@ abstract class AbstractHasherTest {
           random.nextLong(),
           r -> {
             short[] array = new short[maxArraySize];
-            IntStream.range(0, maxArraySize).forEach(i -> array[i] = (short) (r.nextInt()));
+            IntStream.range(0, maxArraySize).forEach(i -> array[i] = (short) r.nextInt());
             return h -> h.putShortArray(array);
           });
     }
@@ -571,7 +571,7 @@ abstract class AbstractHasherTest {
           random.nextLong(),
           r -> {
             char[] array = new char[maxArraySize];
-            IntStream.range(0, maxArraySize).forEach(i -> array[i] = (char) (r.nextInt()));
+            IntStream.range(0, maxArraySize).forEach(i -> array[i] = (char) r.nextInt());
             return h -> h.putCharArray(array);
           });
     }
@@ -1158,7 +1158,7 @@ abstract class AbstractHasherTest {
 
       @Override
       public char charAt(int index) {
-        return (char) (index * 0x5851f42d4c957f2dL >>> 48);
+        return (char) ((index * 0x5851f42d4c957f2dL) >>> 48);
       }
 
       @NotNull

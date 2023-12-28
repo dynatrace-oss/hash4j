@@ -227,6 +227,7 @@ class Imohash1_0_2Test {
         .isThrownBy(() -> imohash.hashInputStreamTo128Bits(testInputStream, 2));
   }
 
+  @SuppressWarnings("InputStreamSlowMultibyteRead")
   private static class TestInputStream extends InputStream {
     private long count = 0;
     private long totalLength = Long.MAX_VALUE;

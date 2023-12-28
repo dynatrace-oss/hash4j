@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -40,10 +39,13 @@ public class UnorderedHashTest {
   }
 
   private static final HashFunnel<Long> LONG_FUNNEL = (l, h) -> h.putLong(l);
-  private static final ToLongFunction<Long> LONG_2_HASH =
-      x -> Hashing.murmur3_128().hashToLong(x, LONG_FUNNEL);
+
+  private static final long long2Hash(long x) {
+    return Hashing.murmur3_128().hashToLong(x, LONG_FUNNEL);
+  }
+
   private static final HashFunnel<List<Long>> LIST_LONG_FUNNEL =
-      (l, h) -> h.putUnorderedIterable(l, LONG_2_HASH);
+      (l, h) -> h.putUnorderedIterable(l, UnorderedHashTest::long2Hash);
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)

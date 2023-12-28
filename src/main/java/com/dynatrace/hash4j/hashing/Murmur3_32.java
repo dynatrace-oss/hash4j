@@ -181,7 +181,7 @@ class Murmur3_32 extends AbstractHasher32 {
 
     @Override
     public HashStream32 putBytes(byte[] b, int off, int len) {
-      final int regularBlockStartIdx = (-length) & 0x3;
+      final int regularBlockStartIdx = -length & 0x3;
       final int regularBlockEndIdx = len - ((len + length) & 0x3);
       length += len;
       if (regularBlockEndIdx < regularBlockStartIdx) {
@@ -229,7 +229,7 @@ class Murmur3_32 extends AbstractHasher32 {
 
     @Override
     public int getAsInt() {
-      return fmix32(h1 ^ mixK1((int) (buffer)) ^ length);
+      return fmix32(h1 ^ mixK1((int) buffer) ^ length);
     }
 
     private void processBuffer(int x) {

@@ -184,7 +184,7 @@ However, this algorithm can be useful for file indexes, for example, to find ide
 ```java
 // create some file in the given path
 File file = path.resolve("test.txt").toFile();
-try (FileWriter fileWriter = new FileWriter(file)) {
+try (FileWriter fileWriter = new FileWriter(file, StandardCharsets.UTF_8)) {
     fileWriter.write("this is the file content");
 }
 
