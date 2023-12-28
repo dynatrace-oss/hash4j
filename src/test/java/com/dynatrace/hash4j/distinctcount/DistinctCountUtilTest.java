@@ -73,7 +73,7 @@ class DistinctCountUtilTest {
           if (b != null) {
             for (int i = 0; i < b.length; ++i) {
               if (b[i] > 0) {
-                double f = 1. / (1L << i);
+                double f = Double.longBitsToDouble((0x3ffL - i) << 52);
                 sum += b[i] * f / Math.expm1(x * f);
               }
             }
@@ -87,66 +87,76 @@ class DistinctCountUtilTest {
   @Test
   void testSolveMaximumLikelihoodEquation() {
     double relativeErrorLimit = 1e-14;
-    assertThat(solveMaximumLikelihoodEquation(1., new int[] {}, relativeErrorLimit)).isZero();
-    assertThat(solveMaximumLikelihoodEquation(2., new int[] {}, relativeErrorLimit)).isZero();
-    assertThat(solveMaximumLikelihoodEquation(0., new int[] {1}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(1., new int[] {}, -1, relativeErrorLimit)).isZero();
+    assertThat(solveMaximumLikelihoodEquation(2., new int[] {}, -1, relativeErrorLimit)).isZero();
+    assertThat(solveMaximumLikelihoodEquation(0., new int[] {1}, 0, relativeErrorLimit))
         .isPositive()
         .isInfinite();
-    assertThat(solveMaximumLikelihoodEquation(0., new int[] {1, 0}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(0., new int[] {1, 0}, 1, relativeErrorLimit))
         .isPositive()
         .isInfinite();
 
-    assertThat(solveMaximumLikelihoodEquation(1., new int[] {1}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(1., new int[] {1}, 0, relativeErrorLimit))
         .isCloseTo(solve1(1., 1), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(2., new int[] {3}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(2., new int[] {3}, 0, relativeErrorLimit))
         .isCloseTo(solve1(2., 3), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2}, 0, relativeErrorLimit))
         .isCloseTo(solve1(3., 2), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(5., new int[] {7}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(5., new int[] {7}, 0, relativeErrorLimit))
         .isCloseTo(solve1(5., 7), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(11., new int[] {7}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(11., new int[] {7}, 0, relativeErrorLimit))
         .isCloseTo(solve1(11., 7), withPercentage(1e-6));
     assertThat(
             solveMaximumLikelihoodEquation(
-                0.03344574927673416, new int[] {238}, relativeErrorLimit))
+                0.03344574927673416, new int[] {238}, 0, relativeErrorLimit))
         .isCloseTo(solve1(0.03344574927673416, 238), withPercentage(1e-6));
 
-    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2, 0}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2, 0}, 1, relativeErrorLimit))
         .isCloseTo(solve2(3., 2, 0), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(5., new int[] {7, 0}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(5., new int[] {7, 0}, 1, relativeErrorLimit))
         .isCloseTo(solve2(5., 7, 0), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(11., new int[] {7, 0}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(11., new int[] {7, 0}, 1, relativeErrorLimit))
         .isCloseTo(solve2(11., 7, 0), withPercentage(1e-6));
     assertThat(
             solveMaximumLikelihoodEquation(
-                0.12274207925281233, new int[] {574, 580}, relativeErrorLimit))
+                0.12274207925281233, new int[] {574, 580}, 1, relativeErrorLimit))
         .isCloseTo(solve2(0.12274207925281233, 574, 580), withPercentage(1e-6));
 
-    assertThat(solveMaximumLikelihoodEquation(1., new int[] {2, 3}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(1., new int[] {2, 3}, 1, relativeErrorLimit))
         .isCloseTo(solve2(1., 2, 3), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2, 1}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2, 1}, 1, relativeErrorLimit))
         .isCloseTo(solve2(3., 2, 1), withPercentage(1e-6));
 
-    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2, 1, 4, 5}, relativeErrorLimit))
+    assertThat(solveMaximumLikelihoodEquation(3., new int[] {2, 1, 4, 5}, 3, relativeErrorLimit))
         .isCloseTo(solveN(3., 2, 1, 4, 5), withPercentage(1e-6));
-    assertThat(solveMaximumLikelihoodEquation(3., new int[] {6, 7, 2, 1, 4, 5}, relativeErrorLimit))
+    assertThat(
+            solveMaximumLikelihoodEquation(3., new int[] {6, 7, 2, 1, 4, 5}, 5, relativeErrorLimit))
         .isCloseTo(solveN(3., 6, 7, 2, 1, 4, 5), withPercentage(1e-6));
     assertThat(
             solveMaximumLikelihoodEquation(
-                7., new int[] {0, 0, 6, 7, 2, 1, 4, 5, 0, 0, 0, 0}, relativeErrorLimit))
+                7., new int[] {0, 0, 6, 7, 2, 1, 4, 5, 0, 0, 0, 0}, 11, relativeErrorLimit))
         .isCloseTo(solveN(7., 0, 0, 6, 7, 2, 1, 4, 5, 0, 0, 0, 0), withPercentage(1e-6));
     assertThat(
             solveMaximumLikelihoodEquation(
-                7., new int[] {0, 0, 6, 7, 0, 0, 4, 5, 0, 0, 0, 0}, relativeErrorLimit))
+                7., new int[] {0, 0, 6, 7, 0, 0, 4, 5, 0, 0, 0, 0}, 11, relativeErrorLimit))
         .isCloseTo(solveN(7., 0, 0, 6, 7, 0, 0, 4, 5, 0, 0, 0, 0), withPercentage(1e-6));
-
+    assertThat(solveMaximumLikelihoodEquation(0x1p-64, new int[] {0}, -1, relativeErrorLimit))
+        .isCloseTo(solve1(0x1p-64, 0), withPercentage(1e-6));
+    assertThat(solveMaximumLikelihoodEquation(0x1p-64, new int[] {1}, 0, relativeErrorLimit))
+        .isCloseTo(solve1(0x1p-64, 1), withPercentage(1e-6));
+    {
+      int[] b = new int[65];
+      b[64] = 1;
+      assertThat(solveMaximumLikelihoodEquation(1., b, 64, relativeErrorLimit))
+          .isCloseTo(solveN(1., b), withPercentage(1e-6));
+    }
     // many more cases to have full code coverage
     SplittableRandom random = new SplittableRandom(0x93b723ca5f234685L);
 
     for (int i = 0; i < 10000; ++i) {
       double a = 1. - random.nextDouble();
       int b0 = random.nextInt(1000);
-      assertThat(solveMaximumLikelihoodEquation(a, new int[] {b0}, relativeErrorLimit))
+      assertThat(solveMaximumLikelihoodEquation(a, new int[] {b0}, 0, relativeErrorLimit))
           .isCloseTo(solve1(a, b0), withPercentage(1e-6));
     }
   }

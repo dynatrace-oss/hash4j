@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.List;
 import java.util.SplittableRandom;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -115,6 +116,45 @@ public class HyperLogLogPerformanceTest {
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void distinctCountEstimation(EstimationState estimationState, Blackhole blackhole) {
+    HyperLogLog.Estimator estimator = estimationState.estimator.estimator;
+    for (int i = 0; i < estimationState.sketches.length; ++i) {
+      double estimate = estimator.estimate(estimationState.sketches[i]);
+      blackhole.consume(estimate);
+    }
+  }
+
+  @State(Scope.Benchmark)
+  public static class EstimationStateMixed {
+
+    HyperLogLog[] sketches = null;
+
+    @Param({"6", "8", "10", "12", "14"})
+    public int precision;
+
+    @Param public Estimator estimator;
+
+    @Param({"1000"})
+    public int numExamples;
+
+    @Setup(Level.Trial)
+    public void init() {
+      SplittableRandom random = new SplittableRandom(ThreadLocalRandom.current().nextLong());
+      sketches =
+          IntStream.range(0, numExamples)
+              .mapToObj(i -> generate(random, 1L << (i % 25), precision))
+              .toArray(i -> new HyperLogLog[i]);
+    }
+
+    @TearDown(Level.Trial)
+    public void finish() {
+      sketches = null;
+    }
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void distinctCountEstimationMixed(
+      EstimationStateMixed estimationState, Blackhole blackhole) {
     HyperLogLog.Estimator estimator = estimationState.estimator.estimator;
     for (int i = 0; i < estimationState.sketches.length; ++i) {
       double estimate = estimator.estimate(estimationState.sketches[i]);

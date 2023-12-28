@@ -42,22 +42,26 @@ class DistinctCountUtil {
   /**
    * Maximizes the expression
    *
-   * <p>{@code e^{-x*a} * (1 - e^{-x})^b[0] * (1 - e^{-x/2})^b[1] * (1 - e^{-x/2^2})^b[2] * ...}
+   * <p>{@code e^{-x*a} * (1 - e^{-x})^b[0] * (1 - e^{-x/2})^b[1] * (1 - e^{-x/2^2})^b[2] * ... * (1
+   * - e^{-x/2^n})^b[n]}
    *
    * <p>where {@code a} and all elements of {@code b} must be nonnegative. If this is not the case,
-   * or if neither {@code a} nor any element in {@code b} is positive, or if {@code b.length >= 64}
-   * the behavior of this function is not defined. {@code a} must be either zero or greater than or
-   * equal to 2^{-63}.
+   * or if neither {@code a} nor any element in {@code b} is positive, or if {@code n >= b.length}
+   * or {@code n >= 64} the behavior of this function is not defined. {@code a} must be either zero
+   * or greater than or equal to 2^{-64}.
    *
    * <p>This algorithm is based on Algorithm 8 described in Ertl, Otmar. "New cardinality estimation
    * algorithms for HyperLogLog sketches." arXiv preprint arXiv:1702.01284 (2017).
    *
    * @param a parameter a
    * @param b parameter b
+   * @param n parameter n
    * @param relativeErrorLimit the relative error limit
    * @return the value that maximizes the expression
+   * @throws RuntimeException if n >= b.length
    */
-  static double solveMaximumLikelihoodEquation(double a, int[] b, double relativeErrorLimit) {
+  static double solveMaximumLikelihoodEquation(
+      double a, int[] b, int n, double relativeErrorLimit) {
     // Maximizing the expression
     //
     // e^{-x*a} * (1 - e^{-x})^b[0] * (1 - e^{-x/2})^b[1] * (1 - e^{-x/2^2})^b[2] * ...
@@ -119,8 +123,7 @@ class DistinctCountUtil {
 
     if (a == 0.) return Double.POSITIVE_INFINITY;
 
-    int kMax;
-    kMax = b.length - 1;
+    int kMax = n;
     while (kMax >= 0 && b[kMax] == 0) {
       --kMax;
     }
@@ -296,12 +299,16 @@ class DistinctCountUtil {
     }
 
     double a = 0x1p27;
+    int maxNonZeroIndex = 0;
     for (int i = 0; i < MAX_NLZ_IN_TOKEN; ++i) {
       if (b[i] != 0) {
         a -= b[i] * Double.longBitsToDouble((0x3FFL - i) << 52);
+        maxNonZeroIndex = i;
       }
     }
-    return DistinctCountUtil.solveMaximumLikelihoodEquation(a, b, RELATIVE_ERROR_LIMIT) * 0x1p27;
+    return DistinctCountUtil.solveMaximumLikelihoodEquation(
+            a, b, maxNonZeroIndex, RELATIVE_ERROR_LIMIT)
+        * 0x1p27;
   }
 
   static double unsignedLongToDouble(long l) {

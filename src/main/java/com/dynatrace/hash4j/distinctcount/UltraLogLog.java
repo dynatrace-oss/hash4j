@@ -351,26 +351,9 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   // visible for testing
   // returns register change probability scaled by 2^64
   static long getScaledRegisterChangeProbability(byte reg, int p) {
-    int r = reg & 0xFF;
-    int r2 = r - (p << 2) - 4;
-    if (r2 < 0) {
-      long ret = 4L;
-      if (r2 == -2 || r2 == -8) {
-        ret -= 2;
-      }
-      if (r2 == -2 || r2 == -4) {
-        ret -= 1;
-      }
-      return ret << (62 - p);
-    } else {
-      int k = r2 >>> 2;
-      long ret = 0xE000000000000000L;
-      int y0 = r & 1;
-      int y1 = (r >>> 1) & 1;
-      ret -= (long) y0 << 63;
-      ret -= (long) y1 << 62;
-      return ret >>> (k + p);
-    }
+    if (reg == 0) return 1L << -p;
+    int k = 1 - p + (reg >>> 2);
+    return ((((reg & 2) | ((reg & 1) << 2)) ^ 7L) << ~k) >>> p;
   }
 
   /**
@@ -464,8 +447,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       int p = ultraLogLog.getP();
 
       long sum = 0;
-      int[] b = new int[65 - p];
-
+      int[] b = new int[64];
       for (byte r : state) {
         sum += contribute(r & 0xff, b, p);
       }
@@ -477,13 +459,12 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
         return (state[0] == 0) ? 0 : Double.POSITIVE_INFINITY;
       }
       b[63 - p] += b[64 - p];
-      b[64 - p] = 0;
       double factor = m << 1;
       double a = unsignedLongToDouble(sum) * factor * 0x1p-64;
 
       return factor
           * DistinctCountUtil.solveMaximumLikelihoodEquation(
-              a, b, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
+              a, b, 63 - p, ML_EQUATION_SOLVER_EPS / Math.sqrt(m))
           / (1. + ML_BIAS_CORRECTION_CONSTANT / m);
     }
   }
