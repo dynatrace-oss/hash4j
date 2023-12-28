@@ -245,10 +245,10 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   public UltraLogLog add(long hashValue, StateChangeObserver stateChangeObserver) {
     int q = Long.numberOfLeadingZeros(state.length - 1L); // q = 64 - p
     int idx = (int) (hashValue >>> q);
-    int nlz = Long.numberOfLeadingZeros(~(~hashValue << (-q))); // nlz in {0, 1, ..., 64-p}
+    int nlz = Long.numberOfLeadingZeros(~(~hashValue << -q)); // nlz in {0, 1, ..., 64-p}
     byte oldState = state[idx];
     long hashPrefix = unpack(oldState);
-    hashPrefix |= 1L << (nlz + (~q)); // (nlz + (~q)) = (nlz + p - 1) in {p-1, ... 63}
+    hashPrefix |= 1L << (nlz + ~q); // (nlz + (~q)) = (nlz + p - 1) in {p-1, ... 63}
     byte newState = pack(hashPrefix);
     state[idx] = newState;
     if (stateChangeObserver != null && newState != oldState) {
@@ -323,7 +323,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
   // visible for testing
   static byte pack(long hashPrefix) {
     int nlz = Long.numberOfLeadingZeros(hashPrefix) + 1;
-    return (byte) (((-nlz) << 2) | ((hashPrefix << nlz) >>> 62));
+    return (byte) ((-nlz << 2) | ((hashPrefix << nlz) >>> 62));
   }
 
   /**
@@ -410,7 +410,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     //
     // for a numerical evaluation see
     // https://www.wolframalpha.com/input?i=3%2F2+*+ln%282%29+*+zeta%283%2C5%2F4%29%2F%28zeta%282%2C5%2F4%29%29%5E2
-    private static final double ML_BIAS_CORRECTION_CONSTANT = 0.48147376527720066;
+    private static final double ML_BIAS_CORRECTION_CONSTANT = 0.48147376527720065;
 
     // returns contribution to alpha, scaled by 2^64
     private static long contribute(int r, int[] b, int p) {
@@ -772,7 +772,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       long alpha = m + 3 * (c0 + c4 + c8 + c10);
       long beta = m - c0 - c4;
       long gamma = 4 * c0 + 2 * c4 + 3 * c8 + c10;
-      double quadRootZ = (sqrt(beta * beta + 4 * alpha * gamma) - beta) / (2 * alpha);
+      double quadRootZ = (sqrt((double) (beta * beta + 4 * alpha * gamma)) - beta) / (2 * alpha);
       double rootZ = quadRootZ * quadRootZ;
       return rootZ * rootZ;
     }
@@ -781,7 +781,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       long alpha = m + 3 * (c4w0 + c4w1 + c4w2 + c4w3);
       long beta = c4w0 + c4w1 + 2 * (c4w2 + c4w3);
       long gamma = m + 2 * c4w0 + c4w2 - c4w3;
-      return sqrt((sqrt(beta * beta + 4 * alpha * gamma) - beta) / (2 * alpha));
+      return sqrt((sqrt((double) (beta * beta + 4 * alpha * gamma)) - beta) / (2 * alpha));
     }
 
     // this is psi as defined in the paper divided by ETA_X

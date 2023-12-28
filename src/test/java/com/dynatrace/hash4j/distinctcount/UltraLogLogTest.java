@@ -92,7 +92,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     assertThat(UltraLogLog.pack(12)).isEqualTo((byte) 14);
     assertThat(UltraLogLog.pack(1L << (12 - 1))).isEqualTo((byte) 44);
     assertThat(UltraLogLog.pack(1L << 12)).isEqualTo((byte) 48);
-    assertThat(UltraLogLog.pack((1L << (12 - 1)) | (1L << (12)))).isEqualTo((byte) 50);
+    assertThat(UltraLogLog.pack((1L << (12 - 1)) | (1L << 12))).isEqualTo((byte) 50);
     assertThat(UltraLogLog.pack(1L << (12 + 1))).isEqualTo((byte) 52);
     assertThat(UltraLogLog.pack(0x8000000000000000L)).isEqualTo((byte) 252);
     assertThat(UltraLogLog.pack(0xFFFFFFFFFFFFFFFFL)).isEqualTo((byte) 255);
@@ -158,7 +158,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
     for (int p = MIN_P; p <= MAX_P; ++p) {
       for (int i = p; i <= 64; ++i) {
         long hash = 0xFFFFFFFFFFFFFFFFL >>> 1 >>> (i - 1);
-        int nlz = Long.numberOfLeadingZeros(~((~hash) << p));
+        int nlz = Long.numberOfLeadingZeros(~(~hash << p));
         assertThat(i - p + 1).isEqualTo(nlz + 1);
         assertThat(((UltraLogLog.create(p).add(hash).getState()[0] & 0xFF) >>> 2) + 2 - p)
             .isEqualTo(nlz + 1);
@@ -767,12 +767,6 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
   private static byte mapRegisterFromReferenceDefinition(byte r, int p) {
     if (r == 0) return 0;
     return (byte) (r + 4 * (p - 2));
-  }
-
-  // this function maps a register value to the corresponding value as defined in the paper
-  private static byte mapRegisterToReferenceDefinition(byte r, int p) {
-    if (r == 0) return 0;
-    return (byte) (r - 4 * (p - 2));
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ public abstract class AbstractZeroAllocationHashing64BitPerformanceTest
 
   protected abstract LongHashFunction createHashFunction();
 
+  @Override
   protected long hashObject(TestObject testObject) {
     try {
       ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();

@@ -41,6 +41,7 @@ final class SimHashPolicy_v1 extends AbstractSimilarityHashPolicy {
     private final PseudoRandomGenerator pseudoRandomGenerator =
         pseudoRandomGeneratorProvider.create();
 
+    @Override
     public byte[] compute(ElementHashProvider elementHashProvider) {
 
       requireNonNull(elementHashProvider);
@@ -74,7 +75,7 @@ final class SimHashPolicy_v1 extends AbstractSimilarityHashPolicy {
         }
       }
 
-      final long limit = numberOfElements >>> 1;
+      final long limit = (long) (numberOfElements >>> 1);
       return packedArrayHandler.create(
           i -> (counts[i] + (i & (~numberOfElements & 1)) > limit) ? 1L : 0L, numberOfComponents);
     }

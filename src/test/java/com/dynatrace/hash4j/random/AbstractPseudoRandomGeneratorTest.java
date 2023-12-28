@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ abstract class AbstractPseudoRandomGeneratorTest {
   void testStability() {
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     for (int c = 0; c < 3; ++c) {
-      HashStream64 hashStream = Hashing.komihash4_3().hashStream();
+      HashStream64 hashStream = Hashing.komihash5_0().hashStream();
       prg.reset(0x2953eb15d353f9bdL);
       for (int i = 0; i < 1000; ++i) {
         hashStream.putLong(prg.nextLong());
@@ -106,6 +106,9 @@ abstract class AbstractPseudoRandomGeneratorTest {
       }
       for (int i = 1; i < 1000; ++i) {
         hashStream.putInt(prg.uniformInt(Integer.MAX_VALUE / i));
+      }
+      for (int i = 1; i < 1000; ++i) {
+        hashStream.putDouble(prg.nextExponential());
       }
       assertThat(hashStream.getAsLong()).isEqualTo(getExpectedStabilityCheckSum());
     }

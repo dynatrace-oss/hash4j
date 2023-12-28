@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,5 +171,6 @@ public interface HashStream128 extends HashStream64 {
    *
    * @return this
    */
+  @Override
   HashStream128 reset();
 }

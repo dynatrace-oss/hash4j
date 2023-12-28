@@ -37,7 +37,7 @@ class PackedArrayTest {
 
   private static void assertEquals(long[] expected, byte[] actual, PackedArrayHandler handler) {
     int bitSize = handler.getBitSize();
-    long mask = (bitSize > 0) ? (0xFFFFFFFFFFFFFFFFL >>> (-bitSize)) : 0;
+    long mask = (bitSize > 0) ? (0xFFFFFFFFFFFFFFFFL >>> -bitSize) : 0;
     for (int i = 0; i < expected.length; ++i) {
       long expectedValue = expected[i] & mask;
       long actualValue = handler.get(actual, i);

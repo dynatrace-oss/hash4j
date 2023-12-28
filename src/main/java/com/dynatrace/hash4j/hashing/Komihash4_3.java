@@ -152,7 +152,7 @@ class Komihash4_3 extends AbstractKomihash {
     } else if (len > 3) {
       long fb = getInt(input, off) & 0xFFFFFFFFL;
       long y = getInt(input, off + len - 4);
-      fb |= (y << 32) >>> (-ml8);
+      fb |= (y << 32) >>> -ml8;
       fb |= 1L << ml8 << (y >>> 63);
       r2l ^= fb;
     } else if (len > 0) {
@@ -267,7 +267,7 @@ class Komihash4_3 extends AbstractKomihash {
     } else if (len > 1) {
       long fb = getInt(input, off) & 0xFFFFFFFFL;
       long y = getInt(input, off + len - 2);
-      fb |= (y << 32) >>> (-ml8);
+      fb |= (y << 32) >>> -ml8;
       fb |= 1L << ml8 << (y >>> 63);
       r2l ^= fb;
     } else if (len > 0) {

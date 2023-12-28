@@ -21,6 +21,7 @@ import com.dynatrace.hash4j.hashing.HashValue128;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -32,7 +33,7 @@ class FileHashingDemo {
 
     // create some file in the given path
     File file = path.resolve("test.txt").toFile();
-    try (FileWriter fileWriter = new FileWriter(file)) {
+    try (FileWriter fileWriter = new FileWriter(file, StandardCharsets.UTF_8)) {
       fileWriter.write("this is the file content");
     }
 

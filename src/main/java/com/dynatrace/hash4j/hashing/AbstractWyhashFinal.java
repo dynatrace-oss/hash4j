@@ -222,7 +222,7 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
         ok = true;
         seed += 0xa0761d6478bd642fL;
         secret[i] =
-            (c[(int) (Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length))]
+            (c[(int) Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length)]
                 & 0xFFL);
         if ((secret[i] & 1) == 0) {
           seed += 0x633acdbf4d2dbd49L; // = 7 * 0xa0761d6478bd642fL
@@ -232,7 +232,7 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
         for (int j = 8; j < 64; j += 8) {
           seed += 0xa0761d6478bd642fL;
           secret[i] |=
-              (c[(int) (Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length))]
+              (c[(int) Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length)]
                       & 0xFFL)
                   << j;
         }
@@ -438,7 +438,7 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
             setLong(buffer, 32, b4);
             setLong(buffer, 40, b5);
           }
-          buffer[0] = (byte) (z);
+          buffer[0] = (byte) z;
         }
       }
       while (remainingChars >= 4) {

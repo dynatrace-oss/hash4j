@@ -21,6 +21,7 @@ import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -175,7 +176,7 @@ public final class EstimationErrorSimulationUtil {
             .mapToDouble(c -> c.getpToAsymptoticRelativeStandardError().applyAsDouble(p))
             .toArray();
 
-    try (FileWriter writer = new FileWriter(outputFile)) {
+    try (FileWriter writer = new FileWriter(outputFile, StandardCharsets.UTF_8)) {
       writer.write(
           "sketch_name="
               + sketchName

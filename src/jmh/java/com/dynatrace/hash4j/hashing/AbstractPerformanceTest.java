@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2023 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,8 +281,7 @@ public abstract class AbstractPerformanceTest {
     int len = random.nextInt(minLen, maxLen + 1);
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < len; ++i) {
-      char c = 'a';
-      c += random.nextInt(0, 26);
+      char c = (char) ('a' + random.nextInt(0, 26));
       sb.append(c);
     }
     return sb.toString();
@@ -292,9 +291,8 @@ public abstract class AbstractPerformanceTest {
     int len = random.nextInt(minLen, maxLen + 1);
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < len; ++i) {
-      char c = 0x03B1;
-      c += random.nextInt(0, 24);
-      if (c >= 0x03C2) c += 1;
+      char c = (char) (0x03B1 + random.nextInt(0, 24));
+      if (c >= 0x03C2) c = (char) (c + 1);
       sb.append(c);
     }
     return sb.toString();
@@ -311,8 +309,6 @@ public abstract class AbstractPerformanceTest {
   }
 
   static {
-    final SplittableRandom random = new SplittableRandom(0);
-
     BYTE_ARRAYS_1 = createRandomByteArrays(NUM_OBJECTS, 1, 1, 0x035348bcb49493a4L);
     BYTE_ARRAYS_4 = createRandomByteArrays(NUM_OBJECTS, 1, 4, 0xcc6444ca02edfbd0L);
     BYTE_ARRAYS_16 = createRandomByteArrays(NUM_OBJECTS, 1, 16, 0x187c616cabc3e0a7L);
@@ -346,7 +342,7 @@ public abstract class AbstractPerformanceTest {
     TEST_OBJECTS1 = createTestObjects(NUM_OBJECTS, TestObject1::new, 0x37569b3107539e19L);
     TEST_OBJECTS2 = createTestObjects(NUM_OBJECTS, TestObject2::new, 0x892da841ae127839L);
     TEST_OBJECTS3 = createTestObjects(NUM_OBJECTS, TestObject3::new, 0xb443e2873a03f397L);
-    TEST_OBJECTS4 = createTestObjects(NUM_OBJECTS, TestObject3::new, 0x49952ea071f1cc0aL);
+    TEST_OBJECTS4 = createTestObjects(NUM_OBJECTS, TestObject4::new, 0x49952ea071f1cc0aL);
   }
 
   private void directBytesTest(byte[][] data, Blackhole blackhole) {

@@ -264,7 +264,7 @@ class Murmur3_128 extends AbstractHasher128 {
           processBuffer(buffer0, buffer1);
         }
         buffer0 = buffer1;
-        buffer1 = (l >>> (-bitCount));
+        buffer1 = (l >>> -bitCount);
       }
       bitCount += 16;
       return this;
@@ -279,7 +279,7 @@ class Murmur3_128 extends AbstractHasher128 {
           processBuffer(buffer0, buffer1);
         }
         buffer0 = buffer1;
-        buffer1 = (l >>> (-bitCount));
+        buffer1 = (l >>> -bitCount);
       }
       bitCount += 32;
       return this;
@@ -292,7 +292,7 @@ class Murmur3_128 extends AbstractHasher128 {
         processBuffer(buffer0, buffer1);
       }
       buffer0 = buffer1;
-      buffer1 = (l >>> 1 >>> (~bitCount));
+      buffer1 = (l >>> 1 >>> ~bitCount);
       bitCount += 64;
       return this;
     }
@@ -302,12 +302,12 @@ class Murmur3_128 extends AbstractHasher128 {
 
       final long oldBitCount = bitCount;
       final int numWrittenBytes = (int) bitCount >>> 3;
-      final int regularBlockStartIdx = (-numWrittenBytes) & 0xF;
+      final int regularBlockStartIdx = -numWrittenBytes & 0xF;
       final int regularBlockEndIdx = len - ((len + numWrittenBytes) & 0xF);
       bitCount += ((long) len) << 3;
 
       if (regularBlockEndIdx < regularBlockStartIdx) {
-        int z = (-numWrittenBytes) & 0x7;
+        int z = -numWrittenBytes & 0x7;
         if (len < z) {
           for (int x = 0; x < len; ++x) {
             buffer1 |= (b[off + x] & 0xFFL) << ((x + numWrittenBytes) << 3);
@@ -330,11 +330,11 @@ class Murmur3_128 extends AbstractHasher128 {
       if (regularBlockStartIdx > 0) {
         if (regularBlockStartIdx >= 8) {
           if (regularBlockStartIdx > 8) {
-            buffer0 = buffer1 | (getLong(b, off)) << oldBitCount;
+            buffer0 = buffer1 | getLong(b, off) << oldBitCount;
           }
           buffer1 = getLong(b, off + regularBlockStartIdx - 8);
         } else if (len >= 8) {
-          buffer1 |= (getLong(b, off)) << oldBitCount;
+          buffer1 |= getLong(b, off) << oldBitCount;
         } else {
           if (regularBlockStartIdx >= 4) {
             if (regularBlockStartIdx >= 5) {
@@ -372,11 +372,11 @@ class Murmur3_128 extends AbstractHasher128 {
       if (0 < remainingBytes) {
         if (8 <= remainingBytes) {
           if (8 < remainingBytes) {
-            buffer1 = (getLong(b, offLen - 8)) >>> (-(remainingBytes << 3));
+            buffer1 = getLong(b, offLen - 8) >>> -(remainingBytes << 3);
           }
           buffer0 = getLong(b, offLen - remainingBytes);
         } else if (len >= 8) {
-          buffer1 |= (getLong(b, offLen - 8)) >>> (-(remainingBytes << 3));
+          buffer1 |= getLong(b, offLen - 8) >>> -(remainingBytes << 3);
         } else {
           if (3 < remainingBytes) {
             buffer1 |= (((long) getInt(b, offLen - remainingBytes)) & 0xFFFFFFFFL);
@@ -448,14 +448,14 @@ class Murmur3_128 extends AbstractHasher128 {
     @Override
     public HashStream128 putChars(CharSequence s) {
       final int len = s.length();
-      int i = ((8 - (int) (bitCount)) >>> 4) & 0x7;
+      int i = ((8 - (int) bitCount) >>> 4) & 0x7;
       if (len < i) {
         for (int j = 0; j < len; j++) {
           final long l = s.charAt(j);
           buffer1 |= l << bitCount;
           if ((bitCount & 0x30L) == 0x30L) {
             buffer0 = buffer1;
-            buffer1 = (l >>> (-bitCount));
+            buffer1 = l >>> -bitCount;
           }
           bitCount += 16;
         }

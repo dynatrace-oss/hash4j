@@ -159,7 +159,7 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putLong(long v) {
-    putInt((int) (v));
+    putInt((int) v);
     putInt((int) (v >> 32));
     return this;
   }

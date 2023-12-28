@@ -106,6 +106,7 @@ public final class TestUtils {
         return byteArrayToCharSequence(y);
       }
 
+      @SuppressWarnings("UnnecessaryStringBuilder")
       @Override
       public String toString() {
         return new StringBuilder(length()).append(this).toString();
