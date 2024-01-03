@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Dynatrace LLC
+ * Copyright 2023-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ class ConsistentHashingDemo {
 
     // create a consistent bucket hasher
     ConsistentBucketHasher consistentBucketHasher =
-        ConsistentHashing.jumpHash(PseudoRandomGeneratorProvider.splitMix64_V1());
+        ConsistentHashing.jumpBackHash(PseudoRandomGeneratorProvider.splitMix64_V1());
 
     long[] hashValues = {9184114998275508886L, 7090183756869893925L, -8795772374088297157L};
 
@@ -47,7 +47,7 @@ class ConsistentHashingDemo {
         LongStream.of(hashValues)
             .boxed()
             .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 3)));
-    // gives {0=[-8795772374088297157], 1=[9184114998275508886], 2=[7090183756869893925]}
+    // gives {0=[7090183756869893925], 1=[9184114998275508886], 2=[-8795772374088297157]}
     // hash value 7090183756869893925 got reassigned from bucket 0 to bucket 2
     // probability of reassignment is equal to 1/3
 
@@ -55,6 +55,6 @@ class ConsistentHashingDemo {
         .hasToString("{0=[7090183756869893925, -8795772374088297157], 1=[9184114998275508886]}");
     assertThat(assignment3Buckets)
         .hasToString(
-            "{0=[-8795772374088297157], 1=[9184114998275508886], 2=[7090183756869893925]}");
+            "{0=[7090183756869893925], 1=[9184114998275508886], 2=[-8795772374088297157]}");
   }
 }

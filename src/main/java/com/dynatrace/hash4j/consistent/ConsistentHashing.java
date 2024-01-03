@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Dynatrace LLC
+ * Copyright 2023-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.consistent;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 
-/** Consistent hash algorithms for load balancing, sharding, task distribution, etc. */
+/** Consistent hash algorithms. */
 public final class ConsistentHashing {
 
   private ConsistentHashing() {}
@@ -56,5 +56,20 @@ public final class ConsistentHashing {
   public static ConsistentBucketHasher improvedConsistentWeightedSampling(
       PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
     return new ImprovedConsistentWeightedSampling(pseudoRandomGeneratorProvider);
+  }
+
+  /**
+   * Returns a {@link ConsistentBucketHasher}.
+   *
+   * <p>In contrast to other algorithms, JumpBackHash runs in constant time and does not require
+   * floating-point operations. On some machines it may achieve similar performance as a modulo
+   * operation.
+   *
+   * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
+   * @return a {@link ConsistentBucketHasher}
+   */
+  public static ConsistentBucketHasher jumpBackHash(
+      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
+    return new ConsistentJumpBackBucketHasher(pseudoRandomGeneratorProvider);
   }
 }
