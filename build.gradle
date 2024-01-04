@@ -186,7 +186,7 @@ dependencies {
 	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
-	errorprone("com.google.errorprone:error_prone_core:2.24.0")
+	errorprone("com.google.errorprone:error_prone_core:2.24.1")
 }
 
 jacocoTestReport {
