@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.SplittableRandom;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.openjdk.jmh.annotations.*;
@@ -101,7 +100,7 @@ public class UltraLogLogPerformanceTest {
 
     @Setup(Level.Trial)
     public void init() {
-      SplittableRandom random = new SplittableRandom(ThreadLocalRandom.current().nextLong());
+      SplittableRandom random = new SplittableRandom();
       sketches =
           Stream.generate(() -> generate(random, numElements, precision))
               .limit(numExamples)
@@ -139,7 +138,7 @@ public class UltraLogLogPerformanceTest {
 
     @Setup(Level.Trial)
     public void init() {
-      SplittableRandom random = new SplittableRandom(ThreadLocalRandom.current().nextLong());
+      SplittableRandom random = new SplittableRandom();
       sketches =
           IntStream.range(0, numExamples)
               .mapToObj(i -> generate(random, 1L << (i % 25), precision))
@@ -186,7 +185,7 @@ public class UltraLogLogPerformanceTest {
 
     @Setup(Level.Trial)
     public void init() {
-      SplittableRandom random = new SplittableRandom(ThreadLocalRandom.current().nextLong());
+      SplittableRandom random = new SplittableRandom();
       sketches1 =
           Stream.generate(() -> generate(random, numElements1, precision1))
               .limit(numExamples)
