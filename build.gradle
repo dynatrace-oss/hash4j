@@ -1,14 +1,5 @@
 import com.diffplug.gradle.spotless.JavaExtension
 
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.palantir.gradle.revapi:gradle-revapi:1.7.0'
-	}
-}
-
 plugins {
 	id 'java'
 	id 'java-library'
@@ -21,6 +12,25 @@ plugins {
 	id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
 	id "com.palantir.revapi" version "1.7.0"
 	id "net.ltgt.errorprone" version "3.1.0"
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.1'
+	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.1'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.10.1'
+	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.25.1'
+	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.0'
+	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.0'
+	testImplementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
+	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.16.0'
+	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
+	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
+	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
+	errorprone("com.google.errorprone:error_prone_core:2.24.1")
 }
 
 static def readJavaLicense(licenseName) {
@@ -168,25 +178,6 @@ sonarqube {
 		property 'sonar.organization', 'dynatrace-oss'
 		property 'sonar.host.url', 'https://sonarcloud.io'
 	}
-}
-
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.1'
-	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.1'
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.10.1'
-	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.25.1'
-	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.0'
-	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.0'
-	testImplementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
-	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.16.0'
-	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
-	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
-	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
-	errorprone("com.google.errorprone:error_prone_core:2.24.1")
 }
 
 jacocoTestReport {
