@@ -42,6 +42,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
+
 abstract class AbstractKomihash extends AbstractHasher64 {
 
   protected final long seed1;
