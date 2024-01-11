@@ -11,14 +11,24 @@
 hash4j is a Java library by Dynatrace that includes various non-cryptographic hash algorithms and data structures that are based on high-quality hash functions.
 
 ## Content
-- [First steps](#first-steps)
-- [Hash algorithms](#hash-algorithms)
-- [Similarity hashing](#similarity-hashing)
-- [Approximate distinct counting](#approximate-distinct-counting)
-- [File hashing](#file-hashing)
-- [Consistent hashing](#consistent-hashing)
-- [Benchmark results](#benchmark-results)
-- [Contribution FAQ](#contribution-faq)
+- [ hash4j](#-hash4j)
+  - [Content](#content)
+  - [First steps](#first-steps)
+  - [Hash algorithms](#hash-algorithms)
+    - [Usage](#usage)
+  - [Similarity hashing](#similarity-hashing)
+    - [Usage](#usage-1)
+  - [Approximate distinct counting](#approximate-distinct-counting)
+    - [Usage](#usage-2)
+    - [Compatibility](#compatibility)
+  - [File hashing](#file-hashing)
+    - [Usage](#usage-3)
+  - [Consistent hashing](#consistent-hashing)
+    - [Usage](#usage-4)
+  - [Benchmark results](#benchmark-results)
+  - [Contribution FAQ](#contribution-faq)
+    - [Python](#python)
+    - [Reference implementations](#reference-implementations)
 
 ## First steps
 To add a dependency on hash4j using Maven, use the following:
@@ -44,7 +54,7 @@ hash4j currently implements the following hash algorithms:
   * [final version 4](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash_final4)
 * [Komihash](https://github.com/avaneev/komihash)
   * [version 4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [version 4.7](https://github.com/avaneev/komihash/releases/tag/4.7))
-  * [version 5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [version 5.1](https://github.com/avaneev/komihash/releases/tag/5.1), [version 5.7](https://github.com/avaneev/komihash/releases/tag/5.7), [version 5.8](https://github.com/avaneev/komihash/releases/tag/5.8), and [version 5.10](https://github.com/avaneev/komihash/releases/tag/5.10))
+  * [version 5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [version 5.10](https://github.com/avaneev/komihash/releases/tag/5.10))
 * [FarmHash](https://github.com/google/farmhash) (farmhashna)
 * [PolymurHash 2.0](https://github.com/orlp/polymur-hash)
 

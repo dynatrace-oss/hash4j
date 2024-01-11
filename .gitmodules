@@ -31,18 +31,9 @@
 [submodule "reference-implementations/komihash_5_0/komihash"]
 	path = reference-implementations/komihash_5_0/komihash
 	url = https://github.com/avaneev/komihash.git
-[submodule "reference-implementations/komihash_5_1/komihash"]
-	path = reference-implementations/komihash_5_1/komihash
-	url = https://github.com/avaneev/komihash.git
 [submodule "reference-implementations/polymur-hash_2_0/polymur-hash"]
 	path = reference-implementations/polymur-hash_2_0/polymur-hash
 	url = https://github.com/orlp/polymur-hash.git
-[submodule "reference-implementations/komihash_5_7/komihash"]
-	path = reference-implementations/komihash_5_7/komihash
-	url = https://github.com/avaneev/komihash.git
-[submodule "reference-implementations/komihash_5_8/komihash"]
-	path = reference-implementations/komihash_5_8/komihash
-	url = https://github.com/avaneev/komihash.git
 [submodule "reference-implementations/komihash_5_10/komihash"]
 	path = reference-implementations/komihash_5_10/komihash
 	url = https://github.com/avaneev/komihash.git
