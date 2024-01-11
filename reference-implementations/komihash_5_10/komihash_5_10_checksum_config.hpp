@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "komihash_5_7_checksum_config.hpp"
-#include "komihash/komihash.h"
-#include <cstring>
+#ifndef KOMIHASH_5_10_CHECKSUM_CONFIG_HPP
+#define KOMIHASH_5_10_CHECKSUM_CONFIG_HPP
 
-void Komihash5_7ChecksumConfig::calculateHash(const uint8_t *seedBytes,
-		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
+#include <string>
 
-	uint64_t seed;
-	memcpy(&seed, seedBytes, 8);
+class Komihash5_10ChecksumConfig {
 
-	uint64_t hash0 = komihash((char*) (&dataBytes[0]), size, 0);
-	uint64_t hash1 = komihash((char*) (&dataBytes[0]), size, seed);
+public:
 
-	memcpy(hashBytes, &hash0, 8);
-	memcpy(hashBytes + 8, &hash1, 8);
-}
+	uint64_t getSeedSize() const {
+		return 8;
+	}
+
+	uint64_t getHashSize() const {
+		return 16;
+	}
+
+	std::string getName() const {
+		return "Komihash 5.10";
+	}
+
+	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
+			const uint8_t *dataBytes, uint64_t size) const;
+
+};
+
+#endif // KOMIHASH_5_10_CHECKSUM_CONFIG_HPP

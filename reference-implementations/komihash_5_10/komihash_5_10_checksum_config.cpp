@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "komihash_5_8_checksum_config.hpp"
+#include "komihash_5_10_checksum_config.hpp"
 #include "komihash/komihash.h"
 #include <cstring>
 
-void Komihash5_8ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+void Komihash5_10ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
 	uint64_t seed;
