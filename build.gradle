@@ -1,8 +1,8 @@
 import com.diffplug.gradle.spotless.JavaExtension
 
 plugins {
-	id 'java'
 	id 'java-library'
+	id 'me.champeau.mrjar' version "0.1.1"
 	id 'jacoco'
 	id 'me.champeau.jmh' version '0.7.2'
 	id 'org.sonarqube' version '4.4.1.3373'
@@ -31,6 +31,10 @@ dependencies {
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 	errorprone("com.google.errorprone:error_prone_core:2.24.1")
+}
+
+multiRelease {
+	targetVersions 11, 21
 }
 
 static def readJavaLicense(licenseName) {
@@ -67,15 +71,6 @@ static def readPythonLicense(licenseName) {
 	}
 	s += '#'
 	return s
-}
-
-
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(11))
-	}
-	withJavadocJar()
-	withSourcesJar()
 }
 
 group = 'com.dynatrace.hash4j'
@@ -180,17 +175,6 @@ sonarqube {
 	}
 }
 
-jacocoTestReport {
-	reports {
-		xml.required = true
-		csv.required = true
-	}
-}
-
-test {
-	useJUnitPlatform()
-	maxHeapSize '8g'
-}
 
 jmh {
 	fork = 1
@@ -307,7 +291,14 @@ javadoc {
 }
 
 jacoco {
-	toolVersion = '0.8.8'
+	toolVersion = '0.8.9'
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+		csv.required = true
+	}
 }
 
 jacocoTestCoverageVerification {
@@ -374,12 +365,17 @@ nexusPublishing {
 	}
 }
 
-if (file("extra-configuration.gradle").exists()) {
-	apply from: 'extra-configuration.gradle'
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+	maxHeapSize '8g'
 }
 
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs << "-Werror"
 	options.errorprone.disableWarningsInGeneratedCode = false
 	// options.errorprone.enabled = false
+}
+
+if (file("extra-configuration.gradle").exists()) {
+	apply from: 'extra-configuration.gradle'
 }
