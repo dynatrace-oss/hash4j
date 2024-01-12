@@ -42,6 +42,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
+
 class Komihash4_3 extends AbstractKomihash {
 
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);

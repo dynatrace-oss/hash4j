@@ -1,17 +1,8 @@
 import com.diffplug.gradle.spotless.JavaExtension
 
-buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.palantir.gradle.revapi:gradle-revapi:1.7.0'
-	}
-}
-
 plugins {
-	id 'java'
 	id 'java-library'
+	id 'me.champeau.mrjar' version "0.1.1"
 	id 'jacoco'
 	id 'me.champeau.jmh' version '0.7.2'
 	id 'org.sonarqube' version '4.4.1.3373'
@@ -21,6 +12,29 @@ plugins {
 	id 'io.github.gradle-nexus.publish-plugin' version '1.3.0'
 	id "com.palantir.revapi" version "1.7.0"
 	id "net.ltgt.errorprone" version "3.1.0"
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.1'
+	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.1'
+	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.10.1'
+	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.25.1'
+	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.0'
+	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.0'
+	testImplementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
+	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.16.0'
+	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
+	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
+	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
+	errorprone("com.google.errorprone:error_prone_core:2.24.1")
+}
+
+multiRelease {
+	targetVersions 11, 21
 }
 
 static def readJavaLicense(licenseName) {
@@ -59,24 +73,15 @@ static def readPythonLicense(licenseName) {
 	return s
 }
 
-
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(11))
-	}
-	withJavadocJar()
-	withSourcesJar()
-}
-
 group = 'com.dynatrace.hash4j'
 version = '0.16.0'
 
 
 spotless {
-	def googleJavaFormatVersion = '1.18.1'
-	def eclipseCdtVersion = '10.7' // version 10.7 seems to be the latest compatible with Java 11
+	def googleJavaFormatVersion = '1.19.2'
+	def eclipseCdtVersion = '11.3'
 	def blackVersion = '23.12.1'
-	def greclipseVersion = '4.26' // version 4.26 seems to be the latest compatible with Java 11
+	def greclipseVersion = '4.29'
 
 	ratchetFrom 'origin/main'
 	apply plugin: 'groovy'
@@ -170,36 +175,6 @@ sonarqube {
 	}
 }
 
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.1'
-	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.1'
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.10.1'
-	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.25.1'
-	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.0'
-	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.0'
-	testImplementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
-	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.16.0'
-	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.16'
-	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '0.10.1'
-	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
-	errorprone("com.google.errorprone:error_prone_core:2.24.1")
-}
-
-jacocoTestReport {
-	reports {
-		xml.required = true
-		csv.required = true
-	}
-}
-
-test {
-	useJUnitPlatform()
-	maxHeapSize '8g'
-}
 
 jmh {
 	fork = 1
@@ -316,7 +291,14 @@ javadoc {
 }
 
 jacoco {
-	toolVersion = '0.8.8'
+	toolVersion = '0.8.9'
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+		csv.required = true
+	}
 }
 
 jacocoTestCoverageVerification {
@@ -383,12 +365,17 @@ nexusPublishing {
 	}
 }
 
-if (file("extra-configuration.gradle").exists()) {
-	apply from: 'extra-configuration.gradle'
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+	maxHeapSize '8g'
 }
 
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs << "-Werror"
 	options.errorprone.disableWarningsInGeneratedCode = false
 	// options.errorprone.enabled = false
+}
+
+if (file("extra-configuration.gradle").exists()) {
+	apply from: 'extra-configuration.gradle'
 }
