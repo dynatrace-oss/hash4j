@@ -225,7 +225,7 @@ for (sketch in sketches) {
 		def sketchTaskName = "simulate" + sketch + "EstimationErrorsP" + String.format( "%02d", p )
 		def outputFileName = "test-results/" + sketch.toLowerCase() + '-estimation-error-p' + String.format( "%02d", p )  + '.csv'
 		task "${sketchTaskName}"(type: JavaExec) {
-			outputs.files sketch.toLowerCase() + '-estimation-error-p' + String.format( "%02d", p )  + '.csv'
+			outputs.files outputFileName
 			group "evaluation"
 			classpath = sourceSets.test.runtimeClasspath
 			mainClass = 'com.dynatrace.hash4j.distinctcount.' + sketch + 'EstimationErrorSimulation'
