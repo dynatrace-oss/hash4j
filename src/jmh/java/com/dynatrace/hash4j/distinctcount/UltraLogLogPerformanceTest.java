@@ -70,7 +70,6 @@ public class UltraLogLogPerformanceTest {
     blackhole.consume(martingaleEstimator.getDistinctCountEstimate());
   }
 
-  @SuppressWarnings("ImmutableEnumChecker")
   public enum Estimator {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(UltraLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
     OPTIMAL_FGRA_ESTIMATOR(UltraLogLog.OPTIMAL_FGRA_ESTIMATOR);
