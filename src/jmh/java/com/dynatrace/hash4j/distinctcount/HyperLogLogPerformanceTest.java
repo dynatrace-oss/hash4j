@@ -70,7 +70,6 @@ public class HyperLogLogPerformanceTest {
     blackhole.consume(martingaleEstimator.getDistinctCountEstimate());
   }
 
-  @SuppressWarnings("ImmutableEnumChecker")
   public enum Estimator {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
     CORRECTED_RAW_ESTIMATOR(HyperLogLog.CORRECTED_RAW_ESTIMATOR);
