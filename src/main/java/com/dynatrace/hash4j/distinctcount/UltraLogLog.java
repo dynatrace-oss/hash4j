@@ -294,22 +294,31 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
     byte[] otherData = other.state;
     if (otherData.length < state.length) {
       throw new IllegalArgumentException("other has smaller precision");
-    }
-    final int p = getP();
-    final int otherP = other.getP();
-    final int deltaP = otherP - p;
-    int j = 0;
-    for (int i = 0; i < state.length; ++i) {
-      long hashPrefix = unpack(state[i]) | unpack(otherData[j]);
-      j += 1;
-      for (long k = 1; k < 1L << deltaP; ++k) {
-        if (otherData[j] != 0) {
-          hashPrefix |= 1L << (Long.numberOfLeadingZeros(k) + otherP - 1);
+    } else if (otherData.length == state.length) {
+      for (int i = 0; i < state.length; ++i) {
+        byte otherR = otherData[i];
+        if (otherR != 0) {
+          state[i] = pack(unpack(state[i]) | unpack(otherR));
         }
-        j += 1;
       }
-      if (hashPrefix != 0) {
-        state[i] = pack(hashPrefix);
+    } else {
+      final int p = getP();
+      final int otherP = other.getP();
+      final int otherPMinusOne = otherP - 1;
+      final long kUpperBound = 1L << (otherP - p);
+      int j = 0;
+      for (int i = 0; i < state.length; ++i) {
+        long hashPrefix = unpack(state[i]) | unpack(otherData[j]);
+        j += 1;
+        for (long k = 1; k < kUpperBound; ++k) {
+          if (otherData[j] != 0) {
+            hashPrefix |= 1L << (Long.numberOfLeadingZeros(k) + otherPMinusOne);
+          }
+          j += 1;
+        }
+        if (hashPrefix != 0) {
+          state[i] = pack(hashPrefix);
+        }
       }
     }
     return this;
