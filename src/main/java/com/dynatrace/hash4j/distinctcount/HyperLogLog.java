@@ -53,6 +53,10 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     return (int) INT_HANDLE.get(b, off);
   }
 
+  private static void setInt(byte[] b, int off, int v) {
+    INT_HANDLE.set(b, off, v);
+  }
+
   /**
    * Bias-reduced version of the standard HyperLogLog estimator using small range and large range
    * correction as described in (Ertl2017).
@@ -373,29 +377,50 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
     byte[] otherData = other.state;
     if (other.p < p) {
       throw new IllegalArgumentException("other has smaller precision");
-    }
-    final int deltaP = other.p - p;
-    int j = 0;
-    for (int i = 0; i < 1 << p; ++i) {
-      int oldR = (int) ARRAY_HANDLER.get(state, i);
-      int r = oldR;
-      int otherR = (int) ARRAY_HANDLER.get(otherData, j);
-      if (otherR != 0) {
-        otherR += deltaP;
-        if (otherR > r) {
-          r = otherR;
-        }
+    } else if (other.p == p) {
+
+      for (int off = 0; off + 6 <= state.length; off += 6) {
+        int s0 = getInt(state, off);
+        int s1 = getInt(state, off + 2);
+        int sOther0 = getInt(other.state, off);
+        int sOther1 = getInt(other.state, off + 2);
+        int r0 = Math.max(s0 & 0x3F, sOther0 & 0x3F);
+        int r1 = Math.max((s0 >>> 6) & 0x3F, (sOther0 >>> 6) & 0x3F);
+        int r2 = Math.max((s0 >>> 12) & 0x3F, (sOther0 >>> 12) & 0x3F);
+        int r3 = Math.max((s0 >>> 18) & 0x3F, (sOther0 >>> 18) & 0x3F);
+        int r4 = Math.max((s1 >>> 8) & 0x3F, (sOther1 >>> 8) & 0x3F);
+        int r5 = Math.max((s1 >>> 14) & 0x3F, (sOther1 >>> 14) & 0x3F);
+        int r6 = Math.max((s1 >>> 20) & 0x3F, (sOther1 >>> 20) & 0x3F);
+        int r7 = Math.max((s1 >>> 26) & 0x3F, (sOther1 >>> 26) & 0x3F);
+
+        setInt(state, off + 2, (r5 << 14) | (r6 << 20) | (r7 << 26));
+        setInt(state, off, r0 | (r1 << 6) | (r2 << 12) | (r3 << 18) | (r4 << 24) | (r5 << 30));
       }
-      j += 1;
-      for (long k = 1; k < 1L << deltaP; ++k) {
-        int nlz = Long.numberOfLeadingZeros(k) - 64 + deltaP;
-        if (nlz >= r && ARRAY_HANDLER.get(otherData, j) != 0L) {
-          r = nlz + 1;
+
+    } else {
+      final int deltaP = other.p - p;
+      int j = 0;
+      for (int i = 0; i < 1 << p; ++i) {
+        int oldR = (int) ARRAY_HANDLER.get(state, i);
+        int r = oldR;
+        int otherR = (int) ARRAY_HANDLER.get(otherData, j);
+        if (otherR != 0) {
+          otherR += deltaP;
+          if (otherR > r) {
+            r = otherR;
+          }
         }
         j += 1;
-      }
-      if (oldR < r) {
-        ARRAY_HANDLER.set(state, i, r);
+        for (long k = 1; k < 1L << deltaP; ++k) {
+          int nlz = Long.numberOfLeadingZeros(k) - 64 + deltaP;
+          if (nlz >= r && ARRAY_HANDLER.get(otherData, j) != 0L) {
+            r = nlz + 1;
+          }
+          j += 1;
+        }
+        if (oldR < r) {
+          ARRAY_HANDLER.set(state, i, r);
+        }
       }
     }
     return this;
