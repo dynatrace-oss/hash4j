@@ -74,6 +74,7 @@ public class UltraLogLogPerformanceTest {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(UltraLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
     OPTIMAL_FGRA_ESTIMATOR(UltraLogLog.OPTIMAL_FGRA_ESTIMATOR);
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final UltraLogLog.Estimator estimator;
 
     Estimator(UltraLogLog.Estimator estimator) {
