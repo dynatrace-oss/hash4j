@@ -1,4 +1,4 @@
-black==23.12.1
+black==24.1.1
 click==8.1.7
 GitPython==3.1.41
 matplotlib==3.8.2
