@@ -60,20 +60,33 @@ package com.dynatrace.hash4j.hashing;
 
 import static java.lang.Long.rotateRight;
 
-class FarmHashNa extends AbstractFarmHash {
+class FarmHashUo extends AbstractFarmHash {
 
-  private static final long START_X = 0x1529cba0ca458ffL;
-  private static final long START_Y = 0x226bb95b4e64b6d4L;
-  private static final long START_Z = 0x134a747f856d0526L;
+  private final long seed0;
+  private final long seed1;
+  private final long mul;
+  private final long startX;
+  private final long startY;
+  private final long startZ;
 
-  private static final FarmHashNa INSTANCE = new FarmHashNa();
+  private FarmHashUo(long seed0, long seed1) {
+    this.seed0 = seed0;
+    this.seed1 = seed1;
+    this.startX = seed0 * K2;
+    this.startY = seed1 * K2 + 113;
+    this.startZ = shiftMix(startY * K2) * K2;
+    long u = seed0 - startZ;
+    this.mul = K2 + (u & 0x82);
+  }
+
+  private static final FarmHashUo INSTANCE = new FarmHashUo(81, 0);
 
   static Hasher64 create() {
     return INSTANCE;
   }
 
   static Hasher64 create(long seed) {
-    return new FarmHashNa() {
+    return new FarmHashUo(0, seed) {
       @Override
       protected long finalizeHash(long hash) {
         return hashLen16(hash - K2, seed, K_MUL);
@@ -82,12 +95,19 @@ class FarmHashNa extends AbstractFarmHash {
   }
 
   static Hasher64 create(long seed0, long seed1) {
-    return new FarmHashNa() {
+    return new FarmHashUo(seed0, seed1) {
       @Override
       protected long finalizeHash(long hash) {
         return hashLen16(hash - seed0, seed1, K_MUL);
       }
     };
+  }
+
+  private static long uoH(long x, long y, long mul, int r) {
+    long a = (x ^ y) * mul;
+    a = shiftMix(a);
+    long b = (y ^ a) * mul;
+    return rotateRight(b, r) * mul;
   }
 
   @Override
@@ -97,17 +117,17 @@ class FarmHashNa extends AbstractFarmHash {
 
   @Override
   protected long hashBytesToLongLength65Plus(byte[] bytes, int offset, int length) {
-    int seed = 81;
-    long x = seed;
-    long y = seed * K1 + 113;
-    long z = shiftMix(y * K2 + 113) * K2;
-    long v0 = 0;
-    long v1 = 0;
+    long x = startX;
+    long y = startY;
+    long z = startZ;
+    long v0 = seed0;
+    long v1 = seed1;
     long w0 = 0;
     long w1 = 0;
+    long u = seed0 - z;
     int end = offset + ((length - 1) & 0xFFFFFFC0);
     int last64offset = offset + length - 64;
-    x = x * K2 + getLong(bytes, offset);
+
     do {
       long b0 = getLong(bytes, offset);
       long b1 = getLong(bytes, offset + 8);
@@ -118,26 +138,52 @@ class FarmHashNa extends AbstractFarmHash {
       long b6 = getLong(bytes, offset + 48);
       long b7 = getLong(bytes, offset + 56);
 
-      x = (rotateRight(x + y + v0 + b1, 37) * K1) ^ w1;
-      y = (rotateRight(y + v1 + b6, 42) * K1) + v0 + b5;
-      z = rotateRight(z + w0, 33) * K1;
-      v1 *= K1;
-      v1 += b0;
-      v0 = v1 + (b1 + b2);
-      v1 += rotateRight(x + w0 + v1 + b3, 21);
-      v1 += rotateRight(v0, 44);
-      w1 += z + b4;
-      w0 = w1 + (b5 + b6);
-      w1 += rotateRight(y + w1 + b2 + b7, 21);
-      w1 += rotateRight(w0, 44);
-      v0 += b3;
-      w0 += b7;
-      long t = z;
-      z = x;
-      x = t;
+      x += b0 + b1;
+      y += b2;
+      z += b3;
+      v0 += b4;
+      v1 += b5 + b1;
+      w0 += b6;
+      w1 += b7;
 
-      offset += 64;
-    } while (offset != end);
+      x = rotateRight(x, 26);
+      x *= 9;
+      y = rotateRight(y, 29);
+      z *= mul;
+      v0 = rotateRight(v0, 33);
+      v1 = rotateRight(v1, 30);
+      w0 ^= x;
+      w0 *= 9;
+      z = rotateRight(z, 32);
+      z += w1;
+      w1 += z;
+      z *= 9;
+
+      long t = u;
+      u = y;
+      y = t;
+
+      z += b0 + b6;
+      v0 += b2;
+      v1 += b3;
+      w0 += b4;
+      w1 += b5 + b6;
+      x += b1;
+      y += b7;
+
+      y += v0;
+      v0 += x - y;
+      v1 += w0;
+      w0 += v1;
+      w1 += x - y;
+      x += w1;
+      w1 = rotateRight(w1, 34);
+
+      t = u;
+      u = z;
+      z = t;
+
+    } while ((offset += 64) != end);
 
     long b0 = getLong(bytes, last64offset);
     long b1 = getLong(bytes, last64offset + 8);
@@ -148,25 +194,26 @@ class FarmHashNa extends AbstractFarmHash {
     long b6 = getLong(bytes, last64offset + 48);
     long b7 = getLong(bytes, last64offset + 56);
 
-    w0 += ((length - 1) & 63);
-    return finalize(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+    w0 += (length - 1) & 63;
+
+    return finalize(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
   @Override
   protected long hashCharsToLongLength33Plus(CharSequence input) {
     int len = input.length();
-    int seed = 81;
-    long x = seed;
-    long y = seed * K1 + 113;
-    long z = shiftMix(y * K2 + 113) * K2;
-    long v0 = 0;
-    long v1 = 0;
+
+    long x = startX;
+    long y = startY;
+    long z = startZ;
+    long v0 = seed0;
+    long v1 = seed1;
     long w0 = 0;
     long w1 = 0;
-
+    long u = seed0 - z;
     int end = ((len - 1) & 0xFFFFFFE0);
     int last64offset = len - 32;
-    x = x * K2 + getLong(input, 0);
+
     int offset = 0;
     do {
       long b0 = getLong(input, offset + 0);
@@ -178,23 +225,50 @@ class FarmHashNa extends AbstractFarmHash {
       long b6 = getLong(input, offset + 24);
       long b7 = getLong(input, offset + 28);
 
-      x = (rotateRight(x + y + v0 + b1, 37) * K1) ^ w1;
-      y = (rotateRight(y + v1 + b6, 42) * K1) + v0 + b5;
-      z = rotateRight(z + w0, 33) * K1;
-      v1 *= K1;
-      v1 += b0;
-      v0 = v1 + (b1 + b2);
-      v1 += rotateRight(x + w0 + v1 + b3, 21);
-      v1 += rotateRight(v0, 44);
-      w1 += z + b4;
-      w0 = w1 + (b5 + b6);
-      w1 += rotateRight(y + w1 + b2 + b7, 21);
-      w1 += rotateRight(w0, 44);
-      v0 += b3;
-      w0 += b7;
-      long t = z;
-      z = x;
-      x = t;
+      x += b0 + b1;
+      y += b2;
+      z += b3;
+      v0 += b4;
+      v1 += b5 + b1;
+      w0 += b6;
+      w1 += b7;
+
+      x = rotateRight(x, 26);
+      x *= 9;
+      y = rotateRight(y, 29);
+      z *= mul;
+      v0 = rotateRight(v0, 33);
+      v1 = rotateRight(v1, 30);
+      w0 ^= x;
+      w0 *= 9;
+      z = rotateRight(z, 32);
+      z += w1;
+      w1 += z;
+      z *= 9;
+
+      long t = u;
+      u = y;
+      y = t;
+
+      z += b0 + b6;
+      v0 += b2;
+      v1 += b3;
+      w0 += b4;
+      w1 += b5 + b6;
+      x += b1;
+      y += b7;
+
+      y += v0;
+      v0 += x - y;
+      v1 += w0;
+      w0 += v1;
+      w1 += x - y;
+      x += w1;
+      w1 = rotateRight(w1, 34);
+
+      t = u;
+      u = z;
+      z = t;
 
       offset += 32;
     } while (offset != end);
@@ -210,10 +284,11 @@ class FarmHashNa extends AbstractFarmHash {
 
     w0 += ((len << 1) - 1) & 63;
 
-    return finalize(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+    return finalize(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
   private long finalize(
+      long u,
       long x,
       long y,
       long z,
@@ -229,49 +304,54 @@ class FarmHashNa extends AbstractFarmHash {
       long b5,
       long b6,
       long b7) {
-    long mul = K1 + ((z & 0xff) << 1);
-    v0 += w0;
-    w0 += v0;
-    x = rotateRight(x + y + v0 + b1, 37) * mul;
-    y = rotateRight(y + v1 + b6, 42) * mul;
-    z = rotateRight(z + w0, 33) * mul;
+    u *= 9;
+    v1 = rotateRight(v1, 28);
+    v0 = rotateRight(v0, 20);
+    u += y;
+    y += u;
+    x = rotateRight(y - x + v0 + b1, 37) * mul;
+    y = rotateRight(y ^ v1 ^ b6, 42) * mul;
     x ^= w1 * 9;
-    y += v0 * 9 + b5;
-    long c0 = v1 * mul + b0;
-    long a0 = c0 + (b1 + b2);
-    long c1 = z + w1 + b4;
-    long a1 = c1 + (b5 + b6);
+    y += v0 + b5;
+    z = rotateRight(z + w0, 33) * mul;
 
-    return finalizeHash(
-        hashLen16(
-            hashLen16(a0 + b3, a1 + b7, mul) + shiftMix(y) * K0 + x,
-            hashLen16(
-                    rotateRight(x + w0 + c0 + b3, 21) + rotateRight(a0, 44) + c0,
-                    rotateRight(y + b2 + c1 + b7, 21) + rotateRight(a1, 44) + c1,
-                    mul)
-                + z,
-            mul));
+    long c0 = v1 * mul + b0;
+    long c1 = z + w1 + b4;
+    long a0 = c0 + (b1 + b2);
+    long a1 = c1 + (b5 + b6);
+    return uoH(
+        hashLen16(a0 + b3 + x, (a1 + b7) ^ y, mul) + z - u,
+        uoH(
+                rotateRight(x + w0 + c0 + b3, 21) + rotateRight(a0, 44) + c0 + y,
+                rotateRight(y + b2 + c1 + b7, 21) + rotateRight(a1, 44) + c1 + z,
+                K2,
+                30)
+            ^ x,
+        K2,
+        31);
   }
 
   private class HashStreamImpl extends FarmHashStreamImpl {
 
-    private long x = START_X;
-    private long y = START_Y;
-    private long z = START_Z;
-    private long v0 = 0;
-    private long v1 = 0;
+    private long x = startX;
+    private long y = startY;
+    private long z = startZ;
+    private long v0 = seed0;
+    private long v1 = seed1;
     private long w0 = 0;
     private long w1 = 0;
+    private long u = seed0 - z;
 
     @Override
     public HashStream64 reset() {
-      x = START_X;
-      y = START_Y;
-      z = START_Z;
-      v0 = 0;
-      v1 = 0;
+      x = startX;
+      y = startY;
+      z = startZ;
+      v0 = seed0;
+      v1 = seed1;
       w0 = 0;
       w1 = 0;
+      u = seed0 - z;
       bufferCount = 8;
       init = true;
       return this;
@@ -280,25 +360,52 @@ class FarmHashNa extends AbstractFarmHash {
     @Override
     protected void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
-      if (init) x += b0;
+
       init = false;
-      x = (rotateRight(x + y + v0 + b1, 37) * K1) ^ w1;
-      y = (rotateRight(y + v1 + b6, 42) * K1) + v0 + b5;
-      z = rotateRight(z + w0, 33) * K1;
-      v1 *= K1;
-      v1 += b0;
-      v0 = v1 + (b1 + b2);
-      v1 += rotateRight(x + w0 + v1 + b3, 21);
-      v1 += rotateRight(v0, 44);
-      w1 += z + b4;
-      w0 = w1 + (b5 + b6);
-      w1 += rotateRight(y + w1 + b2 + b7, 21);
-      w1 += rotateRight(w0, 44);
-      v0 += b3;
-      w0 += b7;
-      long t = z;
-      z = x;
-      x = t;
+      x += b0 + b1;
+      y += b2;
+      z += b3;
+      v0 += b4;
+      v1 += b5 + b1;
+      w0 += b6;
+      w1 += b7;
+
+      x = rotateRight(x, 26);
+      x *= 9;
+      y = rotateRight(y, 29);
+      z *= mul;
+      v0 = rotateRight(v0, 33);
+      v1 = rotateRight(v1, 30);
+      w0 ^= x;
+      w0 *= 9;
+      z = rotateRight(z, 32);
+      z += w1;
+      w1 += z;
+      z *= 9;
+
+      long t = u;
+      u = y;
+      y = t;
+
+      z += b0 + b6;
+      v0 += b2;
+      v1 += b3;
+      w0 += b4;
+      w1 += b5 + b6;
+      x += b1;
+      y += b7;
+
+      y += v0;
+      v0 += x - y;
+      v1 += w0;
+      w0 += v1;
+      w1 += x - y;
+      x += w1;
+      w1 = rotateRight(w1, 34);
+
+      t = u;
+      u = z;
+      z = t;
     }
 
     @Override
@@ -326,8 +433,8 @@ class FarmHashNa extends AbstractFarmHash {
       long b6 = getLong(buffer, (bufferCount + 48) & 0x3f);
       long b7 = getLong(buffer, bufferCount - 8);
 
-      return FarmHashNa.this.finalize(
-          x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+      return FarmHashUo.this.finalize(
+          u, x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
   }
 }

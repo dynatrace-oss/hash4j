@@ -329,4 +329,51 @@ public final class Hashing {
   public static Hasher64 farmHashNa(long seed0, long seed1) {
     return FarmHashNa.create(seed0, seed1);
   }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit FarmHashUo algorithm with default seed.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * farmhashuo::Hash64} defined in <a
+   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">farmhash.cc</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 farmHashUo() {
+    return FarmHashUo.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit FarmHashUo algorithm using the given seed
+   * value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * farmhashuo::Hash64WithSeed} defined in <a
+   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">farmhash.cc</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed the seed
+   * @return a hasher instance
+   */
+  public static Hasher64 farmHashUo(long seed) {
+    return FarmHashUo.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit FarmHashUo algorithm using the given seed
+   * values.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * farmhashuo::Hash64WithSeeds} defined in <a
+   * href="https://github.com/google/farmhash/blob/0d859a811870d10f53a594927d0d0b97573ad06d/src/farmhash.cc">farmhash.cc</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed0 the first seed value
+   * @param seed1 the second seed value
+   * @return a hasher instance
+   */
+  public static Hasher64 farmHashUo(long seed0, long seed1) {
+    return FarmHashUo.create(seed0, seed1);
+  }
 }
