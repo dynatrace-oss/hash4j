@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -234,6 +234,45 @@ abstract class DistinctCounterTest<
         for (int i = 0; i < numIterations; ++i) {
           testAddAndMerge2(p1, p2, random.nextLong());
         }
+      }
+    }
+  }
+
+  private void testAddWithItself(int p, long seed) {
+    T sketch = create(p);
+
+    SplittableRandom random = new SplittableRandom(seed);
+
+    List<HashGenerator> hashGenerators = getHashGenerators(p);
+    long[] hashPool = new long[(1 << p) * hashGenerators.size()];
+    int c = 0;
+    for (HashGenerator hashGenerator : hashGenerators) {
+      for (int idx = 0; idx < (1 << p); ++idx) {
+        hashPool[c] = hashGenerator.generateHashValue(idx);
+        c += 1;
+      }
+    }
+
+    for (int i = 0; i < (int) (hashPool.length * 0.3); ++i) {
+      long hashValue = hashPool[random.nextInt(0, hashPool.length)];
+      sketch.add(hashValue);
+    }
+
+    byte[] d = Arrays.copyOf(sketch.getState(), sketch.getState().length);
+
+    sketch.add(sketch);
+
+    assertThat(sketch.getState()).isEqualTo(d);
+  }
+
+  @Test
+  void testAddWithItself() {
+    int numIterations = 100;
+    SplittableRandom random = new SplittableRandom(0xccc995a43d2a2530L);
+    int[] pVals = IntStream.range(getMinP(), Math.min(12, getMaxP())).toArray();
+    for (int p : pVals) {
+      for (int i = 0; i < numIterations; ++i) {
+        testAddWithItself(p, random.nextLong());
       }
     }
   }
