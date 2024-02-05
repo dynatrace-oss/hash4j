@@ -74,6 +74,7 @@ public class HyperLogLogPerformanceTest {
     MAXIMUM_LIKELIHOOD_ESTIMATOR(HyperLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR),
     CORRECTED_RAW_ESTIMATOR(HyperLogLog.CORRECTED_RAW_ESTIMATOR);
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final HyperLogLog.Estimator estimator;
 
     Estimator(HyperLogLog.Estimator estimator) {
