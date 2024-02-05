@@ -22,7 +22,7 @@ dependencies {
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.1'
 	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.10.1'
 	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.10.2'
-	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.25.2'
+	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.25.3'
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.0'
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.0'
 	testImplementation group: 'com.google.guava', name: 'guava', version: '33.0.0-jre'
