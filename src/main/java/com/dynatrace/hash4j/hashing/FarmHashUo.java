@@ -196,7 +196,7 @@ class FarmHashUo extends AbstractFarmHash {
 
     w0 += (length - 1) & 63;
 
-    return finalize(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+    return finalizeHash(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
   @Override
@@ -284,10 +284,10 @@ class FarmHashUo extends AbstractFarmHash {
 
     w0 += ((len << 1) - 1) & 63;
 
-    return finalize(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+    return finalizeHash(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
-  private long finalize(
+  private long finalizeHash(
       long u,
       long x,
       long y,
@@ -433,7 +433,7 @@ class FarmHashUo extends AbstractFarmHash {
       long b6 = getLong(buffer, (bufferCount + 48) & 0x3f);
       long b7 = getLong(buffer, bufferCount - 8);
 
-      return FarmHashUo.this.finalize(
+      return FarmHashUo.this.finalizeHash(
           u, x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
   }
