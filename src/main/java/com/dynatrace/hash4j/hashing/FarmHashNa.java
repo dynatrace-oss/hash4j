@@ -149,7 +149,7 @@ class FarmHashNa extends AbstractFarmHash {
     long b7 = getLong(bytes, last64offset + 56);
 
     w0 += ((length - 1) & 63);
-    return finalize(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+    return finalizeHash(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
   @Override
@@ -210,10 +210,10 @@ class FarmHashNa extends AbstractFarmHash {
 
     w0 += ((len << 1) - 1) & 63;
 
-    return finalize(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+    return finalizeHash(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
-  private long finalize(
+  private long finalizeHash(
       long x,
       long y,
       long z,
@@ -326,7 +326,7 @@ class FarmHashNa extends AbstractFarmHash {
       long b6 = getLong(buffer, (bufferCount + 48) & 0x3f);
       long b7 = getLong(buffer, bufferCount - 8);
 
-      return FarmHashNa.this.finalize(
+      return FarmHashNa.this.finalizeHash(
           x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
   }
