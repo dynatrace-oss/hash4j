@@ -35,20 +35,20 @@ class ConsistentHashingDemo {
 
     long[] hashValues = {9184114998275508886L, 7090183756869893925L, -8795772374088297157L};
 
-    // determine assignment of hash value to 2 buckets
+    // determine assignment of hash values to 2 buckets
     Map<Integer, List<Long>> assignment2Buckets =
         LongStream.of(hashValues)
             .boxed()
             .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 2)));
     // gives {0=[7090183756869893925, -8795772374088297157], 1=[9184114998275508886]}
 
-    // determine assignment of hash value to 3 buckets
+    // determine assignment of hash values to 3 buckets
     Map<Integer, List<Long>> assignment3Buckets =
         LongStream.of(hashValues)
             .boxed()
             .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 3)));
     // gives {0=[7090183756869893925], 1=[9184114998275508886], 2=[-8795772374088297157]}
-    // hash value 7090183756869893925 got reassigned from bucket 0 to bucket 2
+    // hash value -8795772374088297157 got reassigned from bucket 0 to bucket 2
     // probability of reassignment is equal to 1/3
 
     assertThat(assignment2Buckets)
