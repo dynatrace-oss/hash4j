@@ -210,12 +210,18 @@ The following consistent hashing algorithms are available:
 * [Improved Consistent Weighted Sampling](https://doi.org/10.1109/ICDM.2010.80): This algorithm is based on improved
 consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
 JumpHash for a large number of buckets.
+* JumpBackHash: In contrast to JumpHash, which traverses "active indices" (see [here](https://doi.org/10.1109/ICDM.2010.80) for a definition)
+in ascending order, JumpBackHash does this in the opposite direction. In this way, floating operations can be completely avoided.
+Further optimizations minimize the number of random values that need to be generated to reach
+the largest "active index" within the given bucket range in amortized constant time. The largest "active index",
+defines the bucket assignment of the given hash value. In the worst case,
+this algorithm consumes an average of 5/3 = 1.667 64-bit random values.
   
 ### Usage
 ```java
 // create a consistent bucket hasher
 ConsistentBucketHasher consistentBucketHasher =
-    ConsistentHashing.jumpHash(PseudoRandomGeneratorProvider.splitMix64_V1());
+    ConsistentHashing.jumpBackHash(PseudoRandomGeneratorProvider.splitMix64_V1());
 
 long[] hashValues = {9184114998275508886L, 7090183756869893925L, -8795772374088297157L};
 
@@ -231,7 +237,7 @@ Map<Integer, List<Long>> assignment3Buckets =
     LongStream.of(hashValues)
         .boxed()
         .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 3)));
-// gives {0=[-8795772374088297157], 1=[9184114998275508886], 2=[7090183756869893925]}
+// gives {0=[7090183756869893925], 1=[9184114998275508886], 2=[-8795772374088297157]}
 // hash value 7090183756869893925 got reassigned from bucket 0 to bucket 2
 // probability of reassignment is equal to 1/3
 ```
