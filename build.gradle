@@ -74,7 +74,7 @@ static def readPythonLicense(licenseName) {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.16.0'
+version = '0.17.0'
 
 
 spotless {
