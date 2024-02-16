@@ -73,6 +73,11 @@ static def readPythonLicense(licenseName) {
 	return s
 }
 
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
 group = 'com.dynatrace.hash4j'
 version = '0.17.0'
 
