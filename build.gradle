@@ -85,7 +85,7 @@ version = '0.17.0'
 spotless {
 	def googleJavaFormatVersion = '1.19.2'
 	def eclipseCdtVersion = '11.3'
-	def blackVersion = '24.1.1'
+	def blackVersion = '24.3.0'
 	def greclipseVersion = '4.29'
 
 	ratchetFrom 'origin/main'
