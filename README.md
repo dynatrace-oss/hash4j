@@ -210,7 +210,7 @@ The following consistent hashing algorithms are available:
 * [Improved Consistent Weighted Sampling](https://doi.org/10.1109/ICDM.2010.80): This algorithm is based on improved
 consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
 JumpHash for a large number of buckets.
-* JumpBackHash: In contrast to JumpHash, which traverses "active indices" (see [here](https://doi.org/10.1109/ICDM.2010.80) for a definition)
+* [JumpBackHash](https://arxiv.org/abs/2403.18682): In contrast to JumpHash, which traverses "active indices" (see [here](https://doi.org/10.1109/ICDM.2010.80) for a definition)
 in ascending order, JumpBackHash does this in the opposite direction. In this way, floating-point operations can be completely avoided.
 Further optimizations minimize the number of random values that need to be generated to reach
 the largest "active index" within the given bucket range in amortized constant time. The largest "active index",
