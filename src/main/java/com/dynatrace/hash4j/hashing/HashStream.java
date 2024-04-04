@@ -169,4 +169,13 @@ interface HashStream extends HashSink {
    * @return this
    */
   HashStream reset();
+
+  /**
+   * Copies hash stream.
+   *
+   * <p>This allows to save the current state for reuse, without new hash computations.
+   *
+   * @return new instance
+   */
+  HashStream copy();
 }

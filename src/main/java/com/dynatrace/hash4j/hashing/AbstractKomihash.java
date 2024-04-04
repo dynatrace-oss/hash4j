@@ -343,6 +343,19 @@ abstract class AbstractKomihash extends AbstractHasher64 {
 
       return finalizeGetAsLong(se1, se5, off, len);
     }
+
+    protected void copyTo(HashStreamImpl hashStream) {
+      hashStream.see1 = see1;
+      hashStream.see2 = see2;
+      hashStream.see3 = see3;
+      hashStream.see4 = see4;
+      hashStream.see5 = see5;
+      hashStream.see6 = see6;
+      hashStream.see7 = see7;
+      hashStream.see8 = see8;
+      hashStream.byteCount = byteCount;
+      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
+    }
   }
 
   protected static long finish(long r2h, long r2l, long see5) {

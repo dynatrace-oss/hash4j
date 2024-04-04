@@ -61,6 +61,11 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
         hashStream32.reset();
         return this;
       }
+
+      @Override
+      public HashStream32 copy() {
+        return hashStream32.copy();
+      }
     };
   }
 
@@ -113,6 +118,11 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
               @Override
               public HashStream32 reset() {
                 return this;
+              }
+
+              @Override
+              public HashStream32 copy() {
+                throw new UnsupportedOperationException();
               }
 
               @Override

@@ -242,6 +242,17 @@ class Murmur3_128 extends AbstractHasher128 {
     }
 
     @Override
+    public HashStream128 copy() {
+      final HashStreamImpl hashStream = new HashStreamImpl();
+      hashStream.h1 = h1;
+      hashStream.h2 = h2;
+      hashStream.buffer0 = buffer0;
+      hashStream.buffer1 = buffer1;
+      hashStream.bitCount = bitCount;
+      return hashStream;
+    }
+
+    @Override
     public HashStream128 putByte(byte b) {
       buffer1 |= ((b & 0xFFL) << bitCount);
       if ((bitCount & 0x38L) == 0x38L) {

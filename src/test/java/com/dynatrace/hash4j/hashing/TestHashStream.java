@@ -39,6 +39,14 @@ class TestHashStream extends AbstractHashStream {
   }
 
   @Override
+  public HashStream copy() {
+    final TestHashStream hashStream = new TestHashStream();
+    hashStream.size = size;
+    System.arraycopy(data, 0, hashStream.data, 0, data.length);
+    return hashStream;
+  }
+
+  @Override
   public int getHashBitSize() {
     throw new UnsupportedOperationException();
   }

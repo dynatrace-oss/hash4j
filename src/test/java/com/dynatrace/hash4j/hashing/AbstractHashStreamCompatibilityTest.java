@@ -39,6 +39,11 @@ class AbstractHashStreamCompatibilityTest {
           }
 
           @Override
+          public HashStream128 copy() {
+            throw new UnsupportedOperationException();
+          }
+
+            @Override
           public int getHashBitSize() {
             return 128;
           }

@@ -358,6 +358,23 @@ class FarmHashUo extends AbstractFarmHash {
     }
 
     @Override
+    public HashStream64 copy() {
+      final HashStreamImpl hashStream = new HashStreamImpl();
+      hashStream.x = x;
+      hashStream.y = y;
+      hashStream.z = z;
+      hashStream.v0 = v0;
+      hashStream.v1 = v1;
+      hashStream.w0 = w0;
+      hashStream.w1 = w1;
+      hashStream.u = u;
+      hashStream.bufferCount = bufferCount;
+      hashStream.init = init;
+      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
+      return hashStream;
+    }
+
+    @Override
     protected void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
 

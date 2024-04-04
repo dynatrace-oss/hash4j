@@ -270,6 +270,18 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
     }
 
     @Override
+    public HashStream64 copy() {
+      final HashStreamImpl hashStream = new HashStreamImpl();
+      hashStream.byteCount = byteCount;
+      hashStream.offset = offset;
+      hashStream.see0 = see0;
+      hashStream.see1 = see1;
+      hashStream.see2 = see2;
+      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
+      return hashStream;
+    }
+
+    @Override
     public HashStream64 putByte(byte v) {
       buffer[offset] = v;
       offset += 1;

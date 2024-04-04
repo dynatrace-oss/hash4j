@@ -161,4 +161,7 @@ public interface HashStream32 extends HashStream {
 
   @Override
   HashStream32 reset();
+
+  @Override
+  HashStream32 copy();
 }

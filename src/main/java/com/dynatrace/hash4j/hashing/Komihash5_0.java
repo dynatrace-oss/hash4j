@@ -320,6 +320,13 @@ class Komihash5_0 extends AbstractKomihash {
 
       return finish(r2h, r2l, se5);
     }
+
+    @Override
+    public HashStream64 copy() {
+      final HashStreamImpl hashStream = new HashStreamImpl();
+      copyTo(hashStream);
+      return hashStream;
+    }
   }
 
   @Override
