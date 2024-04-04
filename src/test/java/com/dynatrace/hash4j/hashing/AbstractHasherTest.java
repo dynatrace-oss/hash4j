@@ -1331,16 +1331,12 @@ abstract class AbstractHasherTest {
     final SplittableRandom random = new SplittableRandom();
     random.nextBytes(bytes);
 
-    final HashStream checkPoint = hasher.hashStream()
-        .putBytes(bytes);
+    final HashStream checkPoint = hasher.hashStream().putBytes(bytes);
 
     for (int i = 0; i < numIterations; i++) {
       final int index = random.nextInt();
-      final HashStream expected = hasher.hashStream()
-          .putBytes(bytes)
-          .putInt(index);
-      final HashStream actual = checkPoint.copy()
-          .putInt(index);
+      final HashStream expected = hasher.hashStream().putBytes(bytes).putInt(index);
+      final HashStream actual = checkPoint.copy().putInt(index);
       assertHashStreamEquals(expected, actual);
     }
   }
