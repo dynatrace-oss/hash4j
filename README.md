@@ -248,6 +248,10 @@ Benchmark results for different revisions can be found [here](https://github.com
 
 ## Contribution FAQ
 
+### Coding style
+
+To ensure that your contribution adheres to our coding style, run the `spotlessApply` Gradle task.
+
 ### Python
 
 This project contains python code. We recommend using a python virtual environment in a `.venv` directory. If you are new, please follow the steps outlined
