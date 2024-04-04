@@ -528,6 +528,16 @@ class PolymurHash2_0 extends AbstractHasher64 {
     }
 
     @Override
+    public HashStream64 copy() {
+      final HashStreamImpl hashStream = new HashStreamImpl();
+      hashStream.byteCount = byteCount;
+      hashStream.offset = offset;
+      hashStream.h = h;
+      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
+      return hashStream;
+    }
+
+    @Override
     public HashStream64 putByte(byte v) {
       buffer[offset] = v;
       offset += 1;

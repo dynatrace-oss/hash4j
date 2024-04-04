@@ -1097,6 +1097,11 @@ abstract class AbstractHasherTest {
           public HashStream64 reset() {
             return referenceHashStream.reset();
           }
+
+          @Override
+          public HashStream64 copy() {
+            return referenceHashStream.copy();
+          }
         };
       }
 
@@ -1315,6 +1320,24 @@ abstract class AbstractHasherTest {
         assertThat(hash2).isEqualTo(hash1);
         assertThat(hash3).isEqualTo(hash1);
       }
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testCopy(Hasher hasher) {
+    final int numIterations = 10;
+    final byte[] bytes = new byte[100];
+    final SplittableRandom random = new SplittableRandom();
+    random.nextBytes(bytes);
+
+    final HashStream checkPoint = hasher.hashStream().putBytes(bytes);
+
+    for (int i = 0; i < numIterations; i++) {
+      final int index = random.nextInt();
+      final HashStream expected = hasher.hashStream().putBytes(bytes).putInt(index);
+      final HashStream actual = checkPoint.copy().putInt(index);
+      assertHashStreamEquals(expected, actual);
     }
   }
 }

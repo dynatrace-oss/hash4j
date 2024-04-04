@@ -135,6 +135,16 @@ class Murmur3_32 extends AbstractHasher32 {
     }
 
     @Override
+    public HashStream32 copy() {
+      final HashStreamImpl hashStream = new HashStreamImpl();
+      hashStream.h1 = h1;
+      hashStream.buffer = buffer;
+      hashStream.shift = shift;
+      hashStream.length = length;
+      return hashStream;
+    }
+
+    @Override
     public HashStream32 putByte(byte b) {
       buffer |= ((b & 0xFFL) << shift);
       shift += 8;

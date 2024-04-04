@@ -173,4 +173,7 @@ public interface HashStream128 extends HashStream64 {
    */
   @Override
   HashStream128 reset();
+
+  @Override
+  HashStream128 copy();
 }

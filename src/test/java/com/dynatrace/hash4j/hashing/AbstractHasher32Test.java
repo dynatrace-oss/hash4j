@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,11 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
         hashStream32.reset();
         return this;
       }
+
+      @Override
+      public HashStream32 copy() {
+        return hashStream32.copy();
+      }
     };
   }
 
@@ -113,6 +118,11 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
               @Override
               public HashStream32 reset() {
                 return this;
+              }
+
+              @Override
+              public HashStream32 copy() {
+                throw new UnsupportedOperationException();
               }
 
               @Override

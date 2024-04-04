@@ -173,4 +173,7 @@ public interface HashStream64 extends HashStream32 {
    */
   @Override
   HashStream64 reset();
+
+  @Override
+  HashStream64 copy();
 }
