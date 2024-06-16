@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iostream>
 #include <iomanip>
 #include <random>
+#include <fstream>
 
 #include "openssl/sha.h"
 
@@ -46,21 +46,28 @@ uint64_t splitmix_v1_update(uint64_t &state) {
 template<typename T>
 void computeAndPrintChecksum(const T &hashFunctionConfig = T()) {
 
-	uint64_t maxDataLength = 200;
-	uint64_t numCycles = 10000;
+	mt19937_64 rng(0);
 
-	uint8_t checkSum[SHA256_DIGEST_LENGTH];
-	SHA256_CTX sha256;
+	uint64_t maxDataLength = 1024;
+	uint64_t numCycles = 1000;
 
-	SHA256_Init(&sha256);
-
-	uint64_t rngState = 0;
-	uint64_t effectiveSeedLength = (hashFunctionConfig.getSeedSize() + 7) >> 3;
-
-	std::vector < uint64_t > seedBytesTemp(effectiveSeedLength);
-	std::vector < uint8_t > hashBytes(hashFunctionConfig.getHashSize());
+	ofstream outputFile(hashFunctionConfig.getName() + ".txt");
 
 	for (uint64_t dataLength = 0; dataLength <= maxDataLength; ++dataLength) {
+
+		uint8_t checkSum[SHA256_DIGEST_LENGTH];
+		SHA256_CTX sha256;
+
+		SHA256_Init(&sha256);
+
+		uint64_t seed = rng();
+		uint64_t rngState = seed;
+		uint64_t effectiveSeedLength = (hashFunctionConfig.getSeedSize() + 7)
+				>> 3;
+
+		std::vector < uint64_t > seedBytesTemp(effectiveSeedLength);
+		std::vector < uint8_t > hashBytes(hashFunctionConfig.getHashSize());
+
 		uint64_t effectiveDataLength = (dataLength + 7) >> 3;
 
 		std::vector < uint64_t > dataBytesTemp(effectiveDataLength);
@@ -83,15 +90,18 @@ void computeAndPrintChecksum(const T &hashFunctionConfig = T()) {
 
 		}
 
+		SHA256_Final(checkSum, &sha256);
+
+		outputFile << dec << dataLength << ",";
+		outputFile << dec << numCycles << ",";
+		outputFile << hex << setfill('0') << setw(16) << seed << ",";
+		for (uint64_t k = 0; k < SHA256_DIGEST_LENGTH; ++k)
+			outputFile << hex << setfill('0') << setw(2)
+					<< static_cast<uint64_t>(checkSum[k]);
+
+		outputFile << endl;
 	}
-	SHA256_Final(checkSum, &sha256);
-
-	cout << hashFunctionConfig.getName() << ": ";
-	for (uint64_t k = 0; k < SHA256_DIGEST_LENGTH; ++k)
-		cout << hex << setfill('0') << setw(2)
-				<< static_cast<uint64_t>(checkSum[k]);
-	cout << endl;
-
+	outputFile.close();
 }
 
 int main(int argc, char *argv[]) {

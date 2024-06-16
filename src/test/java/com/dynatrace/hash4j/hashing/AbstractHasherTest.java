@@ -16,6 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
+import static com.dynatrace.hash4j.testutils.TestUtils.hexStringToByteArray;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
@@ -23,9 +24,15 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import com.dynatrace.hash4j.testutils.TestUtils;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Splitter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
+import java.net.URISyntaxException;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -78,12 +85,80 @@ abstract class AbstractHasherTest {
 
   protected abstract List<? extends Hasher> getHashers();
 
+  public static final class ChecksumRecord {
+    private final long dataSize;
+    private final int numCycles;
+    private final long seed;
+    private final String checksum;
+
+    public ChecksumRecord(long dataSize, int numCycles, long seed, String checksumString) {
+      this.dataSize = dataSize;
+      this.numCycles = numCycles;
+      this.seed = seed;
+      this.checksum = checksumString;
+    }
+
+    public String getChecksum() {
+      return checksum;
+    }
+
+    public long getDataSize() {
+      return dataSize;
+    }
+
+    public int getNumCycles() {
+      return numCycles;
+    }
+
+    public long getSeed() {
+      return seed;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("dataSize", dataSize)
+          .add("numCycles", numCycles)
+          .toString();
+    }
+  }
+
+  private List<ChecksumRecord> getChecksumRecords() {
+
+    ClassLoader classLoader = getClass().getClassLoader();
+    File file;
+    try {
+      file = new File(classLoader.getResource(getChecksumResourceFileName()).toURI());
+    } catch (URISyntaxException e) {
+      throw new RuntimeException(e);
+    }
+    List<ChecksumRecord> checksumRecords = new ArrayList<>();
+
+    try (Scanner scanner = new Scanner(file, StandardCharsets.UTF_8.name())) {
+      while (scanner.hasNextLine()) {
+        List<String> s = Splitter.on(',').splitToList(scanner.nextLine());
+
+        long dataSize = Integer.parseInt(s.get(0));
+        int numCycles = Integer.parseInt(s.get(1));
+        long seed = TestUtils.hexStringToLong(s.get(2));
+        String checksumString = s.get(3);
+        checksumRecords.add(new ChecksumRecord(dataSize, numCycles, seed, checksumString));
+      }
+
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+    return checksumRecords;
+  }
+
+  protected abstract String getChecksumResourceFileName();
+
   private static final class TestCase {
     private final byte[] expected;
     private final Consumer<HashSink> sinkConsumer;
 
     public TestCase(Consumer<HashSink> sinkConsumer, String expected) {
-      this.expected = TestUtils.hexStringToByteArray(expected);
+      this.expected = hexStringToByteArray(expected);
       this.sinkConsumer = sinkConsumer;
     }
 
@@ -133,11 +208,9 @@ abstract class AbstractHasherTest {
           new TestCase(
               h -> h.putDouble(Double.longBitsToDouble(0x6b3ea4d75d3f4dbbL)), "bb4d3f5dd7a43e6b"),
           new TestCase(h -> h.putBytes(new byte[] {}), ""),
-          new TestCase(
-              h -> h.putBytes(TestUtils.hexStringToByteArray("6143f28b2b11d8")), "6143f28b2b11d8"),
+          new TestCase(h -> h.putBytes(hexStringToByteArray("6143f28b2b11d8")), "6143f28b2b11d8"),
           new TestCase(h -> h.putBytes(BYTE_SEQ_199), byteArrayToHexString(BYTE_SEQ_199)),
-          new TestCase(
-              h -> h.putBytes(TestUtils.hexStringToByteArray("c1ce762d62"), 1, 3), "ce762d"),
+          new TestCase(h -> h.putBytes(hexStringToByteArray("c1ce762d62"), 1, 3), "ce762d"),
           new TestCase(h -> h.putChar((char) 0x1466), "6614"),
           new TestCase(h -> h.putNullable(null, (o, sink) -> {}), "00"),
           new TestCase(
@@ -1022,21 +1095,21 @@ abstract class AbstractHasherTest {
 
   abstract int getHashSizeForChecksum();
 
-  abstract String getExpectedChecksum();
-
   protected static final VarHandle LONG_HANDLE =
       MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
   protected static final VarHandle INT_HANDLE =
       MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
 
-  @Test
-  void testCheckSum() throws NoSuchAlgorithmException {
+  @ParameterizedTest
+  @MethodSource("getChecksumRecords")
+  void testCheckSum(ChecksumRecord checksumRecord) throws NoSuchAlgorithmException {
 
-    long maxDataLength = 200;
-    long numCycles = 10000;
+    int dataLength = (int) checksumRecord.getDataSize();
+    long numCycles = checksumRecord.getNumCycles();
 
     PseudoRandomGenerator pseudoRandomGenerator =
         PseudoRandomGeneratorProvider.splitMix64_V1().create();
+    pseudoRandomGenerator.reset(checksumRecord.getSeed());
 
     MessageDigest md = MessageDigest.getInstance("SHA-256");
 
@@ -1046,31 +1119,28 @@ abstract class AbstractHasherTest {
     byte[] seedBytes = new byte[getSeedSizeForChecksum()];
     byte[] hashBytes = new byte[getHashSizeForChecksum()];
 
-    for (int dataLength = 0; dataLength <= maxDataLength; ++dataLength) {
-      int effectiveDataLength = (dataLength + 7) >> 3;
+    int effectiveDataLength = (dataLength + 7) >>> 3;
 
-      byte[] dataBytesTemp = new byte[effectiveDataLength * 8];
-      byte[] dataBytes = new byte[dataLength];
+    byte[] dataBytesTemp = new byte[effectiveDataLength * 8];
+    byte[] dataBytes = new byte[dataLength];
 
-      for (long cycle = 0; cycle < numCycles; ++cycle) {
-        for (int i = 0; i < effectiveDataLength; ++i) {
-          LONG_HANDLE.set(dataBytesTemp, 8 * i, pseudoRandomGenerator.nextLong());
-        }
-        for (int i = 0; i < effectiveSeedLength; ++i) {
-          LONG_HANDLE.set(seedBytesTemp, 8 * i, pseudoRandomGenerator.nextLong());
-        }
-
-        System.arraycopy(dataBytesTemp, 0, dataBytes, 0, dataLength);
-        System.arraycopy(seedBytesTemp, 0, seedBytes, 0, getSeedSizeForChecksum());
-
-        calculateHashForChecksum(seedBytes, hashBytes, dataBytes);
-
-        md.update(hashBytes);
+    for (long cycle = 0; cycle < numCycles; ++cycle) {
+      for (int i = 0; i < effectiveDataLength; ++i) {
+        LONG_HANDLE.set(dataBytesTemp, 8 * i, pseudoRandomGenerator.nextLong());
       }
-    }
+      for (int i = 0; i < effectiveSeedLength; ++i) {
+        LONG_HANDLE.set(seedBytesTemp, 8 * i, pseudoRandomGenerator.nextLong());
+      }
 
+      System.arraycopy(dataBytesTemp, 0, dataBytes, 0, dataLength);
+      System.arraycopy(seedBytesTemp, 0, seedBytes, 0, getSeedSizeForChecksum());
+
+      calculateHashForChecksum(seedBytes, hashBytes, dataBytes);
+
+      md.update(hashBytes);
+    }
     String checksum = byteArrayToHexString(md.digest());
-    assertThat(checksum).isEqualTo(getExpectedChecksum());
+    assertThat(checksum).isEqualTo(checksumRecord.getChecksum());
   }
 
   private static Hasher64 getHasherUsingDefaultImplementations(Hasher64 referenceHasher) {

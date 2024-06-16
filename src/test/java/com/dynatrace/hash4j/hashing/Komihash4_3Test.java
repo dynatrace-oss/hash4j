@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,11 @@ class Komihash4_3Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "Komihash 4.3.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
 
     long seed = (long) LONG_HANDLE.get(seedBytes, 0);
@@ -49,11 +54,6 @@ class Komihash4_3Test extends AbstractHasher64Test {
   @Override
   int getHashSizeForChecksum() {
     return 16;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "b83dc90ff8c0ad72989f5150a6f7dba41adfe0a70b9112da93040f3882ce16f6";
   }
 
   @Override

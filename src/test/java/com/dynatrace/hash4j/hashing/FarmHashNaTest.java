@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,11 @@ public class FarmHashNaTest extends AbstractHasher64Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "FarmHash NA.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     long seed = (long) LONG_HANDLE.get(seedBytes, 0);
     long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
@@ -55,11 +60,6 @@ public class FarmHashNaTest extends AbstractHasher64Test {
   @Override
   int getHashSizeForChecksum() {
     return 24;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "e2e8114ba370dcb23148a82c445bcba37c40a73546d7f0c45ed67fbc6ab365d9";
   }
 
   @Override

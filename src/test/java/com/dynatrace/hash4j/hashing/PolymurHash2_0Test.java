@@ -35,6 +35,11 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "PolymurHash 2.0.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     long tweak = (long) LONG_HANDLE.get(seedBytes, 0);
     long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
@@ -55,11 +60,6 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
   @Override
   int getHashSizeForChecksum() {
     return 16;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "753fa155704391801bb0fd78c52880386c1ded09b292db60007489ccf4ed2441";
   }
 
   @Override

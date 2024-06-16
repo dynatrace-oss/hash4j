@@ -127,4 +127,20 @@ public final class TestUtils {
       }
     };
   }
+
+  public static long hexStringToLong(String s) {
+    long result = 0;
+    for (int i = 0; i < 16; ++i) {
+      char c = s.charAt(i);
+      result <<= 4;
+      if (c >= '0' && c <= '9') {
+        result += c - '0';
+      } else if (c >= 'a' && c <= 'f') {
+        result += c - 'a' + 10;
+      } else {
+        throw new IllegalArgumentException();
+      }
+    }
+    return result;
+  }
 }
