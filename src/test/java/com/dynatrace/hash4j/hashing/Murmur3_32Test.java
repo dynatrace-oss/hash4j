@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,11 @@ class Murmur3_32Test extends AbstractHasher32Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "Murmur3 32.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     int seed = (int) INT_HANDLE.get(seedBytes, 0);
     int hash0 = Hashing.murmur3_32().hashBytesToInt(dataBytes);
@@ -50,11 +55,6 @@ class Murmur3_32Test extends AbstractHasher32Test {
   @Override
   int getHashSizeForChecksum() {
     return 8;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "1e4726a3e4faba927e26091dec473ad8a50c239f8c2a8dece3ec41b95db49c31";
   }
 
   @Override

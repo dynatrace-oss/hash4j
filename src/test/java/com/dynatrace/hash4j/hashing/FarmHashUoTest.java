@@ -33,6 +33,11 @@ public class FarmHashUoTest extends AbstractHasher64Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "FarmHash UO.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     long seed = (long) LONG_HANDLE.get(seedBytes, 0);
     long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
@@ -55,11 +60,6 @@ public class FarmHashUoTest extends AbstractHasher64Test {
   @Override
   int getHashSizeForChecksum() {
     return 24;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "50f5d48e00fda3fadcacaa5fec1944d90c33539e19ca2dfcb6a97173a3754682";
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,11 @@ class WyhashFinal3Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "Wyhash final 3.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
     long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
@@ -62,11 +67,6 @@ class WyhashFinal3Test extends AbstractHasher64Test {
   @Override
   int getHashSizeForChecksum() {
     return 32;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "8aff8c5f45d1cd806f5822f7ea4fc561c2dd7efebc6b051656a51faeed162526";
   }
 
   @Override

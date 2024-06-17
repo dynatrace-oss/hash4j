@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,11 @@ class Murmur3_128Test extends AbstractHasher128Test {
   }
 
   @Override
+  protected String getChecksumResourceFileName() {
+    return "Murmur3 128.txt";
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     int seed = (int) INT_HANDLE.get(seedBytes, 0);
 
@@ -55,11 +60,6 @@ class Murmur3_128Test extends AbstractHasher128Test {
   @Override
   int getHashSizeForChecksum() {
     return 32;
-  }
-
-  @Override
-  String getExpectedChecksum() {
-    return "483c1ed6d0936ba877b9e9e063b27774b6b1f481ae6fae439e19120619cc2d1a";
   }
 
   /**
