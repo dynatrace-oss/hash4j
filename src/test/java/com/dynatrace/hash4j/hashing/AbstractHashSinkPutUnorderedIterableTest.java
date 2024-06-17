@@ -67,6 +67,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
     assertThat(hash2a).isNotEqualTo(hash3a);
   }
 
+  @SuppressWarnings("UnnecessaryMethodReference")
   private static <T> Iterable<T> asIterable(Collection<T> collection) {
     return collection::iterator;
   }
