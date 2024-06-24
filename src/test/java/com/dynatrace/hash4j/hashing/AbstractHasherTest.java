@@ -1410,4 +1410,38 @@ abstract class AbstractHasherTest {
       assertHashStreamEquals(expected, actual);
     }
   }
+
+  private static void assertHashStream(
+      HashStream hashStream, Hasher hasher, byte[] data, int off, int len) {
+    if (hasher instanceof Hasher128) {
+      assertThat(((HashStream128) hashStream).get())
+          .isEqualTo(((Hasher128) hasher).hashBytesTo128Bits(data, off, len));
+    } else if (hasher instanceof Hasher64) {
+      assertThat(((HashStream64) hashStream).getAsLong())
+          .isEqualTo(((Hasher64) hasher).hashBytesToLong(data, off, len));
+    } else if (hasher instanceof Hasher32) {
+      assertThat(((HashStream32) hashStream).getAsInt())
+          .isEqualTo(((Hasher32) hasher).hashBytesToInt(data, off, len));
+    } else {
+      fail();
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testPutByte(Hasher hasher) {
+    final int numIterations = 10;
+    final int maxLength = 2000;
+    SplittableRandom random = new SplittableRandom(0xe41fffbf937c51c7L);
+    for (int i = 0; i < numIterations; ++i) {
+      byte[] data = new byte[maxLength];
+      random.nextBytes(data);
+      HashStream hashstream = hasher.hashStream();
+      assertHashStream(hashstream, hasher, data, 0, 0);
+      for (int j = 0; j < maxLength; ++j) {
+        hashstream.putByte(data[j]);
+        assertHashStream(hashstream, hasher, data, 0, j + 1);
+      }
+    }
+  }
 }
