@@ -18,7 +18,6 @@ package com.dynatrace.hash4j.hashing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -53,6 +52,25 @@ class Murmur3_128Test extends AbstractHasher128Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
+    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+
+    HashValue128 hash0 = Hashing.murmur3_128().hashCharsTo128Bits(c);
+    HashValue128 hash1 = Hashing.murmur3_128(seed).hashCharsTo128Bits(c);
+
+    LONG_HANDLE.set(hashBytes, 0, hash0.getLeastSignificantBits());
+    LONG_HANDLE.set(hashBytes, 8, hash0.getMostSignificantBits());
+    LONG_HANDLE.set(hashBytes, 16, hash1.getLeastSignificantBits());
+    LONG_HANDLE.set(hashBytes, 24, hash1.getMostSignificantBits());
+  }
+
+  @Override
+  protected List<HashStream> getHashStreams(byte[] seedBytes) {
+    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    return List.of(Hashing.murmur3_128().hashStream(), Hashing.murmur3_128(seed).hashStream());
+  }
+
+  @Override
   int getSeedSizeForChecksum() {
     return 4;
   }
@@ -60,6 +78,11 @@ class Murmur3_128Test extends AbstractHasher128Test {
   @Override
   int getHashSizeForChecksum() {
     return 32;
+  }
+
+  @Override
+  protected int getBlockLengthInBytes() {
+    return 16;
   }
 
   /**
@@ -76,17 +99,5 @@ class Murmur3_128Test extends AbstractHasher128Test {
     byte[] hashValueBytes = stream.get().toByteArray();
     byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
     assertThat(hashValueBytes).isEqualTo(expected);
-  }
-
-  @Override
-  protected List<ReferenceTestRecord128> getReferenceTestRecords() {
-    List<ReferenceTestRecord128> referenceTestRecords = new ArrayList<>();
-    for (Murmur3_128ReferenceData.ReferenceRecord r : Murmur3_128ReferenceData.get()) {
-      referenceTestRecords.add(
-          new ReferenceTestRecord128(Hashing.murmur3_128(), r.getData(), r.getHash0()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord128(Hashing.murmur3_128(r.getSeed()), r.getData(), r.getHash1()));
-    }
-    return referenceTestRecords;
   }
 }

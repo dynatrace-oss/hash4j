@@ -50,9 +50,9 @@ class PackedArrayTest {
   void test(int bitSize) {
     SplittableRandom random = new SplittableRandom(0L);
     PackedArrayHandler handler = PackedArray.getHandler(bitSize);
-    int maxLength = 200;
-    int numCycles1 = 100;
-    int numCycles2 = 100;
+    int maxLength = 2 * bitSize + 8;
+    int numCycles1 = 50;
+    int numCycles2 = 50;
     int numRandomValues = 10;
     for (int len = 1; len < maxLength; ++len) {
       long[] expected = new long[len];

@@ -15,8 +15,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import com.dynatrace.hash4j.hashing.Komihash5_0ReferenceData.ReferenceRecord;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,11 +37,28 @@ class Komihash5_0Test extends AbstractHasher64Test {
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
 
     long seed = (long) LONG_HANDLE.get(seedBytes, 0);
-    long hash0 = Komihash5_0.create().hashBytesToLong(dataBytes);
-    long hash1 = Komihash5_0.create(seed).hashBytesToLong(dataBytes);
+    long hash0 = Hashing.komihash5_0().hashBytesToLong(dataBytes);
+    long hash1 = Hashing.komihash5_0(seed).hashBytesToLong(dataBytes);
 
     LONG_HANDLE.set(hashBytes, 0, hash0);
     LONG_HANDLE.set(hashBytes, 8, hash1);
+  }
+
+  @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
+
+    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long hash0 = Hashing.komihash5_0().hashCharsToLong(c);
+    long hash1 = Hashing.komihash5_0(seed).hashCharsToLong(c);
+
+    LONG_HANDLE.set(hashBytes, 0, hash0);
+    LONG_HANDLE.set(hashBytes, 8, hash1);
+  }
+
+  @Override
+  protected List<HashStream> getHashStreams(byte[] seedBytes) {
+    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    return List.of(Hashing.komihash5_0().hashStream(), Hashing.komihash5_0(seed).hashStream());
   }
 
   @Override
@@ -57,14 +72,7 @@ class Komihash5_0Test extends AbstractHasher64Test {
   }
 
   @Override
-  protected List<ReferenceTestRecord64> getReferenceTestRecords() {
-    List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
-    for (ReferenceRecord r : Komihash5_0ReferenceData.get()) {
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(Hashing.komihash5_0(), r.getData(), r.getHash0()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(Hashing.komihash5_0(r.getSeed()), r.getData(), r.getHash1()));
-    }
-    return referenceTestRecords;
+  protected int getBlockLengthInBytes() {
+    return 64;
   }
 }

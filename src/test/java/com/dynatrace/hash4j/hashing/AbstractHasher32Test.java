@@ -15,29 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 
 abstract class AbstractHasher32Test extends AbstractHasherTest {
-
-  public static class ReferenceTestRecord32 extends ReferenceTestRecord<Hasher32> {
-
-    private final int expectedHash;
-
-    public ReferenceTestRecord32(Hasher32 hashSupplier, byte[] input, int expectedHash) {
-      super(hashSupplier, input);
-      this.expectedHash = expectedHash;
-    }
-
-    public int getExpectedHash() {
-      return expectedHash;
-    }
-  }
 
   @Override
   protected HashStream createNonOptimizedHashStream(Hasher hasher) {
@@ -69,24 +53,52 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
     };
   }
 
-  protected abstract List<? extends ReferenceTestRecord32> getReferenceTestRecords();
-
   @Override
   protected abstract List<? extends Hasher32> getHashers();
 
-  @ParameterizedTest
-  @MethodSource("getReferenceTestRecords")
-  void testAgainstReference(ReferenceTestRecord32 r) {
+  private static Hasher32 createHasherWithFixedHash(int hash) {
+    return new AbstractHasher32() {
+      @Override
+      public int hashBytesToInt(byte[] input, int off, int len) {
+        return hash;
+      }
 
-    assertThat(r.getHasher().hashToInt(r.getData(), BYTES_FUNNEL_1)).isEqualTo(r.getExpectedHash());
-    assertThat(r.getHasher().hashToInt(r.getData(), BYTES_FUNNEL_2)).isEqualTo(r.getExpectedHash());
-    assertThat(r.getHasher().hashBytesToInt(r.getData())).isEqualTo(r.getExpectedHash());
+      @Override
+      public int hashCharsToInt(CharSequence input) {
+        return hash;
+      }
 
-    if (r.getData().length % 2 == 0) {
-      CharSequence charSequence = byteArrayToCharSequence(r.getData());
-      assertThat(r.getHasher().hashCharsToInt(charSequence)).isEqualTo(r.getExpectedHash());
-      assertThat(r.getHasher().hashToInt(charSequence, CHAR_FUNNEL)).isEqualTo(r.getExpectedHash());
-    }
+      @Override
+      public HashStream32 hashStream() {
+        return new AbstractHashStream32() {
+
+          @Override
+          public HashStream32 putByte(byte v) {
+            return this;
+          }
+
+          @Override
+          public HashStream32 reset() {
+            return this;
+          }
+
+          @Override
+          public HashStream32 copy() {
+            return this;
+          }
+
+          @Override
+          public int getAsInt() {
+            return hash;
+          }
+
+          @Override
+          public int getHashBitSize() {
+            return 32;
+          }
+        };
+      }
+    };
   }
 
   @Test
@@ -94,49 +106,7 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
 
     int hash = 0x6a6c9292;
 
-    AbstractHasher32 hasher =
-        new AbstractHasher32() {
-          @Override
-          public int hashBytesToInt(byte[] input, int off, int len) {
-            return hash;
-          }
-
-          @Override
-          public int hashCharsToInt(CharSequence input) {
-            return hash;
-          }
-
-          @Override
-          public HashStream32 hashStream() {
-            return new AbstractHashStream32() {
-
-              @Override
-              public HashStream32 putByte(byte v) {
-                return this;
-              }
-
-              @Override
-              public HashStream32 reset() {
-                return this;
-              }
-
-              @Override
-              public HashStream32 copy() {
-                throw new UnsupportedOperationException();
-              }
-
-              @Override
-              public int getAsInt() {
-                return hash;
-              }
-
-              @Override
-              public int getHashBitSize() {
-                return 32;
-              }
-            };
-          }
-        };
+    Hasher32 hasher = createHasherWithFixedHash(hash);
 
     byte[] b = {};
     String s = "";
@@ -145,5 +115,15 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo(hash);
     assertThat(hasher.hashCharsToInt(s)).isEqualTo(hash);
     assertThat(hasher.getHashBitSize()).isEqualTo(32);
+  }
+
+  @Override
+  protected void getHashBytes(List<HashStream> hashStreams, byte[] hashBytes) {
+    int off = 0;
+    for (HashStream hashStream : hashStreams) {
+      INT_HANDLE.set(hashBytes, off, ((HashStream32) hashStream).getAsInt());
+      off += 4;
+    }
+    Arrays.fill(hashBytes, off, hashBytes.length, (byte) 0);
   }
 }

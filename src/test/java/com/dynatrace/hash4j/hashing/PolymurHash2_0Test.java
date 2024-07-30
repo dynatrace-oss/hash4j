@@ -17,7 +17,6 @@ package com.dynatrace.hash4j.hashing;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -45,11 +44,34 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
     long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
     long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
 
-    long hash0 = PolymurHash2_0.create(tweak, seed0).hashBytesToLong(dataBytes);
-    long hash1 = PolymurHash2_0.create(tweak, seed0, seed1).hashBytesToLong(dataBytes);
+    long hash0 = Hashing.polymurHash2_0(tweak, seed0).hashBytesToLong(dataBytes);
+    long hash1 = Hashing.polymurHash2_0(tweak, seed0, seed1).hashBytesToLong(dataBytes);
 
     LONG_HANDLE.set(hashBytes, 0, hash0);
     LONG_HANDLE.set(hashBytes, 8, hash1);
+  }
+
+  @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
+    long tweak = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+
+    long hash0 = Hashing.polymurHash2_0(tweak, seed0).hashCharsToLong(c);
+    long hash1 = Hashing.polymurHash2_0(tweak, seed0, seed1).hashCharsToLong(c);
+
+    LONG_HANDLE.set(hashBytes, 0, hash0);
+    LONG_HANDLE.set(hashBytes, 8, hash1);
+  }
+
+  @Override
+  protected List<HashStream> getHashStreams(byte[] seedBytes) {
+    long tweak = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+    return List.of(
+        Hashing.polymurHash2_0(tweak, seed0).hashStream(),
+        Hashing.polymurHash2_0(tweak, seed0, seed1).hashStream());
   }
 
   @Override
@@ -63,19 +85,8 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
   }
 
   @Override
-  protected List<ReferenceTestRecord64> getReferenceTestRecords() {
-    List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
-    for (PolymurHash2_0ReferenceData.ReferenceRecord r : PolymurHash2_0ReferenceData.get()) {
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(
-              Hashing.polymurHash2_0(r.getTweak(), r.getSeed0()), r.getData(), r.getHash0()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(
-              Hashing.polymurHash2_0(r.getTweak(), r.getSeed0(), r.getSeed1()),
-              r.getData(),
-              r.getHash1()));
-    }
-    return referenceTestRecords;
+  protected int getBlockLengthInBytes() {
+    return 49;
   }
 
   @Test
