@@ -44,16 +44,37 @@ uint64_t splitmix_v1_update(uint64_t &state) {
 }
 
 template<typename T>
-void computeAndPrintChecksum(const T &hashFunctionConfig = T()) {
+void computeAndPrintChecksum(
+		const uint64_t maxSupportedLength = std::numeric_limits < uint64_t
+				> ::max(), const T &hashFunctionConfig = T()) {
 
 	mt19937_64 rng(0);
 
-	uint64_t maxDataLength = 1024;
-	uint64_t numCycles = 1000;
+	ofstream outputFile(
+			"../src/test/resources/" + hashFunctionConfig.getName() + ".txt");
 
-	ofstream outputFile(hashFunctionConfig.getName() + ".txt");
+	std::vector<std::pair<uint64_t, uint64_t>> lengthAndCycles;
+	lengthAndCycles.emplace_back(0, 1);
+	for (uint64_t dataLength = 1; dataLength <= 1024; ++dataLength) {
+		lengthAndCycles.emplace_back(dataLength, 100);
+	}
+	for (uint64_t dataLength = 1025; dataLength <= 4096; ++dataLength) {
+		lengthAndCycles.emplace_back(dataLength, 10);
+	}
+	lengthAndCycles.emplace_back((UINT64_C(1) << 31) - 1, 1);
+	lengthAndCycles.emplace_back((UINT64_C(1) << 31) + 0, 1);
+	lengthAndCycles.emplace_back((UINT64_C(1) << 31) + 1, 1);
+	lengthAndCycles.emplace_back((UINT64_C(1) << 32) - 1, 1);
+	lengthAndCycles.emplace_back((UINT64_C(1) << 32) + 0, 1);
+	lengthAndCycles.emplace_back((UINT64_C(1) << 32) + 1, 1);
 
-	for (uint64_t dataLength = 0; dataLength <= maxDataLength; ++dataLength) {
+	for (const auto &lengthAndCycle : lengthAndCycles) {
+
+		uint64_t dataLength = lengthAndCycle.first;
+		uint64_t numCycles = lengthAndCycle.second;
+
+		if (dataLength > maxSupportedLength)
+			continue;
 
 		uint8_t checkSum[SHA256_DIGEST_LENGTH];
 		SHA256_CTX sha256;
@@ -73,11 +94,11 @@ void computeAndPrintChecksum(const T &hashFunctionConfig = T()) {
 		std::vector < uint64_t > dataBytesTemp(effectiveDataLength);
 
 		for (uint64_t cycle = 0; cycle < numCycles; ++cycle) {
-			for (uint64_t i = 0; i < effectiveDataLength; ++i) {
-				dataBytesTemp[i] = splitmix_v1_update(rngState);
-			}
 			for (uint64_t i = 0; i < effectiveSeedLength; ++i) {
 				seedBytesTemp[i] = splitmix_v1_update(rngState);
+			}
+			for (uint64_t i = 0; i < effectiveDataLength; ++i) {
+				dataBytesTemp[i] = splitmix_v1_update(rngState);
 			}
 
 			uint8_t *dataBytes = reinterpret_cast<uint8_t*>(&dataBytesTemp[0]);
@@ -113,8 +134,10 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<Komihash5_10ChecksumConfig>();
 	computeAndPrintChecksum<WyhashFinal3ChecksumConfig>();
 	computeAndPrintChecksum<WyhashFinal4ChecksumConfig>();
-	computeAndPrintChecksum<Murmur3_128_ChecksumConfig>();
-	computeAndPrintChecksum<Murmur3_32_ChecksumConfig>();
+	computeAndPrintChecksum<Murmur3_128_ChecksumConfig>(
+			std::numeric_limits<int>::max());
+	computeAndPrintChecksum<Murmur3_32_ChecksumConfig>(
+			std::numeric_limits<int>::max());
 	computeAndPrintChecksum<PolymurHash_2_0_ChecksumConfig>();
 	computeAndPrintChecksum<FarmHashNaChecksumConfig>();
 	computeAndPrintChecksum<FarmHashUoChecksumConfig>();

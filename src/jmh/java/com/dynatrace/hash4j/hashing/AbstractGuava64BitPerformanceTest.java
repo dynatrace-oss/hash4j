@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import com.google.common.hash.HashFunction;
 
 public abstract class AbstractGuava64BitPerformanceTest extends AbstractPerformanceTest {
 
-  protected static Funnel<String> CHARS_FUNNEL = (s, sink) -> sink.putUnencodedChars(s);
-  protected static Funnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
+  protected static final Funnel<String> CHARS_FUNNEL = (s, sink) -> sink.putUnencodedChars(s);
+  protected static final Funnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 
   @Override
   protected long hashObject(TestObject testObject) {

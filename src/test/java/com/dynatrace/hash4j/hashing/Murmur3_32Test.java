@@ -17,10 +17,8 @@ package com.dynatrace.hash4j.hashing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.LongStream;
 import org.junit.jupiter.api.Test;
 
 class Murmur3_32Test extends AbstractHasher32Test {
@@ -48,6 +46,21 @@ class Murmur3_32Test extends AbstractHasher32Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
+    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int hash0 = Hashing.murmur3_32().hashCharsToInt(c);
+    int hash1 = Hashing.murmur3_32(seed).hashCharsToInt(c);
+    INT_HANDLE.set(hashBytes, 0, hash0);
+    INT_HANDLE.set(hashBytes, 4, hash1);
+  }
+
+  @Override
+  protected List<HashStream> getHashStreams(byte[] seedBytes) {
+    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    return List.of(Hashing.murmur3_32().hashStream(), Hashing.murmur3_32(seed).hashStream());
+  }
+
+  @Override
   int getSeedSizeForChecksum() {
     return 4;
   }
@@ -58,15 +71,8 @@ class Murmur3_32Test extends AbstractHasher32Test {
   }
 
   @Override
-  protected List<ReferenceTestRecord32> getReferenceTestRecords() {
-    List<ReferenceTestRecord32> referenceTestRecords = new ArrayList<>();
-    for (Murmur3_32ReferenceData.ReferenceRecord r : Murmur3_32ReferenceData.get()) {
-      referenceTestRecords.add(
-          new ReferenceTestRecord32(Hashing.murmur3_32(), r.getData(), r.getHash0()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord32(Hashing.murmur3_32(r.getSeed()), r.getData(), r.getHash1()));
-    }
-    return referenceTestRecords;
+  protected int getBlockLengthInBytes() {
+    return 8;
   }
 
   /**
@@ -79,7 +85,9 @@ class Murmur3_32Test extends AbstractHasher32Test {
   void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
     HashStream32 stream = Hashing.murmur3_32().hashStream();
-    LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
+    for (long i = 0; i < len; ++i) {
+      stream.putByte((byte) i);
+    }
     assertThat(stream.getAsInt()).isEqualTo(0x0038818d);
   }
 }

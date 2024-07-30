@@ -15,8 +15,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import com.dynatrace.hash4j.hashing.WyhashFinal4ReferenceData.ReferenceRecord;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,19 +42,56 @@ class WyhashFinal4Test extends AbstractHasher64Test {
     long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
     long rand = (long) LONG_HANDLE.get(seedBytes, 16);
 
-    long hash0 = WyhashFinal4.create().hashBytesToLong(dataBytes);
-    long hash1 = WyhashFinal4.create(seed0).hashBytesToLong(dataBytes);
+    long hash0 = Hashing.wyhashFinal4().hashBytesToLong(dataBytes);
+    long hash1 = Hashing.wyhashFinal4(seed0).hashBytesToLong(dataBytes);
     long hash2 = 0;
     long hash3 = 0;
     if ((rand & 0x3fL) == 0) {
-      hash2 = WyhashFinal4.create(0L, seed1).hashBytesToLong(dataBytes);
-      hash3 = WyhashFinal4.create(seed0, seed1).hashBytesToLong(dataBytes);
+      hash2 = Hashing.wyhashFinal4(0L, seed1).hashBytesToLong(dataBytes);
+      hash3 = Hashing.wyhashFinal4(seed0, seed1).hashBytesToLong(dataBytes);
     }
 
     LONG_HANDLE.set(hashBytes, 0, hash0);
     LONG_HANDLE.set(hashBytes, 8, hash1);
     LONG_HANDLE.set(hashBytes, 16, hash2);
     LONG_HANDLE.set(hashBytes, 24, hash3);
+  }
+
+  @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long rand = (long) LONG_HANDLE.get(seedBytes, 16);
+
+    long hash0 = Hashing.wyhashFinal4().hashCharsToLong(c);
+    long hash1 = Hashing.wyhashFinal4(seed0).hashCharsToLong(c);
+    long hash2 = 0;
+    long hash3 = 0;
+    if ((rand & 0x3fL) == 0) {
+      hash2 = Hashing.wyhashFinal4(0L, seed1).hashCharsToLong(c);
+      hash3 = Hashing.wyhashFinal4(seed0, seed1).hashCharsToLong(c);
+    }
+
+    LONG_HANDLE.set(hashBytes, 0, hash0);
+    LONG_HANDLE.set(hashBytes, 8, hash1);
+    LONG_HANDLE.set(hashBytes, 16, hash2);
+    LONG_HANDLE.set(hashBytes, 24, hash3);
+  }
+
+  @Override
+  protected List<HashStream> getHashStreams(byte[] seedBytes) {
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long rand = (long) LONG_HANDLE.get(seedBytes, 16);
+    if ((rand & 0x3fL) == 0) {
+      return List.of(
+          Hashing.wyhashFinal4().hashStream(),
+          Hashing.wyhashFinal4(seed0).hashStream(),
+          Hashing.wyhashFinal4(0L, seed1).hashStream(),
+          Hashing.wyhashFinal4(seed0, seed1).hashStream());
+    } else {
+      return List.of(Hashing.wyhashFinal4().hashStream(), Hashing.wyhashFinal4(seed0).hashStream());
+    }
   }
 
   @Override
@@ -70,20 +105,7 @@ class WyhashFinal4Test extends AbstractHasher64Test {
   }
 
   @Override
-  protected List<ReferenceTestRecord64> getReferenceTestRecords() {
-    List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
-    for (ReferenceRecord r : WyhashFinal4ReferenceData.get()) {
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(Hashing.wyhashFinal4(), r.getData(), r.getHash0()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(Hashing.wyhashFinal4(r.getSeed0()), r.getData(), r.getHash1()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(
-              Hashing.wyhashFinal4(0L, r.getSeed1()), r.getData(), r.getHash2()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(
-              Hashing.wyhashFinal4(r.getSeed0(), r.getSeed1()), r.getData(), r.getHash3()));
-    }
-    return referenceTestRecords;
+  protected int getBlockLengthInBytes() {
+    return 48;
   }
 }

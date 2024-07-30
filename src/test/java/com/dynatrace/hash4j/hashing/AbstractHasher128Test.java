@@ -15,7 +15,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToCharSequence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -26,22 +25,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 abstract class AbstractHasher128Test extends AbstractHasherTest {
-
-  public static class ReferenceTestRecord128 extends ReferenceTestRecord<Hasher128> {
-
-    private final byte[] expectedHash;
-
-    public ReferenceTestRecord128(Hasher128 hashSupplier, byte[] input, byte[] expectedHash) {
-      super(hashSupplier, input);
-      this.expectedHash = Arrays.copyOf(expectedHash, expectedHash.length);
-    }
-
-    public byte[] getExpectedHash() {
-      return expectedHash;
-    }
-  }
-
-  protected abstract List<ReferenceTestRecord128> getReferenceTestRecords();
 
   @Override
   protected abstract List<? extends Hasher128> getHashers();
@@ -76,24 +59,49 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
     };
   }
 
-  @ParameterizedTest
-  @MethodSource("getReferenceTestRecords")
-  void testAgainstReference(AbstractHasher128Test.ReferenceTestRecord128 r) {
+  private static Hasher128 createHasherWithFixedHash(HashValue128 hash) {
+    return new AbstractHasher128() {
+      @Override
+      public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
+        return hash;
+      }
 
-    assertThat(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_1).toByteArray())
-        .isEqualTo(r.getExpectedHash());
-    assertThat(r.getHasher().hashTo128Bits(r.getData(), BYTES_FUNNEL_2).toByteArray())
-        .isEqualTo(r.getExpectedHash());
-    assertThat(r.getHasher().hashBytesTo128Bits(r.getData()).toByteArray())
-        .isEqualTo(r.getExpectedHash());
+      @Override
+      public HashValue128 hashCharsTo128Bits(CharSequence input) {
+        return hash;
+      }
 
-    if (r.getData().length % 2 == 0) {
-      CharSequence charSequence = byteArrayToCharSequence(r.getData());
-      assertThat(r.getHasher().hashCharsTo128Bits(charSequence).toByteArray())
-          .isEqualTo(r.getExpectedHash());
-      assertThat(r.getHasher().hashTo128Bits(charSequence, CHAR_FUNNEL).toByteArray())
-          .isEqualTo(r.getExpectedHash());
-    }
+      @Override
+      public HashStream128 hashStream() {
+        return new AbstractHashStream128() {
+
+          @Override
+          public HashStream128 putByte(byte v) {
+            return this;
+          }
+
+          @Override
+          public HashStream128 reset() {
+            return this;
+          }
+
+          @Override
+          public HashStream128 copy() {
+            return this;
+          }
+
+          @Override
+          public HashValue128 get() {
+            return hash;
+          }
+
+          @Override
+          public int getHashBitSize() {
+            return 128;
+          }
+        };
+      }
+    };
   }
 
   @Test
@@ -101,49 +109,7 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
 
     HashValue128 hash = new HashValue128(0x5cd2aeb8be6aa0bbL, 0x500e3ed0c42e364fL);
 
-    AbstractHasher128 hasher =
-        new AbstractHasher128() {
-          @Override
-          public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-            return hash;
-          }
-
-          @Override
-          public HashValue128 hashCharsTo128Bits(CharSequence input) {
-            return hash;
-          }
-
-          @Override
-          public HashStream128 hashStream() {
-            return new AbstractHashStream128() {
-
-              @Override
-              public HashStream128 putByte(byte v) {
-                return this;
-              }
-
-              @Override
-              public HashStream128 reset() {
-                return this;
-              }
-
-              @Override
-              public HashStream128 copy() {
-                throw new UnsupportedOperationException();
-              }
-
-              @Override
-              public HashValue128 get() {
-                return hash;
-              }
-
-              @Override
-              public int getHashBitSize() {
-                return 128;
-              }
-            };
-          }
-        };
+    Hasher128 hasher = createHasherWithFixedHash(hash);
 
     byte[] b = {};
     String s = "";
@@ -182,5 +148,15 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
     } catch (UnsupportedOperationException e) {
       // no compatibility check necessary, if 128-bit hash value is not supported
     }
+  }
+
+  @Override
+  protected void getHashBytes(List<HashStream> hashStreams, byte[] hashBytes) {
+    int off = 0;
+    for (HashStream hashStream : hashStreams) {
+      System.arraycopy(((HashStream128) hashStream).get().toByteArray(), 0, hashBytes, off, 16);
+      off += 16;
+    }
+    Arrays.fill(hashBytes, off, hashBytes.length, (byte) 0);
   }
 }

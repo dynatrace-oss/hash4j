@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ package com.dynatrace.hash4j.hashing;
 
 public abstract class AbstactHasher64PerformanceTest extends AbstractPerformanceTest {
 
-  protected static HashFunnel<CharSequence> CHARS_FUNNEL = (s, sink) -> sink.putChars(s);
-  protected static HashFunnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
+  protected static final HashFunnel<CharSequence> CHARS_FUNNEL = (s, sink) -> sink.putChars(s);
+  protected static final HashFunnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 
   @Override
   protected long hashObject(TestObject testObject) {

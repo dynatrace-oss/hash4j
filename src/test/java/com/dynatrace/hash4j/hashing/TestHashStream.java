@@ -39,7 +39,7 @@ class TestHashStream extends AbstractHashStream {
   }
 
   @Override
-  public HashStream copy() {
+  public TestHashStream copy() {
     final TestHashStream hashStream = new TestHashStream();
     hashStream.size = size;
     System.arraycopy(data, 0, hashStream.data, 0, data.length);

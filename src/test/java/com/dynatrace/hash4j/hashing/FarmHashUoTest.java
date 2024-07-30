@@ -15,7 +15,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,13 +42,40 @@ public class FarmHashUoTest extends AbstractHasher64Test {
     long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
     long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
 
-    long hash0 = FarmHashUo.create().hashBytesToLong(dataBytes);
-    long hash1 = FarmHashUo.create(seed).hashBytesToLong(dataBytes);
-    long hash2 = FarmHashUo.create(seed0, seed1).hashBytesToLong(dataBytes);
+    long hash0 = Hashing.farmHashUo().hashBytesToLong(dataBytes);
+    long hash1 = Hashing.farmHashUo(seed).hashBytesToLong(dataBytes);
+    long hash2 = Hashing.farmHashUo(seed0, seed1).hashBytesToLong(dataBytes);
 
     LONG_HANDLE.set(hashBytes, 0, hash0);
     LONG_HANDLE.set(hashBytes, 8, hash1);
     LONG_HANDLE.set(hashBytes, 16, hash2);
+  }
+
+  @Override
+  protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
+    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+
+    long hash0 = Hashing.farmHashUo().hashCharsToLong(c);
+    long hash1 = Hashing.farmHashUo(seed).hashCharsToLong(c);
+    long hash2 = Hashing.farmHashUo(seed0, seed1).hashCharsToLong(c);
+
+    LONG_HANDLE.set(hashBytes, 0, hash0);
+    LONG_HANDLE.set(hashBytes, 8, hash1);
+    LONG_HANDLE.set(hashBytes, 16, hash2);
+  }
+
+  @Override
+  protected List<HashStream> getHashStreams(byte[] seedBytes) {
+    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
+    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+
+    return List.of(
+        Hashing.farmHashUo().hashStream(),
+        Hashing.farmHashUo(seed).hashStream(),
+        Hashing.farmHashUo(seed0, seed1).hashStream());
   }
 
   @Override
@@ -63,18 +89,7 @@ public class FarmHashUoTest extends AbstractHasher64Test {
   }
 
   @Override
-  protected List<ReferenceTestRecord64> getReferenceTestRecords() {
-
-    List<ReferenceTestRecord64> referenceTestRecords = new ArrayList<>();
-    for (FarmHashUoReferenceData.ReferenceRecord r : FarmHashUoReferenceData.get()) {
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(Hashing.farmHashUo(), r.getData(), r.getHash0()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(Hashing.farmHashUo(r.getSeed0()), r.getData(), r.getHash1()));
-      referenceTestRecords.add(
-          new ReferenceTestRecord64(
-              Hashing.farmHashUo(r.getSeed0(), r.getSeed1()), r.getData(), r.getHash2()));
-    }
-    return referenceTestRecords;
+  protected int getBlockLengthInBytes() {
+    return 64;
   }
 }
