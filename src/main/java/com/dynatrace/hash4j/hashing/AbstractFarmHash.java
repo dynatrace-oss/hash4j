@@ -272,12 +272,11 @@ abstract class AbstractFarmHash extends AbstractHasher64 {
 
     @Override
     public final HashStream64 putByte(byte v) {
-      buffer[bufferCount] = v;
       if (bufferCount >= 72) {
         processBuffer();
         bufferCount = 8;
-        buffer[8] = v;
       }
+      buffer[bufferCount] = v;
       bufferCount += 1;
       return this;
     }
@@ -289,6 +288,18 @@ abstract class AbstractFarmHash extends AbstractHasher64 {
         processBuffer();
         bufferCount -= 64;
         setShort(buffer, bufferCount, v);
+      }
+      bufferCount += 2;
+      return this;
+    }
+
+    @Override
+    public final HashStream64 putChar(char v) {
+      setChar(buffer, bufferCount, v);
+      if (bufferCount >= 71) {
+        processBuffer();
+        bufferCount -= 64;
+        setChar(buffer, bufferCount, v);
       }
       bufferCount += 2;
       return this;
