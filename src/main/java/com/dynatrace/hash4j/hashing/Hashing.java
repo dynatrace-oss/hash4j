@@ -376,4 +376,33 @@ public final class Hashing {
   public static Hasher64 farmHashUo(long seed0, long seed1) {
     return FarmHashUo.create(seed0, seed1);
   }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit XXH3 algorithm.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * XXH3_64bits} defined in <a
+   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.2/xxhash.h">xxhash.h</a> on an Intel x86
+   * architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 xxh3_64() {
+    return XXH3_64.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit XXH3 algorithm using the given seed value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * XXH3_64bits_withSeed} defined in <a
+   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.2/xxhash.h">xxhash.h</a> on an Intel x86
+   * architecture.
+   *
+   * @param seed the seed value
+   * @return a hasher instance
+   */
+  public static Hasher64 xxh3_64(long seed) {
+    return XXH3_64.create(seed);
+  }
 }
