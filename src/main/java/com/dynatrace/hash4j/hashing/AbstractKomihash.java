@@ -194,23 +194,12 @@ abstract class AbstractKomihash extends AbstractHasher64 {
       int offset = (int) byteCount & 0x3F;
       byteCount += ((long) remainingChars) << 1;
       int off = 0;
-      if (remainingChars >= ((65 - offset) >>> 1)) {
+      int x = (65 - offset) >>> 1;
+      if (remainingChars >= x) {
         if (offset > 1) {
-          while (offset < 58) {
-            setLong(buffer, offset, getLong(s, off));
-            off += 4;
-            offset += 8;
-          }
-          if (offset < 62) {
-            setInt(buffer, offset, getInt(s, off));
-            off += 2;
-            offset += 4;
-          }
-          if (offset < 64) {
-            setChar(buffer, offset, s.charAt(off));
-            off += 1;
-          }
-          remainingChars -= off;
+          copyCharsToByteArray(s, 0, buffer, offset, x);
+          remainingChars -= x;
+          off = x;
           processBuffer();
           offset &= 1;
           if (offset != 0) {
@@ -263,21 +252,7 @@ abstract class AbstractKomihash extends AbstractHasher64 {
           }
         }
       }
-      while (remainingChars >= 4) {
-        setLong(buffer, offset, getLong(s, off));
-        off += 4;
-        offset += 8;
-        remainingChars -= 4;
-      }
-      if (remainingChars >= 2) {
-        setInt(buffer, offset, getInt(s, off));
-        off += 2;
-        offset += 4;
-        remainingChars -= 2;
-      }
-      if (remainingChars != 0) {
-        setChar(buffer, offset, s.charAt(off));
-      }
+      copyCharsToByteArray(s, off, buffer, offset, remainingChars);
       return this;
     }
 

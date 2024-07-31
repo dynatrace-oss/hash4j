@@ -164,13 +164,6 @@ public interface HashStream64 extends HashStream32 {
   @Override
   HashStream64 putOptionalDouble(OptionalDouble v);
 
-  /**
-   * Resets the hash stream.
-   *
-   * <p>This allows to reuse this instance for new hash computations.
-   *
-   * @return this
-   */
   @Override
   HashStream64 reset();
 

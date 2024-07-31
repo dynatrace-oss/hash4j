@@ -604,10 +604,6 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
     @Override
     public HashStream64 putBytes(byte[] b, int off, int len) {
-      if (len == 0) {
-        return this;
-      }
-
       byteCount += len;
 
       int x = 49 - offset;
@@ -640,88 +636,81 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
       int i = 0;
       byteCount += (long) s.length() << 1;
-      while (i < s.length() && offset <= 49) {
-        char v = s.charAt(i);
-        setChar(buffer, offset, v);
-        offset += 2;
-        i += 1;
-      }
-      if (offset > 49) {
+      if (s.length() >= (51 - offset) >>> 1) {
+        i = (51 - offset) >>> 1;
+        copyCharsToByteArray(s, 0, buffer, offset, i);
+        offset += i << 1;
         offset -= 49;
         processBuffer();
         setChar(buffer, 0, getChar(buffer, 49));
+        if (i <= s.length() - ((51 - offset) >>> 1)) {
+          long x = getChar(buffer, 0);
+          do {
+            long c1 = s.charAt(i + 0);
+            long c2 = s.charAt(i + 1);
+            long c3 = s.charAt(i + 2);
+            long c4 = s.charAt(i + 3);
+            long c5 = s.charAt(i + 4);
+            long c6 = s.charAt(i + 5);
+            long c7 = s.charAt(i + 6);
+            long c8 = s.charAt(i + 7);
+            long c9 = s.charAt(i + 8);
+            long c10 = s.charAt(i + 9);
+            long c11 = s.charAt(i + 10);
+            long c12 = s.charAt(i + 11);
+            long c13 = s.charAt(i + 12);
+            long c14 = s.charAt(i + 13);
+            long c15 = s.charAt(i + 14);
+            long c16 = s.charAt(i + 15);
+            long c17 = s.charAt(i + 16);
+            long c18 = s.charAt(i + 17);
+            long c19 = s.charAt(i + 18);
+            long c20 = s.charAt(i + 19);
+            long c21 = s.charAt(i + 20);
+            long c22 = s.charAt(i + 21);
+            long c23 = s.charAt(i + 22);
+            long c24 = s.charAt(i + 23);
+            long v0;
+            long v1;
+            long v2;
+            long v3;
+            long v4;
+            long v5;
+            long v6;
+            if (offset == 1) {
+              long c0 = (x & 0xFFL) << 8;
+              v0 = c0 | (c1 << 16) | (c2 << 32) | (c3 << 48);
+              v1 = (c4 << 8) | (c5 << 24) | (c6 << 40) | (c7 << 56);
+              v2 = c7 | (c8 << 16) | (c9 << 32) | (c10 << 48);
+              v3 = (c11 << 8) | (c12 << 24) | (c13 << 40) | (c14 << 56);
+              v4 = c14 | (c15 << 16) | (c16 << 32) | (c17 << 48);
+              v5 = (c18 << 8) | (c19 << 24) | (c20 << 40) | (c21 << 56);
+              v6 = c21 | (c22 << 16) | (c23 << 32) | (c24 << 48);
+              offset = 2;
+              x = s.charAt(i + 24);
+              i += 25;
+            } else {
+              long c0 = x;
+              v0 = (c0 << 8) | (c1 << 24) | (c2 << 40) | (c3 << 56);
+              v1 = c3 | (c4 << 16) | (c5 << 32) | (c6 << 48);
+              v2 = (c7 << 8) | (c8 << 24) | (c9 << 40) | (c10 << 56);
+              v3 = c10 | (c11 << 16) | (c12 << 32) | (c13 << 48);
+              v4 = (c14 << 8) | (c15 << 24) | (c16 << 40) | (c17 << 56);
+              v5 = c17 | (c18 << 16) | (c19 << 32) | (c20 << 48);
+              v6 = (c21 << 8) | (c22 << 24) | (c23 << 40) | (c24 << 56);
+              offset = 1;
+              x = c24 >>> 8;
+              i += 24;
+            }
+            h =
+                PolymurHash2_0.this.processBuffer(
+                    v0 >>> 8, v1 >>> 8, v2 >>> 8, v3 >>> 8, v4 >>> 8, v5 >>> 8, v6 >>> 8, h);
+          } while (i <= s.length() - ((51 - offset) >>> 1));
+          setChar(buffer, 0, (char) x);
+        }
       }
-      if (i <= s.length() - ((51 - offset) >>> 1)) {
-        long x = getChar(buffer, 0);
-        do {
-          long c1 = s.charAt(i + 0);
-          long c2 = s.charAt(i + 1);
-          long c3 = s.charAt(i + 2);
-          long c4 = s.charAt(i + 3);
-          long c5 = s.charAt(i + 4);
-          long c6 = s.charAt(i + 5);
-          long c7 = s.charAt(i + 6);
-          long c8 = s.charAt(i + 7);
-          long c9 = s.charAt(i + 8);
-          long c10 = s.charAt(i + 9);
-          long c11 = s.charAt(i + 10);
-          long c12 = s.charAt(i + 11);
-          long c13 = s.charAt(i + 12);
-          long c14 = s.charAt(i + 13);
-          long c15 = s.charAt(i + 14);
-          long c16 = s.charAt(i + 15);
-          long c17 = s.charAt(i + 16);
-          long c18 = s.charAt(i + 17);
-          long c19 = s.charAt(i + 18);
-          long c20 = s.charAt(i + 19);
-          long c21 = s.charAt(i + 20);
-          long c22 = s.charAt(i + 21);
-          long c23 = s.charAt(i + 22);
-          long c24 = s.charAt(i + 23);
-          long v0;
-          long v1;
-          long v2;
-          long v3;
-          long v4;
-          long v5;
-          long v6;
-          if (offset == 1) {
-            long c0 = (x & 0xFFL) << 8;
-            v0 = c0 | (c1 << 16) | (c2 << 32) | (c3 << 48);
-            v1 = (c4 << 8) | (c5 << 24) | (c6 << 40) | (c7 << 56);
-            v2 = c7 | (c8 << 16) | (c9 << 32) | (c10 << 48);
-            v3 = (c11 << 8) | (c12 << 24) | (c13 << 40) | (c14 << 56);
-            v4 = c14 | (c15 << 16) | (c16 << 32) | (c17 << 48);
-            v5 = (c18 << 8) | (c19 << 24) | (c20 << 40) | (c21 << 56);
-            v6 = c21 | (c22 << 16) | (c23 << 32) | (c24 << 48);
-            offset = 2;
-            x = s.charAt(i + 24);
-            i += 25;
-          } else {
-            long c0 = x;
-            v0 = (c0 << 8) | (c1 << 24) | (c2 << 40) | (c3 << 56);
-            v1 = c3 | (c4 << 16) | (c5 << 32) | (c6 << 48);
-            v2 = (c7 << 8) | (c8 << 24) | (c9 << 40) | (c10 << 56);
-            v3 = c10 | (c11 << 16) | (c12 << 32) | (c13 << 48);
-            v4 = (c14 << 8) | (c15 << 24) | (c16 << 40) | (c17 << 56);
-            v5 = c17 | (c18 << 16) | (c19 << 32) | (c20 << 48);
-            v6 = (c21 << 8) | (c22 << 24) | (c23 << 40) | (c24 << 56);
-            offset = 1;
-            x = c24 >>> 8;
-            i += 24;
-          }
-          h =
-              PolymurHash2_0.this.processBuffer(
-                  v0 >>> 8, v1 >>> 8, v2 >>> 8, v3 >>> 8, v4 >>> 8, v5 >>> 8, v6 >>> 8, h);
-        } while (i <= s.length() - ((51 - offset) >>> 1));
-        setChar(buffer, 0, (char) x);
-      }
-      while (i < s.length()) {
-        char v = s.charAt(i);
-        setChar(buffer, offset, v);
-        offset += 2;
-        i += 1;
-      }
+      copyCharsToByteArray(s, i, buffer, offset, s.length() - i);
+      offset += (s.length() - i) << 1;
       return this;
     }
 

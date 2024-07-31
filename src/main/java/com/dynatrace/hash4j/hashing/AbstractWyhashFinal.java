@@ -283,14 +283,13 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
 
     @Override
     public HashStream64 putByte(byte v) {
+      if (offset >= 48) {
+        offset -= 48;
+        processBuffer();
+      }
       buffer[offset] = v;
       offset += 1;
       byteCount += 1;
-      if (offset > 48) {
-        offset -= 48;
-        processBuffer();
-        buffer[0] = buffer[48];
-      }
       return this;
     }
 
@@ -353,23 +352,24 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
       if (len > x) {
         System.arraycopy(b, off, buffer, offset, x);
         processBuffer();
-        int lenOrig = len;
         len -= x;
         off += x;
-        while (len > 48) {
-          long b0 = getLong(b, off);
-          long b1 = getLong(b, off + 8);
-          long b2 = getLong(b, off + 16);
-          long b3 = getLong(b, off + 24);
-          long b4 = getLong(b, off + 32);
-          long b5 = getLong(b, off + 40);
-          processBuffer(b0, b1, b2, b3, b4, b5);
-          off += 48;
-          len -= 48;
-        }
-        int y = 16 - len;
-        if (lenOrig > 48 && y > 0) {
-          System.arraycopy(b, off - y, buffer, 32 + len, y);
+        if (len > 48) {
+          do {
+            long b0 = getLong(b, off);
+            long b1 = getLong(b, off + 8);
+            long b2 = getLong(b, off + 16);
+            long b3 = getLong(b, off + 24);
+            long b4 = getLong(b, off + 32);
+            long b5 = getLong(b, off + 40);
+            processBuffer(b0, b1, b2, b3, b4, b5);
+            off += 48;
+            len -= 48;
+          } while (len > 48);
+          if (len < 16) {
+            int y = 16 - len;
+            System.arraycopy(b, off - y, buffer, 32 + len, y);
+          }
         }
         offset = 0;
       }
@@ -385,21 +385,8 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
       int off = 0;
       if (remainingChars > ((48 - offset) >>> 1)) {
         if (offset > 1) {
-          while (offset < 42) {
-            setLong(buffer, offset, getLong(s, off));
-            off += 4;
-            offset += 8;
-          }
-          if (offset < 46) {
-            setInt(buffer, offset, getInt(s, off));
-            off += 2;
-            offset += 4;
-          }
-          if (offset < 48) {
-            setChar(buffer, offset, s.charAt(off));
-            off += 1;
-            offset += 2;
-          }
+          off = (49 - offset) >>> 1;
+          copyCharsToByteArray(s, 0, buffer, offset, off);
           remainingChars -= off;
           processBuffer();
           offset &= 1;
@@ -455,22 +442,8 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
           buffer[0] = (byte) z;
         }
       }
-      while (remainingChars >= 4) {
-        setLong(buffer, offset, getLong(s, off));
-        off += 4;
-        offset += 8;
-        remainingChars -= 4;
-      }
-      if (remainingChars >= 2) {
-        setInt(buffer, offset, getInt(s, off));
-        off += 2;
-        offset += 4;
-        remainingChars -= 2;
-      }
-      if (remainingChars != 0) {
-        setChar(buffer, offset, s.charAt(off));
-        offset += 2;
-      }
+      copyCharsToByteArray(s, off, buffer, offset, remainingChars);
+      offset += (remainingChars << 1);
       return this;
     }
 
