@@ -35,8 +35,35 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putBooleans(boolean[] x, int off, int len) {
-    for (int i = 0; i < len; i++) {
-      putBoolean(x[off + i]);
+    int end = len + off;
+    while (off <= end - 8) {
+      long b0 = (x[off + 0] ? 1L : 0L) << (8 * 0);
+      long b1 = (x[off + 1] ? 1L : 0L) << (8 * 1);
+      long b2 = (x[off + 2] ? 1L : 0L) << (8 * 2);
+      long b3 = (x[off + 3] ? 1L : 0L) << (8 * 3);
+      long b4 = (x[off + 4] ? 1L : 0L) << (8 * 4);
+      long b5 = (x[off + 5] ? 1L : 0L) << (8 * 5);
+      long b6 = (x[off + 6] ? 1L : 0L) << (8 * 6);
+      long b7 = (x[off + 7] ? 1L : 0L) << (8 * 7);
+      putLong(b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7);
+      off += 8;
+    }
+    if (off <= end - 4) {
+      int b0 = (x[off + 0] ? 1 : 0) << (8 * 0);
+      int b1 = (x[off + 1] ? 1 : 0) << (8 * 1);
+      int b2 = (x[off + 2] ? 1 : 0) << (8 * 2);
+      int b3 = (x[off + 3] ? 1 : 0) << (8 * 3);
+      putInt(b0 | b1 | b2 | b3);
+      off += 4;
+    }
+    if (off <= end - 2) {
+      int b0 = (x[off + 0] ? 1 : 0) << (8 * 0);
+      int b1 = (x[off + 1] ? 1 : 0) << (8 * 1);
+      putChar((char) (b0 | b1));
+      off += 2;
+    }
+    if (off < end) {
+      putBoolean(x[off]);
     }
     return this;
   }
@@ -54,8 +81,21 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putBytes(byte[] b, int off, int len) {
-    for (int i = 0; i < len; i++) {
-      putByte(b[off + i]);
+    int end = len + off;
+    while (off <= end - 8) {
+      putLong(AbstractHasher.getLong(b, off));
+      off += 8;
+    }
+    if (off <= end - 4) {
+      putInt(AbstractHasher.getInt(b, off));
+      off += 4;
+    }
+    if (off <= end - 2) {
+      putChar(AbstractHasher.getChar(b, off));
+      off += 2;
+    }
+    if (off < end) {
+      putByte(b[off]);
     }
     return this;
   }
@@ -78,17 +118,41 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putChars(char[] x, int off, int len) {
-    for (int i = 0; i < len; i++) {
-      putChar(x[off + i]);
+    int end = len + off;
+    while (off <= end - 4) {
+      long b0 = (long) x[off + 0] << (16 * 0);
+      long b1 = (long) x[off + 1] << (16 * 1);
+      long b2 = (long) x[off + 2] << (16 * 2);
+      long b3 = (long) x[off + 3] << (16 * 3);
+      putLong(b0 | b1 | b2 | b3);
+      off += 4;
+    }
+    if (off <= end - 2) {
+      int b0 = x[off + 0] << (16 * 0);
+      int b1 = x[off + 1] << (16 * 1);
+      putInt(b0 | b1);
+      off += 2;
+    }
+    if (off < end) {
+      putChar(x[off]);
     }
     return this;
   }
 
   @Override
   public HashStream putChars(CharSequence s) {
-    int len = s.length();
-    for (int i = 0; i < len; i++) {
-      putChar(s.charAt(i));
+    int end = s.length();
+    int off = 0;
+    while (off <= end - 4) {
+      putLong(AbstractHasher.getLong(s, off));
+      off += 4;
+    }
+    if (off <= end - 2) {
+      putInt(AbstractHasher.getInt(s, off));
+      off += 2;
+    }
+    if (off < end) {
+      putChar(s.charAt(off));
     }
     return this;
   }
@@ -124,8 +188,23 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putShorts(short[] x, int off, int len) {
-    for (int i = 0; i < len; i++) {
-      putShort(x[off + i]);
+    int end = off + len;
+    while (off <= end - 4) {
+      long b0 = (x[off + 0] & 0xFFFFL) << (16 * 0);
+      long b1 = (x[off + 1] & 0xFFFFL) << (16 * 1);
+      long b2 = (x[off + 2] & 0xFFFFL) << (16 * 2);
+      long b3 = (x[off + 3] & 0xFFFFL) << (16 * 3);
+      putLong(b0 | b1 | b2 | b3);
+      off += 4;
+    }
+    if (off <= end - 2) {
+      int b0 = (x[off + 0] & 0xFFFF) << (16 * 0);
+      int b1 = (x[off + 1] & 0xFFFF) << (16 * 1);
+      putInt(b0 | b1);
+      off += 2;
+    }
+    if (off < end) {
+      putShort(x[off]);
     }
     return this;
   }
@@ -151,8 +230,15 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putInts(int[] x, int off, int len) {
-    for (int i = 0; i < len; i++) {
-      putInt(x[off + i]);
+    int end = off + len;
+    while (off <= end - 2) {
+      long b0 = x[off + 0] & 0xFFFFFFFFL;
+      long b1 = (long) x[off + 1] << 32;
+      putLong(b0 | b1);
+      off += 2;
+    }
+    if (off < end) {
+      putInt(x[off]);
     }
     return this;
   }
@@ -195,8 +281,15 @@ abstract class AbstractHashStream implements HashStream {
 
   @Override
   public HashStream putFloats(float[] x, int off, int len) {
-    for (int i = 0; i < len; ++i) {
-      putFloat(x[off + i]);
+    int end = off + len;
+    while (off <= end - 2) {
+      long b0 = Float.floatToRawIntBits(x[off + 0]) & 0xFFFFFFFFL;
+      long b1 = (long) Float.floatToRawIntBits(x[off + 1]) << 32;
+      putLong(b0 | b1);
+      off += 2;
+    }
+    if (off < end) {
+      putFloat(x[off]);
     }
     return this;
   }
