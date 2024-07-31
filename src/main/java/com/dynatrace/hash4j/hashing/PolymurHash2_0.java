@@ -604,10 +604,6 @@ class PolymurHash2_0 extends AbstractHasher64 {
 
     @Override
     public HashStream64 putBytes(byte[] b, int off, int len) {
-      if (len == 0) {
-        return this;
-      }
-
       byteCount += len;
 
       int x = 49 - offset;
