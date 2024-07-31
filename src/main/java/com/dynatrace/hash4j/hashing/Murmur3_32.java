@@ -159,7 +159,16 @@ class Murmur3_32 extends AbstractHasher32 {
 
     @Override
     public HashStream32 putShort(short v) {
-      buffer |= (v & 0xFFFFL) << shift;
+      return putTwoBytes(v & 0xFFFFL);
+    }
+
+    @Override
+    public HashStream32 putChar(char v) {
+      return putTwoBytes(v);
+    }
+
+    private HashStream32 putTwoBytes(long v) {
+      buffer |= v << shift;
       shift += 16;
       length += 2;
       if (shift >= 32) {

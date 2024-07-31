@@ -268,7 +268,15 @@ class Murmur3_128 extends AbstractHasher128 {
 
     @Override
     public HashStream128 putShort(short v) {
-      final long l = v & 0xFFFFL;
+      return putTwoBytes(v & 0xFFFFL);
+    }
+
+    @Override
+    public HashStream128 putChar(char v) {
+      return putTwoBytes(v);
+    }
+
+    private HashStream128 putTwoBytes(long l) {
       buffer1 |= l << bitCount;
       if ((bitCount & 0x30L) == 0x30L) {
         if ((bitCount & 0x40L) != 0) {
