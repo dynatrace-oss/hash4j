@@ -370,68 +370,56 @@ abstract class AbstractFarmHash extends AbstractHasher64 {
 
     @Override
     public final HashStream64 putChars(CharSequence s) {
-      if (bufferCount + s.length() * 2L < 73) {
-        for (int idx = 0; idx < s.length(); idx += 1) {
-          setChar(buffer, bufferCount + (idx << 1), s.charAt(idx));
-        }
-        bufferCount += s.length() << 1;
-        return this;
-      }
       int idx = 0;
-      while (bufferCount < 72) {
-        setChar(buffer, bufferCount, s.charAt(idx));
-        bufferCount += 2;
-        idx += 1;
-      }
-      processBuffer();
-      int a = bufferCount & 1;
-      bufferCount = 8 - a;
-      idx -= a;
-      int lenMinus32 = s.length() - 32;
-      if (idx < lenMinus32) {
-        while (true) {
+      if (s.length() >= ((74 - bufferCount) >> 1)) {
+        idx = ((73 - bufferCount) >>> 1);
+        copyCharsToByteArray(s, 0, buffer, bufferCount, idx);
+        processBuffer();
+        int a = bufferCount & 1;
+        bufferCount = 8 - a;
+        idx -= a;
+        int lenMinus32 = s.length() - 32;
+        if (idx < lenMinus32) {
+          while (true) {
 
-          long b0 = getLong(s, idx);
-          long b1 = getLong(s, idx + 4);
-          long b2 = getLong(s, idx + 8);
-          long b3 = getLong(s, idx + 12);
-          long b4 = getLong(s, idx + 16);
-          long b5 = getLong(s, idx + 20);
-          long b6 = getLong(s, idx + 24);
-          long b7 = getLong(s, idx + 28);
+            long b0 = getLong(s, idx);
+            long b1 = getLong(s, idx + 4);
+            long b2 = getLong(s, idx + 8);
+            long b3 = getLong(s, idx + 12);
+            long b4 = getLong(s, idx + 16);
+            long b5 = getLong(s, idx + 20);
+            long b6 = getLong(s, idx + 24);
+            long b7 = getLong(s, idx + 28);
 
-          if (a != 0) {
-            b0 = (b0 >>> 8) | (b1 << 56);
-            b1 = (b1 >>> 8) | (b2 << 56);
-            b2 = (b2 >>> 8) | (b3 << 56);
-            b3 = (b3 >>> 8) | (b4 << 56);
-            b4 = (b4 >>> 8) | (b5 << 56);
-            b5 = (b5 >>> 8) | (b6 << 56);
-            b6 = (b6 >>> 8) | (b7 << 56);
-            b7 = (b7 >>> 8) | ((long) s.charAt(idx + 32) << 56);
-          }
+            if (a != 0) {
+              b0 = (b0 >>> 8) | (b1 << 56);
+              b1 = (b1 >>> 8) | (b2 << 56);
+              b2 = (b2 >>> 8) | (b3 << 56);
+              b3 = (b3 >>> 8) | (b4 << 56);
+              b4 = (b4 >>> 8) | (b5 << 56);
+              b5 = (b5 >>> 8) | (b6 << 56);
+              b6 = (b6 >>> 8) | (b7 << 56);
+              b7 = (b7 >>> 8) | ((long) s.charAt(idx + 32) << 56);
+            }
 
-          processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
-          idx += 32;
-          if (idx >= lenMinus32) {
-            setLong(buffer, 8, b0);
-            setLong(buffer, 16, b1);
-            setLong(buffer, 24, b2);
-            setLong(buffer, 32, b3);
-            setLong(buffer, 40, b4);
-            setLong(buffer, 48, b5);
-            setLong(buffer, 56, b6);
-            setLong(buffer, 64, b7);
-            break;
+            processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+            idx += 32;
+            if (idx >= lenMinus32) {
+              setLong(buffer, 8, b0);
+              setLong(buffer, 16, b1);
+              setLong(buffer, 24, b2);
+              setLong(buffer, 32, b3);
+              setLong(buffer, 40, b4);
+              setLong(buffer, 48, b5);
+              setLong(buffer, 56, b6);
+              setLong(buffer, 64, b7);
+              break;
+            }
           }
         }
       }
-
-      do {
-        setChar(buffer, bufferCount, s.charAt(idx));
-        bufferCount += 2;
-        idx += 1;
-      } while (idx < s.length());
+      copyCharsToByteArray(s, idx, buffer, bufferCount, s.length() - idx);
+      bufferCount += (s.length() - idx) << 1;
       return this;
     }
 

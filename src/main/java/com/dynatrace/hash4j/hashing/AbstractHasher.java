@@ -74,4 +74,32 @@ abstract class AbstractHasher implements Hasher {
   protected static void setChar(byte[] b, int off, char v) {
     CHAR_HANDLE.set(b, off, v);
   }
+
+  protected static void copyCharsToByteArray(
+      CharSequence charSequence,
+      int offetCharSequence,
+      byte[] byteArray,
+      int offsetByteArray,
+      int numChars) {
+    for (int charIdx = 0; charIdx <= numChars - 4; charIdx += 4) {
+      setLong(
+          byteArray,
+          offsetByteArray + (charIdx << 1),
+          getLong(charSequence, offetCharSequence + charIdx));
+    }
+    if ((numChars & 2) != 0) {
+      int charIdx = numChars & 0xFFFFFFFC;
+      setInt(
+          byteArray,
+          offsetByteArray + (charIdx << 1),
+          getInt(charSequence, offetCharSequence + charIdx));
+    }
+    if ((numChars & 1) != 0) {
+      int charIdx = numChars & 0xFFFFFFFE;
+      setChar(
+          byteArray,
+          offsetByteArray + (charIdx << 1),
+          charSequence.charAt(offetCharSequence + charIdx));
+    }
+  }
 }
