@@ -294,4 +294,36 @@ class CrossCheckTest {
       }
     }
   }
+
+  @Test
+  void testXXH3ZeroAllocationHashing() {
+    SplittableRandom random = new SplittableRandom(0x97c4eb4e39a52615L);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(LongHashFunction.xx3().hashBytes(b))
+            .isEqualTo(Hashing.xxh3_64().hashBytesToLong(b));
+        assertThat(LongHashFunction.xx3(seed).hashBytes(b))
+            .isEqualTo(Hashing.xxh3_64(seed).hashBytesToLong(b));
+      }
+    }
+  }
+
+  @Test
+  void testXXH3Crypto() {
+    SplittableRandom random = new SplittableRandom(0xd51892c0663e06e1L);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(Long.reverseBytes(byteArrayToLong(new Algorithm.XXH3_64.Seeded(0L).hash(b))))
+            .isEqualTo(Hashing.xxh3_64().hashBytesToLong(b));
+        assertThat(Long.reverseBytes(byteArrayToLong(new Algorithm.XXH3_64.Seeded(seed).hash(b))))
+            .isEqualTo(Hashing.xxh3_64(seed).hashBytesToLong(b));
+      }
+    }
+  }
 }

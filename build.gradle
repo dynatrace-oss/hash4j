@@ -10,8 +10,8 @@ plugins {
 	id 'maven-publish'
 	id 'signing'
 	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-	id "com.palantir.revapi" version "1.7.0"
-	id "net.ltgt.errorprone" version "4.0.1"
+	id 'com.palantir.revapi' version '1.7.0'
+	id 'net.ltgt.errorprone' version '4.0.1'
 }
 
 repositories {
@@ -84,9 +84,9 @@ version = '0.17.0'
 
 
 spotless {
-	def googleJavaFormatVersion = '1.19.2'
+	def googleJavaFormatVersion = '1.23.0'
 	def eclipseCdtVersion = '11.3'
-	def blackVersion = '24.3.0'
+	def blackVersion = '24.4.2'
 	def greclipseVersion = '4.29'
 
 	ratchetFrom 'origin/main'
@@ -120,7 +120,8 @@ spotless {
 			'src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java',\
 			'src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java',\
 			'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java',\
-			'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
+			'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java',\
+			'src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java'
 	}
 	format 'javaImohash', JavaExtension, {
 		importOrder()
@@ -170,6 +171,13 @@ spotless {
 		googleJavaFormat(googleJavaFormatVersion)
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_GUAVA')
 		target 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java'
+	}
+	format 'javaXXH', JavaExtension, {
+		importOrder()
+		removeUnusedImports()
+		googleJavaFormat(googleJavaFormatVersion)
+		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_XXH')
+		target 'src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java'
 	}
 }
 
