@@ -49,6 +49,7 @@ hash4j currently implements the following hash algorithms:
   * farmhashna
   * farmhashuo
 * [PolymurHash 2.0](https://github.com/orlp/polymur-hash)
+* [XXH3](https://github.com/Cyan4973/xxHash)
 
 All hash functions are thoroughly tested against the native reference implementations and also other libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/latest/com/google/common/hash/package-summary.html), [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html), or [crypto](https://github.com/appmattus/crypto) (see [CrossCheckTest.java](src/test/java/com/dynatrace/hash4j/hashing/CrossCheckTest.java)).
  
