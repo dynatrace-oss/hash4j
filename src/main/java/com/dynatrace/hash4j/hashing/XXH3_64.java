@@ -39,112 +39,194 @@ package com.dynatrace.hash4j.hashing;
 
 public class XXH3_64 extends AbstractHasher64 {
 
-  private static final long[] SECRET = {
-    0xbe4ba423396cfeb8L,
-    0x1cad21f72c81017cL,
-    0xdb979083e96dd4deL,
-    0x1f67b3b7a4a44072L,
-    0x78e5c0cc4ee679cbL,
-    0x2172ffcc7dd05a82L,
-    0x8e2443f7744608b8L,
-    0x4c263a81e69035e0L,
-    0xcb00c391bb52283cL,
-    0xa32e531b8b65d088L,
-    0x4ef90da297486471L,
-    0xd8acdea946ef1938L,
-    0x3f349ce33f76faa8L,
-    0x1d4f0bc7c7bbdcf9L,
-    0x3159b4cd4be0518aL,
-    0x647378d9c97e9fc8L,
-    0xc3ebd33483acc5eaL,
-    0xeb6313faffa081c5L,
-    0x49daf0b751dd0d17L,
-    0x9e68d429265516d3L,
-    0xfca1477d58be162bL,
-    0xce31d07ad1b8f88fL,
-    0x280416958f3acb45L,
-    0x7e404bbbcafbd7afL
-  };
+  private static final long SECRET_00 = 0xbe4ba423396cfeb8L;
+  private static final long SECRET_01 = 0x1cad21f72c81017cL;
+  private static final long SECRET_02 = 0xdb979083e96dd4deL;
+  private static final long SECRET_03 = 0x1f67b3b7a4a44072L;
+  private static final long SECRET_04 = 0x78e5c0cc4ee679cbL;
+  private static final long SECRET_05 = 0x2172ffcc7dd05a82L;
+  private static final long SECRET_06 = 0x8e2443f7744608b8L;
+  private static final long SECRET_07 = 0x4c263a81e69035e0L;
+  private static final long SECRET_08 = 0xcb00c391bb52283cL;
+  private static final long SECRET_09 = 0xa32e531b8b65d088L;
+  private static final long SECRET_10 = 0x4ef90da297486471L;
+  private static final long SECRET_11 = 0xd8acdea946ef1938L;
+  private static final long SECRET_12 = 0x3f349ce33f76faa8L;
+  private static final long SECRET_13 = 0x1d4f0bc7c7bbdcf9L;
+  private static final long SECRET_14 = 0x3159b4cd4be0518aL;
+  private static final long SECRET_15 = 0x647378d9c97e9fc8L;
+  private static final long SECRET_16 = 0xc3ebd33483acc5eaL;
+  private static final long SECRET_17 = 0xeb6313faffa081c5L;
+  private static final long SECRET_18 = 0x49daf0b751dd0d17L;
+  private static final long SECRET_19 = 0x9e68d429265516d3L;
+  private static final long SECRET_20 = 0xfca1477d58be162bL;
+  private static final long SECRET_21 = 0xce31d07ad1b8f88fL;
+  private static final long SECRET_22 = 0x280416958f3acb45L;
+  private static final long SECRET_23 = 0x7e404bbbcafbd7afL;
 
-  private static final long SEC_SHIFT_0 = (SECRET[0] >>> 24) + (SECRET[1] << 40);
-  private static final long SEC_SHIFT_1 = (SECRET[1] >>> 24) + (SECRET[2] << 40);
-  private static final long SEC_SHIFT_2 = (SECRET[2] >>> 24) + (SECRET[3] << 40);
-  private static final long SEC_SHIFT_3 = (SECRET[3] >>> 24) + (SECRET[4] << 40);
-  private static final long SEC_SHIFT_4 = (SECRET[4] >>> 24) + (SECRET[5] << 40);
-  private static final long SEC_SHIFT_5 = (SECRET[5] >>> 24) + (SECRET[6] << 40);
-  private static final long SEC_SHIFT_6 = (SECRET[6] >>> 24) + (SECRET[7] << 40);
-  private static final long SEC_SHIFT_7 = (SECRET[7] >>> 24) + (SECRET[8] << 40);
-  private static final long SEC_SHIFT_8 = (SECRET[8] >>> 24) + (SECRET[9] << 40);
-  private static final long SEC_SHIFT_9 = (SECRET[9] >>> 24) + (SECRET[10] << 40);
-  private static final long SEC_SHIFT_10 = (SECRET[10] >>> 24) + (SECRET[11] << 40);
-  private static final long SEC_SHIFT_11 = (SECRET[11] >>> 24) + (SECRET[12] << 40);
-  private static final long SEC_SHIFT_12 = (SECRET[12] >>> 24) + (SECRET[13] << 40);
-  private static final long SEC_SHIFT_13 = (SECRET[13] >>> 24) + (SECRET[14] << 40);
-  private static final long SEC_SHIFT_14 = (SECRET[14] >>> 56) + (SECRET[15] << 8);
-  private static final long SEC_SHIFT_15 = (SECRET[15] >>> 56) + (SECRET[16] << 8);
-
-  private static final long XXH_PRIME32_1 = 0x9E3779B1L;
-  private static final long XXH_PRIME32_2 = 0x85EBCA77L;
-  private static final long XXH_PRIME32_3 = 0xC2B2AE3DL;
-
-  private static final long XXH_PRIME64_1 = 0x9E3779B185EBCA87L;
-  private static final long XXH_PRIME64_2 = 0xC2B2AE3D27D4EB4FL;
-  private static final long XXH_PRIME64_3 = 0x165667B19E3779F9L;
-  private static final long XXH_PRIME64_4 = 0x85EBCA77C2B2AE63L;
-  private static final long XXH_PRIME64_5 = 0x27D4EB2F165667C5L;
-
-  private static final long BITFLIP_00 = ((SECRET[0] >>> 32) ^ (SECRET[0] & 0xFFFFFFFFL));
-  private static final long BITFLIP_12 = SECRET[1] ^ SECRET[2];
-  private static final long BITFLIP_34 = SECRET[3] ^ SECRET[4];
-  private static final long BITFLIP_56 = SECRET[5] ^ SECRET[6];
-  private static final long BITFLIP_78 = SECRET[7] ^ SECRET[8];
+  private static final long INIT_ACC_0 = 0x00000000C2B2AE3DL;
+  private static final long INIT_ACC_1 = 0x9E3779B185EBCA87L;
+  private static final long INIT_ACC_2 = 0xC2B2AE3D27D4EB4FL;
+  private static final long INIT_ACC_3 = 0x165667B19E3779F9L;
+  private static final long INIT_ACC_4 = 0x85EBCA77C2B2AE63L;
+  private static final long INIT_ACC_5 = 0x0000000085EBCA77L;
+  private static final long INIT_ACC_6 = 0x27D4EB2F165667C5L;
+  private static final long INIT_ACC_7 = 0x000000009E3779B1L;
 
   private static final int BLOCK_LEN_EXP = 10;
 
-  private final long seed;
-  private final long[] secret;
+  private final long secShift00;
+  private final long secShift01;
+  private final long secShift02;
+  private final long secShift03;
+  private final long secShift04;
+  private final long secShift05;
+  private final long secShift06;
+  private final long secShift07;
+  private final long secShift08;
+  private final long secShift09;
+  private final long secShift10;
+  private final long secShift11;
+  private final long secShift12;
+  private final long secShift13;
+  private final long secShift14;
+  private final long secShift15;
+  private final long secShift16;
+  private final long secShift17;
+  private final long secShift18;
+  private final long secShift19;
+  private final long secShift20;
+  private final long secShift21;
+  private final long secShift22;
+  private final long secShift23;
 
-  private static long[] initCustomSecret(long seed) {
-    return new long[] {
-      SECRET[0] + seed,
-      SECRET[1] - seed,
-      SECRET[2] + seed,
-      SECRET[3] - seed,
-      SECRET[4] + seed,
-      SECRET[5] - seed,
-      SECRET[6] + seed,
-      SECRET[7] - seed,
-      SECRET[8] + seed,
-      SECRET[9] - seed,
-      SECRET[10] + seed,
-      SECRET[11] - seed,
-      SECRET[12] + seed,
-      SECRET[13] - seed,
-      SECRET[14] + seed,
-      SECRET[15] - seed,
-      SECRET[16] + seed,
-      SECRET[17] - seed,
-      SECRET[18] + seed,
-      SECRET[19] - seed,
-      SECRET[20] + seed,
-      SECRET[21] - seed,
-      SECRET[22] + seed,
-      SECRET[23] - seed
-    };
-  }
+  private final long secShiftFinal0;
+  private final long secShiftFinal1;
+  private final long secShiftFinal2;
+  private final long secShiftFinal3;
+  private final long secShiftFinal4;
+  private final long secShiftFinal5;
+  private final long secShiftFinal6;
+  private final long secShiftFinal7;
+
+  private final long secret00;
+  private final long secret01;
+  private final long secret02;
+  private final long secret03;
+  private final long secret04;
+  private final long secret05;
+  private final long secret06;
+  private final long secret07;
+  private final long secret08;
+  private final long secret09;
+  private final long secret10;
+  private final long secret11;
+  private final long secret12;
+  private final long secret13;
+  private final long secret14;
+  private final long secret15;
+  private final long secret16;
+  private final long secret17;
+  private final long secret18;
+  private final long secret19;
+  private final long secret20;
+  private final long secret21;
+  private final long secret22;
+  private final long secret23;
+
+  private final long bitflip00;
+  private final long bitflip12;
+  private final long bitflip34;
+  private final long bitflip56;
+
+  private final long hash0;
+
+  private final long secret[];
 
   private XXH3_64(long seed) {
-    this.seed = seed;
-    this.secret = initCustomSecret(seed);
+    this.secret00 = SECRET_00 + seed;
+    this.secret01 = SECRET_01 - seed;
+    this.secret02 = SECRET_02 + seed;
+    this.secret03 = SECRET_03 - seed;
+    this.secret04 = SECRET_04 + seed;
+    this.secret05 = SECRET_05 - seed;
+    this.secret06 = SECRET_06 + seed;
+    this.secret07 = SECRET_07 - seed;
+    this.secret08 = SECRET_08 + seed;
+    this.secret09 = SECRET_09 - seed;
+    this.secret10 = SECRET_10 + seed;
+    this.secret11 = SECRET_11 - seed;
+    this.secret12 = SECRET_12 + seed;
+    this.secret13 = SECRET_13 - seed;
+    this.secret14 = SECRET_14 + seed;
+    this.secret15 = SECRET_15 - seed;
+    this.secret16 = SECRET_16 + seed;
+    this.secret17 = SECRET_17 - seed;
+    this.secret18 = SECRET_18 + seed;
+    this.secret19 = SECRET_19 - seed;
+    this.secret20 = SECRET_20 + seed;
+    this.secret21 = SECRET_21 - seed;
+    this.secret22 = SECRET_22 + seed;
+    this.secret23 = SECRET_23 - seed;
+
+    this.secShift00 = (SECRET_00 >>> 24) + (SECRET_01 << 40) + seed;
+    this.secShift01 = (SECRET_01 >>> 24) + (SECRET_02 << 40) - seed;
+    this.secShift02 = (SECRET_02 >>> 24) + (SECRET_03 << 40) + seed;
+    this.secShift03 = (SECRET_03 >>> 24) + (SECRET_04 << 40) - seed;
+    this.secShift04 = (SECRET_04 >>> 24) + (SECRET_05 << 40) + seed;
+    this.secShift05 = (SECRET_05 >>> 24) + (SECRET_06 << 40) - seed;
+    this.secShift06 = (SECRET_06 >>> 24) + (SECRET_07 << 40) + seed;
+    this.secShift07 = (SECRET_07 >>> 24) + (SECRET_08 << 40) - seed;
+    this.secShift08 = (SECRET_08 >>> 24) + (SECRET_09 << 40) + seed;
+    this.secShift09 = (SECRET_09 >>> 24) + (SECRET_10 << 40) - seed;
+    this.secShift10 = (SECRET_10 >>> 24) + (SECRET_11 << 40) + seed;
+    this.secShift11 = (SECRET_11 >>> 24) + (SECRET_12 << 40) - seed;
+    this.secShift12 = (SECRET_12 >>> 24) + (SECRET_13 << 40) + seed;
+    this.secShift13 = (SECRET_13 >>> 24) + (SECRET_14 << 40) - seed;
+    this.secShift14 = (SECRET_14 >>> 56) + (SECRET_15 << 8) + seed;
+    this.secShift15 = (SECRET_15 >>> 56) + (SECRET_16 << 8) - seed;
+
+    this.secShift16 = secret15 >>> 8 | secret16 << 56;
+    this.secShift17 = secret16 >>> 8 | secret17 << 56;
+    this.secShift18 = secret17 >>> 8 | secret18 << 56;
+    this.secShift19 = secret18 >>> 8 | secret19 << 56;
+    this.secShift20 = secret19 >>> 8 | secret20 << 56;
+    this.secShift21 = secret20 >>> 8 | secret21 << 56;
+    this.secShift22 = secret21 >>> 8 | secret22 << 56;
+    this.secShift23 = secret22 >>> 8 | secret23 << 56;
+
+    this.secShiftFinal0 = secret01 >>> 24 | secret02 << 40;
+    this.secShiftFinal1 = secret02 >>> 24 | secret03 << 40;
+    this.secShiftFinal2 = secret03 >>> 24 | secret04 << 40;
+    this.secShiftFinal3 = secret04 >>> 24 | secret05 << 40;
+    this.secShiftFinal4 = secret05 >>> 24 | secret06 << 40;
+    this.secShiftFinal5 = secret06 >>> 24 | secret07 << 40;
+    this.secShiftFinal6 = secret07 >>> 24 | secret08 << 40;
+    this.secShiftFinal7 = secret08 >>> 24 | secret09 << 40;
+
+    this.bitflip00 = ((SECRET_00 >>> 32) ^ (SECRET_00 & 0xFFFFFFFFL)) + seed;
+    this.bitflip12 = (SECRET_01 ^ SECRET_02) - (seed ^ Long.reverseBytes(seed & 0xFFFFFFFFL));
+    this.bitflip34 = (SECRET_03 ^ SECRET_04) + seed;
+    this.bitflip56 = (SECRET_05 ^ SECRET_06) - seed;
+
+    this.hash0 = avalanche64(seed ^ (SECRET_07 ^ SECRET_08));
+
+    this.secret =
+        new long[] {
+          secret00, secret01, secret02, secret03, secret04, secret05, secret06, secret07,
+          secret08, secret09, secret10, secret11, secret12, secret13, secret14, secret15,
+          secret16, secret17, secret18, secret19, secret20, secret21, secret22, secret23
+        };
   }
 
   private XXH3_64() {
-    this.seed = 0;
-    this.secret = SECRET;
+    this(0);
   }
 
+  private static final Hasher64 DEFAULT_HASHER_INSTANCE = new XXH3_64();
+
   public static Hasher64 create() {
-    return new XXH3_64();
+    return DEFAULT_HASHER_INSTANCE;
   }
 
   public static Hasher64 create(long seed) {
@@ -162,14 +244,14 @@ public class XXH3_64 extends AbstractHasher64 {
     private static final int BULK_SIZE_HALF = 128;
     private static final int BULK_SIZE_MASK = BULK_SIZE - 1;
 
-    private long acc0 = XXH_PRIME32_3;
-    private long acc1 = XXH_PRIME64_1;
-    private long acc2 = XXH_PRIME64_2;
-    private long acc3 = XXH_PRIME64_3;
-    private long acc4 = XXH_PRIME64_4;
-    private long acc5 = XXH_PRIME32_2;
-    private long acc6 = XXH_PRIME64_5;
-    private long acc7 = XXH_PRIME32_1;
+    private long acc0 = INIT_ACC_0;
+    private long acc1 = INIT_ACC_1;
+    private long acc2 = INIT_ACC_2;
+    private long acc3 = INIT_ACC_3;
+    private long acc4 = INIT_ACC_4;
+    private long acc5 = INIT_ACC_5;
+    private long acc6 = INIT_ACC_6;
+    private long acc7 = INIT_ACC_7;
     private final byte[] buffer = new byte[BULK_SIZE + 8];
     private int offset = 0;
     private long byteCount = 0;
@@ -223,14 +305,14 @@ public class XXH3_64 extends AbstractHasher64 {
         long b6 = getLong(buffer, (offset - (64 - 8 * 6)) & BULK_SIZE_MASK);
         long b7 = getLong(buffer, (offset - (64 - 8 * 7)) & BULK_SIZE_MASK);
 
-        acc0Loc += b1 + contrib(b0, secret[15 + 0] >>> 8 | secret[16 + 0] << 56);
-        acc1Loc += b0 + contrib(b1, secret[15 + 1] >>> 8 | secret[16 + 1] << 56);
-        acc2Loc += b3 + contrib(b2, secret[15 + 2] >>> 8 | secret[16 + 2] << 56);
-        acc3Loc += b2 + contrib(b3, secret[15 + 3] >>> 8 | secret[16 + 3] << 56);
-        acc4Loc += b5 + contrib(b4, secret[15 + 4] >>> 8 | secret[16 + 4] << 56);
-        acc5Loc += b4 + contrib(b5, secret[15 + 5] >>> 8 | secret[16 + 5] << 56);
-        acc6Loc += b7 + contrib(b6, secret[15 + 6] >>> 8 | secret[16 + 6] << 56);
-        acc7Loc += b6 + contrib(b7, secret[15 + 7] >>> 8 | secret[16 + 7] << 56);
+        acc0Loc += b1 + contrib(b0, secShift16);
+        acc1Loc += b0 + contrib(b1, secShift17);
+        acc2Loc += b3 + contrib(b2, secShift18);
+        acc3Loc += b2 + contrib(b3, secShift19);
+        acc4Loc += b5 + contrib(b4, secShift20);
+        acc5Loc += b4 + contrib(b5, secShift21);
+        acc6Loc += b7 + contrib(b6, secShift22);
+        acc7Loc += b6 + contrib(b7, secShift23);
       }
 
       return finalizeHash(
@@ -401,14 +483,14 @@ public class XXH3_64 extends AbstractHasher64 {
     }
 
     private void mixAcc() {
-      acc0 = XXH3_64.mixAcc(acc0, secret[16 + 0]);
-      acc1 = XXH3_64.mixAcc(acc1, secret[16 + 1]);
-      acc2 = XXH3_64.mixAcc(acc2, secret[16 + 2]);
-      acc3 = XXH3_64.mixAcc(acc3, secret[16 + 3]);
-      acc4 = XXH3_64.mixAcc(acc4, secret[16 + 4]);
-      acc5 = XXH3_64.mixAcc(acc5, secret[16 + 5]);
-      acc6 = XXH3_64.mixAcc(acc6, secret[16 + 6]);
-      acc7 = XXH3_64.mixAcc(acc7, secret[16 + 7]);
+      acc0 = XXH3_64.mixAcc(acc0, secret16);
+      acc1 = XXH3_64.mixAcc(acc1, secret17);
+      acc2 = XXH3_64.mixAcc(acc2, secret18);
+      acc3 = XXH3_64.mixAcc(acc3, secret19);
+      acc4 = XXH3_64.mixAcc(acc4, secret20);
+      acc5 = XXH3_64.mixAcc(acc5, secret21);
+      acc6 = XXH3_64.mixAcc(acc6, secret22);
+      acc7 = XXH3_64.mixAcc(acc7, secret23);
     }
 
     private void processBuffer(int off, byte[] buffer, int s) {
@@ -495,14 +577,14 @@ public class XXH3_64 extends AbstractHasher64 {
 
     @Override
     public HashStream64 reset() {
-      acc0 = XXH_PRIME32_3;
-      acc1 = XXH_PRIME64_1;
-      acc2 = XXH_PRIME64_2;
-      acc3 = XXH_PRIME64_3;
-      acc4 = XXH_PRIME64_4;
-      acc5 = XXH_PRIME32_2;
-      acc6 = XXH_PRIME64_5;
-      acc7 = XXH_PRIME32_1;
+      acc0 = INIT_ACC_0;
+      acc1 = INIT_ACC_1;
+      acc2 = INIT_ACC_2;
+      acc3 = INIT_ACC_3;
+      acc4 = INIT_ACC_4;
+      acc5 = INIT_ACC_5;
+      acc6 = INIT_ACC_6;
+      acc7 = INIT_ACC_7;
       offset = 0;
       byteCount = 0;
       return this;
@@ -548,28 +630,10 @@ public class XXH3_64 extends AbstractHasher64 {
 
   private static long avalanche64(long h64) {
     h64 ^= h64 >>> 33;
-    h64 *= XXH_PRIME64_2;
+    h64 *= INIT_ACC_2;
     h64 ^= h64 >>> 29;
-    h64 *= XXH_PRIME64_3;
+    h64 *= INIT_ACC_3;
     return h64 ^ (h64 >>> 32);
-  }
-
-  private static long mix16B(
-      final long seed, final byte[] input, final int offIn, final long sec0, final long sec1) {
-    long lo = getLong(input, offIn);
-    long hi = getLong(input, offIn + 8);
-    return mix2Accs(lo, hi, sec0 + seed, sec1 - seed);
-  }
-
-  private static long mix16B(
-      final long seed,
-      final CharSequence input,
-      final int offIn,
-      final long sec0,
-      final long sec1) {
-    long lo = getLong(input, offIn);
-    long hi = getLong(input, offIn + 4);
-    return mix2Accs(lo, hi, sec0 + seed, sec1 - seed);
   }
 
   private static long mix16B(
@@ -591,24 +655,22 @@ public class XXH3_64 extends AbstractHasher64 {
   }
 
   private static long mixAcc(long acc, long sec) {
-    return (acc ^ (acc >>> 47) ^ sec) * XXH_PRIME32_1;
+    return (acc ^ (acc >>> 47) ^ sec) * INIT_ACC_7;
   }
 
   @Override
   public long hashBytesToLong(final byte[] input, final int off, final int length) {
     if (length <= 16) {
       if (length > 8) {
-        long lo = getLong(input, off) ^ (BITFLIP_34 + seed);
-        long hi = getLong(input, off + length - 8) ^ (BITFLIP_56 - seed);
+        long lo = getLong(input, off) ^ bitflip34;
+        long hi = getLong(input, off + length - 8) ^ bitflip56;
         long acc = length + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
         return avalanche3(acc);
       }
       if (length >= 4) {
         long input1 = getInt(input, off);
         long input2 = getInt(input, off + length - 4);
-        long keyed =
-            ((input2 & 0xFFFFFFFFL) + (input1 << 32))
-                ^ (BITFLIP_12 - (seed ^ Long.reverseBytes(seed & 0xFFFFFFFFL)));
+        long keyed = ((input2 & 0xFFFFFFFFL) + (input1 << 32)) ^ bitflip12;
         return rrmxmx(keyed, length);
       }
       if (length != 0) {
@@ -616,80 +678,79 @@ public class XXH3_64 extends AbstractHasher64 {
         int c2 = input[off + (length >> 1)];
         int c3 = input[off + length - 1] & 0xFF;
         long combined = ((c1 << 16) | (c2 << 24) | c3 | (length << 8)) & 0xFFFFFFFFL;
-        return avalanche64(combined ^ (BITFLIP_00 + seed));
+        return avalanche64(combined ^ bitflip00);
       }
-      return avalanche64(seed ^ BITFLIP_78);
+      return hash0;
     }
     if (length <= 128) {
-      long acc = length * XXH_PRIME64_1;
+      long acc = length * INIT_ACC_1;
 
       if (length > 32) {
         if (length > 64) {
           if (length > 96) {
-            acc += mix16B(input, off + 48, secret[12], secret[13]);
-            acc += mix16B(input, off + length - 64, secret[14], secret[15]);
+            acc += mix16B(input, off + 48, secret12, secret13);
+            acc += mix16B(input, off + length - 64, secret14, secret15);
           }
-          acc += mix16B(input, off + 32, secret[8], secret[9]);
-          acc += mix16B(input, off + length - 48, secret[10], secret[11]);
+          acc += mix16B(input, off + 32, secret08, secret09);
+          acc += mix16B(input, off + length - 48, secret10, secret11);
         }
-        acc += mix16B(input, off + 16, secret[4], secret[5]);
-        acc += mix16B(input, off + length - 32, secret[6], secret[7]);
+        acc += mix16B(input, off + 16, secret04, secret05);
+        acc += mix16B(input, off + length - 32, secret06, secret07);
       }
-      acc += mix16B(input, off, secret[0], secret[1]);
-      acc += mix16B(input, off + length - 16, secret[2], secret[3]);
+      acc += mix16B(input, off, secret00, secret01);
+      acc += mix16B(input, off + length - 16, secret02, secret03);
 
       return avalanche3(acc);
     }
     if (length <= 240) {
-      long acc = length * XXH_PRIME64_1;
-      acc += mix16B(input, off + 16 * 0, secret[0], secret[1]);
-      acc += mix16B(input, off + 16 * 1, secret[2], secret[3]);
-      acc += mix16B(input, off + 16 * 2, secret[4], secret[5]);
-      acc += mix16B(input, off + 16 * 3, secret[6], secret[7]);
-      acc += mix16B(input, off + 16 * 4, secret[8], secret[9]);
-      acc += mix16B(input, off + 16 * 5, secret[10], secret[11]);
-      acc += mix16B(input, off + 16 * 6, secret[12], secret[13]);
-      acc += mix16B(input, off + 16 * 7, secret[14], secret[15]);
+      long acc = length * INIT_ACC_1;
+      acc += mix16B(input, off + 16 * 0, secret00, secret01);
+      acc += mix16B(input, off + 16 * 1, secret02, secret03);
+      acc += mix16B(input, off + 16 * 2, secret04, secret05);
+      acc += mix16B(input, off + 16 * 3, secret06, secret07);
+      acc += mix16B(input, off + 16 * 4, secret08, secret09);
+      acc += mix16B(input, off + 16 * 5, secret10, secret11);
+      acc += mix16B(input, off + 16 * 6, secret12, secret13);
+      acc += mix16B(input, off + 16 * 7, secret14, secret15);
 
       acc = avalanche3(acc);
 
       if (length >= 144) {
-        acc += mix16B(seed, input, off + 128, SEC_SHIFT_0, SEC_SHIFT_1);
+        acc += mix16B(input, off + 128, secShift00, secShift01);
         if (length >= 160) {
-          acc += mix16B(seed, input, off + 144, SEC_SHIFT_2, SEC_SHIFT_3);
+          acc += mix16B(input, off + 144, secShift02, secShift03);
           if (length >= 176) {
-            acc += mix16B(seed, input, off + 160, SEC_SHIFT_4, SEC_SHIFT_5);
+            acc += mix16B(input, off + 160, secShift04, secShift05);
             if (length >= 192) {
-              acc += mix16B(seed, input, off + 176, SEC_SHIFT_6, SEC_SHIFT_7);
+              acc += mix16B(input, off + 176, secShift06, secShift07);
               if (length >= 208) {
-                acc += mix16B(seed, input, off + 192, SEC_SHIFT_8, SEC_SHIFT_9);
+                acc += mix16B(input, off + 192, secShift08, secShift09);
                 if (length >= 224) {
-                  acc += mix16B(seed, input, off + 208, SEC_SHIFT_10, SEC_SHIFT_11);
-                  if (length >= 240)
-                    acc += mix16B(seed, input, off + 224, SEC_SHIFT_12, SEC_SHIFT_13);
+                  acc += mix16B(input, off + 208, secShift10, secShift11);
+                  if (length >= 240) acc += mix16B(input, off + 224, secShift12, secShift13);
                 }
               }
             }
           }
         }
       }
-      acc += mix16B(seed, input, off + length - 16, SEC_SHIFT_14, SEC_SHIFT_15);
+      acc += mix16B(input, off + length - 16, secShift14, secShift15);
       return avalanche3(acc);
     }
 
-    long acc0 = XXH_PRIME32_3;
-    long acc1 = XXH_PRIME64_1;
-    long acc2 = XXH_PRIME64_2;
-    long acc3 = XXH_PRIME64_3;
-    long acc4 = XXH_PRIME64_4;
-    long acc5 = XXH_PRIME32_2;
-    long acc6 = XXH_PRIME64_5;
-    long acc7 = XXH_PRIME32_1;
+    long acc0 = INIT_ACC_0;
+    long acc1 = INIT_ACC_1;
+    long acc2 = INIT_ACC_2;
+    long acc3 = INIT_ACC_3;
+    long acc4 = INIT_ACC_4;
+    long acc5 = INIT_ACC_5;
+    long acc6 = INIT_ACC_6;
+    long acc7 = INIT_ACC_7;
 
     final int nbBlocks = (length - 1) >>> BLOCK_LEN_EXP;
     for (int n = 0; n < nbBlocks; n++) {
       final int offBlock = off + (n << BLOCK_LEN_EXP);
-      for (int s = 0; s < 16; s++) {
+      for (int s = 0; s < 16; s += 1) {
         int offStripe = offBlock + (s << 6);
 
         long b0 = getLong(input, offStripe + 8 * 0);
@@ -711,14 +772,14 @@ public class XXH3_64 extends AbstractHasher64 {
         acc7 += b6 + contrib(b7, secret[s + 7]);
       }
 
-      acc0 = mixAcc(acc0, secret[16 + 0]);
-      acc1 = mixAcc(acc1, secret[16 + 1]);
-      acc2 = mixAcc(acc2, secret[16 + 2]);
-      acc3 = mixAcc(acc3, secret[16 + 3]);
-      acc4 = mixAcc(acc4, secret[16 + 4]);
-      acc5 = mixAcc(acc5, secret[16 + 5]);
-      acc6 = mixAcc(acc6, secret[16 + 6]);
-      acc7 = mixAcc(acc7, secret[16 + 7]);
+      acc0 = mixAcc(acc0, secret16);
+      acc1 = mixAcc(acc1, secret17);
+      acc2 = mixAcc(acc2, secret18);
+      acc3 = mixAcc(acc3, secret19);
+      acc4 = mixAcc(acc4, secret20);
+      acc5 = mixAcc(acc5, secret21);
+      acc6 = mixAcc(acc6, secret22);
+      acc7 = mixAcc(acc7, secret23);
     }
 
     final int nbStripes = ((length - 1) - (nbBlocks << BLOCK_LEN_EXP)) >>> 6;
@@ -757,14 +818,14 @@ public class XXH3_64 extends AbstractHasher64 {
       long b6 = getLong(input, offStripe + 8 * 6);
       long b7 = getLong(input, offStripe + 8 * 7);
 
-      acc0 += b1 + contrib(b0, secret[15 + 0] >>> 8 | secret[16 + 0] << 56);
-      acc1 += b0 + contrib(b1, secret[15 + 1] >>> 8 | secret[16 + 1] << 56);
-      acc2 += b3 + contrib(b2, secret[15 + 2] >>> 8 | secret[16 + 2] << 56);
-      acc3 += b2 + contrib(b3, secret[15 + 3] >>> 8 | secret[16 + 3] << 56);
-      acc4 += b5 + contrib(b4, secret[15 + 4] >>> 8 | secret[16 + 4] << 56);
-      acc5 += b4 + contrib(b5, secret[15 + 5] >>> 8 | secret[16 + 5] << 56);
-      acc6 += b7 + contrib(b6, secret[15 + 6] >>> 8 | secret[16 + 6] << 56);
-      acc7 += b6 + contrib(b7, secret[15 + 7] >>> 8 | secret[16 + 7] << 56);
+      acc0 += b1 + contrib(b0, secShift16);
+      acc1 += b0 + contrib(b1, secShift17);
+      acc2 += b3 + contrib(b2, secShift18);
+      acc3 += b2 + contrib(b3, secShift19);
+      acc4 += b5 + contrib(b4, secShift20);
+      acc5 += b4 + contrib(b5, secShift21);
+      acc6 += b7 + contrib(b6, secShift22);
+      acc7 += b6 + contrib(b7, secShift23);
     }
 
     return finalizeHash(length, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
@@ -780,28 +841,13 @@ public class XXH3_64 extends AbstractHasher64 {
       long acc5,
       long acc6,
       long acc7) {
+
     long result64 =
-        length * XXH_PRIME64_1
-            + mix2Accs(
-                acc0,
-                acc1,
-                (secret[1] >>> 24) | (secret[2] << 40),
-                (secret[2] >>> 24) | (secret[3] << 40))
-            + mix2Accs(
-                acc2,
-                acc3,
-                (secret[3] >>> 24) | (secret[4] << 40),
-                (secret[4] >>> 24) | (secret[5] << 40))
-            + mix2Accs(
-                acc4,
-                acc5,
-                (secret[5] >>> 24) | (secret[6] << 40),
-                (secret[6] >>> 24) | (secret[7] << 40))
-            + mix2Accs(
-                acc6,
-                acc7,
-                (secret[7] >>> 24) | (secret[8] << 40),
-                (secret[8] >>> 24) | (secret[9] << 40));
+        length * INIT_ACC_1
+            + mix2Accs(acc0, acc1, secShiftFinal0, secShiftFinal1)
+            + mix2Accs(acc2, acc3, secShiftFinal2, secShiftFinal3)
+            + mix2Accs(acc4, acc5, secShiftFinal4, secShiftFinal5)
+            + mix2Accs(acc6, acc7, secShiftFinal6, secShiftFinal7);
 
     return avalanche3(result64);
   }
@@ -818,96 +864,93 @@ public class XXH3_64 extends AbstractHasher64 {
 
     if (len <= 8) {
       if (len > 4) {
-        long lo = getLong(charSequence, 0) ^ (BITFLIP_34 + seed);
-        long hi = getLong(charSequence, len - 4) ^ (BITFLIP_56 - seed);
+        long lo = getLong(charSequence, 0) ^ bitflip34;
+        long hi = getLong(charSequence, len - 4) ^ bitflip56;
         long acc = (len << 1) + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
         return avalanche3(acc);
       }
       if (len >= 2) {
         long input1 = getInt(charSequence, 0);
         long input2 = getInt(charSequence, len - 2);
-        long keyed =
-            ((input2 & 0xFFFFFFFFL) + (input1 << 32))
-                ^ (BITFLIP_12 - (seed ^ Long.reverseBytes(seed & 0xFFFFFFFFL)));
+        long keyed = ((input2 & 0xFFFFFFFFL) + (input1 << 32)) ^ bitflip12;
         return rrmxmx(keyed, len << 1);
       }
       if (len != 0) {
         long c = charSequence.charAt(0);
         long combined = (c << 16) | (c >>> 8) | 512L;
-        return avalanche64(combined ^ (BITFLIP_00 + seed));
+        return avalanche64(combined ^ bitflip00);
       }
-      return avalanche64(seed ^ BITFLIP_78);
+      return hash0;
     }
     if (len <= 64) {
-      long acc = len * (XXH_PRIME64_1 << 1);
+      long acc = len * (INIT_ACC_1 << 1);
 
       if (len > 16) {
         if (len > 32) {
           if (len > 48) {
-            acc += mix16B(charSequence, 24, secret[12], secret[13]);
-            acc += mix16B(charSequence, len - 32, secret[14], secret[15]);
+            acc += mix16B(charSequence, 24, secret12, secret13);
+            acc += mix16B(charSequence, len - 32, secret14, secret15);
           }
-          acc += mix16B(charSequence, 16, secret[8], secret[9]);
-          acc += mix16B(charSequence, len - 24, secret[10], secret[11]);
+          acc += mix16B(charSequence, 16, secret08, secret09);
+          acc += mix16B(charSequence, len - 24, secret10, secret11);
         }
-        acc += mix16B(charSequence, 8, secret[4], secret[5]);
-        acc += mix16B(charSequence, len - 16, secret[6], secret[7]);
+        acc += mix16B(charSequence, 8, secret04, secret05);
+        acc += mix16B(charSequence, len - 16, secret06, secret07);
       }
-      acc += mix16B(charSequence, 0, secret[0], secret[1]);
-      acc += mix16B(charSequence, len - 8, secret[2], secret[3]);
+      acc += mix16B(charSequence, 0, secret00, secret01);
+      acc += mix16B(charSequence, len - 8, secret02, secret03);
 
       return avalanche3(acc);
     }
     if (len <= 120) {
-      long acc = len * (XXH_PRIME64_1 << 1);
-      acc += mix16B(charSequence, 0, secret[0], secret[1]);
-      acc += mix16B(charSequence, 8, secret[2], secret[3]);
-      acc += mix16B(charSequence, 16, secret[4], secret[5]);
-      acc += mix16B(charSequence, 24, secret[6], secret[7]);
-      acc += mix16B(charSequence, 32, secret[8], secret[9]);
-      acc += mix16B(charSequence, 40, secret[10], secret[11]);
-      acc += mix16B(charSequence, 48, secret[12], secret[13]);
-      acc += mix16B(charSequence, 56, secret[14], secret[15]);
+      long acc = len * (INIT_ACC_1 << 1);
+      acc += mix16B(charSequence, 0, secret00, secret01);
+      acc += mix16B(charSequence, 8, secret02, secret03);
+      acc += mix16B(charSequence, 16, secret04, secret05);
+      acc += mix16B(charSequence, 24, secret06, secret07);
+      acc += mix16B(charSequence, 32, secret08, secret09);
+      acc += mix16B(charSequence, 40, secret10, secret11);
+      acc += mix16B(charSequence, 48, secret12, secret13);
+      acc += mix16B(charSequence, 56, secret14, secret15);
 
       acc = avalanche3(acc);
 
       if (len >= 72) {
-        acc += mix16B(seed, charSequence, 64, SEC_SHIFT_0, SEC_SHIFT_1);
+        acc += mix16B(charSequence, 64, secShift00, secShift01);
         if (len >= 80) {
-          acc += mix16B(seed, charSequence, 72, SEC_SHIFT_2, SEC_SHIFT_3);
+          acc += mix16B(charSequence, 72, secShift02, secShift03);
           if (len >= 88) {
-            acc += mix16B(seed, charSequence, 80, SEC_SHIFT_4, SEC_SHIFT_5);
+            acc += mix16B(charSequence, 80, secShift04, secShift05);
             if (len >= 96) {
-              acc += mix16B(seed, charSequence, 88, SEC_SHIFT_6, SEC_SHIFT_7);
+              acc += mix16B(charSequence, 88, secShift06, secShift07);
               if (len >= 104) {
-                acc += mix16B(seed, charSequence, 96, SEC_SHIFT_8, SEC_SHIFT_9);
+                acc += mix16B(charSequence, 96, secShift08, secShift09);
                 if (len >= 112) {
-                  acc += mix16B(seed, charSequence, 104, SEC_SHIFT_10, SEC_SHIFT_11);
-                  if (len >= 120)
-                    acc += mix16B(seed, charSequence, 112, SEC_SHIFT_12, SEC_SHIFT_13);
+                  acc += mix16B(charSequence, 104, secShift10, secShift11);
+                  if (len >= 120) acc += mix16B(charSequence, 112, secShift12, secShift13);
                 }
               }
             }
           }
         }
       }
-      acc += mix16B(seed, charSequence, len - 8, SEC_SHIFT_14, SEC_SHIFT_15);
+      acc += mix16B(charSequence, len - 8, secShift14, secShift15);
       return avalanche3(acc);
     }
 
-    long acc0 = XXH_PRIME32_3;
-    long acc1 = XXH_PRIME64_1;
-    long acc2 = XXH_PRIME64_2;
-    long acc3 = XXH_PRIME64_3;
-    long acc4 = XXH_PRIME64_4;
-    long acc5 = XXH_PRIME32_2;
-    long acc6 = XXH_PRIME64_5;
-    long acc7 = XXH_PRIME32_1;
+    long acc0 = INIT_ACC_0;
+    long acc1 = INIT_ACC_1;
+    long acc2 = INIT_ACC_2;
+    long acc3 = INIT_ACC_3;
+    long acc4 = INIT_ACC_4;
+    long acc5 = INIT_ACC_5;
+    long acc6 = INIT_ACC_6;
+    long acc7 = INIT_ACC_7;
 
     final int nbBlocks = (len - 1) >>> (BLOCK_LEN_EXP - 1);
     for (int n = 0; n < nbBlocks; n++) {
       final int offBlock = n << (BLOCK_LEN_EXP - 1);
-      for (int s = 0; s < 16; s++) {
+      for (int s = 0; s < 16; s += 1) {
         int offStripe = offBlock + (s << 5);
 
         long b0 = getLong(charSequence, offStripe + 4 * 0);
@@ -929,14 +972,14 @@ public class XXH3_64 extends AbstractHasher64 {
         acc7 += b6 + contrib(b7, secret[s + 7]);
       }
 
-      acc0 = mixAcc(acc0, secret[16 + 0]);
-      acc1 = mixAcc(acc1, secret[16 + 1]);
-      acc2 = mixAcc(acc2, secret[16 + 2]);
-      acc3 = mixAcc(acc3, secret[16 + 3]);
-      acc4 = mixAcc(acc4, secret[16 + 4]);
-      acc5 = mixAcc(acc5, secret[16 + 5]);
-      acc6 = mixAcc(acc6, secret[16 + 6]);
-      acc7 = mixAcc(acc7, secret[16 + 7]);
+      acc0 = mixAcc(acc0, secret16);
+      acc1 = mixAcc(acc1, secret17);
+      acc2 = mixAcc(acc2, secret18);
+      acc3 = mixAcc(acc3, secret19);
+      acc4 = mixAcc(acc4, secret20);
+      acc5 = mixAcc(acc5, secret21);
+      acc6 = mixAcc(acc6, secret22);
+      acc7 = mixAcc(acc7, secret23);
     }
 
     final int nbStripes = ((len - 1) - (nbBlocks << (BLOCK_LEN_EXP - 1))) >>> 5;
@@ -975,14 +1018,14 @@ public class XXH3_64 extends AbstractHasher64 {
       long b6 = getLong(charSequence, offStripe + 4 * 6);
       long b7 = getLong(charSequence, offStripe + 4 * 7);
 
-      acc0 += b1 + contrib(b0, secret[15 + 0] >>> 8 | secret[16 + 0] << 56);
-      acc1 += b0 + contrib(b1, secret[15 + 1] >>> 8 | secret[16 + 1] << 56);
-      acc2 += b3 + contrib(b2, secret[15 + 2] >>> 8 | secret[16 + 2] << 56);
-      acc3 += b2 + contrib(b3, secret[15 + 3] >>> 8 | secret[16 + 3] << 56);
-      acc4 += b5 + contrib(b4, secret[15 + 4] >>> 8 | secret[16 + 4] << 56);
-      acc5 += b4 + contrib(b5, secret[15 + 5] >>> 8 | secret[16 + 5] << 56);
-      acc6 += b7 + contrib(b6, secret[15 + 6] >>> 8 | secret[16 + 6] << 56);
-      acc7 += b6 + contrib(b7, secret[15 + 7] >>> 8 | secret[16 + 7] << 56);
+      acc0 += b1 + contrib(b0, secShift16);
+      acc1 += b0 + contrib(b1, secShift17);
+      acc2 += b3 + contrib(b2, secShift18);
+      acc3 += b2 + contrib(b3, secShift19);
+      acc4 += b5 + contrib(b4, secShift20);
+      acc5 += b4 + contrib(b5, secShift21);
+      acc6 += b7 + contrib(b6, secShift22);
+      acc7 += b6 + contrib(b7, secShift23);
     }
 
     return finalizeHash((long) len << 1, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
@@ -990,8 +1033,8 @@ public class XXH3_64 extends AbstractHasher64 {
 
   @Override
   public long hashLongLongToLong(long v1, long v2) {
-    long lo = v1 ^ (BITFLIP_34 + seed);
-    long hi = v2 ^ (BITFLIP_56 - seed);
+    long lo = v1 ^ bitflip34;
+    long hi = v2 ^ bitflip56;
     long acc = 16 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
     return avalanche3(acc);
   }
@@ -999,8 +1042,8 @@ public class XXH3_64 extends AbstractHasher64 {
   @Override
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
     long acc = 0xd53368a48e1afca8L;
-    acc += mix2Accs(v1, v2, secret[0], secret[1]);
-    acc += mix2Accs(v2, v3, secret[2], secret[3]);
+    acc += mix2Accs(v1, v2, secret00, secret01);
+    acc += mix2Accs(v2, v3, secret02, secret03);
     return avalanche3(acc);
   }
 }
