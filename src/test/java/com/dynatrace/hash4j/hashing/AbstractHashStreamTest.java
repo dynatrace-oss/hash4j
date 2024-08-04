@@ -39,13 +39,7 @@ public class AbstractHashStreamTest {
     assertBytes(h -> h.putBoolean(true), "01");
   }
 
-  /*@Test
-  void testPutBooleansDefaultImplementation() {
-    assertBytes(h -> h.putBooleans(new boolean[] {true, false, true}), "010001");
-    assertBytes(h -> h.putBooleans(new boolean[] {true, false, true},1,2), "0001");
-  }*/
-
-  private static final void nextBooleans(SplittableRandom random, boolean[] b) {
+  private static void nextBooleans(SplittableRandom random, boolean[] b) {
     byte[] bytes = new byte[b.length];
     random.nextBytes(bytes);
     for (int i = 0; i < bytes.length; ++i) {
@@ -53,7 +47,7 @@ public class AbstractHashStreamTest {
     }
   }
 
-  private static final byte[] toBytes(boolean[] data) {
+  private static byte[] toBytes(boolean[] data) {
     byte[] result = new byte[data.length];
     for (int i = 0; i < data.length; ++i) {
       result[i] = (byte) (data[i] ? 1 : 0);
