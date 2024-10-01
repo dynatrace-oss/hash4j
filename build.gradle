@@ -31,7 +31,7 @@ dependencies {
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '1.0.2'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 	testImplementation group: 'com.sangupta', name: 'murmur', version: '1.0.0'
-	errorprone('com.google.errorprone:error_prone_core:2.31.0')
+	errorprone('com.google.errorprone:error_prone_core:2.33.0')
 }
 
 multiRelease {
