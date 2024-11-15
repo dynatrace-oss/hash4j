@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -283,5 +283,11 @@ abstract class AbstractHashStream32 extends AbstractHashStream implements HashSt
   public HashStream32 putOptionalDouble(OptionalDouble v) {
     super.putOptionalDouble(v);
     return this;
+  }
+
+  @Override
+  public <T> int resetAndHashToInt(T obj, HashFunnel<T> funnel) {
+    funnel.put(obj, reset());
+    return getAsInt();
   }
 }

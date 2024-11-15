@@ -164,4 +164,17 @@ public interface HashStream32 extends HashStream {
 
   @Override
   HashStream32 copy();
+
+  /**
+   * Resets this hash stream and returns a 32-bit hash value of the given object using the given
+   * funnel.
+   *
+   * <p>Equivalent to {@code funnel.put(obj, reset()); return getAsInt();}
+   *
+   * @param obj the object
+   * @param funnel the funnel
+   * @param <T> the type
+   * @return a 32-bit hash value
+   */
+  <T> int resetAndHashToInt(T obj, HashFunnel<T> funnel);
 }
