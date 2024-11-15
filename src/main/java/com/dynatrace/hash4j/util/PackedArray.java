@@ -885,41 +885,37 @@ public final class PackedArray {
         @Override
         public int numEqualComponents(byte[] array1, byte[] array2, int length) {
           int result = 0;
-          int bytePos = 0;
-          while (length >= 64) {
+          int end = (length & 0xFFFFFFC0) >>> 3;
+          for (int bytePos = 0; bytePos < end; bytePos += 8) {
             long l1 = getLong(array1, bytePos);
             long l2 = getLong(array2, bytePos);
-            result += Long.bitCount(~(l1 ^ l2));
-            bytePos += 8;
-            length -= 64;
+            result += Long.bitCount(l1 ^ l2);
           }
-          if (length >= 32) {
+          if ((length & 0x00000020) != 0) {
+            int bytePos = end;
             int l1 = getInt(array1, bytePos);
             int l2 = getInt(array2, bytePos);
-            result += Integer.bitCount(~(l1 ^ l2));
-            bytePos += 4;
-            length -= 32;
+            result += Integer.bitCount(l1 ^ l2);
           }
-          if (length >= 16) {
+          if ((length & 0x00000010) != 0) {
+            int bytePos = (length & 0xFFFFFFE0) >>> 3;
             int l1 = getShort(array1, bytePos);
             int l2 = getShort(array2, bytePos);
-            result += Integer.bitCount(~(l1 ^ l2) & 0xFFFF);
-            bytePos += 2;
-            length -= 16;
+            result += Integer.bitCount((l1 ^ l2) & 0xFFFF);
           }
-          if (length >= 8) {
+          if ((length & 0x00000008) != 0) {
+            int bytePos = (length & 0xFFFFFFF0) >>> 3;
             int l1 = array1[bytePos];
             int l2 = array2[bytePos];
-            result += Integer.bitCount(~(l1 ^ l2) & 0xFF);
-            bytePos += 1;
-            length -= 8;
+            result += Integer.bitCount((l1 ^ l2) & 0xFF);
           }
-          if (length > 0) {
+          if ((length & 0x00000007) != 0) {
+            int bytePos = length >>> 3;
             int l1 = array1[bytePos];
             int l2 = array2[bytePos];
-            result += Integer.bitCount(~(l1 ^ l2) & ((0xFF << length) >>> 8));
+            result += Integer.bitCount((l1 ^ l2) & (0xFFFFFFFF >>> -(length & 7)));
           }
-          return result;
+          return length - result;
         }
       };
 

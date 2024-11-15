@@ -119,7 +119,9 @@ class PackedArrayTest {
             numEquals += 1;
           }
         }
-        assertThat(handler.numEqualComponents(array1, array2, len)).isEqualTo(numEquals);
+        assertThat(handler.numEqualComponents(array1, array2, len))
+            .describedAs("length = %d", len)
+            .isEqualTo(numEquals);
       }
     }
   }
