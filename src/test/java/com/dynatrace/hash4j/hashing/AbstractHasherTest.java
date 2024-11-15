@@ -1240,4 +1240,48 @@ abstract class AbstractHasherTest {
       }
     }
   }
+
+  private static byte[] generateRandomBytes(SplittableRandom random, int maxLen) {
+    byte[] data = new byte[random.nextInt(maxLen + 1)];
+    random.nextBytes(data);
+    return data;
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashStreamResetAndHash(Hasher hasher) {
+
+    SplittableRandom random = new SplittableRandom(0x58529d9ddfe2ce36L);
+
+    HashStream hashStream = hasher.hashStream();
+
+    int maxDataLen = 200;
+
+    for (int i = 0; i < 20; ++i) {
+      if (hasher instanceof Hasher32) {
+        byte[] data = generateRandomBytes(random, maxDataLen);
+        Hasher32 hasher32 = (Hasher32) hasher;
+        assertThat(
+                ((HashStream32) hashStream)
+                    .resetAndHashToInt(data, (obj, sink) -> sink.putBytes(obj)))
+            .isEqualTo(hasher32.hashBytesToInt(data));
+      }
+      if (hasher instanceof Hasher64) {
+        byte[] data = generateRandomBytes(random, maxDataLen);
+        Hasher64 hasher64 = (Hasher64) hasher;
+        assertThat(
+                ((HashStream64) hashStream)
+                    .resetAndHashToLong(data, (obj, sink) -> sink.putBytes(obj)))
+            .isEqualTo(hasher64.hashBytesToLong(data));
+      }
+      if (hasher instanceof Hasher128) {
+        byte[] data = generateRandomBytes(random, maxDataLen);
+        Hasher128 hasher128 = (Hasher128) hasher;
+        assertThat(
+                ((HashStream128) hashStream)
+                    .resetAndHashTo128Bits(data, (obj, sink) -> sink.putBytes(obj)))
+            .isEqualTo(hasher128.hashBytesTo128Bits(data));
+      }
+    }
+  }
 }

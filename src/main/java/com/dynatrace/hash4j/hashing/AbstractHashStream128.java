@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -288,5 +288,11 @@ abstract class AbstractHashStream128 extends AbstractHashStream64 implements Has
   public HashStream128 putOptionalDouble(OptionalDouble v) {
     super.putOptionalDouble(v);
     return this;
+  }
+
+  @Override
+  public <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel) {
+    funnel.put(obj, reset());
+    return get();
   }
 }

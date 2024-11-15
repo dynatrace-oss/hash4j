@@ -176,4 +176,17 @@ public interface HashStream128 extends HashStream64 {
 
   @Override
   HashStream128 copy();
+
+  /**
+   * Resets this hash stream and returns a 128-bit hash value of the given object using the given
+   * funnel.
+   *
+   * <p>Equivalent to {@code funnel.put(obj, reset()); return get();}
+   *
+   * @param obj the object
+   * @param funnel the funnel
+   * @param <T> the type
+   * @return a 128-bit hash value
+   */
+  <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel);
 }

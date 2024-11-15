@@ -169,4 +169,17 @@ public interface HashStream64 extends HashStream32 {
 
   @Override
   HashStream64 copy();
+
+  /**
+   * Resets this hash stream and returns a 64-bit hash value of the given object using the given
+   * funnel.
+   *
+   * <p>Equivalent to {@code funnel.put(obj, reset()); return getAsLong();}
+   *
+   * @param obj the object
+   * @param funnel the funnel
+   * @param <T> the type
+   * @return a 64-bit hash value
+   */
+  <T> long resetAndHashToLong(T obj, HashFunnel<T> funnel);
 }
