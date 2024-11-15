@@ -31,7 +31,7 @@ dependencies {
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '1.0.2'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 	testImplementation group: 'com.sangupta', name: 'murmur', version: '1.0.0'
-	errorprone group:'com.google.errorprone',name:'error_prone_core', version: '2.31.0' // upgrade not possible as >= 2.32.0 requires java >= 17 and the multi-release plugin me.champeau.mrjar is not able to use java 17 for java 11 compilation, see https://github.com/melix/mrjar-gradle-plugin/issues/7
+	errorprone group:'com.google.errorprone',name:'error_prone_core', version: '2.35.1' // upgrade not possible as >= 2.32.0 requires java >= 17 and the multi-release plugin me.champeau.mrjar is not able to use java 17 for java 11 compilation, see https://github.com/melix/mrjar-gradle-plugin/issues/7
 }
 
 multiRelease {
