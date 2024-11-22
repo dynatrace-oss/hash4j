@@ -730,11 +730,15 @@ abstract class AbstractHasherTest {
 
     TestHashStream testHashStream1 = new TestHashStream();
     TestHashStream testHashStream2 = new TestHashStream();
+    TestHashStream testHashStream3 = new TestHashStream();
 
     testHashStream1.putUnorderedIterable(data, l -> hasher64.hashStream().putLong(l).getAsLong());
     testHashStream2.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hasher64);
+    testHashStream3.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hasher64.hashStream());
 
-    assertThat(testHashStream1.getData()).isEqualTo(testHashStream2.getData());
+    assertThat(testHashStream1.getData())
+        .isEqualTo(testHashStream2.getData())
+        .isEqualTo(testHashStream3.getData());
   }
 
   @ParameterizedTest
@@ -749,11 +753,30 @@ abstract class AbstractHasherTest {
 
       HashStream64 hashStream1 = hasher64.hashStream();
       HashStream64 hashStream2 = hasher64.hashStream();
+      HashStream64 hashStream3 = hasher64.hashStream();
 
       hashStream1.putUnorderedIterable(data, l -> hasher64.hashStream().putLong(l).getAsLong());
       hashStream2.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hasher64);
+      hashStream3.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hasher64.hashStream());
 
-      assertThat(hashStream1.getAsLong()).isEqualTo(hashStream2.getAsLong());
+      assertThat(hashStream1.getAsLong())
+          .isEqualTo(hashStream2.getAsLong())
+          .isEqualTo(hashStream3.getAsLong());
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testPutUnorderedIterableIllegalArgumentException(Hasher hasher) {
+
+    if (hasher instanceof Hasher64) {
+      Hasher64 hasher64 = (Hasher64) hasher;
+      HashStream64 hashStream = hasher64.hashStream();
+      List<Long> data = Collections.emptyList();
+      assertThatIllegalArgumentException()
+          .isThrownBy(
+              () ->
+                  hashStream.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hashStream));
     }
   }
 
