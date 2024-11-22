@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ import java.util.Map.Entry;
  * because some data structures like {@link Iterable} require a pass over the data to determine its
  * size. Therefore, it is better to first put the elements into the {@link HashFunnel}, followed by
  * the length of the sequence.
+ *
+ * @param <T> the type
  */
 @FunctionalInterface
 public interface HashFunnel<T> {
