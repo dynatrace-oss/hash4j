@@ -1,5 +1,12 @@
 import com.diffplug.gradle.spotless.JavaExtension
 
+
+buildscript {
+	dependencies {
+		classpath 'org.revapi:gradle-revapi:1.8.0'
+	}
+}
+
 plugins {
 	id 'java-library'
 	id 'me.champeau.mrjar' version "0.1.1"
@@ -10,12 +17,14 @@ plugins {
 	id 'maven-publish'
 	id 'signing'
 	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-	id 'com.palantir.revapi' version '1.8.0'
 	id 'net.ltgt.errorprone' version '4.1.0'
 }
 
+apply plugin: 'org.revapi.revapi-gradle-plugin'
+
 repositories {
 	mavenCentral()
+	gradlePluginPortal()
 }
 
 dependencies {
@@ -27,7 +36,7 @@ dependencies {
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.1'
 	testImplementation group: 'com.google.guava', name: 'guava', version: '33.3.1-jre'
 	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.17.1'
-	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.26ea0'
+	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '1.0.2'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 	testImplementation group: 'com.sangupta', name: 'murmur', version: '1.0.0'
