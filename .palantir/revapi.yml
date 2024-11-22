@@ -55,6 +55,40 @@ acceptedBreaks:
         \ com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T>>>>::reconstructHash(int)\
         \ @ com.dynatrace.hash4j.distinctcount.UltraLogLog"
       justification: "removed non-public method"
+  "0.18.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.class.visibilityReduced"
+      old: "class com.dynatrace.hash4j.consistent.ConsistentJumpBackBucketHasher"
+      new: "class com.dynatrace.hash4j.consistent.ConsistentJumpBackBucketHasher"
+      justification: "{was mistakenly public}"
+    - code: "java.class.visibilityReduced"
+      old: "class com.dynatrace.hash4j.hashing.XXH3_64"
+      new: "class com.dynatrace.hash4j.hashing.XXH3_64"
+      justification: "{was mistakenly public}"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashSink com.dynatrace.hash4j.hashing.HashSink::putUnorderedIterable(java.lang.Iterable<T>,\
+        \ com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.HashStream64)"
+      justification: "{added new methods}"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashStream32 com.dynatrace.hash4j.hashing.HashStream32::putUnorderedIterable(java.lang.Iterable<T>,\
+        \ com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.HashStream64)"
+      justification: "{added new methods}"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashStream64 com.dynatrace.hash4j.hashing.HashStream64::putUnorderedIterable(java.lang.Iterable<T>,\
+        \ com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.HashStream64)"
+      justification: "{added new methods}"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashValue128 com.dynatrace.hash4j.hashing.HashStream128::resetAndHashTo128Bits(T,\
+        \ com.dynatrace.hash4j.hashing.HashFunnel<T>)"
+      justification: "{added new methods}"
+    - code: "java.method.addedToInterface"
+      new: "method <T> int com.dynatrace.hash4j.hashing.HashStream32::resetAndHashToInt(T,\
+        \ com.dynatrace.hash4j.hashing.HashFunnel<T>)"
+      justification: "{added new methods}"
+    - code: "java.method.addedToInterface"
+      new: "method <T> long com.dynatrace.hash4j.hashing.HashStream64::resetAndHashToLong(T,\
+        \ com.dynatrace.hash4j.hashing.HashFunnel<T>)"
+      justification: "{added new methods}"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"
