@@ -37,7 +37,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class XXH3_64 extends AbstractHasher64 {
+class XXH3_64 extends AbstractHasher64 {
 
   private static final long SECRET_00 = 0xbe4ba423396cfeb8L;
   private static final long SECRET_01 = 0x1cad21f72c81017cL;

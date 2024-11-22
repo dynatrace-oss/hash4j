@@ -21,7 +21,7 @@ import static java.util.Objects.requireNonNull;
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 
-public class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
+class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
 
   private final PseudoRandomGenerator pseudoRandomGenerator;
 
