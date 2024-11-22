@@ -606,6 +606,22 @@ public interface HashSink {
    *
    * @param data the iterable
    * @param funnel the funnel
+   * @param hashStream 64-bit hash stream used for individual elements, must be a different instance
+   *     than this {@link HashSink}
+   * @param <T> the element type
+   * @return this
+   * @throws OutOfMemoryError if the allocation of a long array, that is able to keep a 64-bit hash
+   *     for each element in the Iterable, fails
+   * @throws IllegalArgumentException if the hash stream is equal to this {@link HashSink}
+   */
+  <T> HashSink putUnorderedIterable(
+      Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream);
+
+  /**
+   * Adds an unordered {@link Iterable} (e.g. {@link Set}) to the hash computation.
+   *
+   * @param data the iterable
+   * @param funnel the funnel
    * @param hasher a 64-bit hasher
    * @param <T> the element type
    * @return this

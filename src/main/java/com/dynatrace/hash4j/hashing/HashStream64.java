@@ -150,6 +150,10 @@ public interface HashStream64 extends HashStream32 {
 
   @Override
   <T> HashStream64 putUnorderedIterable(
+      Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream);
+
+  @Override
+  <T> HashStream64 putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher);
 
   @Override

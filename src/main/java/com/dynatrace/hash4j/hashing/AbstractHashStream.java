@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import java.util.*;
@@ -361,12 +362,17 @@ abstract class AbstractHashStream implements HashStream {
   @Override
   public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
-    return putUnorderedIterable(data, funnel, hasher.hashStream());
+    HashStream64 hashStream = hasher.hashStream();
+    return putUnorderedIterable(data, x -> hashStream.resetAndHashToLong(x, funnel));
   }
 
-  private <T> HashStream putUnorderedIterable(
+  @Override
+  public <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream) {
-    return putUnorderedIterable(data, x -> hashStream.reset().put(x, funnel).getAsLong());
+    checkArgument(
+        this != hashStream,
+        "hash stream instance used to hash individual elements must be different from this");
+    return putUnorderedIterable(data, x -> hashStream.resetAndHashToLong(x, funnel));
   }
 
   @Override

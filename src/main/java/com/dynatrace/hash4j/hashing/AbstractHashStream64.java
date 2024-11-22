@@ -261,6 +261,13 @@ abstract class AbstractHashStream64 extends AbstractHashStream32 implements Hash
 
   @Override
   public <T> HashStream64 putUnorderedIterable(
+      Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream) {
+    super.putUnorderedIterable(data, funnel, hashStream);
+    return this;
+  }
+
+  @Override
+  public <T> HashStream64 putUnorderedIterable(
       Iterable<T> data, ToLongFunction<? super T> elementHashFunction) {
     super.putUnorderedIterable(data, elementHashFunction);
     return this;
