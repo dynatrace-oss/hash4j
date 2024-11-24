@@ -1,15 +1,7 @@
 import com.diffplug.gradle.spotless.JavaExtension
 
-
-buildscript {
-	dependencies {
-		classpath 'org.revapi:gradle-revapi:1.8.0'
-	}
-}
-
 plugins {
 	id 'java-library'
-	id 'me.champeau.mrjar' version "0.1.1"
 	id 'jacoco'
 	id 'me.champeau.jmh' version '0.7.2'
 	id 'org.sonarqube' version '6.0.0.5145'
@@ -18,9 +10,8 @@ plugins {
 	id 'signing'
 	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
 	id 'net.ltgt.errorprone' version '4.1.0'
+	id "org.revapi.revapi-gradle-plugin" version "1.8.0"
 }
-
-apply plugin: 'org.revapi.revapi-gradle-plugin'
 
 repositories {
 	mavenCentral()
@@ -40,12 +31,105 @@ dependencies {
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '1.0.2'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
 	testImplementation group: 'com.sangupta', name: 'murmur', version: '1.0.0'
-	errorprone group:'com.google.errorprone',name:'error_prone_core', version: '2.31.0' // upgrade not possible as >= 2.32.0 requires java >= 17 and the multi-release plugin me.champeau.mrjar is not able to use java 17 for java 11 compilation, see https://github.com/melix/mrjar-gradle-plugin/issues/7
+	errorprone group:'com.google.errorprone',name:'error_prone_core', version: '2.36.0'
 }
 
-multiRelease {
-	targetVersions 11, 21
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+	withJavadocJar()
+	withSourcesJar()
 }
+
+
+sourceSets {
+	jmh
+	main
+	test
+	java21 {
+		java {
+			srcDir 'src/main/java21'
+		}
+		dependencies {
+			// add Java 21 dependencies here to make them available for Java 21 code
+		}
+		// include main source code to make it accessible from Java 21
+		compileClasspath += sourceSets.main.output
+		runtimeClasspath += sourceSets.main.output
+	}
+	java21Test {
+		java {
+			srcDir 'src/test/java21'
+		}
+		dependencies {
+			// add Java 21 dependencies here to make them available for Java 21 code
+		}
+		// include test source code to make it accessible from Java 21
+		compileClasspath += sourceSets.test.output
+		runtimeClasspath += sourceSets.test.output
+	}
+}
+
+jar {
+	dependsOn 'compileJava21Java'
+	into('META-INF/versions/21') {
+		from sourceSets.java21.output
+	}
+	manifest {
+		attributes 'Multi-Release': 'true'
+	}
+}
+
+tasks.compileJava {
+	options.release.set(11)
+}
+
+tasks.compileTestJava {
+	options.release.set(11)
+}
+
+tasks.compileJava21Java {
+	options.release.set(21)
+}
+tasks.compileJava21TestJava {
+	options.release.set(21)
+}
+
+tasks.test {
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(11)
+	}
+}
+
+tasks.register("java21Test", Test) {
+	// compare https://github.com/melix/mrjar-gradle-plugin/blob/dac99aadd451e3c2176aa6e13af7ad39e20c2cb9/plugin/src/main/java/me/champeau/mrjar/MultiReleaseExtension.java	group=LifecycleBasePlugin.VERIFICATION_GROUP
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+	// run Java 21 specific and generic tests
+	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
+	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath + sourceSets.test.runtimeClasspath
+}
+
+tasks.check {
+	dependsOn(java21Test)
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+	maxHeapSize '8g'
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.compilerArgs << "-Werror"
+	options.errorprone.disableWarningsInGeneratedCode = false
+	// options.errorprone.enabled = false
+}
+
+group = 'com.dynatrace.hash4j'
+version = '0.18.0'
+
 
 static def readJavaLicense(licenseName) {
 	File licenseFile = new File('licenses/' + licenseName + '.txt')
@@ -83,20 +167,11 @@ static def readPythonLicense(licenseName) {
 	return s
 }
 
-java {
-	withJavadocJar()
-	withSourcesJar()
-}
-
-group = 'com.dynatrace.hash4j'
-version = '0.18.0'
-
-
 spotless {
-	def googleJavaFormatVersion = '1.23.0'
-	def eclipseCdtVersion = '11.3'
-	def blackVersion = '24.4.2'
-	def greclipseVersion = '4.29'
+	def googleJavaFormatVersion = '1.25.0'
+	def eclipseCdtVersion = '11.6'
+	def blackVersion = '24.10.0'
+	def greclipseVersion = '4.32'
 
 	ratchetFrom 'origin/main'
 	apply plugin: 'groovy'
@@ -302,12 +377,6 @@ tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
 tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
-sourceSets {
-	jmh
-	main
-	test
-}
-
 javadoc {
 	failOnError true
 	title 'hash4j ' + project.version + ' API'
@@ -386,17 +455,6 @@ nexusPublishing {
 			password = System.getenv('OSSRH_PASSWORD')
 		}
 	}
-}
-
-tasks.withType(Test).configureEach {
-	useJUnitPlatform()
-	maxHeapSize '8g'
-}
-
-tasks.withType(JavaCompile).configureEach {
-	options.compilerArgs << "-Werror"
-	options.errorprone.disableWarningsInGeneratedCode = false
-	// options.errorprone.enabled = false
 }
 
 if (file("extra-configuration.gradle").exists()) {

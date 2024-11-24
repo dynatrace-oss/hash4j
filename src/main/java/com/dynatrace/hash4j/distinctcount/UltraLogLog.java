@@ -534,8 +534,8 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
       5.059288069986326E14,
       2.3575295235667005E15,
       1.0985627213141412E16,
-      5.1190876745155888E16,
-      2.38539483395717152E17
+      5.119087674515589E16,
+      2.3853948339571715E17
     };
 
     static final double[] REGISTER_CONTRIBUTIONS = {
