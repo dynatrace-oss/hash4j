@@ -38,8 +38,8 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
-	withJavadocJar()
 	withSourcesJar()
+	withJavadocJar()
 }
 
 
@@ -103,7 +103,7 @@ tasks.test {
 }
 
 tasks.register("java21Test", Test) {
-	// compare https://github.com/melix/mrjar-gradle-plugin/blob/dac99aadd451e3c2176aa6e13af7ad39e20c2cb9/plugin/src/main/java/me/champeau/mrjar/MultiReleaseExtension.java	group=LifecycleBasePlugin.VERIFICATION_GROUP
+	group = LifecycleBasePlugin.VERIFICATION_GROUP
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
@@ -128,7 +128,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 group = 'com.dynatrace.hash4j'
-version = '0.18.0'
+version = '0.19.0'
 
 
 static def readJavaLicense(licenseName) {
@@ -192,7 +192,9 @@ spotless {
 	java {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
 		targetExclude \
 			'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java',\
@@ -210,56 +212,72 @@ spotless {
 	format 'javaImohash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_IMOHASH')
 		target 'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java'
 	}
 	format 'javaKomihash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_KOMIHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java', 'src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java', 'src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java'
 	}
 	format 'javaFarmHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('MIT_APACHE_2_0_FARMHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java','src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java'
 	}
 	format 'javaPolymurHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('ZLIB_POLYMURHASH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/PolymurHash2_0.java'
 	}
 	format 'javaSplitMix64', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('CREATIVE_COMMONS_SPLITMIX64')
 		target 'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
 	}
 	format 'javaExponential', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('BOOST_EXPONENTIAL_RANDOM_GENERATION')
 		target 'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
 	}
 	format 'javaConsistentJumpHash', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_GUAVA')
 		target 'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java'
 	}
 	format 'javaXXH', JavaExtension, {
 		importOrder()
 		removeUnusedImports()
+		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
+		formatAnnotations()
 		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense('APACHE_2_0_XXH')
 		target 'src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java'
 	}
