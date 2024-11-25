@@ -1,13 +1,10 @@
 * text=auto
-
-*.java text
-*.py text
-*.md text
+*.java text eol=lf
+*.py text eol=lf
+*.md text eol=lf
 *.csv text
-
-*.bat text eol=crlf
-
+gradlew.bat text eol=crlf
 gradlew text eol=lf
+*.gradle eol=lf
 *.sh text eol=lf
-
 *.jar binary
