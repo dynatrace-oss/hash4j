@@ -36,7 +36,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -949,7 +948,6 @@ abstract class AbstractHasherTest {
       return AbstractHasher.getChar(buffer, (index & (NUM_CHARS_IN_BUFFER - 1)) << 1);
     }
 
-    @NotNull
     @Override
     public CharSequence subSequence(int start, int end) {
       throw new UnsupportedOperationException();

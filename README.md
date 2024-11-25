@@ -26,12 +26,12 @@ To add a dependency on hash4j using Maven, use the following:
 <dependency>
   <groupId>com.dynatrace.hash4j</groupId>
   <artifactId>hash4j</artifactId>
-  <version>0.18.0</version>
+  <version>0.19.0</version>
 </dependency>
 ```
 To add a dependency using Gradle:
 ```gradle
-implementation 'com.dynatrace.hash4j:hash4j:0.18.0'
+implementation 'com.dynatrace.hash4j:hash4j:0.19.0'
 ```
 
 ## Hash algorithms
@@ -134,7 +134,7 @@ In case of non-distributed data streams, the [martingale estimator](src/main/jav
 can be used, which gives slightly better estimation results as the asymptotic storage factor is $6\ln 2 = 4.159$.
 This gives a relative standard error of $\sqrt{\frac{6\ln 2}{6m}} = \frac{0.833}{\sqrt{m}}$.
 The theoretically predicted estimation errors  have been empirically confirmed by [simulation results](doc/hyperloglog-estimation-error.md).
-* UltraLogLog: This algorithm is described in detail in this [paper](https://arxiv.org/abs/2308.16862).
+* UltraLogLog: This algorithm is described in detail in this [paper](https://doi.org/10.14778/3654621.3654632).
 Like for HyperLogLog, a precision parameter $p$ defines the number of registers $m = 2^p$.
 However, since UltraLogLog uses 8-bit registers to enable fast random accesses and updates of the registers, 
 $m$ is also the state size in bytes.
@@ -211,7 +211,7 @@ The following consistent hashing algorithms are available:
 * [Improved Consistent Weighted Sampling](https://doi.org/10.1109/ICDM.2010.80): This algorithm is based on improved
 consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
 JumpHash for a large number of buckets.
-* [JumpBackHash](https://arxiv.org/abs/2403.18682): In contrast to JumpHash, which traverses "active indices" (see [here](https://doi.org/10.1109/ICDM.2010.80) for a definition)
+* [JumpBackHash](https://doi.org/10.1002/spe.3385): In contrast to JumpHash, which traverses "active indices" (see [here](https://doi.org/10.1109/ICDM.2010.80) for a definition)
 in ascending order, JumpBackHash does this in the opposite direction. In this way, floating-point operations can be completely avoided.
 Further optimizations minimize the number of random values that need to be generated to reach
 the largest "active index" within the given bucket range in amortized constant time. The largest "active index",

@@ -63,7 +63,8 @@ public final class ConsistentHashing {
    *
    * <p>In contrast to other algorithms, JumpBackHash runs in constant time and does not require
    * floating-point operations. On some machines it may achieve similar performance as a modulo
-   * operation.
+   * operation. See Otmar Ertl, "JumpBackHash: Say Goodbye to the Modulo Operation to Distribute
+   * Keys Uniformly to Buckets", <a href="https://doi.org/10.1002/spe.3385">10.1002/spe.3385.</a>
    *
    * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
    * @return a {@link ConsistentBucketHasher}
