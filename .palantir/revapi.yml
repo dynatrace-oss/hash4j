@@ -55,6 +55,17 @@ acceptedBreaks:
         \ com.dynatrace.hash4j.distinctcount.DistinctCounter.Estimator<T>>>>::reconstructHash(int)\
         \ @ com.dynatrace.hash4j.distinctcount.UltraLogLog"
       justification: "removed non-public method"
+  "0.17.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream128 com.dynatrace.hash4j.hashing.HashStream128::copy()"
+      justification: "{added copy method to HashStream}"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream32 com.dynatrace.hash4j.hashing.HashStream32::copy()"
+      justification: "{added copy method to HashStream}"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream64 com.dynatrace.hash4j.hashing.HashStream64::copy()"
+      justification: "{added copy method to HashStream}"
   "0.18.0":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.visibilityReduced"
