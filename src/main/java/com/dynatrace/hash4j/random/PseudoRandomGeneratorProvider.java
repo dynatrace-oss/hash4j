@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,16 @@ public interface PseudoRandomGeneratorProvider {
    * @return the new pseudo-random generator instance
    */
   PseudoRandomGenerator create();
+
+  /**
+   * Creates a new {@link PseudoRandomGenerator} instance and sets a seed.
+   *
+   * @param seed the seed value
+   * @return the new pseudo-random generator instance
+   */
+  default PseudoRandomGenerator create(long seed) {
+    return create().reset(seed);
+  }
 
   /**
    * Returns a {@link PseudoRandomGeneratorProvider} based on the SplitMix64 algorithm.
