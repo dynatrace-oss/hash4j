@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,9 @@ public interface PseudoRandomGenerator {
    * Resets the pseudo-random generator using the given 64-bit seed value.
    *
    * @param seed the seed value
+   * @return this
    */
-  void reset(long seed);
+  PseudoRandomGenerator reset(long seed);
 
   /**
    * Returns a random uniformly distributed {@code double} value in the range [0, 1).

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,9 +125,10 @@ class DistinctElementHashProviderTest {
           }
 
           @Override
-          public void reset(long seed) {
+          public PseudoRandomGenerator reset(long seed) {
             prg.reset(seed);
             count = 0;
+            return this;
           }
 
           @Override

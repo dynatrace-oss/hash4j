@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2024 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,8 @@ final class SplitMix64V1 extends AbstractPseudoRandomGenerator {
   }
 
   @Override
-  public void reset(long seed) {
+  public SplitMix64V1 reset(long seed) {
     this.state = seed;
+    return this;
   }
 }
