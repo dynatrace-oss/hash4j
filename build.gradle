@@ -26,7 +26,7 @@ dependencies {
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.1'
 	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.1'
 	testImplementation group: 'com.google.guava', name: 'guava', version: '33.4.0-jre'
-	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.17.1'
+	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.17.2'
 	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
 	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '1.0.2'
 	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
