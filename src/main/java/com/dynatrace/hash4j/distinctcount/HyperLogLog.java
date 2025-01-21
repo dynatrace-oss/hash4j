@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -475,6 +475,19 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
       return 1.;
     }
     return DistinctCountUtil.unsignedLongToDouble(sum) * 0x1p-64;
+  }
+
+  /**
+   * Returns {@code true} if the sketch is empty, corresponding to the initial state.
+   *
+   * @return {@code true} if the sketch is empty
+   */
+  @Override
+  public boolean isEmpty() {
+    for (byte b : state) {
+      if (b != 0) return false;
+    }
+    return true;
   }
 
   /**

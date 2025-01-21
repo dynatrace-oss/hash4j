@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1039,6 +1039,21 @@ abstract class DistinctCounterTest<
       assertThat(sketch.getDistinctCountEstimate()).isInfinite();
       for (R estimator : getEstimators()) {
         assertThat(sketch.getDistinctCountEstimate(estimator)).isInfinite();
+      }
+    }
+  }
+
+  @Test
+  void testIsEmpty() {
+    SplittableRandom random = new SplittableRandom(0x309a6777250910bcL);
+
+    for (int p = getMinP(); p <= getMaxP(); ++p) {
+      T sketch = create(p);
+      for (int i = 0; i < 5; ++i) {
+        assertThat(sketch.isEmpty()).isTrue();
+        sketch.add(random.nextLong());
+        assertThat(sketch.isEmpty()).isFalse();
+        sketch.reset();
       }
     }
   }

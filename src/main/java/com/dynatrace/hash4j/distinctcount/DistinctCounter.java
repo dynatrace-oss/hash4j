@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,6 +141,13 @@ interface DistinctCounter<T extends DistinctCounter<T, R>, R extends DistinctCou
    * @return the state change probability
    */
   double getStateChangeProbability();
+
+  /**
+   * Returns {@code true} if the sketch is empty, corresponding to the initial state.
+   *
+   * @return {@code true} if the sketch is empty
+   */
+  boolean isEmpty();
 
   /**
    * An estimator for a distinct counter.
