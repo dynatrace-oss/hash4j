@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -279,5 +279,34 @@ class DistinctCountUtilTest {
     assertThat(DistinctCountUtil.unsignedLongToDouble(0)).isZero();
     assertThat(DistinctCountUtil.unsignedLongToDouble(1)).isOne();
     assertThat(DistinctCountUtil.unsignedLongToDouble(0x8000000000000000L)).isEqualTo(0x1p63);
+  }
+
+  @Test
+  void testDeduplicateTokens() {
+    {
+      int[] tokens = {3, 5, 5, 6};
+      assertThat(DistinctCountUtil.deduplicateTokens(tokens, 0, 4)).isEqualTo(3);
+      assertThat(tokens[0]).isEqualTo(3);
+      assertThat(tokens[1]).isEqualTo(5);
+      assertThat(tokens[2]).isEqualTo(6);
+    }
+    {
+      int[] tokens = {};
+      assertThat(DistinctCountUtil.deduplicateTokens(tokens, 0, 0)).isEqualTo(0);
+    }
+    {
+      int[] tokens = {3, 5, 5, 6, 5, 2, 4};
+      assertThat(DistinctCountUtil.deduplicateTokens(tokens, 1, 5)).isEqualTo(3);
+      assertThat(tokens[1]).isEqualTo(5);
+      assertThat(tokens[2]).isEqualTo(6);
+    }
+    {
+      int[] tokens = {-4, 3, 5, 5, 6, 3};
+      assertThat(DistinctCountUtil.deduplicateTokens(tokens, 0, 5)).isEqualTo(4);
+      assertThat(tokens[0]).isEqualTo(-4);
+      assertThat(tokens[1]).isEqualTo(3);
+      assertThat(tokens[2]).isEqualTo(5);
+      assertThat(tokens[3]).isEqualTo(6);
+    }
   }
 }

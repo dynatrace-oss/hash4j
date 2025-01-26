@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static java.util.Objects.requireNonNull;
+
+import java.util.Arrays;
 
 class DistinctCountUtil {
 
@@ -315,5 +317,36 @@ class DistinctCountUtil {
     double d = l & 0x7fffffffffffffffL;
     if (l < 0) d += 0x1.0p63;
     return d;
+  }
+
+  /**
+   * Utility function for deduplicating hash tokens.
+   *
+   * <p>The hash tokens in the given array with indices in the range [fromIndexIncl, toIndexExcl)
+   * are deduplicated. The resulting sorted and deduplicated hash tokens can finally be found at
+   * indices that are greater than or equal to fromIndexIncl and that are smaller than the returned
+   * value.
+   *
+   * @param tokens – the array of hash tokens to be deduplicated
+   * @param fromIndexIncl the index of the first element, inclusive, to be deduplicated
+   * @param toIndexExcl the index of the last element, exclusive, to be deduplicated
+   * @return the exclusive upper bound index of deduplicated hash values
+   */
+  public static int deduplicateTokens(int[] tokens, int fromIndexIncl, int toIndexExcl) {
+    Arrays.sort(tokens, fromIndexIncl, toIndexExcl);
+    int writeIndex = fromIndexIncl;
+    if (toIndexExcl > fromIndexIncl) {
+      int lastToken = tokens[fromIndexIncl];
+      writeIndex += 1;
+      for (int readIndex = 1; readIndex < toIndexExcl; ++readIndex) {
+        int token = tokens[readIndex];
+        if (token != lastToken) {
+          tokens[writeIndex] = token;
+          writeIndex += 1;
+          lastToken = token;
+        }
+      }
+    }
+    return writeIndex;
   }
 }

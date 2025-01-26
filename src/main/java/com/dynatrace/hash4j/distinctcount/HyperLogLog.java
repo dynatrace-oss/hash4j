@@ -303,7 +303,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    * can be used to realize a sparse mode, where the sketch is created only when there are enough
    * tokens to justify the memory allocation. It is sufficient to store only distinct tokens.
    * Deduplication does not result in any loss of information with respect to distinct count
-   * estimation.
+   * estimation. Compare {@link DistinctCountUtil#deduplicateTokens(int[], int, int)}.
    *
    * @param hashValue the 64-bit hash value
    * @return the 32-bit token
