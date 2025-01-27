@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MURMUR3_128_CHECKSUM_CONFIG_HPP
-#define MURMUR3_128_CHECKSUM_CONFIG_HPP
+#include "xxh3_128_checksum_config.hpp"
+#include "xxhash/xxhash.h"
+#include <cstring>
 
-#include <string>
-#include <cstdint>
+void XXH3_128_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
-class Murmur3_128_ChecksumConfig {
+	uint64_t seed;
+	memcpy(&seed, seedBytes, 8);
 
-public:
+	XXH128_hash_t hash0 = XXH3_128bits((char*) (&dataBytes[0]), size);
+	XXH128_hash_t hash1 = XXH3_128bits_withSeed((char*) (&dataBytes[0]), size,
+			seed);
 
-	uint64_t getSeedSize() const {
-		return 4;
-	}
-
-	uint64_t getHashSize() const {
-		return 32;
-	}
-
-	std::string getName() const {
-		return "Murmur3 128";
-	}
-
-	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const;
-};
-
-#endif // MURMUR3_128_CHECKSUM_CONFIG_HPP
+	memcpy(hashBytes, &hash0, 16);
+	memcpy(hashBytes + 16, &hash1, 16);
+}

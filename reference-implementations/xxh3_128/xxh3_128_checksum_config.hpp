@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef MURMUR3_128_CHECKSUM_CONFIG_HPP
-#define MURMUR3_128_CHECKSUM_CONFIG_HPP
+#ifndef XXH3_128_CHECKSUM_CONFIG_HPP
+#define XXH3_128_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class Murmur3_128_ChecksumConfig {
+class XXH3_128_ChecksumConfig {
 
 public:
 
 	uint64_t getSeedSize() const {
-		return 4;
+		return 8;
 	}
 
 	uint64_t getHashSize() const {
@@ -32,11 +32,12 @@ public:
 	}
 
 	std::string getName() const {
-		return "Murmur3 128";
+		return "XXH3_128";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
 			const uint8_t *dataBytes, uint64_t size) const;
+
 };
 
-#endif // MURMUR3_128_CHECKSUM_CONFIG_HPP
+#endif // XXH3_128_CHECKSUM_CONFIG_HPP

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #include <random>
 #include <fstream>
 
-#include "openssl/sha.h"
+#include <openssl/evp.h>
 
 #include "komihash_4_3/komihash_4_3_checksum_config.hpp"
 #include "komihash_4_5/komihash_4_5_checksum_config.hpp"
@@ -32,6 +32,7 @@
 #include "farmhash_na/farmhash_na_checksum_config.hpp"
 #include "farmhash_uo/farmhash_uo_checksum_config.hpp"
 #include "xxh3/xxh3_checksum_config.hpp"
+#include "xxh3_128/xxh3_128_checksum_config.hpp"
 
 using namespace std;
 
@@ -76,10 +77,10 @@ void computeAndPrintChecksum(
 		if (dataLength > maxSupportedLength)
 			continue;
 
-		uint8_t checkSum[SHA256_DIGEST_LENGTH];
-		SHA256_CTX sha256;
+		uint8_t checkSum[EVP_MAX_MD_SIZE];
+		EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
 
-		SHA256_Init(&sha256);
+		EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
 
 		uint64_t seed = rng();
 		uint64_t rngState = seed;
@@ -107,16 +108,18 @@ void computeAndPrintChecksum(
 			hashFunctionConfig.calculateHash(seedBytes, &hashBytes[0],
 					dataBytes, dataLength);
 
-			SHA256_Update(&sha256, &hashBytes[0], hashBytes.size());
+			EVP_DigestUpdate(mdctx, &hashBytes[0], hashBytes.size());
 
 		}
 
-		SHA256_Final(checkSum, &sha256);
+		unsigned int lengthOfHash = 0;
+		EVP_DigestFinal_ex(mdctx, checkSum, &lengthOfHash);
+		EVP_MD_CTX_free(mdctx);
 
 		outputFile << dec << dataLength << ",";
 		outputFile << dec << numCycles << ",";
 		outputFile << hex << setfill('0') << setw(16) << seed << ",";
-		for (uint64_t k = 0; k < SHA256_DIGEST_LENGTH; ++k)
+		for (uint64_t k = 0; k < lengthOfHash; ++k)
 			outputFile << hex << setfill('0') << setw(2)
 					<< static_cast<uint64_t>(checkSum[k]);
 
@@ -142,6 +145,7 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<FarmHashNaChecksumConfig>();
 	computeAndPrintChecksum<FarmHashUoChecksumConfig>();
 	computeAndPrintChecksum<XXH3ChecksumConfig>();
+	computeAndPrintChecksum<XXH3_128_ChecksumConfig>();
 
 	return 0;
 }
