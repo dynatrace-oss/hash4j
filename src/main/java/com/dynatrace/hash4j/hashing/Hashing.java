@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -382,7 +382,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * XXH3_64bits} defined in <a
-   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.2/xxhash.h">xxhash.h</a> on an Intel x86
+   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an Intel x86
    * architecture.
    *
    * @return a hasher instance
@@ -396,7 +396,7 @@ public final class Hashing {
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * XXH3_64bits_withSeed} defined in <a
-   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.2/xxhash.h">xxhash.h</a> on an Intel x86
+   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an Intel x86
    * architecture.
    *
    * @param seed the seed value
@@ -404,5 +404,34 @@ public final class Hashing {
    */
   public static Hasher64 xxh3_64(long seed) {
     return XXH3_64.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher128} implementing the 128-bit XXH3 algorithm.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * XXH3_128bits} defined in <a
+   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an Intel x86
+   * architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher128 xxh3_128() {
+    return XXH3_128.create();
+  }
+
+  /**
+   * Returns a {@link Hasher128} implementing the 128-bit XXH3 algorithm using the given seed value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * XXH3_128bits_withSeed} defined in <a
+   * href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an Intel x86
+   * architecture.
+   *
+   * @param seed the seed value
+   * @return a hasher instance
+   */
+  public static Hasher128 xxh3_128(long seed) {
+    return XXH3_128.create(seed);
   }
 }

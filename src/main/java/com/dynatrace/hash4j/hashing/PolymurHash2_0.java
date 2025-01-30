@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -811,7 +811,7 @@ class PolymurHash2_0 extends AbstractHasher64 {
     long m3 = (((v1 >>> 56) | (v2 << 8)) & 0x00ffffffffffffffL) + k2;
     long m4 = (((v2 >>> 48) | (v3 << 16)) & 0x00ffffffffffffffL) + k7;
     long m5 = (((v1 >>> 24) | (v2 << 40)) & 0x00ffffffffffffffL) + t0r;
-    long m6 = (((v2 >>> 16) | (v3 << 48)) & 0x00ffffffffffffffL) + this.k4;
+    long m6 = (((v2 >>> 16) | (v3 << 48)) & 0x00ffffffffffffffL) + k4;
 
     long t2Hi = unsignedMultiplyHigh(m3, m4);
     long t2Lo = m3 * m4;

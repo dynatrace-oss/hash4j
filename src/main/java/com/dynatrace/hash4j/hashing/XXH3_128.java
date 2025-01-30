@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Dynatrace LLC
+ * Copyright 2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 import static com.dynatrace.hash4j.hashing.XXH3Util.*;
 
-class XXH3_64 extends AbstractHasher64 {
+public class XXH3_128 extends AbstractHasher128 {
 
   private static final int BLOCK_LEN_EXP = 10;
 
@@ -76,6 +77,14 @@ class XXH3_64 extends AbstractHasher64 {
   private final long secShiftFinal5;
   private final long secShiftFinal6;
   private final long secShiftFinal7;
+  private final long secShiftFinal8;
+  private final long secShiftFinal9;
+  private final long secShiftFinal10;
+  private final long secShiftFinal11;
+  private final long secShiftFinal12;
+  private final long secShiftFinal13;
+  private final long secShiftFinal14;
+  private final long secShiftFinal15;
 
   private final long secret00;
   private final long secret01;
@@ -103,15 +112,19 @@ class XXH3_64 extends AbstractHasher64 {
   private final long secret23;
 
   private final long bitflip00;
-  private final long bitflip12;
-  private final long bitflip34;
-  private final long bitflip56;
+  private final long bitflip11;
+  private final long bitflip23;
+  private final long bitflip45;
+  private final long bitflip67;
 
-  private final long hash0;
+  private final HashValue128 hash0;
+
+  private final long seed;
 
   private final long secret[];
 
-  private XXH3_64(long seed) {
+  private XXH3_128(long seed) {
+    this.seed = seed;
     this.secret00 = SECRET_00 + seed;
     this.secret01 = SECRET_01 - seed;
     this.secret02 = SECRET_02 + seed;
@@ -149,10 +162,10 @@ class XXH3_64 extends AbstractHasher64 {
     this.secShift09 = (SECRET_09 >>> 24) + (SECRET_10 << 40) - seed;
     this.secShift10 = (SECRET_10 >>> 24) + (SECRET_11 << 40) + seed;
     this.secShift11 = (SECRET_11 >>> 24) + (SECRET_12 << 40) - seed;
-    this.secShift12 = (SECRET_12 >>> 24) + (SECRET_13 << 40) + seed;
-    this.secShift13 = (SECRET_13 >>> 24) + (SECRET_14 << 40) - seed;
-    this.secShift14 = (SECRET_14 >>> 56) + (SECRET_15 << 8) + seed;
-    this.secShift15 = (SECRET_15 >>> 56) + (SECRET_16 << 8) - seed;
+    this.secShift12 = ((SECRET_12 >>> 56) | (SECRET_13 << 8)) - seed;
+    this.secShift13 = ((SECRET_13 >>> 56) | (SECRET_14 << 8)) + seed;
+    this.secShift14 = ((SECRET_14 >>> 56) | (SECRET_15 << 8)) - seed;
+    this.secShift15 = ((SECRET_15 >>> 56) | (SECRET_16 << 8)) + seed;
 
     this.secShift16 = secret15 >>> 8 | secret16 << 56;
     this.secShift17 = secret16 >>> 8 | secret17 << 56;
@@ -172,12 +185,24 @@ class XXH3_64 extends AbstractHasher64 {
     this.secShiftFinal6 = secret07 >>> 24 | secret08 << 40;
     this.secShiftFinal7 = secret08 >>> 24 | secret09 << 40;
 
-    this.bitflip00 = ((SECRET_00 >>> 32) ^ (SECRET_00 & 0xFFFFFFFFL)) + seed;
-    this.bitflip12 = (SECRET_01 ^ SECRET_02) - (seed ^ Long.reverseBytes(seed & 0xFFFFFFFFL));
-    this.bitflip34 = (SECRET_03 ^ SECRET_04) + seed;
-    this.bitflip56 = (SECRET_05 ^ SECRET_06) - seed;
+    this.secShiftFinal8 = secret14 >>> 40 | secret15 << 24;
+    this.secShiftFinal9 = secret15 >>> 40 | secret16 << 24;
+    this.secShiftFinal10 = secret16 >>> 40 | secret17 << 24;
+    this.secShiftFinal11 = secret17 >>> 40 | secret18 << 24;
+    this.secShiftFinal12 = secret18 >>> 40 | secret19 << 24;
+    this.secShiftFinal13 = secret19 >>> 40 | secret20 << 24;
+    this.secShiftFinal14 = secret20 >>> 40 | secret21 << 24;
+    this.secShiftFinal15 = secret21 >>> 40 | secret22 << 24;
 
-    this.hash0 = avalanche64(seed ^ (SECRET_07 ^ SECRET_08));
+    this.bitflip00 = ((SECRET_00 ^ (SECRET_00 >>> 32)) & 0xFFFFFFFFL) + seed;
+    this.bitflip11 = ((SECRET_01 ^ (SECRET_01 >>> 32)) & 0xFFFFFFFFL) - seed;
+    this.bitflip23 = (SECRET_02 ^ SECRET_03) + (seed ^ Long.reverseBytes(seed & 0xFFFFFFFFL));
+    this.bitflip45 = (SECRET_04 ^ SECRET_05) - seed;
+    this.bitflip67 = (SECRET_06 ^ SECRET_07) + seed;
+
+    this.hash0 =
+        new HashValue128(
+            avalanche64(seed ^ SECRET_10 ^ SECRET_11), avalanche64(seed ^ SECRET_08 ^ SECRET_09));
 
     this.secret =
         new long[] {
@@ -187,26 +212,26 @@ class XXH3_64 extends AbstractHasher64 {
         };
   }
 
-  private XXH3_64() {
+  private XXH3_128() {
     this(0);
   }
 
-  private static final Hasher64 DEFAULT_HASHER_INSTANCE = new XXH3_64();
+  private static final Hasher128 DEFAULT_HASHER_INSTANCE = new XXH3_128();
 
-  public static Hasher64 create() {
+  public static Hasher128 create() {
     return DEFAULT_HASHER_INSTANCE;
   }
 
-  public static Hasher64 create(long seed) {
-    return new XXH3_64(seed);
+  public static Hasher128 create(long seed) {
+    return new XXH3_128(seed);
   }
 
   @Override
-  public HashStream64 hashStream() {
+  public HashStream128 hashStream() {
     return new HashStreamImpl();
   }
 
-  private final class HashStreamImpl extends AbstractHashStream64 {
+  private final class HashStreamImpl extends AbstractHashStream128 {
 
     private static final int BULK_SIZE = 256;
     private static final int BULK_SIZE_HALF = 128;
@@ -225,9 +250,9 @@ class XXH3_64 extends AbstractHasher64 {
     private long byteCount = 0;
 
     @Override
-    public long getAsLong() {
+    public HashValue128 get() {
       if (byteCount <= BULK_SIZE) {
-        return hashBytesToLong(buffer, 0, (int) byteCount);
+        return hashBytesTo128Bits(buffer, 0, (int) byteCount);
       }
       setLong(buffer, BULK_SIZE, getLong(buffer, 0));
 
@@ -288,7 +313,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putByte(byte v) {
+    public HashStream128 putByte(byte v) {
       if (offset >= BULK_SIZE) {
         processBuffer();
         offset -= BULK_SIZE;
@@ -300,7 +325,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putShort(short v) {
+    public HashStream128 putShort(short v) {
       setShort(buffer, offset, v);
       if (offset >= BULK_SIZE - 1) {
         processBuffer();
@@ -313,7 +338,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putChar(char v) {
+    public HashStream128 putChar(char v) {
       setChar(buffer, offset, v);
       if (offset >= BULK_SIZE - 1) {
         processBuffer();
@@ -326,7 +351,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putInt(int v) {
+    public HashStream128 putInt(int v) {
       setInt(buffer, offset, v);
       if (offset >= BULK_SIZE - 3) {
         processBuffer();
@@ -339,7 +364,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putLong(long v) {
+    public HashStream128 putLong(long v) {
       setLong(buffer, offset, v);
       if (offset >= BULK_SIZE - 7) {
         processBuffer();
@@ -352,7 +377,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putBytes(byte[] b, int off, final int len) {
+    public HashStream128 putBytes(byte[] b, int off, final int len) {
       int remaining = len;
       final int x = BULK_SIZE - offset;
       if (len > x) {
@@ -385,7 +410,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 putChars(CharSequence c) {
+    public HashStream128 putChars(CharSequence c) {
       int off = 0;
       int remaining = c.length();
       final int x = BULK_SIZE_HALF - (offset >>> 1);
@@ -544,7 +569,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 reset() {
+    public HashStream128 reset() {
       acc0 = INIT_ACC_0;
       acc1 = INIT_ACC_1;
       acc2 = INIT_ACC_2;
@@ -559,7 +584,7 @@ class XXH3_64 extends AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 copy() {
+    public HashStream128 copy() {
       final HashStreamImpl hashStream = new HashStreamImpl();
       hashStream.acc0 = acc0;
       hashStream.acc1 = acc1;
@@ -576,106 +601,157 @@ class XXH3_64 extends AbstractHasher64 {
     }
   }
 
-  private static long rrmxmx(long h64, final long length) {
-    h64 ^= Long.rotateLeft(h64, 49) ^ Long.rotateLeft(h64, 24);
-    h64 *= 0x9FB21C651E98DF25L;
-    h64 ^= (h64 >>> 35) + length;
-    h64 *= 0x9FB21C651E98DF25L;
-    return h64 ^ (h64 >>> 28);
-  }
-
-  private static long mix16B(
-      final byte[] input, final int offIn, final long sec0, final long sec1) {
-    long lo = getLong(input, offIn);
-    long hi = getLong(input, offIn + 8);
-    return mix2Accs(lo, hi, sec0, sec1);
-  }
-
-  private static long mix16B(
-      final CharSequence input, final int offIn, final long sec0, final long sec1) {
-    long lo = getLong(input, offIn);
-    long hi = getLong(input, offIn + 4);
-    return mix2Accs(lo, hi, sec0, sec1);
-  }
-
   @Override
-  public long hashBytesToLong(final byte[] input, final int off, final int length) {
+  public HashValue128 hashBytesTo128Bits(final byte[] input, int off, int length) {
     if (length <= 16) {
       if (length > 8) {
-        long lo = getLong(input, off) ^ bitflip34;
-        long hi = getLong(input, off + length - 8) ^ bitflip56;
-        long acc = length + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
-        return avalanche3(acc);
+
+        long hi = getLong(input, off + length - 8);
+        long lo = getLong(input, off) ^ hi ^ bitflip45;
+        hi ^= bitflip67;
+        long m128Hi =
+            unsignedMultiplyHigh(lo, INIT_ACC_1) + hi + (hi & 0xFFFFFFFFL) * (INIT_ACC_5 - 1);
+        long m128Lo = (lo * INIT_ACC_1 + ((length - 1L) << 54)) ^ Long.reverseBytes(m128Hi);
+        long low = avalanche3(m128Lo * INIT_ACC_2);
+        long high = avalanche3(unsignedMultiplyHigh(m128Lo, INIT_ACC_2) + m128Hi * INIT_ACC_2);
+        return new HashValue128(high, low);
       }
       if (length >= 4) {
-        long input1 = getInt(input, off);
-        long input2 = getInt(input, off + length - 4);
-        long keyed = ((input2 & 0xFFFFFFFFL) + (input1 << 32)) ^ bitflip12;
-        return rrmxmx(keyed, length);
+        long lo = getInt(input, off) & 0xFFFFFFFFL;
+        long hi = getInt(input, off + length - 4);
+        long keyed = (lo + (hi << 32)) ^ bitflip23;
+        long pl = INIT_ACC_1 + (length << 2);
+        long low = keyed * pl;
+        long high = unsignedMultiplyHigh(keyed, pl) + (low << 1);
+        low ^= (high >>> 3);
+        low ^= low >>> 35;
+        low *= 0x9FB21C651E98DF25L;
+        low ^= low >>> 28;
+        high = avalanche3(high);
+        return new HashValue128(high, low);
       }
       if (length != 0) {
         int c1 = input[off] & 0xFF;
         int c2 = input[off + (length >> 1)];
         int c3 = input[off + length - 1] & 0xFF;
-        long combined = ((c1 << 16) | (c2 << 24) | c3 | (length << 8)) & 0xFFFFFFFFL;
-        return avalanche64(combined ^ bitflip00);
+        int combinedl = (c1 << 16) | (c2 << 24) | c3 | (length << 8);
+        int combinedh = Integer.rotateLeft(Integer.reverseBytes(combinedl), 13);
+        long low = avalanche64((combinedl & 0xFFFFFFFFL) ^ bitflip00);
+        long high = avalanche64((combinedh & 0xFFFFFFFFL) ^ bitflip11);
+        return new HashValue128(high, low);
       }
       return hash0;
     }
     if (length <= 128) {
-      long acc = length * INIT_ACC_1;
-
+      long acc0 = length * INIT_ACC_1;
+      long acc1 = 0;
       if (length > 32) {
         if (length > 64) {
           if (length > 96) {
-            acc += mix16B(input, off + 48, secret12, secret13);
-            acc += mix16B(input, off + length - 64, secret14, secret15);
+            long b0 = getLong(input, off + 48);
+            long b1 = getLong(input, off + 56);
+            long b2 = getLong(input, off + length - 64);
+            long b3 = getLong(input, off + length - 56);
+            acc0 = (acc0 + mix2Accs(b0, b1, secret12, secret13)) ^ (b2 + b3);
+            acc1 = (acc1 + mix2Accs(b2, b3, secret14, secret15)) ^ (b0 + b1);
           }
-          acc += mix16B(input, off + 32, secret08, secret09);
-          acc += mix16B(input, off + length - 48, secret10, secret11);
+          long b0 = getLong(input, off + 32);
+          long b1 = getLong(input, off + 40);
+          long b2 = getLong(input, off + length - 48);
+          long b3 = getLong(input, off + length - 40);
+          acc0 = (acc0 + mix2Accs(b0, b1, secret08, secret09)) ^ (b2 + b3);
+          acc1 = (acc1 + mix2Accs(b2, b3, secret10, secret11)) ^ (b0 + b1);
         }
-        acc += mix16B(input, off + 16, secret04, secret05);
-        acc += mix16B(input, off + length - 32, secret06, secret07);
+        long b0 = getLong(input, off + 16);
+        long b1 = getLong(input, off + 24);
+        long b2 = getLong(input, off + length - 32);
+        long b3 = getLong(input, off + length - 24);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret04, secret05)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret06, secret07)) ^ (b0 + b1);
       }
-      acc += mix16B(input, off, secret00, secret01);
-      acc += mix16B(input, off + length - 16, secret02, secret03);
+      long b0 = getLong(input, off);
+      long b1 = getLong(input, off + 8);
+      long b2 = getLong(input, off + length - 16);
+      long b3 = getLong(input, off + length - 8);
+      acc0 = (acc0 + mix2Accs(b0, b1, secret00, secret01)) ^ (b2 + b3);
+      acc1 = (acc1 + mix2Accs(b2, b3, secret02, secret03)) ^ (b0 + b1);
 
-      return avalanche3(acc);
+      long low = avalanche3(acc0 + acc1);
+      long high = -avalanche3(acc0 * INIT_ACC_1 + acc1 * INIT_ACC_4 + (length - seed) * INIT_ACC_2);
+      return new HashValue128(high, low);
     }
     if (length <= 240) {
-      long acc = length * INIT_ACC_1;
-      acc += mix16B(input, off + 16 * 0, secret00, secret01);
-      acc += mix16B(input, off + 16 * 1, secret02, secret03);
-      acc += mix16B(input, off + 16 * 2, secret04, secret05);
-      acc += mix16B(input, off + 16 * 3, secret06, secret07);
-      acc += mix16B(input, off + 16 * 4, secret08, secret09);
-      acc += mix16B(input, off + 16 * 5, secret10, secret11);
-      acc += mix16B(input, off + 16 * 6, secret12, secret13);
-      acc += mix16B(input, off + 16 * 7, secret14, secret15);
-
-      acc = avalanche3(acc);
-
-      if (length >= 144) {
-        acc += mix16B(input, off + 128, secShift00, secShift01);
-        if (length >= 160) {
-          acc += mix16B(input, off + 144, secShift02, secShift03);
-          if (length >= 176) {
-            acc += mix16B(input, off + 160, secShift04, secShift05);
-            if (length >= 192) {
-              acc += mix16B(input, off + 176, secShift06, secShift07);
-              if (length >= 208) {
-                acc += mix16B(input, off + 192, secShift08, secShift09);
-                if (length >= 224) {
-                  acc += mix16B(input, off + 208, secShift10, secShift11);
-                  if (length >= 240) acc += mix16B(input, off + 224, secShift12, secShift13);
-                }
-              }
-            }
-          }
-        }
+      long acc0 = length * INIT_ACC_1;
+      long acc1 = 0;
+      {
+        long b0 = getLong(input, off);
+        long b1 = getLong(input, off + 8);
+        long b2 = getLong(input, off + 16);
+        long b3 = getLong(input, off + 24);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret00, secret01)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret02, secret03)) ^ (b0 + b1);
       }
-      acc += mix16B(input, off + length - 16, secShift14, secShift15);
-      return avalanche3(acc);
+      {
+        long b0 = getLong(input, off + 32);
+        long b1 = getLong(input, off + 40);
+        long b2 = getLong(input, off + 48);
+        long b3 = getLong(input, off + 56);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret04, secret05)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret06, secret07)) ^ (b0 + b1);
+      }
+      {
+        long b0 = getLong(input, off + 64);
+        long b1 = getLong(input, off + 72);
+        long b2 = getLong(input, off + 80);
+        long b3 = getLong(input, off + 88);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret08, secret09)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret10, secret11)) ^ (b0 + b1);
+      }
+      {
+        long b0 = getLong(input, off + 96);
+        long b1 = getLong(input, off + 104);
+        long b2 = getLong(input, off + 112);
+        long b3 = getLong(input, off + 120);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret12, secret13)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret14, secret15)) ^ (b0 + b1);
+      }
+      acc0 = avalanche3(acc0);
+      acc1 = avalanche3(acc1);
+      if (160 <= length) {
+        long b0 = getLong(input, off + 128);
+        long b1 = getLong(input, off + 136);
+        long b2 = getLong(input, off + 144);
+        long b3 = getLong(input, off + 152);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift00, secShift01)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift02, secShift03)) ^ (b0 + b1);
+      }
+      if (192 <= length) {
+        long b0 = getLong(input, off + 160);
+        long b1 = getLong(input, off + 168);
+        long b2 = getLong(input, off + 176);
+        long b3 = getLong(input, off + 184);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift04, secShift05)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift06, secShift07)) ^ (b0 + b1);
+      }
+      if (224 <= length) {
+        long b0 = getLong(input, off + 192);
+        long b1 = getLong(input, off + 200);
+        long b2 = getLong(input, off + 208);
+        long b3 = getLong(input, off + 216);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift08, secShift09)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift10, secShift11)) ^ (b0 + b1);
+      }
+      {
+        long b0 = getLong(input, off + length - 16);
+        long b1 = getLong(input, off + length - 8);
+        long b2 = getLong(input, off + length - 32);
+        long b3 = getLong(input, off + length - 24);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift12, secShift13)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift14, secShift15)) ^ (b0 + b1);
+      }
+      long low = avalanche3(acc0 + acc1);
+      long high = -avalanche3(acc0 * INIT_ACC_1 + acc1 * INIT_ACC_4 + (length - seed) * INIT_ACC_2);
+      return new HashValue128(high, low);
     }
 
     long acc0 = INIT_ACC_0;
@@ -771,7 +847,7 @@ class XXH3_64 extends AbstractHasher64 {
     return finalizeHash(length, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
   }
 
-  private long finalizeHash(
+  private HashValue128 finalizeHash(
       long length,
       long acc0,
       long acc1,
@@ -782,95 +858,175 @@ class XXH3_64 extends AbstractHasher64 {
       long acc6,
       long acc7) {
 
-    long result64 =
-        length * INIT_ACC_1
-            + mix2Accs(acc0, acc1, secShiftFinal0, secShiftFinal1)
-            + mix2Accs(acc2, acc3, secShiftFinal2, secShiftFinal3)
-            + mix2Accs(acc4, acc5, secShiftFinal4, secShiftFinal5)
-            + mix2Accs(acc6, acc7, secShiftFinal6, secShiftFinal7);
-
-    return avalanche3(result64);
+    long low =
+        avalanche3(
+            length * INIT_ACC_1
+                + mix2Accs(acc0, acc1, secShiftFinal0, secShiftFinal1)
+                + mix2Accs(acc2, acc3, secShiftFinal2, secShiftFinal3)
+                + mix2Accs(acc4, acc5, secShiftFinal4, secShiftFinal5)
+                + mix2Accs(acc6, acc7, secShiftFinal6, secShiftFinal7));
+    long high =
+        avalanche3(
+            ~(length * INIT_ACC_2)
+                + mix2Accs(acc0, acc1, secShiftFinal8, secShiftFinal9)
+                + mix2Accs(acc2, acc3, secShiftFinal10, secShiftFinal11)
+                + mix2Accs(acc4, acc5, secShiftFinal12, secShiftFinal13)
+                + mix2Accs(acc6, acc7, secShiftFinal14, secShiftFinal15));
+    return new HashValue128(high, low);
   }
 
   @Override
-  public long hashCharsToLong(CharSequence charSequence) {
-
+  public HashValue128 hashCharsTo128Bits(CharSequence charSequence) {
     int len = charSequence.length();
-
     if (len <= 8) {
       if (len > 4) {
-        long lo = getLong(charSequence, 0) ^ bitflip34;
-        long hi = getLong(charSequence, len - 4) ^ bitflip56;
-        long acc = (len << 1) + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
-        return avalanche3(acc);
+
+        long hi = getLong(charSequence, len - 4);
+        long lo = getLong(charSequence, 0) ^ hi ^ bitflip45;
+        hi ^= bitflip67;
+        long m128Hi =
+            unsignedMultiplyHigh(lo, INIT_ACC_1) + hi + (hi & 0xFFFFFFFFL) * (INIT_ACC_5 - 1);
+        long m128Lo = (lo * INIT_ACC_1 + (((len << 1) - 1L) << 54)) ^ Long.reverseBytes(m128Hi);
+        long low = avalanche3(m128Lo * INIT_ACC_2);
+        long high = avalanche3(unsignedMultiplyHigh(m128Lo, INIT_ACC_2) + m128Hi * INIT_ACC_2);
+        return new HashValue128(high, low);
       }
       if (len >= 2) {
-        long input1 = getInt(charSequence, 0);
-        long input2 = getInt(charSequence, len - 2);
-        long keyed = ((input2 & 0xFFFFFFFFL) + (input1 << 32)) ^ bitflip12;
-        return rrmxmx(keyed, len << 1);
+        long lo = getInt(charSequence, 0) & 0xFFFFFFFFL;
+        long hi = getInt(charSequence, len - 2);
+        long keyed = (lo + (hi << 32)) ^ bitflip23;
+        long pl = INIT_ACC_1 + (len << 3);
+        long low = keyed * pl;
+        long high = unsignedMultiplyHigh(keyed, pl) + (low << 1);
+        low ^= (high >>> 3);
+        low ^= low >>> 35;
+        low *= 0x9FB21C651E98DF25L;
+        low ^= low >>> 28;
+        high = avalanche3(high);
+        return new HashValue128(high, low);
       }
       if (len != 0) {
-        long c = charSequence.charAt(0);
-        long combined = (c << 16) | (c >>> 8) | 512L;
-        return avalanche64(combined ^ bitflip00);
+        int c = charSequence.charAt(0);
+        int combinedl = (c << 16) | (c >>> 8) | 512;
+        int combinedh = Integer.rotateLeft(Integer.reverseBytes(combinedl), 13);
+        long low = avalanche64((combinedl & 0xFFFFFFFFL) ^ bitflip00);
+        long high = avalanche64((combinedh & 0xFFFFFFFFL) ^ bitflip11);
+        return new HashValue128(high, low);
       }
       return hash0;
     }
     if (len <= 64) {
-      long acc = len * (INIT_ACC_1 << 1);
-
+      long acc0 = (len * INIT_ACC_1) << 1;
+      long acc1 = 0;
       if (len > 16) {
         if (len > 32) {
           if (len > 48) {
-            acc += mix16B(charSequence, 24, secret12, secret13);
-            acc += mix16B(charSequence, len - 32, secret14, secret15);
+            long b0 = getLong(charSequence, 24);
+            long b1 = getLong(charSequence, 28);
+            long b2 = getLong(charSequence, len - 32);
+            long b3 = getLong(charSequence, len - 28);
+            acc0 = (acc0 + mix2Accs(b0, b1, secret12, secret13)) ^ (b2 + b3);
+            acc1 = (acc1 + mix2Accs(b2, b3, secret14, secret15)) ^ (b0 + b1);
           }
-          acc += mix16B(charSequence, 16, secret08, secret09);
-          acc += mix16B(charSequence, len - 24, secret10, secret11);
+          long b0 = getLong(charSequence, 16);
+          long b1 = getLong(charSequence, 20);
+          long b2 = getLong(charSequence, len - 24);
+          long b3 = getLong(charSequence, len - 20);
+          acc0 = (acc0 + mix2Accs(b0, b1, secret08, secret09)) ^ (b2 + b3);
+          acc1 = (acc1 + mix2Accs(b2, b3, secret10, secret11)) ^ (b0 + b1);
         }
-        acc += mix16B(charSequence, 8, secret04, secret05);
-        acc += mix16B(charSequence, len - 16, secret06, secret07);
+        long b0 = getLong(charSequence, 8);
+        long b1 = getLong(charSequence, 12);
+        long b2 = getLong(charSequence, len - 16);
+        long b3 = getLong(charSequence, len - 12);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret04, secret05)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret06, secret07)) ^ (b0 + b1);
       }
-      acc += mix16B(charSequence, 0, secret00, secret01);
-      acc += mix16B(charSequence, len - 8, secret02, secret03);
+      long b0 = getLong(charSequence, 0);
+      long b1 = getLong(charSequence, 4);
+      long b2 = getLong(charSequence, len - 8);
+      long b3 = getLong(charSequence, len - 4);
+      acc0 = (acc0 + mix2Accs(b0, b1, secret00, secret01)) ^ (b2 + b3);
+      acc1 = (acc1 + mix2Accs(b2, b3, secret02, secret03)) ^ (b0 + b1);
 
-      return avalanche3(acc);
+      long low = avalanche3(acc0 + acc1);
+      long high =
+          -avalanche3(acc0 * INIT_ACC_1 + acc1 * INIT_ACC_4 + ((len << 1) - seed) * INIT_ACC_2);
+      return new HashValue128(high, low);
     }
     if (len <= 120) {
-      long acc = len * (INIT_ACC_1 << 1);
-      acc += mix16B(charSequence, 0, secret00, secret01);
-      acc += mix16B(charSequence, 8, secret02, secret03);
-      acc += mix16B(charSequence, 16, secret04, secret05);
-      acc += mix16B(charSequence, 24, secret06, secret07);
-      acc += mix16B(charSequence, 32, secret08, secret09);
-      acc += mix16B(charSequence, 40, secret10, secret11);
-      acc += mix16B(charSequence, 48, secret12, secret13);
-      acc += mix16B(charSequence, 56, secret14, secret15);
-
-      acc = avalanche3(acc);
-
-      if (len >= 72) {
-        acc += mix16B(charSequence, 64, secShift00, secShift01);
-        if (len >= 80) {
-          acc += mix16B(charSequence, 72, secShift02, secShift03);
-          if (len >= 88) {
-            acc += mix16B(charSequence, 80, secShift04, secShift05);
-            if (len >= 96) {
-              acc += mix16B(charSequence, 88, secShift06, secShift07);
-              if (len >= 104) {
-                acc += mix16B(charSequence, 96, secShift08, secShift09);
-                if (len >= 112) {
-                  acc += mix16B(charSequence, 104, secShift10, secShift11);
-                  if (len >= 120) acc += mix16B(charSequence, 112, secShift12, secShift13);
-                }
-              }
-            }
-          }
-        }
+      long acc0 = (len * INIT_ACC_1) << 1;
+      long acc1 = 0;
+      {
+        long b0 = getLong(charSequence, 0);
+        long b1 = getLong(charSequence, 4);
+        long b2 = getLong(charSequence, 8);
+        long b3 = getLong(charSequence, 12);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret00, secret01)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret02, secret03)) ^ (b0 + b1);
       }
-      acc += mix16B(charSequence, len - 8, secShift14, secShift15);
-      return avalanche3(acc);
+      {
+        long b0 = getLong(charSequence, 16);
+        long b1 = getLong(charSequence, 20);
+        long b2 = getLong(charSequence, 24);
+        long b3 = getLong(charSequence, 28);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret04, secret05)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret06, secret07)) ^ (b0 + b1);
+      }
+      {
+        long b0 = getLong(charSequence, 32);
+        long b1 = getLong(charSequence, 36);
+        long b2 = getLong(charSequence, 40);
+        long b3 = getLong(charSequence, 44);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret08, secret09)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret10, secret11)) ^ (b0 + b1);
+      }
+      {
+        long b0 = getLong(charSequence, 48);
+        long b1 = getLong(charSequence, 52);
+        long b2 = getLong(charSequence, 56);
+        long b3 = getLong(charSequence, 60);
+        acc0 = (acc0 + mix2Accs(b0, b1, secret12, secret13)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secret14, secret15)) ^ (b0 + b1);
+      }
+      acc0 = avalanche3(acc0);
+      acc1 = avalanche3(acc1);
+      if (80 <= len) {
+        long b0 = getLong(charSequence, 64);
+        long b1 = getLong(charSequence, 68);
+        long b2 = getLong(charSequence, 72);
+        long b3 = getLong(charSequence, 76);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift00, secShift01)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift02, secShift03)) ^ (b0 + b1);
+      }
+      if (96 <= len) {
+        long b0 = getLong(charSequence, 80);
+        long b1 = getLong(charSequence, 84);
+        long b2 = getLong(charSequence, 88);
+        long b3 = getLong(charSequence, 92);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift04, secShift05)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift06, secShift07)) ^ (b0 + b1);
+      }
+      if (112 <= len) {
+        long b0 = getLong(charSequence, 96);
+        long b1 = getLong(charSequence, 100);
+        long b2 = getLong(charSequence, 104);
+        long b3 = getLong(charSequence, 108);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift08, secShift09)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift10, secShift11)) ^ (b0 + b1);
+      }
+      {
+        long b0 = getLong(charSequence, len - 8);
+        long b1 = getLong(charSequence, len - 4);
+        long b2 = getLong(charSequence, len - 16);
+        long b3 = getLong(charSequence, len - 12);
+        acc0 = (acc0 + mix2Accs(b0, b1, secShift12, secShift13)) ^ (b2 + b3);
+        acc1 = (acc1 + mix2Accs(b2, b3, secShift14, secShift15)) ^ (b0 + b1);
+      }
+      long low = avalanche3(acc0 + acc1);
+      long high =
+          -avalanche3(acc0 * INIT_ACC_1 + acc1 * INIT_ACC_4 + ((len << 1) - seed) * INIT_ACC_2);
+      return new HashValue128(high, low);
     }
 
     long acc0 = INIT_ACC_0;
@@ -968,17 +1124,18 @@ class XXH3_64 extends AbstractHasher64 {
 
   @Override
   public long hashLongLongToLong(long v1, long v2) {
-    long lo = v1 ^ bitflip34;
-    long hi = v2 ^ bitflip56;
-    long acc = 16 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
-    return avalanche3(acc);
+    long lo = v1 ^ v2 ^ bitflip45;
+    long hi = v2 ^ bitflip67;
+    long m128Hi = unsignedMultiplyHigh(lo, INIT_ACC_1) + hi + (hi & 0xFFFFFFFFL) * (INIT_ACC_5 - 1);
+    long m128Lo = (lo * INIT_ACC_1 + 0x3C0000000000000L) ^ Long.reverseBytes(m128Hi);
+    return avalanche3(m128Lo * INIT_ACC_2);
   }
 
   @Override
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
-    long acc = 0xd53368a48e1afca8L;
-    acc += mix2Accs(v1, v2, secret00, secret01);
-    acc += mix2Accs(v2, v3, secret02, secret03);
-    return avalanche3(acc);
+    @SuppressWarnings("ConstantOverflow")
+    long acc0 = (24L * INIT_ACC_1 + mix2Accs(v1, v2, secret00, secret01)) ^ (v2 + v3);
+    long acc1 = mix2Accs(v2, v3, secret02, secret03) ^ (v1 + v2);
+    return avalanche3(acc0 + acc1);
   }
 }
