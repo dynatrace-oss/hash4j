@@ -231,7 +231,7 @@ public class XXH3_128 extends AbstractHasher128 {
     return new HashStreamImpl();
   }
 
-  private final class HashStreamImpl extends AbstractHashStream128 {
+  private final class HashStreamImpl implements AbstractHashStream128 {
 
     private static final int BULK_SIZE = 256;
     private static final int BULK_SIZE_HALF = 128;

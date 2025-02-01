@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,280 +18,280 @@ package com.dynatrace.hash4j.hashing;
 import java.util.*;
 import java.util.function.ToLongFunction;
 
-abstract class AbstractHashStream128 extends AbstractHashStream64 implements HashStream128 {
+interface AbstractHashStream128 extends AbstractHashStream64, HashStream128 {
 
   @Override
-  public int getHashBitSize() {
+  default int getHashBitSize() {
     return 128;
   }
 
   @Override
-  public long getAsLong() {
+  default long getAsLong() {
     return get().getAsLong();
   }
 
   @Override
-  public HashStream128 putBoolean(boolean v) {
-    super.putBoolean(v);
+  default HashStream128 putBoolean(boolean v) {
+    AbstractHashStream64.super.putBoolean(v);
     return this;
   }
 
   @Override
-  public HashStream128 putBooleans(boolean[] x) {
-    super.putBooleans(x);
+  default HashStream128 putBooleans(boolean[] x) {
+    AbstractHashStream64.super.putBooleans(x);
     return this;
   }
 
   @Override
-  public HashStream128 putBooleans(boolean[] x, int off, int len) {
-    super.putBooleans(x, off, len);
+  default HashStream128 putBooleans(boolean[] x, int off, int len) {
+    AbstractHashStream64.super.putBooleans(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putBooleanArray(boolean[] x) {
-    super.putBooleanArray(x);
+  default HashStream128 putBooleanArray(boolean[] x) {
+    AbstractHashStream64.super.putBooleanArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putBytes(byte[] b) {
-    super.putBytes(b);
+  default HashStream128 putBytes(byte[] b) {
+    AbstractHashStream64.super.putBytes(b);
     return this;
   }
 
   @Override
-  public HashStream128 putBytes(byte[] b, int off, int len) {
-    super.putBytes(b, off, len);
+  default HashStream128 putBytes(byte[] b, int off, int len) {
+    AbstractHashStream64.super.putBytes(b, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putByteArray(byte[] x) {
-    super.putByteArray(x);
+  default HashStream128 putByteArray(byte[] x) {
+    AbstractHashStream64.super.putByteArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putChar(char v) {
-    super.putChar(v);
+  default HashStream128 putChar(char v) {
+    AbstractHashStream64.super.putChar(v);
     return this;
   }
 
   @Override
-  public HashStream128 putChars(char[] x) {
-    super.putChars(x);
+  default HashStream128 putChars(char[] x) {
+    AbstractHashStream64.super.putChars(x);
     return this;
   }
 
   @Override
-  public HashStream128 putChars(char[] x, int off, int len) {
-    super.putChars(x, off, len);
+  default HashStream128 putChars(char[] x, int off, int len) {
+    AbstractHashStream64.super.putChars(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putChars(CharSequence s) {
-    super.putChars(s);
+  default HashStream128 putChars(CharSequence s) {
+    AbstractHashStream64.super.putChars(s);
     return this;
   }
 
   @Override
-  public HashStream128 putCharArray(char[] x) {
-    super.putCharArray(x);
+  default HashStream128 putCharArray(char[] x) {
+    AbstractHashStream64.super.putCharArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putString(String s) {
-    super.putString(s);
+  default HashStream128 putString(String s) {
+    AbstractHashStream64.super.putString(s);
     return this;
   }
 
   @Override
-  public HashStream128 putShort(short v) {
-    super.putShort(v);
+  default HashStream128 putShort(short v) {
+    AbstractHashStream64.super.putShort(v);
     return this;
   }
 
   @Override
-  public HashStream128 putShortArray(short[] x) {
-    super.putShortArray(x);
+  default HashStream128 putShortArray(short[] x) {
+    AbstractHashStream64.super.putShortArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putShorts(short[] x) {
-    super.putShorts(x);
+  default HashStream128 putShorts(short[] x) {
+    AbstractHashStream64.super.putShorts(x);
     return this;
   }
 
   @Override
-  public HashStream128 putShorts(short[] x, int off, int len) {
-    super.putShorts(x, off, len);
+  default HashStream128 putShorts(short[] x, int off, int len) {
+    AbstractHashStream64.super.putShorts(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putInt(int v) {
-    super.putInt(v);
+  default HashStream128 putInt(int v) {
+    AbstractHashStream64.super.putInt(v);
     return this;
   }
 
   @Override
-  public HashStream128 putIntArray(int[] x) {
-    super.putIntArray(x);
+  default HashStream128 putIntArray(int[] x) {
+    AbstractHashStream64.super.putIntArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putInts(int[] x) {
-    super.putInts(x);
+  default HashStream128 putInts(int[] x) {
+    AbstractHashStream64.super.putInts(x);
     return this;
   }
 
   @Override
-  public HashStream128 putInts(int[] x, int off, int len) {
-    super.putInts(x, off, len);
+  default HashStream128 putInts(int[] x, int off, int len) {
+    AbstractHashStream64.super.putInts(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putLong(long v) {
-    super.putLong(v);
+  default HashStream128 putLong(long v) {
+    AbstractHashStream64.super.putLong(v);
     return this;
   }
 
   @Override
-  public HashStream128 putLongArray(long[] x) {
-    super.putLongArray(x);
+  default HashStream128 putLongArray(long[] x) {
+    AbstractHashStream64.super.putLongArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putLongs(long[] x) {
-    super.putLongs(x);
+  default HashStream128 putLongs(long[] x) {
+    AbstractHashStream64.super.putLongs(x);
     return this;
   }
 
   @Override
-  public HashStream128 putLongs(long[] x, int off, int len) {
-    super.putLongs(x, off, len);
+  default HashStream128 putLongs(long[] x, int off, int len) {
+    AbstractHashStream64.super.putLongs(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putFloat(float v) {
-    super.putFloat(v);
+  default HashStream128 putFloat(float v) {
+    AbstractHashStream64.super.putFloat(v);
     return this;
   }
 
   @Override
-  public HashStream128 putFloats(float[] x) {
-    super.putFloats(x);
+  default HashStream128 putFloats(float[] x) {
+    AbstractHashStream64.super.putFloats(x);
     return this;
   }
 
   @Override
-  public HashStream128 putFloats(float[] x, int off, int len) {
-    super.putFloats(x, off, len);
+  default HashStream128 putFloats(float[] x, int off, int len) {
+    AbstractHashStream64.super.putFloats(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putFloatArray(float[] x) {
-    super.putFloatArray(x);
+  default HashStream128 putFloatArray(float[] x) {
+    AbstractHashStream64.super.putFloatArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putDouble(double v) {
-    super.putDouble(v);
+  default HashStream128 putDouble(double v) {
+    AbstractHashStream64.super.putDouble(v);
     return this;
   }
 
   @Override
-  public HashStream128 putDoubleArray(double[] x) {
-    super.putDoubleArray(x);
+  default HashStream128 putDoubleArray(double[] x) {
+    AbstractHashStream64.super.putDoubleArray(x);
     return this;
   }
 
   @Override
-  public HashStream128 putDoubles(double[] x) {
-    super.putDoubles(x);
+  default HashStream128 putDoubles(double[] x) {
+    AbstractHashStream64.super.putDoubles(x);
     return this;
   }
 
   @Override
-  public HashStream128 putDoubles(double[] x, int off, int len) {
-    super.putDoubles(x, off, len);
+  default HashStream128 putDoubles(double[] x, int off, int len) {
+    AbstractHashStream64.super.putDoubles(x, off, len);
     return this;
   }
 
   @Override
-  public HashStream128 putUUID(UUID uuid) {
-    super.putUUID(uuid);
+  default HashStream128 putUUID(UUID uuid) {
+    AbstractHashStream64.super.putUUID(uuid);
     return this;
   }
 
   @Override
-  public <T> HashStream128 put(T data, HashFunnel<T> funnel) {
-    super.put(data, funnel);
+  default <T> HashStream128 put(T data, HashFunnel<T> funnel) {
+    AbstractHashStream64.super.put(data, funnel);
     return this;
   }
 
   @Override
-  public <T> HashStream128 putNullable(T data, HashFunnel<T> funnel) {
-    super.putNullable(data, funnel);
+  default <T> HashStream128 putNullable(T data, HashFunnel<T> funnel) {
+    AbstractHashStream64.super.putNullable(data, funnel);
     return this;
   }
 
   @Override
-  public <T> HashStream128 putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
-    super.putOrderedIterable(data, funnel);
+  default <T> HashStream128 putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
+    AbstractHashStream64.super.putOrderedIterable(data, funnel);
     return this;
   }
 
   @Override
-  public <T> HashStream128 putUnorderedIterable(
+  default <T> HashStream128 putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
-    super.putUnorderedIterable(data, funnel, hasher);
+    AbstractHashStream64.super.putUnorderedIterable(data, funnel, hasher);
     return this;
   }
 
   @Override
-  public <T> HashStream128 putUnorderedIterable(
+  default <T> HashStream128 putUnorderedIterable(
       Iterable<T> data, ToLongFunction<? super T> elementHashFunction) {
-    super.putUnorderedIterable(data, elementHashFunction);
+    AbstractHashStream64.super.putUnorderedIterable(data, elementHashFunction);
     return this;
   }
 
   @Override
-  public <T> HashStream128 putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
-    super.putOptional(obj, funnel);
+  default <T> HashStream128 putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
+    AbstractHashStream64.super.putOptional(obj, funnel);
     return this;
   }
 
   @Override
-  public HashStream128 putOptionalInt(OptionalInt v) {
-    super.putOptionalInt(v);
+  default HashStream128 putOptionalInt(OptionalInt v) {
+    AbstractHashStream64.super.putOptionalInt(v);
     return this;
   }
 
   @Override
-  public HashStream128 putOptionalLong(OptionalLong v) {
-    super.putOptionalLong(v);
+  default HashStream128 putOptionalLong(OptionalLong v) {
+    AbstractHashStream64.super.putOptionalLong(v);
     return this;
   }
 
   @Override
-  public HashStream128 putOptionalDouble(OptionalDouble v) {
-    super.putOptionalDouble(v);
+  default HashStream128 putOptionalDouble(OptionalDouble v) {
+    AbstractHashStream64.super.putOptionalDouble(v);
     return this;
   }
 
   @Override
-  public <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel) {
+  default <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel) {
     funnel.put(obj, reset());
     return get();
   }

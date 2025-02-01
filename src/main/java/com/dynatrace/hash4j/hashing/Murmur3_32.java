@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,7 +118,7 @@ class Murmur3_32 extends AbstractHasher32 {
     return h;
   }
 
-  private class HashStreamImpl extends AbstractHashStream32 {
+  private class HashStreamImpl implements AbstractHashStream32 {
 
     private int h1 = seed;
     private long buffer = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dynatrace LLC
+ * Copyright 2024-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class AbstractHashStream32Test extends AbstractHashStreamTest {
     assertThat(byteArrayToHexString(hashStream.getData())).isEqualTo(hexString);
   }
 
-  private static final class TestHashStream32 extends AbstractHashStream32 {
+  private static final class TestHashStream32 implements AbstractHashStream32 {
 
     private final TestHashStream hashStream;
 

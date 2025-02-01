@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ abstract class AbstractKomihash extends AbstractHasher64 {
     this.seed8 = 0x3F84D5B5B5470917L ^ s5;
   }
 
-  protected abstract class HashStreamImpl extends AbstractHashStream64 {
+  protected abstract class HashStreamImpl implements AbstractHashStream64 {
 
     protected final byte[] buffer = new byte[64 + 7];
     protected long byteCount = 0;

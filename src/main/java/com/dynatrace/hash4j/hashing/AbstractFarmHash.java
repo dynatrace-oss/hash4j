@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dynatrace LLC
+ * Copyright 2024-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -248,7 +248,7 @@ abstract class AbstractFarmHash extends AbstractHasher64 {
             mul));
   }
 
-  protected abstract static class FarmHashStreamImpl extends AbstractHashStream64 {
+  protected abstract static class FarmHashStreamImpl implements AbstractHashStream64 {
 
     protected final byte[] buffer = new byte[64 + 8 + 8];
     protected int bufferCount = 8;
