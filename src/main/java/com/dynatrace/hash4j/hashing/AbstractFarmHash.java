@@ -15,9 +15,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static java.lang.Long.rotateRight;
 
-abstract class AbstractFarmHash extends AbstractHasher64 {
+abstract class AbstractFarmHash implements AbstractHasher64 {
 
   protected static final long K0 = 0xc3a5c85c97cb3127L;
   protected static final long K1 = 0xb492b66fbe98f273L;

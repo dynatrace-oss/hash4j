@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_128 extends AbstractHasher128 {
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
+
+class Murmur3_128 implements AbstractHasher128 {
 
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;

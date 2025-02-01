@@ -40,9 +40,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-class PolymurHash2_0 extends AbstractHasher64 {
+class PolymurHash2_0 implements AbstractHasher64 {
 
   private static final long POLYMUR_P611 = (1L << 61) - 1;
 

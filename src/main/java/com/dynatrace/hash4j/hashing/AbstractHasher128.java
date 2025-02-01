@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,30 +15,30 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-abstract class AbstractHasher128 extends AbstractHasher64 implements Hasher128 {
+interface AbstractHasher128 extends AbstractHasher64, Hasher128 {
 
   @Override
-  public <T> HashValue128 hashTo128Bits(T data, HashFunnel<T> funnel) {
+  default <T> HashValue128 hashTo128Bits(T data, HashFunnel<T> funnel) {
     return hashStream().put(data, funnel).get();
   }
 
   @Override
-  public HashValue128 hashBytesTo128Bits(byte[] input) {
+  default HashValue128 hashBytesTo128Bits(byte[] input) {
     return hashBytesTo128Bits(input, 0, input.length);
   }
 
   @Override
-  public long hashBytesToLong(byte[] input, int off, int len) {
+  default long hashBytesToLong(byte[] input, int off, int len) {
     return hashBytesTo128Bits(input, off, len).getAsLong();
   }
 
   @Override
-  public long hashCharsToLong(CharSequence input) {
+  default long hashCharsToLong(CharSequence input) {
     return hashCharsTo128Bits(input).getAsLong();
   }
 
   @Override
-  public int getHashBitSize() {
+  default int getHashBitSize() {
     return 128;
   }
 }

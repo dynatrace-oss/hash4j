@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,40 +15,40 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-abstract class AbstractHasher64 extends AbstractHasher32 implements Hasher64 {
+interface AbstractHasher64 extends AbstractHasher32, Hasher64 {
 
   @Override
-  public <T> long hashToLong(T data, HashFunnel<T> funnel) {
+  default <T> long hashToLong(T data, HashFunnel<T> funnel) {
     return hashStream().put(data, funnel).getAsLong();
   }
 
   @Override
-  public long hashBytesToLong(byte[] input) {
+  default long hashBytesToLong(byte[] input) {
     return hashBytesToLong(input, 0, input.length);
   }
 
   @Override
-  public int hashBytesToInt(byte[] input, int off, int len) {
+  default int hashBytesToInt(byte[] input, int off, int len) {
     return (int) hashBytesToLong(input, off, len);
   }
 
   @Override
-  public int hashCharsToInt(CharSequence input) {
+  default int hashCharsToInt(CharSequence input) {
     return (int) hashCharsToLong(input);
   }
 
   @Override
-  public int getHashBitSize() {
+  default int getHashBitSize() {
     return 64;
   }
 
   @Override
-  public long hashLongLongToLong(long v1, long v2) {
+  default long hashLongLongToLong(long v1, long v2) {
     return hashStream().putLong(v1).putLong(v2).getAsLong();
   }
 
   @Override
-  public long hashLongLongLongToLong(long v1, long v2, long v3) {
+  default long hashLongLongLongToLong(long v1, long v2, long v3) {
     return hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong();
   }
 }

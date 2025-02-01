@@ -37,9 +37,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static com.dynatrace.hash4j.hashing.XXH3Util.*;
 
-class XXH3_64 extends AbstractHasher64 {
+class XXH3_64 implements AbstractHasher64 {
 
   private static final int BLOCK_LEN_EXP = 10;
 
