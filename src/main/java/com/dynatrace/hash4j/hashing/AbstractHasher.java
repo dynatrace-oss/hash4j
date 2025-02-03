@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,63 +19,60 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 
-abstract class AbstractHasher implements Hasher {
+interface AbstractHasher extends Hasher {
 
-  protected AbstractHasher() {}
-
-  private static final VarHandle LONG_HANDLE =
+  VarHandle LONG_HANDLE =
       MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle SHORT_HANDLE =
+  VarHandle INT_HANDLE = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
+  VarHandle SHORT_HANDLE =
       MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle CHAR_HANDLE =
+  VarHandle CHAR_HANDLE =
       MethodHandles.byteArrayViewVarHandle(char[].class, ByteOrder.LITTLE_ENDIAN);
 
-  protected static char getChar(byte[] b, int off) {
+  static char getChar(byte[] b, int off) {
     return (char) CHAR_HANDLE.get(b, off);
   }
 
-  protected static short getShort(byte[] b, int off) {
+  static short getShort(byte[] b, int off) {
     return (short) SHORT_HANDLE.get(b, off);
   }
 
-  protected static int getInt(byte[] b, int off) {
+  static int getInt(byte[] b, int off) {
     return (int) INT_HANDLE.get(b, off);
   }
 
-  protected static long getLong(byte[] b, int off) {
+  static long getLong(byte[] b, int off) {
     return (long) LONG_HANDLE.get(b, off);
   }
 
-  protected static void setLong(byte[] b, int off, long v) {
+  static void setLong(byte[] b, int off, long v) {
     LONG_HANDLE.set(b, off, v);
   }
 
-  protected static void setInt(byte[] b, int off, int v) {
+  static void setInt(byte[] b, int off, int v) {
     INT_HANDLE.set(b, off, v);
   }
 
-  protected static void setShort(byte[] b, int off, short v) {
+  static void setShort(byte[] b, int off, short v) {
     SHORT_HANDLE.set(b, off, v);
   }
 
-  protected static long getLong(CharSequence s, int off) {
+  static long getLong(CharSequence s, int off) {
     return (long) s.charAt(off)
         | ((long) s.charAt(off + 1) << 16)
         | ((long) s.charAt(off + 2) << 32)
         | ((long) s.charAt(off + 3) << 48);
   }
 
-  protected static int getInt(CharSequence s, int off) {
+  static int getInt(CharSequence s, int off) {
     return (int) s.charAt(off) | ((int) s.charAt(off + 1) << 16);
   }
 
-  protected static void setChar(byte[] b, int off, char v) {
+  static void setChar(byte[] b, int off, char v) {
     CHAR_HANDLE.set(b, off, v);
   }
 
-  protected static void copyCharsToByteArray(
+  static void copyCharsToByteArray(
       CharSequence charSequence,
       int offetCharSequence,
       byte[] byteArray,

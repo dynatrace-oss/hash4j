@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dynatrace LLC
+ * Copyright 2024-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static java.lang.Long.rotateRight;
 
-abstract class AbstractFarmHash extends AbstractHasher64 {
+abstract class AbstractFarmHash implements AbstractHasher64 {
 
   protected static final long K0 = 0xc3a5c85c97cb3127L;
   protected static final long K1 = 0xb492b66fbe98f273L;
@@ -248,7 +249,7 @@ abstract class AbstractFarmHash extends AbstractHasher64 {
             mul));
   }
 
-  protected abstract static class FarmHashStreamImpl extends AbstractHashStream64 {
+  protected abstract static class FarmHashStreamImpl implements AbstractHashStream64 {
 
     protected final byte[] buffer = new byte[64 + 8 + 8];
     protected int bufferCount = 8;

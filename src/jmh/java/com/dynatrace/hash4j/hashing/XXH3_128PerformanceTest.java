@@ -15,15 +15,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import net.openhft.hashing.LongTupleHashFunction;
+public class XXH3_128PerformanceTest extends AbstactHasher128PerformanceTest {
 
-public class Murmur3_128ZeroAllocationHashingPerformanceTest
-    extends AbstractZeroAllocationHashing128BitPerformanceTest {
-
-  private static final LongTupleHashFunction HASH_FUNCTION = LongTupleHashFunction.murmur_3();
+  private static final Hasher128 HASHER_INSTANCE = Hashing.xxh3_128();
 
   @Override
-  protected LongTupleHashFunction createHashFunction() {
-    return HASH_FUNCTION;
+  protected Hasher128 getHasherInstance() {
+    return HASHER_INSTANCE;
   }
 }

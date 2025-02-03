@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_128 extends AbstractHasher128 {
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
+
+class Murmur3_128 implements AbstractHasher128 {
 
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;
@@ -223,7 +225,7 @@ class Murmur3_128 extends AbstractHasher128 {
     return finalizeHash(h1, h2, ((long) len) << 1);
   }
 
-  private class HashStreamImpl extends AbstractHashStream128 {
+  private class HashStreamImpl implements AbstractHashStream128 {
 
     private long h1 = seed;
     private long h2 = seed;

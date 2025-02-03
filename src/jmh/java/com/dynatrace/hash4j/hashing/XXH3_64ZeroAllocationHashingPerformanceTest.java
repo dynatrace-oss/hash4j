@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import net.openhft.hashing.LongHashFunction;
 
-public class XXH3ZeroAllocationHashingPerformanceTest
+public class XXH3_64ZeroAllocationHashingPerformanceTest
     extends AbstractZeroAllocationHashing64BitPerformanceTest {
 
   private static final LongHashFunction HASH_FUNCTION = LongHashFunction.xx3();

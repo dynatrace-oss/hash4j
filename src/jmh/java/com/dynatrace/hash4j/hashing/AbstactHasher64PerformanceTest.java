@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,36 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import org.openjdk.jmh.infra.Blackhole;
+
 public abstract class AbstactHasher64PerformanceTest extends AbstractPerformanceTest {
 
   protected static final HashFunnel<CharSequence> CHARS_FUNNEL = (s, sink) -> sink.putChars(s);
   protected static final HashFunnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 
   @Override
-  protected long hashObject(TestObject testObject) {
-    return getHasherInstance().hashToLong(testObject, TestObject::contributeToHash);
+  protected void hashObject(TestObject testObject, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashToLong(testObject, TestObject::contributeToHash));
   }
 
   @Override
-  protected long hashBytesDirect(byte[] b) {
-    return getHasherInstance().hashBytesToLong(b);
+  protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashBytesToLong(b));
   }
 
   @Override
-  protected long hashBytesIndirect(byte[] b) {
-    return getHasherInstance().hashToLong(b, BYTES_FUNNEL);
+  protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashToLong(b, BYTES_FUNNEL));
   }
 
   @Override
-  protected long hashCharsDirect(String s) {
-    return getHasherInstance().hashCharsToLong(s);
+  protected void hashCharsDirect(String s, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashCharsToLong(s));
   }
 
   @Override
-  protected long hashCharsIndirect(String s) {
-    return getHasherInstance().hashToLong(s, CHARS_FUNNEL);
+  protected void hashCharsIndirect(String s, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashToLong(s, CHARS_FUNNEL));
   }
 
   protected abstract Hasher64 getHasherInstance();

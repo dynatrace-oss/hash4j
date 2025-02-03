@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-abstract class AbstractWyhashFinal extends AbstractHasher64 {
+abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
   protected final long seed;
   protected final long secret1;
@@ -249,7 +250,7 @@ abstract class AbstractWyhashFinal extends AbstractHasher64 {
     return secret;
   }
 
-  private class HashStreamImpl extends AbstractHashStream64 {
+  private class HashStreamImpl implements AbstractHashStream64 {
 
     private final byte[] buffer = new byte[48 + 8];
     private long byteCount = 0;

@@ -19,35 +19,34 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.HashFunction;
 import org.openjdk.jmh.infra.Blackhole;
 
-public abstract class AbstractGuava32BitPerformanceTest extends AbstractPerformanceTest {
+public abstract class AbstractGuava128BitPerformanceTest extends AbstractPerformanceTest {
 
   protected static final Funnel<String> CHARS_FUNNEL = (s, sink) -> sink.putUnencodedChars(s);
   protected static final Funnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 
   @Override
   protected void hashObject(TestObject testObject, Blackhole blackhole) {
-    blackhole.consume(
-        createHashFunction().hashObject(testObject, TestObject::contributeToHash).asInt());
+    blackhole.consume(createHashFunction().hashObject(testObject, TestObject::contributeToHash));
   }
 
   @Override
   protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
-    blackhole.consume(createHashFunction().hashBytes(b).asInt());
+    blackhole.consume(createHashFunction().hashBytes(b));
   }
 
   @Override
   protected void hashCharsDirect(String s, Blackhole blackhole) {
-    blackhole.consume(createHashFunction().hashUnencodedChars(s).asInt());
+    blackhole.consume(createHashFunction().hashUnencodedChars(s));
   }
 
   @Override
   protected void hashCharsIndirect(String s, Blackhole blackhole) {
-    blackhole.consume(createHashFunction().hashObject(s, CHARS_FUNNEL).asInt());
+    blackhole.consume(createHashFunction().hashObject(s, CHARS_FUNNEL));
   }
 
   @Override
   protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
-    blackhole.consume(createHashFunction().hashObject(b, BYTES_FUNNEL).asInt());
+    blackhole.consume(createHashFunction().hashObject(b, BYTES_FUNNEL));
   }
 
   protected abstract HashFunction createHashFunction();

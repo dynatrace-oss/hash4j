@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import java.util.Arrays;
 import java.util.Objects;
 
-class TestHashStream extends AbstractHashStream {
+class TestHashStream implements AbstractHashStream {
   private int size = 0;
   private byte[] data = new byte[1];
 

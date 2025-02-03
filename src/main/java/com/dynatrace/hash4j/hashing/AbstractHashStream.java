@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,21 @@ import static java.util.Objects.requireNonNull;
 import java.util.*;
 import java.util.function.ToLongFunction;
 
-abstract class AbstractHashStream implements HashStream {
+interface AbstractHashStream extends HashStream {
 
   @Override
-  public HashStream putBoolean(boolean v) {
+  default HashStream putBoolean(boolean v) {
     putByte((byte) (v ? 1 : 0));
     return this;
   }
 
   @Override
-  public HashStream putBooleans(boolean[] x) {
+  default HashStream putBooleans(boolean[] x) {
     return putBooleans(x, 0, x.length);
   }
 
   @Override
-  public HashStream putBooleans(boolean[] x, int off, int len) {
+  default HashStream putBooleans(boolean[] x, int off, int len) {
     int end = len + off;
     while (off <= end - 8) {
       long b0 = (x[off + 0] ? 1L : 0L) << (8 * 0);
@@ -70,18 +70,18 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putBooleanArray(boolean[] x) {
+  default HashStream putBooleanArray(boolean[] x) {
     return putBooleans(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putBytes(byte[] b) {
+  default HashStream putBytes(byte[] b) {
     putBytes(b, 0, b.length);
     return this;
   }
 
   @Override
-  public HashStream putBytes(byte[] b, int off, int len) {
+  default HashStream putBytes(byte[] b, int off, int len) {
     int end = len + off;
     while (off <= end - 8) {
       putLong(AbstractHasher.getLong(b, off));
@@ -102,23 +102,23 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putByteArray(byte[] x) {
+  default HashStream putByteArray(byte[] x) {
     return putBytes(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putChar(char v) {
+  default HashStream putChar(char v) {
     putShort((short) v);
     return this;
   }
 
   @Override
-  public HashStream putChars(char[] x) {
+  default HashStream putChars(char[] x) {
     return putChars(x, 0, x.length);
   }
 
   @Override
-  public HashStream putChars(char[] x, int off, int len) {
+  default HashStream putChars(char[] x, int off, int len) {
     int end = len + off;
     while (off <= end - 4) {
       long b0 = (long) x[off + 0] << (16 * 0);
@@ -141,7 +141,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putChars(CharSequence s) {
+  default HashStream putChars(CharSequence s) {
     int end = s.length();
     int off = 0;
     while (off <= end - 4) {
@@ -159,36 +159,36 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putCharArray(char[] x) {
+  default HashStream putCharArray(char[] x) {
     return putChars(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putString(String s) {
+  default HashStream putString(String s) {
     putChars(s);
     putInt(s.length());
     return this;
   }
 
   @Override
-  public HashStream putShort(short v) {
+  default HashStream putShort(short v) {
     putByte((byte) v);
     putByte((byte) (v >>> 8));
     return this;
   }
 
   @Override
-  public HashStream putShortArray(short[] x) {
+  default HashStream putShortArray(short[] x) {
     return putShorts(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putShorts(short[] x) {
+  default HashStream putShorts(short[] x) {
     return putShorts(x, 0, x.length);
   }
 
   @Override
-  public HashStream putShorts(short[] x, int off, int len) {
+  default HashStream putShorts(short[] x, int off, int len) {
     int end = off + len;
     while (off <= end - 4) {
       long b0 = (x[off + 0] & 0xFFFFL) << (16 * 0);
@@ -211,7 +211,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putInt(int v) {
+  default HashStream putInt(int v) {
     putByte((byte) v);
     putByte((byte) (v >>> 8));
     putByte((byte) (v >>> 16));
@@ -220,17 +220,17 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putIntArray(int[] x) {
+  default HashStream putIntArray(int[] x) {
     return putInts(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putInts(int[] x) {
+  default HashStream putInts(int[] x) {
     return putInts(x, 0, x.length);
   }
 
   @Override
-  public HashStream putInts(int[] x, int off, int len) {
+  default HashStream putInts(int[] x, int off, int len) {
     int end = off + len;
     while (off <= end - 2) {
       long b0 = x[off + 0] & 0xFFFFFFFFL;
@@ -245,24 +245,24 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putLong(long v) {
+  default HashStream putLong(long v) {
     putInt((int) v);
     putInt((int) (v >> 32));
     return this;
   }
 
   @Override
-  public HashStream putLongArray(long[] x) {
+  default HashStream putLongArray(long[] x) {
     return putLongs(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putLongs(long[] x) {
+  default HashStream putLongs(long[] x) {
     return putLongs(x, 0, x.length);
   }
 
   @Override
-  public HashStream putLongs(long[] x, int off, int len) {
+  default HashStream putLongs(long[] x, int off, int len) {
     for (int i = 0; i < len; ++i) {
       putLong(x[off + i]);
     }
@@ -270,18 +270,18 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putFloat(float v) {
+  default HashStream putFloat(float v) {
     putInt(Float.floatToRawIntBits(v));
     return this;
   }
 
   @Override
-  public HashStream putFloats(float[] x) {
+  default HashStream putFloats(float[] x) {
     return putFloats(x, 0, x.length);
   }
 
   @Override
-  public HashStream putFloats(float[] x, int off, int len) {
+  default HashStream putFloats(float[] x, int off, int len) {
     int end = off + len;
     while (off <= end - 2) {
       long b0 = Float.floatToRawIntBits(x[off + 0]) & 0xFFFFFFFFL;
@@ -296,28 +296,28 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putFloatArray(float[] x) {
+  default HashStream putFloatArray(float[] x) {
     return putFloats(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putDouble(double v) {
+  default HashStream putDouble(double v) {
     putLong(Double.doubleToRawLongBits(v));
     return this;
   }
 
   @Override
-  public HashStream putDoubleArray(double[] x) {
+  default HashStream putDoubleArray(double[] x) {
     return putDoubles(x).putInt(x.length);
   }
 
   @Override
-  public HashStream putDoubles(double[] x) {
+  default HashStream putDoubles(double[] x) {
     return putDoubles(x, 0, x.length);
   }
 
   @Override
-  public HashStream putDoubles(double[] x, int off, int len) {
+  default HashStream putDoubles(double[] x, int off, int len) {
     for (int i = 0; i < len; ++i) {
       putDouble(x[off + i]);
     }
@@ -325,20 +325,20 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putUUID(UUID uuid) {
+  default HashStream putUUID(UUID uuid) {
     putLong(uuid.getLeastSignificantBits());
     putLong(uuid.getMostSignificantBits());
     return this;
   }
 
   @Override
-  public <T> HashStream put(T data, HashFunnel<T> funnel) {
+  default <T> HashStream put(T data, HashFunnel<T> funnel) {
     funnel.put(data, this);
     return this;
   }
 
   @Override
-  public <T> HashStream putNullable(T data, HashFunnel<T> funnel) {
+  default <T> HashStream putNullable(T data, HashFunnel<T> funnel) {
     if (data != null) {
       funnel.put(data, this);
       putBoolean(true);
@@ -349,7 +349,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public <T> HashStream putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
+  default <T> HashStream putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
     int counter = 0;
     for (T d : data) {
       put(d, funnel);
@@ -360,14 +360,14 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public <T> HashStream putUnorderedIterable(
+  default <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
     HashStream64 hashStream = hasher.hashStream();
     return putUnorderedIterable(data, x -> hashStream.resetAndHashToLong(x, funnel));
   }
 
   @Override
-  public <T> HashStream putUnorderedIterable(
+  default <T> HashStream putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream) {
     checkArgument(
         this != hashStream,
@@ -376,7 +376,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public <T> HashStream putUnorderedIterable(
+  default <T> HashStream putUnorderedIterable(
       final Iterable<T> data, final ToLongFunction<? super T> elementHashFunction) {
     requireNonNull(data);
     requireNonNull(elementHashFunction);
@@ -406,7 +406,7 @@ abstract class AbstractHashStream implements HashStream {
 
   // maximum array length that can be allocated on VMs
   // compare ArrayList implementation
-  private static final int SOFT_MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
+  int SOFT_MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
 
   // visible for testing
   static int increaseArraySize(int currentSize) {
@@ -1443,7 +1443,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public <T> HashStream putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
+  default <T> HashStream putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
     if (obj.isPresent()) {
       put(obj.get(), funnel);
       putBoolean(true);
@@ -1454,7 +1454,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putOptionalInt(OptionalInt v) {
+  default HashStream putOptionalInt(OptionalInt v) {
     if (v.isPresent()) {
       putInt(v.getAsInt());
       putBoolean(true);
@@ -1465,7 +1465,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putOptionalLong(OptionalLong v) {
+  default HashStream putOptionalLong(OptionalLong v) {
     if (v.isPresent()) {
       putLong(v.getAsLong());
       putBoolean(true);
@@ -1476,7 +1476,7 @@ abstract class AbstractHashStream implements HashStream {
   }
 
   @Override
-  public HashStream putOptionalDouble(OptionalDouble v) {
+  default HashStream putOptionalDouble(OptionalDouble v) {
     if (v.isPresent()) {
       putDouble(v.getAsDouble());
       putBoolean(true);

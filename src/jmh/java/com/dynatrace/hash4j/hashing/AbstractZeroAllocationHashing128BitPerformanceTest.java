@@ -15,35 +15,45 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import org.greenrobot.essentials.hash.Murmur3F;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
+import java.io.IOException;
+import net.openhft.hashing.LongTupleHashFunction;
 import org.openjdk.jmh.infra.Blackhole;
 
-public class Murmur3_128GreenrobotEssentialsPerformanceTest extends AbstractPerformanceTest {
-
-  @Override
-  protected void hashObject(TestObject testObject, Blackhole blackhole) {
-    throw new UnsupportedOperationException();
-  }
+public abstract class AbstractZeroAllocationHashing128BitPerformanceTest
+    extends AbstractPerformanceTest {
 
   @Override
   protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
-    throw new UnsupportedOperationException();
+    blackhole.consume(createHashFunction().hashBytes(b));
   }
 
   @Override
   protected void hashCharsDirect(String s, Blackhole blackhole) {
-    throw new UnsupportedOperationException();
+    blackhole.consume(createHashFunction().hashChars(s));
   }
 
   @Override
   protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
-    Murmur3F murmur = new Murmur3F();
-    murmur.update(b);
-    blackhole.consume(murmur.getValue());
+    throw new UnsupportedOperationException();
   }
 
   @Override
   protected void hashCharsIndirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
+  }
+
+  protected abstract LongTupleHashFunction createHashFunction();
+
+  @Override
+  protected void hashObject(TestObject testObject, Blackhole blackhole) {
+    try {
+      ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();
+      testObject.writeToDataOutput(dataOutput);
+      hashBytesDirect(dataOutput.toByteArray(), blackhole);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

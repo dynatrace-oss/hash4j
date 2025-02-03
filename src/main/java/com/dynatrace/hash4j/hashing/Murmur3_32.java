@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class Murmur3_32 extends AbstractHasher32 {
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
+
+class Murmur3_32 implements AbstractHasher32 {
 
   private static final int C1 = 0xcc9e2d51;
   private static final int C2 = 0x1b873593;
@@ -118,7 +120,7 @@ class Murmur3_32 extends AbstractHasher32 {
     return h;
   }
 
-  private class HashStreamImpl extends AbstractHashStream32 {
+  private class HashStreamImpl implements AbstractHashStream32 {
 
     private int h1 = seed;
     private long buffer = 0;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dynatrace LLC
+ * Copyright 2024-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ final class UnsignedMultiplyUtil {
   private UnsignedMultiplyUtil() {}
 
   /**
-   * Returns as a long the most significant 64 bits of the unsigned 128-bit product of two unsigned
-   * 64-bit factors.
+   * Returns the most significant 64 bits of the unsigned 128-bit product of two unsigned 64-bit
+   * factors as a long.
    *
    * <p>This function was added in <a
    * href="https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/lang/Math.html#unsignedMultiplyHigh(long,long)">Java

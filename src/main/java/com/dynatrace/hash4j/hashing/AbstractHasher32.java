@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,20 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-abstract class AbstractHasher32 extends AbstractHasher implements Hasher32 {
+interface AbstractHasher32 extends AbstractHasher, Hasher32 {
 
   @Override
-  public <T> int hashToInt(T data, HashFunnel<T> funnel) {
+  default <T> int hashToInt(T data, HashFunnel<T> funnel) {
     return hashStream().put(data, funnel).getAsInt();
   }
 
   @Override
-  public int hashBytesToInt(byte[] input) {
+  default int hashBytesToInt(byte[] input) {
     return hashBytesToInt(input, 0, input.length);
   }
 
   @Override
-  public int getHashBitSize() {
+  default int getHashBitSize() {
     return 32;
   }
 }
