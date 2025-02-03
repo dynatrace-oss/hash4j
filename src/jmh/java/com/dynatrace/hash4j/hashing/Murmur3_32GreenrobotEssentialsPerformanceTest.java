@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,34 @@
 package com.dynatrace.hash4j.hashing;
 
 import org.greenrobot.essentials.hash.Murmur3A;
+import org.openjdk.jmh.infra.Blackhole;
 
 public class Murmur3_32GreenrobotEssentialsPerformanceTest extends AbstractPerformanceTest {
 
   @Override
-  protected long hashObject(TestObject testObject) {
+  protected void hashObject(TestObject testObject, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected long hashBytesDirect(byte[] b) {
+  protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected long hashCharsDirect(String s) {
+  protected void hashCharsDirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected long hashBytesIndirect(byte[] b) {
+  protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
     Murmur3A murmur = new Murmur3A();
     murmur.update(b);
-    return murmur.getValue();
+    blackhole.consume(murmur.getValue());
   }
 
   @Override
-  protected long hashCharsIndirect(String s) {
+  protected void hashCharsIndirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 }

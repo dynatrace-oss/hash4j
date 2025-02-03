@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,38 +19,39 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import net.openhft.hashing.LongHashFunction;
+import org.openjdk.jmh.infra.Blackhole;
 
 public abstract class AbstractZeroAllocationHashing64BitPerformanceTest
     extends AbstractPerformanceTest {
 
   @Override
-  protected long hashBytesDirect(byte[] b) {
-    return createHashFunction().hashBytes(b);
+  protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
+    blackhole.consume(createHashFunction().hashBytes(b));
   }
 
   @Override
-  protected long hashCharsDirect(String s) {
-    return createHashFunction().hashChars(s);
+  protected void hashCharsDirect(String s, Blackhole blackhole) {
+    blackhole.consume(createHashFunction().hashChars(s));
   }
 
   @Override
-  protected long hashBytesIndirect(byte[] b) {
+  protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected long hashCharsIndirect(String s) {
+  protected void hashCharsIndirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 
   protected abstract LongHashFunction createHashFunction();
 
   @Override
-  protected long hashObject(TestObject testObject) {
+  protected void hashObject(TestObject testObject, Blackhole blackhole) {
     try {
       ByteArrayDataOutput dataOutput = ByteStreams.newDataOutput();
       testObject.writeToDataOutput(dataOutput);
-      return hashBytesDirect(dataOutput.toByteArray());
+      hashBytesDirect(dataOutput.toByteArray(), blackhole);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

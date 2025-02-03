@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class Murmur3_128PerformanceTest extends AbstactHasher64PerformanceTest {
+public class Murmur3_128PerformanceTest extends AbstactHasher128PerformanceTest {
 
   private static final Hasher128 HASHER_INSTANCE = Hashing.murmur3_128();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -346,43 +346,33 @@ public abstract class AbstractPerformanceTest {
   }
 
   private void directBytesTest(byte[][] data, Blackhole blackhole) {
-    long sum = 0;
     for (byte[] b : data) {
-      sum += hashBytesDirect(b);
+      hashBytesDirect(b, blackhole);
     }
-    blackhole.consume(sum);
   }
 
   private void indirectBytesTest(byte[][] data, Blackhole blackhole) {
-    long sum = 0;
     for (byte[] b : data) {
-      sum += hashBytesIndirect(b);
+      hashBytesIndirect(b, blackhole);
     }
-    blackhole.consume(sum);
   }
 
   private void directCharsTest(String[] data, Blackhole blackhole) {
-    long sum = 0;
     for (String s : data) {
-      sum += hashCharsDirect(s);
+      hashCharsDirect(s, blackhole);
     }
-    blackhole.consume(sum);
   }
 
   private void indirectCharsTest(String[] data, Blackhole blackhole) {
-    long sum = 0;
     for (String s : data) {
-      sum += hashCharsIndirect(s);
+      hashCharsIndirect(s, blackhole);
     }
-    blackhole.consume(sum);
   }
 
   private void objectTest(TestObject[] data, Blackhole blackhole) {
-    long sum = 0;
     for (TestObject o : data) {
-      sum += hashObject(o);
+      hashObject(o, blackhole);
     }
-    blackhole.consume(sum);
   }
 
   @Benchmark
@@ -733,13 +723,13 @@ public abstract class AbstractPerformanceTest {
     objectTest(TEST_OBJECTS4, blackhole);
   }
 
-  protected abstract long hashObject(TestObject testObject);
+  protected abstract void hashObject(TestObject testObject, Blackhole blackhole);
 
-  protected abstract long hashBytesDirect(byte[] b);
+  protected abstract void hashBytesDirect(byte[] b, Blackhole blackhole);
 
-  protected abstract long hashCharsDirect(String s);
+  protected abstract void hashCharsDirect(String s, Blackhole blackhole);
 
-  protected abstract long hashBytesIndirect(byte[] b);
+  protected abstract void hashBytesIndirect(byte[] b, Blackhole blackhole);
 
-  protected abstract long hashCharsIndirect(String s);
+  protected abstract void hashCharsIndirect(String s, Blackhole blackhole);
 }

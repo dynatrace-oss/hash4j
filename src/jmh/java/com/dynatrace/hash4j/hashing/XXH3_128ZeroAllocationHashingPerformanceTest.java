@@ -17,10 +17,10 @@ package com.dynatrace.hash4j.hashing;
 
 import net.openhft.hashing.LongTupleHashFunction;
 
-public class Murmur3_128ZeroAllocationHashingPerformanceTest
+public class XXH3_128ZeroAllocationHashingPerformanceTest
     extends AbstractZeroAllocationHashing128BitPerformanceTest {
 
-  private static final LongTupleHashFunction HASH_FUNCTION = LongTupleHashFunction.murmur_3();
+  private static final LongTupleHashFunction HASH_FUNCTION = LongTupleHashFunction.xx128();
 
   @Override
   protected LongTupleHashFunction createHashFunction() {
