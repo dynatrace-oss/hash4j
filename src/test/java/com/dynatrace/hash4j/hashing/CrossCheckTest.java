@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -296,7 +296,7 @@ class CrossCheckTest {
   }
 
   @Test
-  void testXXH3ZeroAllocationHashing() {
+  void testXXH3_64ZeroAllocationHashing() {
     SplittableRandom random = new SplittableRandom(0x97c4eb4e39a52615L);
     for (int len = 0; len < MAX_LENGTH; ++len) {
       byte[] b = new byte[len];
@@ -312,7 +312,23 @@ class CrossCheckTest {
   }
 
   @Test
-  void testXXH3Crypto() {
+  void testXXH3_128ZeroAllocationHashing() {
+    SplittableRandom random = new SplittableRandom(0x9b3001673ede4d7bL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        int seed = random.nextInt();
+        random.nextBytes(b);
+        assertThat(tupleToByteArray(LongTupleHashFunction.xx128().hashBytes(b)))
+            .isEqualTo(Hashing.xxh3_128().hashBytesTo128Bits(b).toByteArray());
+        assertThat(tupleToByteArray(LongTupleHashFunction.xx128(seed).hashBytes(b)))
+            .isEqualTo(Hashing.xxh3_128(seed).hashBytesTo128Bits(b).toByteArray());
+      }
+    }
+  }
+
+  @Test
+  void testXXH3_64Crypto() {
     SplittableRandom random = new SplittableRandom(0xd51892c0663e06e1L);
     for (int len = 0; len < MAX_LENGTH; ++len) {
       byte[] b = new byte[len];
@@ -323,6 +339,30 @@ class CrossCheckTest {
             .isEqualTo(Hashing.xxh3_64().hashBytesToLong(b));
         assertThat(Long.reverseBytes(byteArrayToLong(new Algorithm.XXH3_64.Seeded(seed).hash(b))))
             .isEqualTo(Hashing.xxh3_64(seed).hashBytesToLong(b));
+      }
+    }
+  }
+
+  private static byte[] reverseByteArray(byte[] b) {
+    byte[] result = new byte[b.length];
+    for (int i = 0; i < b.length; ++i) {
+      result[i] = b[b.length - 1 - i];
+    }
+    return result;
+  }
+
+  @Test
+  void testXXH3_128Crypto() {
+    SplittableRandom random = new SplittableRandom(0x6a16a833a6ae8cbcL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(reverseByteArray(new Algorithm.XXH3_128.Seeded(0L).hash(b)))
+            .isEqualTo(Hashing.xxh3_128().hashBytesTo128Bits(b).toByteArray());
+        assertThat(reverseByteArray(new Algorithm.XXH3_128.Seeded(seed).hash(b)))
+            .isEqualTo(Hashing.xxh3_128(seed).hashBytesTo128Bits(b).toByteArray());
       }
     }
   }
