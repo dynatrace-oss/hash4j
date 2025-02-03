@@ -199,7 +199,8 @@ spotless {
 		]),
 		new Tuple3('javaXXH', 'APACHE_2_0_XXH',[
 			'src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java',
-			'src/main/java/com/dynatrace/hash4j/hashing/XXH3_128.java'
+			'src/main/java/com/dynatrace/hash4j/hashing/XXH3_128.java',
+			'src/main/java/com/dynatrace/hash4j/hashing/XXH3Base.java'
 		])
 	]
 
