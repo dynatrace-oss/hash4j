@@ -19,7 +19,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
 
-class DistinctCountUtil {
+/** A utility functions for distinct counting. */
+public final class DistinctCountUtil {
 
   private DistinctCountUtil() {}
 
@@ -191,13 +192,13 @@ class DistinctCountUtil {
     return x;
   }
 
-  static int computeToken1(long hashValue) {
+  static int computeToken(long hashValue) {
     int idx = (int) (hashValue >>> 38);
     int nlz = Long.numberOfLeadingZeros(~(~hashValue << 26));
     return (idx << 6) | nlz;
   }
 
-  static long reconstructHash1(int token) {
+  static long reconstructHash(int token) {
     long idx = token & 0xFFFFFFC0L;
     return (0x3FFFFFFFFFL >>> token) | (idx << 32);
   }

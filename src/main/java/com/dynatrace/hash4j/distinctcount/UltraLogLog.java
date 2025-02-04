@@ -203,7 +203,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    */
   @Override
   public UltraLogLog addToken(int token) {
-    return add(DistinctCountUtil.reconstructHash1(token));
+    return add(DistinctCountUtil.reconstructHash(token));
   }
 
   /**
@@ -226,7 +226,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    * @return the 32-bit token
    */
   public static int computeToken(long hashValue) {
-    return DistinctCountUtil.computeToken1(hashValue);
+    return DistinctCountUtil.computeToken(hashValue);
   }
 
   /**
@@ -275,7 +275,7 @@ public final class UltraLogLog implements DistinctCounter<UltraLogLog, UltraLogL
    */
   @Override
   public UltraLogLog addToken(int token, StateChangeObserver stateChangeObserver) {
-    return add(DistinctCountUtil.reconstructHash1(token), stateChangeObserver);
+    return add(DistinctCountUtil.reconstructHash(token), stateChangeObserver);
   }
 
   /**

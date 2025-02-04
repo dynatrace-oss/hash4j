@@ -286,7 +286,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    */
   @Override
   public HyperLogLog addToken(int token) {
-    return add(DistinctCountUtil.reconstructHash1(token));
+    return add(DistinctCountUtil.reconstructHash(token));
   }
 
   /**
@@ -309,7 +309,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    * @return the 32-bit token
    */
   public static int computeToken(long hashValue) {
-    return DistinctCountUtil.computeToken1(hashValue);
+    return DistinctCountUtil.computeToken(hashValue);
   }
 
   /**
@@ -353,7 +353,7 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    */
   @Override
   public HyperLogLog addToken(int token, StateChangeObserver stateChangeObserver) {
-    return add(DistinctCountUtil.reconstructHash1(token), stateChangeObserver);
+    return add(DistinctCountUtil.reconstructHash(token), stateChangeObserver);
   }
 
   // returns register change probability scaled by 2^64
