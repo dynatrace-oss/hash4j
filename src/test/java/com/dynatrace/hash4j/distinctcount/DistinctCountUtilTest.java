@@ -162,7 +162,7 @@ class DistinctCountUtilTest {
   }
 
   @Test
-  void testComputeToken1() {
+  void testComputeToken() {
     SplittableRandom random = new SplittableRandom(0xbafc97ad730480acL);
 
     int numCycles = 100;
@@ -175,9 +175,9 @@ class DistinctCountUtilTest {
         long mask = 0xFFFFFFC000000000L | (0x0000003FFFFFFFFFL >>> nlz);
         long hash = (r | (0x0000002000000000L >>> nlz)) & mask;
 
-        int token = DistinctCountUtil.computeToken1(hash);
-        long reconstructedHash = DistinctCountUtil.reconstructHash1(token);
-        int tokenFromReconstructedHash = DistinctCountUtil.computeToken1(reconstructedHash);
+        int token = DistinctCountUtil.computeToken(hash);
+        long reconstructedHash = DistinctCountUtil.reconstructHash(token);
+        int tokenFromReconstructedHash = DistinctCountUtil.computeToken(reconstructedHash);
         assertThat(reconstructedHash).isEqualTo(hash | (0x0000001FFFFFFFFFL >>> nlz));
         assertThat(tokenFromReconstructedHash).isEqualTo(token);
       }
@@ -185,10 +185,8 @@ class DistinctCountUtilTest {
   }
 
   private static TokenIterable fromSortedArray(int[] tokens) {
-    return new TokenIterable() {
-      @Override
-      public TokenIterator iterator() {
-        return new TokenIterator() {
+    return () ->
+        new TokenIterator() {
           private int idx = 0;
 
           @Override
@@ -201,8 +199,6 @@ class DistinctCountUtilTest {
             return tokens[idx++];
           }
         };
-      }
-    };
   }
 
   private static void testEstimationFromTokens(int distinctCount) {
@@ -215,7 +211,7 @@ class DistinctCountUtilTest {
 
     for (int i = 0; i < numIterations; ++i) {
       for (int c = 0; c < distinctCount; ++c) {
-        tokens[c] = DistinctCountUtil.computeToken1(prg.nextLong());
+        tokens[c] = DistinctCountUtil.computeToken(prg.nextLong());
       }
       Arrays.sort(tokens);
 
