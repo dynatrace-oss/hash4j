@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 Dynatrace LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import com.diffplug.gradle.spotless.JavaExtension
 
 plugins {
@@ -118,7 +133,7 @@ tasks.check {
 
 tasks.withType(Test).configureEach {
 	useJUnitPlatform()
-	maxHeapSize '8g'
+	maxHeapSize = '8g'
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -167,6 +182,7 @@ static def readPythonLicense(licenseName) {
 	return s
 }
 
+apply plugin: 'groovy'
 spotless {
 	def googleJavaFormatVersion = '1.25.2'
 	def eclipseCdtVersion = '11.6'
@@ -205,10 +221,12 @@ spotless {
 	]
 
 	ratchetFrom 'origin/main'
-	apply plugin: 'groovy'
-	groovyGradle {
-		target '*.gradle' // default target of groovyGradle
+	groovy {
+		importOrder()
+		removeSemicolons()
 		greclipse(greclipseVersion)
+		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
+		target("**/*.gradle")
 	}
 	python {
 		target 'python/**/*.py'
@@ -268,14 +286,14 @@ jmh {
 }
 
 task evaluateBenchmarks(type:Exec) {
-	group "evaluation"
-	workingDir '.'
+	group = "evaluation"
+	workingDir = '.'
 	commandLine 'python', 'python/benchmark_evaluation.py'
 }
 
 task evaluateEstimationErrors(type:Exec) {
-	group "evaluation"
-	workingDir '.'
+	group = "evaluation"
+	workingDir = '.'
 	commandLine 'python', 'python/estimation_error_evaluation.py'
 }
 
@@ -304,7 +322,7 @@ for (sketch in sketches) {
 		def outputFileName = "test-results/" + sketch.toLowerCase() + '-estimation-error-p' + String.format( "%02d", p )  + '.csv'
 		task "${sketchTaskName}"(type: JavaExec) {
 			outputs.files outputFileName
-			group "evaluation"
+			group = "evaluation"
 			classpath = sourceSets.test.runtimeClasspath
 			mainClass = 'com.dynatrace.hash4j.distinctcount.' + sketch + 'EstimationErrorSimulation'
 			args = [p.toString(), outputFileName]
@@ -314,13 +332,13 @@ for (sketch in sketches) {
 	}
 	def evaluationTaskName = "simulate" + sketch + "EstimationErrors"
 	task "${evaluationTaskName}" {
-		group "evaluation"
+		group = "evaluation"
 		dependsOn sketchTasks
 	}
 	evaluationTasks.add(evaluationTaskName)
 }
 task "simulateEstimationErrors" {
-	group "evaluation"
+	group = "evaluation"
 	dependsOn evaluationTasks
 }
 
@@ -358,8 +376,8 @@ tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
 javadoc {
-	failOnError true
-	title 'hash4j ' + project.version + ' API'
+	failOnError = true
+	title = 'hash4j ' + project.version + ' API'
 }
 
 jacoco {
