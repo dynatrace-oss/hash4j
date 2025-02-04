@@ -1,5 +1,7 @@
 * text=auto
 *.java text eol=lf
+*.hpp text eol=lf
+*.cpp text eol=lf
 *.txt text eol=lf
 *.py text eol=lf
 *.md text eol=lf
