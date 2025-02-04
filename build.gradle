@@ -168,7 +168,7 @@ static def readPythonLicense(licenseName) {
 }
 
 spotless {
-	def googleJavaFormatVersion = '1.25.0'
+	def googleJavaFormatVersion = '1.25.2'
 	def eclipseCdtVersion = '11.6'
 	def blackVersion = '24.10.0'
 	def greclipseVersion = '4.32'
