@@ -1,15 +1,30 @@
+/*
+ * Copyright 2025 Dynatrace LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import com.diffplug.gradle.spotless.JavaExtension
 
 plugins {
-	id 'java-library'
-	id 'jacoco'
-	id 'me.champeau.jmh' version '0.7.3'
-	id 'org.sonarqube' version '6.0.1.5171'
-	id 'com.diffplug.spotless' version '7.0.2'
-	id 'maven-publish'
-	id 'signing'
-	id 'io.github.gradle-nexus.publish-plugin' version '2.0.0'
-	id 'net.ltgt.errorprone' version '4.1.0'
+	id "java-library"
+	id "jacoco"
+	id "me.champeau.jmh" version "0.7.3"
+	id "org.sonarqube" version "6.0.1.5171"
+	id "com.diffplug.spotless" version "7.0.2"
+	id "maven-publish"
+	id "signing"
+	id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
+	id "net.ltgt.errorprone" version "4.1.0"
 	id "org.revapi.revapi-gradle-plugin" version "1.8.0"
 }
 
@@ -19,19 +34,19 @@ repositories {
 }
 
 dependencies {
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.11.4'
-	testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.11.4'
-	testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.11.4'
-	testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.27.3'
-	testImplementation group: 'org.hipparchus', name: 'hipparchus-stat', version: '3.1'
-	testImplementation group: 'org.hipparchus', name: 'hipparchus-optim', version: '3.1'
-	testImplementation group: 'com.google.guava', name: 'guava', version: '33.4.0-jre'
-	testImplementation group: 'commons-codec', name: 'commons-codec', version: '1.18.0'
-	testImplementation group: 'net.openhft', name: 'zero-allocation-hashing', version: '0.15'
-	testImplementation group: 'com.appmattus.crypto', name: 'cryptohash', version: '1.0.2'
-	testImplementation group: 'org.greenrobot', name: 'essentials', version: '3.1.0'
-	testImplementation group: 'com.sangupta', name: 'murmur', version: '1.0.0'
-	errorprone group:'com.google.errorprone',name:'error_prone_core', version: '2.36.0'
+	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.11.4"
+	testRuntimeOnly group: "org.junit.jupiter", name: "junit-jupiter-engine", version: "5.11.4"
+	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-params", version: "5.11.4"
+	testImplementation group: "org.assertj", name: "assertj-core", version: "3.27.3"
+	testImplementation group: "org.hipparchus", name: "hipparchus-stat", version: "3.1"
+	testImplementation group: "org.hipparchus", name: "hipparchus-optim", version: "3.1"
+	testImplementation group: "com.google.guava", name: "guava", version: "33.4.0-jre"
+	testImplementation group: "commons-codec", name: "commons-codec", version: "1.18.0"
+	testImplementation group: "net.openhft", name: "zero-allocation-hashing", version: "0.15"
+	testImplementation group: "com.appmattus.crypto", name: "cryptohash", version: "1.0.2"
+	testImplementation group: "org.greenrobot", name: "essentials", version: "3.1.0"
+	testImplementation group: "com.sangupta", name: "murmur", version: "1.0.0"
+	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.36.0"
 }
 
 java {
@@ -49,7 +64,7 @@ sourceSets {
 	test
 	java21 {
 		java {
-			srcDir 'src/main/java21'
+			srcDir "src/main/java21"
 		}
 		dependencies {
 			// add Java 21 dependencies here to make them available for Java 21 code
@@ -60,7 +75,7 @@ sourceSets {
 	}
 	java21Test {
 		java {
-			srcDir 'src/test/java21'
+			srcDir "src/test/java21"
 		}
 		dependencies {
 			// add Java 21 dependencies here to make them available for Java 21 code
@@ -72,12 +87,12 @@ sourceSets {
 }
 
 jar {
-	dependsOn 'compileJava21Java'
-	into('META-INF/versions/21') {
+	dependsOn "compileJava21Java"
+	into("META-INF/versions/21") {
 		from sourceSets.java21.output
 	}
 	manifest {
-		attributes 'Multi-Release': 'true'
+		attributes "Multi-Release": "true"
 	}
 }
 
@@ -118,7 +133,7 @@ tasks.check {
 
 tasks.withType(Test).configureEach {
 	useJUnitPlatform()
-	maxHeapSize '8g'
+	maxHeapSize = "8g"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -127,98 +142,101 @@ tasks.withType(JavaCompile).configureEach {
 	// options.errorprone.enabled = false
 }
 
-group = 'com.dynatrace.hash4j'
-version = '0.19.0'
+group = "com.dynatrace.hash4j"
+version = "0.20.0"
 
 
 static def readJavaLicense(licenseName) {
-	File licenseFile = new File('licenses/' + licenseName + '.txt')
+	File licenseFile = new File("licenses/" + licenseName + ".txt")
 	def line
-	def s = '/*\n'
+	def s = "/*\n"
 	licenseFile.withReader { reader ->
 		while ((line = reader.readLine()) != null) {
-			s += ' *'
+			s += " *"
 			if(!line.isEmpty()) {
-				s += ' '
+				s += " "
 				s += line
 			}
-			s += '\n'
+			s += "\n"
 		}
 	}
-	s += ' */'
+	s += " */"
 	return s
 }
 
 static def readPythonLicense(licenseName) {
-	File licenseFile = new File('licenses/' + licenseName + '.txt')
+	File licenseFile = new File("licenses/" + licenseName + ".txt")
 	def line
-	def s = '#\n'
+	def s = "#\n"
 	licenseFile.withReader { reader ->
 		while ((line = reader.readLine()) != null) {
-			s += '#'
+			s += "#"
 			if(!line.isEmpty()) {
-				s += ' '
+				s += " "
 				s += line
 			}
-			s += '\n'
+			s += "\n"
 		}
 	}
-	s += '#'
+	s += "#"
 	return s
 }
 
+apply plugin: "groovy"
 spotless {
-	def googleJavaFormatVersion = '1.25.0'
-	def eclipseCdtVersion = '11.6'
-	def blackVersion = '24.10.0'
-	def greclipseVersion = '4.32'
+	def googleJavaFormatVersion = "1.25.2"
+	def eclipseCdtVersion = "11.6"
+	def blackVersion = "24.10.0"
+	def greclipseVersion = "4.32"
 	def specialLicenseHeaders = [
-		new Tuple3('javaImohash', 'MIT_IMOHASH', [
-			'src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java'
+		new Tuple3("javaImohash", "MIT_IMOHASH", [
+			"src/main/java/com/dynatrace/hash4j/file/Imohash1_0_2.java"
 		]),
-		new Tuple3('javaKomihash', 'MIT_KOMIHASH' , [
-			'src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java',
-			'src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java',
-			'src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java'
+		new Tuple3("javaKomihash", "MIT_KOMIHASH" , [
+			"src/main/java/com/dynatrace/hash4j/hashing/Komihash4_3.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/Komihash5_0.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/AbstractKomihash.java"
 		]),
-		new Tuple3('javaFarmHash', 'MIT_APACHE_2_0_FARMHASH',[
-			'src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java',
-			'src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java'
+		new Tuple3("javaFarmHash", "MIT_APACHE_2_0_FARMHASH",[
+			"src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java"
 		]),
-		new Tuple3('javaPolymurHash', 'ZLIB_POLYMURHASH',[
-			'src/main/java/com/dynatrace/hash4j/hashing/PolymurHash2_0.java'
+		new Tuple3("javaPolymurHash", "ZLIB_POLYMURHASH",[
+			"src/main/java/com/dynatrace/hash4j/hashing/PolymurHash2_0.java"
 		]),
-		new Tuple3('javaSplitMix64', 'CREATIVE_COMMONS_SPLITMIX64',[
-			'src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java'
+		new Tuple3("javaSplitMix64", "CREATIVE_COMMONS_SPLITMIX64",[
+			"src/main/java/com/dynatrace/hash4j/random/SplitMix64V1.java"
 		]),
-		new Tuple3('javaExponential', 'BOOST_EXPONENTIAL_RANDOM_GENERATION',[
-			'src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java'
+		new Tuple3("javaExponential", "BOOST_EXPONENTIAL_RANDOM_GENERATION",[
+			"src/main/java/com/dynatrace/hash4j/random/RandomExponentialUtil.java"
 		]),
-		new Tuple3('javaConsistentJumpHash', 'APACHE_2_0_GUAVA',[
-			'src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java'
+		new Tuple3("javaConsistentJumpHash", "APACHE_2_0_GUAVA",[
+			"src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java"
 		]),
-		new Tuple3('javaXXH', 'APACHE_2_0_XXH',[
-			'src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java',
-			'src/main/java/com/dynatrace/hash4j/hashing/XXH3_128.java',
-			'src/main/java/com/dynatrace/hash4j/hashing/XXH3Base.java'
+		new Tuple3("javaXXH", "APACHE_2_0_XXH",[
+			"src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/XXH3_128.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/XXH3Base.java"
 		])
 	]
 
-	ratchetFrom 'origin/main'
-	apply plugin: 'groovy'
-	groovyGradle {
-		target '*.gradle' // default target of groovyGradle
+	ratchetFrom "origin/main"
+	groovy {
+		importOrder()
+		removeSemicolons()
 		greclipse(greclipseVersion)
+		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
+		target("**/build.gradle")
 	}
 	python {
-		target 'python/**/*.py'
+		target "python/**/*.py"
 		black(blackVersion)
-		licenseHeader readPythonLicense('APACHE_2_0_DYNATRACE'), '(import|from)'
+		licenseHeader readPythonLicense("APACHE_2_0_DYNATRACE"), "(import|from)"
 	}
 	cpp {
-		target 'reference-implementations/*/*.cpp', 'reference-implementations/*/*.hpp', 'reference-implementations/*.cpp', 'reference-implementations/*.hpp'
+		target "reference-implementations/*/*.cpp", "reference-implementations/*/*.hpp", "reference-implementations/*.cpp", "reference-implementations/*.hpp"
 		eclipseCdt(eclipseCdtVersion)
-		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
+		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
 	}
 	java {
 		importOrder()
@@ -226,7 +244,7 @@ spotless {
 		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
 		formatAnnotations()
-		licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE')
+		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
 		targetExclude specialLicenseHeaders.collect {it.get(2)}.flatten()
 	}
 	specialLicenseHeaders.forEach {
@@ -239,7 +257,7 @@ spotless {
 			cleanthat()
 			googleJavaFormat(googleJavaFormatVersion)
 			formatAnnotations()
-			licenseHeader readJavaLicense('APACHE_2_0_DYNATRACE') + '\n\n' + readJavaLicense(licenseName)
+			licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE") + "\n\n" + readJavaLicense(licenseName)
 			target files
 		}
 	}
@@ -247,36 +265,36 @@ spotless {
 
 sonarqube {
 	properties {
-		property 'sonar.projectKey', 'dynatrace-oss_hash4j'
-		property 'sonar.organization', 'dynatrace-oss'
-		property 'sonar.host.url', 'https://sonarcloud.io'
+		property "sonar.projectKey", "dynatrace-oss_hash4j"
+		property "sonar.organization", "dynatrace-oss"
+		property "sonar.host.url", "https://sonarcloud.io"
 	}
 }
 
 
 jmh {
 	fork = 1
-	timeUnit = 'us'
+	timeUnit = "us"
 	failOnError = false
-	timeOnIteration = '1s'
+	timeOnIteration = "1s"
 	warmupForks = 0
 	warmupIterations = 5
 	warmupBatchSize = 1
-	warmup = '1s'
+	warmup = "1s"
 	iterations = 20
-	resultFormat = 'JSON'
+	resultFormat = "JSON"
 }
 
 task evaluateBenchmarks(type:Exec) {
-	group "evaluation"
-	workingDir '.'
-	commandLine 'python', 'python/benchmark_evaluation.py'
+	group = "evaluation"
+	workingDir = "."
+	commandLine "python", "python/benchmark_evaluation.py"
 }
 
 task evaluateEstimationErrors(type:Exec) {
-	group "evaluation"
-	workingDir '.'
-	commandLine 'python', 'python/estimation_error_evaluation.py'
+	group = "evaluation"
+	workingDir = "."
+	commandLine "python", "python/estimation_error_evaluation.py"
 }
 
 def sketches = ["UltraLogLog", "HyperLogLog"]
@@ -301,51 +319,51 @@ for (sketch in sketches) {
 	def sketchTasks = []
 	for (p in pValues) {
 		def sketchTaskName = "simulate" + sketch + "EstimationErrorsP" + String.format( "%02d", p )
-		def outputFileName = "test-results/" + sketch.toLowerCase() + '-estimation-error-p' + String.format( "%02d", p )  + '.csv'
+		def outputFileName = "test-results/" + sketch.toLowerCase() + "-estimation-error-p" + String.format( "%02d", p )  + ".csv"
 		task "${sketchTaskName}"(type: JavaExec) {
 			outputs.files outputFileName
-			group "evaluation"
+			group = "evaluation"
 			classpath = sourceSets.test.runtimeClasspath
-			mainClass = 'com.dynatrace.hash4j.distinctcount.' + sketch + 'EstimationErrorSimulation'
+			mainClass = "com.dynatrace.hash4j.distinctcount." + sketch + "EstimationErrorSimulation"
 			args = [p.toString(), outputFileName]
-			jvmArgs = ['-Xmx16g']
+			jvmArgs = ["-Xmx16g"]
 		}
 		sketchTasks.add(sketchTaskName)
 	}
 	def evaluationTaskName = "simulate" + sketch + "EstimationErrors"
 	task "${evaluationTaskName}" {
-		group "evaluation"
+		group = "evaluation"
 		dependsOn sketchTasks
 	}
 	evaluationTasks.add(evaluationTaskName)
 }
 task "simulateEstimationErrors" {
-	group "evaluation"
+	group = "evaluation"
 	dependsOn evaluationTasks
 }
 
-tasks.register('checkStatusForBenchmarks') {
+tasks.register("checkStatusForBenchmarks") {
 	outputs.upToDateWhen { false }
 	doLast {
 		def status_text = "git status --porcelain".execute().text
 		if(status_text?.trim()) {
-			throw new GradleException('There are uncommitted changes:\n' + status_text)
+			throw new GradleException("There are uncommitted changes:\n" + status_text)
 		}
 	}
 }
 
-tasks.register('copyBenchmarkReport', Copy) {
+tasks.register("copyBenchmarkReport", Copy) {
 	def proc = "git rev-parse HEAD".execute()
 	def revision = proc.text.trim()
-	from('build/results/jmh/') {
-		include 'results.*'
-		rename 'results', new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision
+	from("build/results/jmh/") {
+		include "results.*"
+		rename "results", new Date().format("yyyy-MM-dd-HH-mm-ss") + " " + revision
 	}
-	into 'benchmark-results'
+	into "benchmark-results"
 }
 
-tasks.register('deleteBenchmarkReport', Delete) {
-	delete 'build/results/jmh/results.json'
+tasks.register("deleteBenchmarkReport", Delete) {
+	delete "build/results/jmh/results.json"
 }
 
 tasks.test.finalizedBy jacocoTestReport
@@ -358,12 +376,12 @@ tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
 javadoc {
-	failOnError true
-	title 'hash4j ' + project.version + ' API'
+	failOnError = true
+	title = "hash4j " + project.version + " API"
 }
 
 jacoco {
-	toolVersion = '0.8.11'
+	toolVersion = "0.8.11"
 }
 
 jacocoTestReport {
@@ -378,11 +396,11 @@ jacocoTestCoverageVerification {
 		rule {
 			limit {
 				minimum = 1.0
-				counter = 'LINE'
+				counter = "LINE"
 			}
 			limit {
 				minimum = 1.0
-				counter = 'BRANCH'
+				counter = "BRANCH"
 			}
 		}
 	}
@@ -393,26 +411,26 @@ publishing {
 		mavenJava(MavenPublication) {
 			from components.java
 			pom {
-				name = 'com.dynatrace.hash4j:hash4j'
-				description = 'hash4j: A Dynatrace hash library for Java'
-				url = 'https://github.com/dynatrace-oss/hash4j'
+				name = "com.dynatrace.hash4j:hash4j"
+				description = "hash4j: A Dynatrace hash library for Java"
+				url = "https://github.com/dynatrace-oss/hash4j"
 				licenses {
 					license {
-						name = 'The Apache License, Version 2.0'
-						url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+						name = "The Apache License, Version 2.0"
+						url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
 					}
 				}
 				developers {
 					developer {
-						id = 'Dynatrace'
-						name = 'Dynatrace LLC'
-						email = 'opensource@dynatrace.com'
+						id = "Dynatrace"
+						name = "Dynatrace LLC"
+						email = "opensource@dynatrace.com"
 					}
 				}
 				scm {
-					connection = 'scm:git:git://github.com/dynatrace-oss/hash4j.git'
-					developerConnection = 'scm:git:ssh://github.com/dynatrace-oss/hash4j.git'
-					url = 'https://github.com/dynatrace-oss/hash4j'
+					connection = "scm:git:git://github.com/dynatrace-oss/hash4j.git"
+					developerConnection = "scm:git:ssh://github.com/dynatrace-oss/hash4j.git"
+					url = "https://github.com/dynatrace-oss/hash4j"
 				}
 			}
 		}
@@ -420,23 +438,23 @@ publishing {
 }
 
 signing {
-	useInMemoryPgpKeys(System.getenv('GPG_PRIVATE_KEY'), System.getenv('GPG_PASSPHRASE'))
+	useInMemoryPgpKeys(System.getenv("GPG_PRIVATE_KEY"), System.getenv("GPG_PASSPHRASE"))
 	sign publishing.publications.mavenJava
 }
 
 nexusPublishing {
-	packageGroup = 'com.dynatrace'
+	packageGroup = "com.dynatrace"
 	useStaging = true
 	repositories {
 		sonatype {
-			nexusUrl = uri('https://oss.sonatype.org/service/local/')
-			snapshotRepositoryUrl = uri('https://oss.sonatype.org/content/repositories/snapshots/')
-			username = System.getenv('OSSRH_USERNAME')
-			password = System.getenv('OSSRH_PASSWORD')
+			nexusUrl = uri("https://oss.sonatype.org/service/local/")
+			snapshotRepositoryUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+			username = System.getenv("OSSRH_USERNAME")
+			password = System.getenv("OSSRH_PASSWORD")
 		}
 	}
 }
 
 if (file("extra-configuration.gradle").exists()) {
-	apply from: 'extra-configuration.gradle'
+	apply from: "extra-configuration.gradle"
 }
