@@ -519,4 +519,10 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
     return finish(v2, v3, wymix(v1 ^ secret1, v2 ^ seed), 24);
   }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long x = v1 >>> 32;
+    return finish((v1 << 32) | x, ((long) v2 << 32) | x, seed, 12);
+  }
 }

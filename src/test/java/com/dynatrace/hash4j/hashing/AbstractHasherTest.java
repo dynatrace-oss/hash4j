@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.*;
@@ -659,7 +660,7 @@ abstract class AbstractHasherTest {
 
       @Override
       public char charAt(int index) {
-        return AbstractHasher.getChar(data, off + 2 * index);
+        return getChar(data, off + 2 * index);
       }
 
       @Override
@@ -679,7 +680,7 @@ abstract class AbstractHasherTest {
       @Override
       public char charAt(int index) {
         long i = 2L * (off + index);
-        return AbstractHasher.getChar(data[(int) (i / blockSize)], (int) (i % blockSize));
+        return getChar(data[(int) (i / blockSize)], (int) (i % blockSize));
       }
 
       @Override
@@ -790,7 +791,7 @@ abstract class AbstractHasherTest {
       int off = random.nextInt(len - 1);
       chars[off] = (char) k;
       chars[off + 1] = (char) (k >>> 16);
-      assertThat(AbstractHasher.getInt(new String(chars), off)).isEqualTo(k);
+      assertThat(getInt(new String(chars), off)).isEqualTo(k);
     }
   }
 
@@ -807,7 +808,7 @@ abstract class AbstractHasherTest {
       chars[off + 1] = (char) (k >>> 16);
       chars[off + 2] = (char) (k >>> 32);
       chars[off + 3] = (char) (k >>> 48);
-      assertThat(AbstractHasher.getLong(new String(chars), off)).isEqualTo(k);
+      assertThat(getLong(new String(chars), off)).isEqualTo(k);
     }
   }
 
@@ -939,13 +940,13 @@ abstract class AbstractHasherTest {
         this.pseudoRandomGenerator.reset(randomResetState);
       }
       while (index >= maxCharIdx) {
-        AbstractHasher.setLong(
+        setLong(
             buffer,
             ((int) maxCharIdx & (NUM_CHARS_IN_BUFFER - 1)) << 1,
             pseudoRandomGenerator.nextLong());
         maxCharIdx += 4;
       }
-      return AbstractHasher.getChar(buffer, (index & (NUM_CHARS_IN_BUFFER - 1)) << 1);
+      return getChar(buffer, (index & (NUM_CHARS_IN_BUFFER - 1)) << 1);
     }
 
     @Override
@@ -1023,13 +1024,13 @@ abstract class AbstractHasherTest {
         while (remaining > 0) {
           int increment = (int) Math.min(remaining, random.nextLong(maxIncrement + 1));
           while (availableBytes < increment) {
-            AbstractHasher.setLong(data, availableBytes, pseudoRandomGenerator.nextLong());
+            setLong(data, availableBytes, pseudoRandomGenerator.nextLong());
             availableBytes += 8;
           }
           for (int i = 0; i < hashStreams.size(); ++i) {
             hashStreams.get(i).putBytes(data, 0, increment);
           }
-          AbstractHasher.setLong(data, 0, AbstractHasher.getLong(data, increment));
+          setLong(data, 0, getLong(data, increment));
           availableBytes -= increment;
           remaining -= increment;
         }
@@ -1080,19 +1081,19 @@ abstract class AbstractHasherTest {
           for (int i = 0; i < hashStreams.size(); ++i) {
             hashStreams.get(i).putByte((byte) l);
           }
-          AbstractHasher.setLong(data, 0, l >>> 8);
+          setLong(data, 0, l >>> 8);
           availableBytes = 7;
         }
         while (remaining > 0) {
           int increment = (int) Math.min(remaining, random.nextLong(maxIncrement + 1));
           while (availableBytes < (increment << 1)) {
-            AbstractHasher.setLong(data, availableBytes, pseudoRandomGenerator.nextLong());
+            setLong(data, availableBytes, pseudoRandomGenerator.nextLong());
             availableBytes += 8;
           }
           for (int i = 0; i < hashStreams.size(); ++i) {
             hashStreams.get(i).putChars(asCharSequence(data, 0, increment));
           }
-          AbstractHasher.setLong(data, 0, AbstractHasher.getLong(data, increment << 1));
+          setLong(data, 0, getLong(data, increment << 1));
           availableBytes -= (increment << 1);
           remaining -= increment;
         }
@@ -1162,8 +1163,8 @@ abstract class AbstractHasherTest {
     byte[] data = new byte[16];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
-      long v1 = AbstractHasher.getLong(data, 0);
-      long v2 = AbstractHasher.getLong(data, 8);
+      long v1 = getLong(data, 0);
+      long v2 = getLong(data, 8);
       assertThat(hasher64.hashLongLongToLong(v1, v2))
           .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).getAsLong())
           .isEqualTo(hasher64.hashBytesToLong(data))
@@ -1183,13 +1184,34 @@ abstract class AbstractHasherTest {
     byte[] data = new byte[24];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
-      long v1 = AbstractHasher.getLong(data, 0);
-      long v2 = AbstractHasher.getLong(data, 8);
-      long v3 = AbstractHasher.getLong(data, 16);
+      long v1 = getLong(data, 0);
+      long v2 = getLong(data, 8);
+      long v3 = getLong(data, 16);
       assertThat(hasher64.hashLongLongLongToLong(v1, v2, v3))
           .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong())
           .isEqualTo(hasher64.hashBytesToLong(data))
           .isEqualTo(hasherUsingDefaultImplementation.hashLongLongLongToLong(v1, v2, v3));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashLongIntToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasherUsingDefaultImplementations(hasher64);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0xc96c7abc2271f116L);
+    byte[] data = new byte[12];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      long v1 = getLong(data, 0);
+      int v2 = getInt(data, 8);
+      assertThat(hasher64.hashLongIntToLong(v1, v2))
+          .isEqualTo(hasher64.hashStream().putLong(v1).putInt(v2).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongIntToLong(v1, v2));
     }
   }
 

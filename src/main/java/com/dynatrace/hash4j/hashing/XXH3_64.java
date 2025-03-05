@@ -614,4 +614,12 @@ class XXH3_64 extends XXH3Base implements AbstractHasher64 {
     acc += mix2Accs(v2, v3, secret02, secret03);
     return avalanche3(acc);
   }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long lo = v1 ^ bitflip34;
+    long hi = (((long) v2 << 32) | (v1 >>> 32)) ^ bitflip56;
+    long acc = 12 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
+    return avalanche3(acc);
+  }
 }

@@ -828,4 +828,19 @@ class PolymurHash2_0 implements AbstractHasher64 {
 
     return polymurMix(tweak + polymurRed611(t1Hi, t1Lo)) + s;
   }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long k3Local = this.k3 + 12;
+    long m0 = (v1 & 0x00ffffffffffffffL) + k2;
+    long m1 = ((v1 >>> 16) | ((v2 & 0xFFL) << 48)) + k7;
+    long m2 = ((v1 >>> 40) | ((v2 & 0xFFFFFFFFL) << 24)) + k;
+    long t0Hi = unsignedMultiplyHigh(m0, m1);
+    long t0Lo = m0 * m1;
+    long t1Hi = unsignedMultiplyHigh(m2, k3Local);
+    long t1Lo = m2 * k3Local;
+    t1Lo += t0Lo;
+    t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
+    return polymurMix(tweak + polymurRed611(t1Hi, t1Lo)) + s;
+  }
 }
