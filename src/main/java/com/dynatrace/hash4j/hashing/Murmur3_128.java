@@ -643,4 +643,14 @@ class Murmur3_128 implements AbstractHasher128 {
 
     return finalizeHashToLong(h1, h2, 24);
   }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long h1 = seed;
+    long h2 = seed;
+    h2 ^= mixK2(v2 & 0xFFFFFFFFL);
+    h1 ^= mixK1(v1);
+
+    return finalizeHashToLong(h1, h2, 12);
+  }
 }

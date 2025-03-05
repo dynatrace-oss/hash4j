@@ -358,4 +358,12 @@ class Komihash4_3 extends AbstractKomihash {
     long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
     return finish(see5 ^ (1L << (v3 >>> 63)), (tmp1 * tmp2) ^ (see5 ^ v3), see5);
   }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long fb = (v2 & 0xFFFFFFFFL) | (1L << 32 << (v2 >>> 31));
+    long r2l = this.seed1 ^ v1;
+    long r2h = this.seed5 ^ fb;
+    return finish(r2h, r2l, this.seed5);
+  }
 }

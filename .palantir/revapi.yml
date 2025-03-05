@@ -102,6 +102,10 @@ acceptedBreaks:
       justification: "{added new methods}"
   "0.19.0":
     com.dynatrace.hash4j:hash4j:
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongIntToLong(long,\
+        \ int)"
+      justification: "added hashLongIntToLong method to Hasher64 interface"
     - code: "java.method.returnTypeChanged"
       old: "method void com.dynatrace.hash4j.random.PseudoRandomGenerator::reset(long)"
       new: "method com.dynatrace.hash4j.random.PseudoRandomGenerator com.dynatrace.hash4j.random.PseudoRandomGenerator::reset(long)"

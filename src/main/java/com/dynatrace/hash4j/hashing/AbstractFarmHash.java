@@ -249,6 +249,16 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
             mul));
   }
 
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long mul = K2 + (12 << 1);
+    long a = v1 + K2;
+    long b = (v1 >>> 32) | ((long) v2 << 32);
+    long c = rotateRight(b, 37) * mul + a;
+    long d = (rotateRight(a, 25) + b) * mul;
+    return finalizeHash(hashLength16(c, d, mul));
+  }
+
   protected abstract static class FarmHashStreamImpl implements AbstractHashStream64 {
 
     protected final byte[] buffer = new byte[64 + 8 + 8];
