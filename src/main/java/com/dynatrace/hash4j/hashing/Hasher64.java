@@ -107,4 +107,28 @@ public interface Hasher64 extends Hasher32 {
    * @return the hash value
    */
   long hashLongIntToLong(long v1, int v2);
+
+  /**
+   * Hashes/Mixes a 32-bit {@code int} value and a 64-bit {@code long} value into a 64-bit {@code
+   * long} value.
+   *
+   * <p>Equivalent to {@code hashStream().putInt(v1).putLong(v2).getAsLong();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @return the hash value
+   */
+  long hashIntLongToLong(int v1, long v2);
+
+  /**
+   * Hashes/Mixes three 32-bit {@code int} values into a 64-bit {@code long} value.
+   *
+   * <p>Equivalent to {@code hashStream().putInt(v1).putInt(v2).putInt(v3).getAsLong();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @param v3 third value
+   * @return the hash value
+   */
+  long hashIntIntIntToLong(int v1, int v2, int v3);
 }

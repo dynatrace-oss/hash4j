@@ -39,7 +39,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 
-class XXH3_64 extends XXH3Base implements AbstractHasher64 {
+class XXH3_64 extends XXH3Base {
 
   private final long secShift12;
   private final long secShift13;
@@ -616,9 +616,9 @@ class XXH3_64 extends XXH3Base implements AbstractHasher64 {
   }
 
   @Override
-  public long hashLongIntToLong(long v1, int v2) {
-    long lo = v1 ^ bitflip34;
-    long hi = (((long) v2 << 32) | (v1 >>> 32)) ^ bitflip56;
+  protected long finish12Bytes(long a, long b) {
+    long lo = a ^ bitflip34;
+    long hi = b ^ bitflip56;
     long acc = 12 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
     return avalanche3(acc);
   }

@@ -251,9 +251,23 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
 
   @Override
   public long hashLongIntToLong(long v1, int v2) {
-    long mul = K2 + (12 << 1);
-    long a = v1 + K2;
-    long b = (v1 >>> 32) | ((long) v2 << 32);
+    return finish12Bytes(v1, (v1 >>> 32) | ((long) v2 << 32));
+  }
+
+  @Override
+  public long hashIntLongToLong(int v1, long v2) {
+    return finish12Bytes((v1 & 0xFFFFFFFFL) + (v2 << 32), v2);
+  }
+
+  @Override
+  public long hashIntIntIntToLong(int v1, int v2, int v3) {
+    return finish12Bytes(
+        (v1 & 0xFFFFFFFFL) + ((long) v2 << 32), (v2 & 0xFFFFFFFFL) + ((long) v3 << 32));
+  }
+
+  private long finish12Bytes(long a, long b) {
+    a += K2;
+    long mul = K2 + 24;
     long c = rotateRight(b, 37) * mul + a;
     long d = (rotateRight(a, 25) + b) * mul;
     return finalizeHash(hashLength16(c, d, mul));

@@ -829,12 +829,11 @@ class PolymurHash2_0 implements AbstractHasher64 {
     return polymurMix(tweak + polymurRed611(t1Hi, t1Lo)) + s;
   }
 
-  @Override
-  public long hashLongIntToLong(long v1, int v2) {
-    long k3Local = this.k3 + 12;
-    long m0 = (v1 & 0x00ffffffffffffffL) + k2;
-    long m1 = ((v1 >>> 16) | ((v2 & 0xFFL) << 48)) + k7;
-    long m2 = ((v1 >>> 40) | ((v2 & 0xFFFFFFFFL) << 24)) + k;
+  private long finish12Bytes(long m0, long m1, long m2) {
+    m0 += k2;
+    m1 += k7;
+    m2 += k;
+    long k3Local = k3 + 12;
     long t0Hi = unsignedMultiplyHigh(m0, m1);
     long t0Lo = m0 * m1;
     long t1Hi = unsignedMultiplyHigh(m2, k3Local);
@@ -842,5 +841,32 @@ class PolymurHash2_0 implements AbstractHasher64 {
     t1Lo += t0Lo;
     t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
     return polymurMix(tweak + polymurRed611(t1Hi, t1Lo)) + s;
+  }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    long m0 = v1 & 0xffffffffffffffL;
+    long m1 = (v1 >>> 16) + ((v2 & 0xFFL) << 48);
+    long m2 = (v1 >>> 40) + ((v2 & 0xFFFFFFFFL) << 24);
+    return finish12Bytes(m0, m1, m2);
+  }
+
+  @Override
+  public long hashIntIntIntToLong(int v1, int v2, int v3) {
+    long v1l = v1 & 0xFFFFFFFFL;
+    long v2l = v2 & 0xFFFFFFFFL;
+    long m0 = v1l + ((v2 & 0xFFFFFFL) << 32);
+    long m1 = (v1l >>> 16) + (v2l << 16) + ((v3 & 0xFFL) << 48);
+    long m2 = (v2l >>> 8) + ((v3 & 0xFFFFFFFFL) << 24);
+    return finish12Bytes(m0, m1, m2);
+  }
+
+  @Override
+  public long hashIntLongToLong(int v1, long v2) {
+    long v1l = v1 & 0xFFFFFFFFL;
+    long m0 = v1l + ((v2 & 0xFFFFFFL) << 32);
+    long m1 = (v1l >>> 16) + ((v2 & 0xFFFFFFFFFFL) << 16);
+    long m2 = v2 >>> 8;
+    return finish12Bytes(m0, m1, m2);
   }
 }

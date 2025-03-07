@@ -40,7 +40,7 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static com.dynatrace.hash4j.hashing.AbstractHasher.copyCharsToByteArray;
 
-class XXH3Base {
+abstract class XXH3Base implements AbstractHasher64 {
   protected static final int BLOCK_LEN_EXP = 10;
 
   protected static final long SECRET_00 = 0xbe4ba423396cfeb8L;
@@ -519,5 +519,23 @@ class XXH3Base {
       acc6 += b7 + contrib(b6, secret[s + 6]);
       acc7 += b6 + contrib(b7, secret[s + 7]);
     }
+  }
+
+  protected abstract long finish12Bytes(long a, long b);
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    return finish12Bytes(v1, ((long) v2 << 32) ^ (v1 >>> 32));
+  }
+
+  @Override
+  public long hashIntIntIntToLong(int v1, int v2, int v3) {
+    return finish12Bytes(
+        (v1 & 0xFFFFFFFFL) ^ ((long) v2 << 32), ((long) v3 << 32) ^ (v2 & 0xFFFFFFFFL));
+  }
+
+  @Override
+  public long hashIntLongToLong(int v1, long v2) {
+    return finish12Bytes((v1 & 0xFFFFFFFFL) ^ (v2 << 32), v2);
   }
 }
