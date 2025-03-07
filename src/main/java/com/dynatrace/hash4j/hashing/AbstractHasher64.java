@@ -56,4 +56,39 @@ interface AbstractHasher64 extends AbstractHasher32, Hasher64 {
   default long hashLongIntToLong(long v1, int v2) {
     return hashStream().putLong(v1).putInt(v2).getAsLong();
   }
+
+  @Override
+  default long hashIntLongToLong(int v1, long v2) {
+    return hashStream().putInt(v1).putLong(v2).getAsLong();
+  }
+
+  @Override
+  default long hashIntIntIntToLong(int v1, int v2, int v3) {
+    return hashStream().putInt(v1).putInt(v2).putInt(v3).getAsLong();
+  }
+
+  @Override
+  default int hashLongLongToInt(long v1, long v2) {
+    return (int) hashLongLongToLong(v1, v2);
+  }
+
+  @Override
+  default int hashLongLongLongToInt(long v1, long v2, long v3) {
+    return (int) hashLongLongLongToLong(v1, v2, v3);
+  }
+
+  @Override
+  default int hashLongIntToInt(long v1, int v2) {
+    return (int) hashLongIntToLong(v1, v2);
+  }
+
+  @Override
+  default int hashIntLongToInt(int v1, long v2) {
+    return (int) hashIntLongToLong(v1, v2);
+  }
+
+  @Override
+  default int hashIntIntIntToInt(int v1, int v2, int v3) {
+    return (int) hashIntIntIntToLong(v1, v2, v3);
+  }
 }

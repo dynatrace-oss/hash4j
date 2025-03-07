@@ -775,10 +775,9 @@ class XXH3_128 extends XXH3Base implements AbstractHasher128 {
   }
 
   @Override
-  public long hashLongIntToLong(long v1, int v2) {
-    long hi = ((long) v2 << 32) | (v1 >>> 32);
-    long lo = v1 ^ hi ^ bitflip45;
-    hi ^= bitflip67;
+  protected long finish12Bytes(long a, long b) {
+    long lo = b ^ bitflip45 ^ a;
+    long hi = b ^ bitflip67;
     long m128Hi = unsignedMultiplyHigh(lo, INIT_ACC_1) + hi + (hi & 0xFFFFFFFFL) * (INIT_ACC_5 - 1);
     long m128Lo = (lo * INIT_ACC_1 + 0x2c0000000000000L) ^ Long.reverseBytes(m128Hi);
     return avalanche3(m128Lo * INIT_ACC_2);

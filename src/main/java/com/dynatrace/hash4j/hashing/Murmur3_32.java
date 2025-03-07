@@ -306,4 +306,48 @@ class Murmur3_32 implements AbstractHasher32 {
       return 32;
     }
   }
+
+  @Override
+  public int hashIntIntIntToInt(int v1, int v2, int v3) {
+    int h1 = seed;
+    h1 = mixH1(h1, mixK1(v1));
+    h1 = mixH1(h1, mixK1(v2));
+    h1 = mixH1(h1, mixK1(v3));
+    h1 ^= 12;
+    return fmix32(h1);
+  }
+
+  @Override
+  public int hashIntLongToInt(int v1, long v2) {
+    return hashIntIntIntToInt(v1, (int) v2, (int) (v2 >>> 32));
+  }
+
+  @Override
+  public int hashLongIntToInt(long v1, int v2) {
+    return hashIntIntIntToInt((int) v1, (int) (v1 >>> 32), v2);
+  }
+
+  @Override
+  public int hashLongLongLongToInt(long v1, long v2, long v3) {
+    int h1 = seed;
+    h1 = mixH1(h1, mixK1((int) v1));
+    h1 = mixH1(h1, mixK1((int) (v1 >>> 32)));
+    h1 = mixH1(h1, mixK1((int) v2));
+    h1 = mixH1(h1, mixK1((int) (v2 >>> 32)));
+    h1 = mixH1(h1, mixK1((int) v3));
+    h1 = mixH1(h1, mixK1((int) (v3 >>> 32)));
+    h1 ^= 24;
+    return fmix32(h1);
+  }
+
+  @Override
+  public int hashLongLongToInt(long v1, long v2) {
+    int h1 = seed;
+    h1 = mixH1(h1, mixK1((int) v1));
+    h1 = mixH1(h1, mixK1((int) (v1 >>> 32)));
+    h1 = mixH1(h1, mixK1((int) v2));
+    h1 = mixH1(h1, mixK1((int) (v2 >>> 32)));
+    h1 ^= 16;
+    return fmix32(h1);
+  }
 }
