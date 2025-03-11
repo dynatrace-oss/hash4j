@@ -47,6 +47,7 @@ dependencies {
 	testImplementation group: "com.appmattus.crypto", name: "cryptohash", version: "1.0.2"
 	testImplementation group: "org.greenrobot", name: "essentials", version: "3.1.0"
 	testImplementation group: "com.sangupta", name: "murmur", version: "1.0.0"
+	testImplementation group: 'com.clearspring.analytics', name: 'stream', version: '2.9.8'
 	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.36.0"
 }
 
