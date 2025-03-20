@@ -40,7 +40,7 @@ dependencies {
 	testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: "1.12.1"
 	testImplementation group: "org.assertj", name: "assertj-core", version: "3.27.3"
 	testImplementation group: "org.hipparchus", name: "hipparchus-stat", version: "4.0"
-	testImplementation group: "org.hipparchus", name: "hipparchus-optim", version: "3.1"
+	testImplementation group: "org.hipparchus", name: "hipparchus-optim", version: "4.0"
 	testImplementation group: "com.google.guava", name: "guava", version: "33.4.5-jre"
 	testImplementation group: "commons-codec", name: "commons-codec", version: "1.18.0"
 	testImplementation group: "net.openhft", name: "zero-allocation-hashing", version: "0.15"
