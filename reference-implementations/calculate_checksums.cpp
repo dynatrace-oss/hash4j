@@ -20,11 +20,10 @@
 #include <openssl/evp.h>
 
 #include "komihash_4_3/komihash_4_3_checksum_config.hpp"
-#include "komihash_4_5/komihash_4_5_checksum_config.hpp"
 #include "komihash_4_7/komihash_4_7_checksum_config.hpp"
 #include "komihash_5_0/komihash_5_0_checksum_config.hpp"
 #include "komihash_5_10/komihash_5_10_checksum_config.hpp"
-#include "komihash_5_15/komihash_5_15_checksum_config.hpp"
+#include "komihash_5_18/komihash_5_18_checksum_config.hpp"
 #include "polymur-hash_2_0/polymur-hash_2_0_checksum_config.hpp"
 #include "wyhash_final_3/wyhash_final_3_checksum_config.hpp"
 #include "wyhash_final_4/wyhash_final_4_checksum_config.hpp"
@@ -132,11 +131,10 @@ void computeAndPrintChecksum(
 int main(int argc, char *argv[]) {
 
 	computeAndPrintChecksum<Komihash4_3ChecksumConfig>();
-	computeAndPrintChecksum<Komihash4_5ChecksumConfig>();
 	computeAndPrintChecksum<Komihash4_7ChecksumConfig>();
 	computeAndPrintChecksum<Komihash5_0ChecksumConfig>();
 	computeAndPrintChecksum<Komihash5_10ChecksumConfig>();
-	computeAndPrintChecksum<Komihash5_15ChecksumConfig>();
+	computeAndPrintChecksum<Komihash5_18ChecksumConfig>();
 	computeAndPrintChecksum<WyhashFinal3ChecksumConfig>();
 	computeAndPrintChecksum<WyhashFinal4ChecksumConfig>();
 	computeAndPrintChecksum<Murmur3_128_ChecksumConfig>(
