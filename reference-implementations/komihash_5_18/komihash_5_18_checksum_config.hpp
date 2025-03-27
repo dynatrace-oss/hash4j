@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef KOMIHASH_5_15_CHECKSUM_CONFIG_HPP
-#define KOMIHASH_5_15_CHECKSUM_CONFIG_HPP
+#ifndef KOMIHASH_5_18_CHECKSUM_CONFIG_HPP
+#define KOMIHASH_5_18_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class Komihash5_15ChecksumConfig {
+class Komihash5_18ChecksumConfig {
 
 public:
 
@@ -32,7 +32,7 @@ public:
 	}
 
 	std::string getName() const {
-		return "Komihash 5.15";
+		return "Komihash 5.18";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif // KOMIHASH_5_15_CHECKSUM_CONFIG_HPP
+#endif // KOMIHASH_5_18_CHECKSUM_CONFIG_HPP
