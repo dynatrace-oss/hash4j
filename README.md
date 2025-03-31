@@ -43,8 +43,8 @@ hash4j currently implements the following hash algorithms:
   * [final version 3](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash)
   * [final version 4](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash_final4)
 * [Komihash](https://github.com/avaneev/komihash)
-  * [version 4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [version 4.7](https://github.com/avaneev/komihash/releases/tag/4.7))
-  * [version 5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [version 5.10](https://github.com/avaneev/komihash/releases/tag/5.10) and [version 5.18](https://github.com/avaneev/komihash/releases/tag/5.18))
+  * version [4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [4.7](https://github.com/avaneev/komihash/releases/tag/4.7))
+  * version [5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [5.10](https://github.com/avaneev/komihash/releases/tag/5.10), [5.18](https://github.com/avaneev/komihash/releases/tag/5.18), and  [5.19](https://github.com/avaneev/komihash/releases/tag/5.19))
 * [FarmHash](https://github.com/google/farmhash)
   * farmhashna
   * farmhashuo
