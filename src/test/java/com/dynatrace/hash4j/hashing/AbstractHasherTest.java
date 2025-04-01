@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.*;
@@ -26,10 +26,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
 import java.net.URISyntaxException;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -822,15 +819,10 @@ abstract class AbstractHasherTest {
 
   abstract int getHashSizeForChecksum();
 
-  protected static final VarHandle LONG_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-  protected static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-
   private void generateRandomBytes(byte[] data, SplitMix64 pseudoRandomGenerator) {
     int i = 0;
     for (; i <= data.length - 8; i += 8) {
-      LONG_HANDLE.set(data, i, pseudoRandomGenerator.nextLong());
+      setLong(data, i, pseudoRandomGenerator.nextLong());
     }
     if (i < data.length) {
       long l = pseudoRandomGenerator.nextLong();

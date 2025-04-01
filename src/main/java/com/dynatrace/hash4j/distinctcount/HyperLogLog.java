@@ -16,13 +16,12 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setInt;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.util.PackedArray;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayHandler;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 /**
@@ -45,17 +44,6 @@ import java.util.Arrays;
  * </ul>
  */
 public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogLog.Estimator> {
-
-  private static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-
-  private static int getInt(byte[] b, int off) {
-    return (int) INT_HANDLE.get(b, off);
-  }
-
-  private static void setInt(byte[] b, int off, int v) {
-    INT_HANDLE.set(b, off, v);
-  }
 
   /**
    * Bias-reduced version of the standard HyperLogLog estimator using small range and large range

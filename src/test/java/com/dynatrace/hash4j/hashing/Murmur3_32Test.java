@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
@@ -38,25 +40,25 @@ class Murmur3_32Test extends AbstractHasher32Test {
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
-    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int seed = getInt(seedBytes, 0);
     int hash0 = Hashing.murmur3_32().hashBytesToInt(dataBytes);
     int hash1 = Hashing.murmur3_32(seed).hashBytesToInt(dataBytes);
-    INT_HANDLE.set(hashBytes, 0, hash0);
-    INT_HANDLE.set(hashBytes, 4, hash1);
+    setInt(hashBytes, 0, hash0);
+    setInt(hashBytes, 4, hash1);
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
-    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int seed = getInt(seedBytes, 0);
     int hash0 = Hashing.murmur3_32().hashCharsToInt(c);
     int hash1 = Hashing.murmur3_32(seed).hashCharsToInt(c);
-    INT_HANDLE.set(hashBytes, 0, hash0);
-    INT_HANDLE.set(hashBytes, 4, hash1);
+    setInt(hashBytes, 0, hash0);
+    setInt(hashBytes, 4, hash1);
   }
 
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
-    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int seed = getInt(seedBytes, 0);
     return List.of(Hashing.murmur3_32().hashStream(), Hashing.murmur3_32(seed).hashStream());
   }
 

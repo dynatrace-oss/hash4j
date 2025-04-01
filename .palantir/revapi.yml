@@ -109,10 +109,6 @@ acceptedBreaks:
   "0.20.0":
     com.dynatrace.hash4j:hash4j:
     - code: "java.method.addedToInterface"
-      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongIntToLong(long,\
-        \ int)"
-      justification: "added new methods to Hasher32 and Hasher64 interfaces"
-    - code: "java.method.addedToInterface"
       new: "method int com.dynatrace.hash4j.hashing.Hasher32::hashIntIntIntToInt(int,\
         \ int, int)"
       justification: "added new methods to Hasher32 and Hasher64 interfaces"
@@ -140,6 +136,15 @@ acceptedBreaks:
       new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashIntLongToLong(int,\
         \ long)"
       justification: "added new methods to Hasher32 and Hasher64 interfaces"
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongIntToLong(long,\
+        \ int)"
+      justification: "added new methods to Hasher32 and Hasher64 interfaces"
+  "0.21.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.class.removed"
+      old: "class com.dynatrace.hash4j.util.Preconditions"
+      justification: "removed preconditions"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"

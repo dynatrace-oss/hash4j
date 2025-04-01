@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package com.dynatrace.hash4j.hashing;
+
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,9 +41,9 @@ class WyhashFinal3Test extends AbstractHasher64Test {
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
-    long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
-    long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
-    long rand = (long) LONG_HANDLE.get(seedBytes, 16);
+    long seed0 = getLong(seedBytes, 0);
+    long seed1 = getLong(seedBytes, 8);
+    long rand = getLong(seedBytes, 16);
 
     long hash0 = Hashing.wyhashFinal3().hashBytesToLong(dataBytes);
     long hash1 = Hashing.wyhashFinal3(seed0).hashBytesToLong(dataBytes);
@@ -51,17 +54,17 @@ class WyhashFinal3Test extends AbstractHasher64Test {
       hash3 = Hashing.wyhashFinal3(seed0, seed1).hashBytesToLong(dataBytes);
     }
 
-    LONG_HANDLE.set(hashBytes, 0, hash0);
-    LONG_HANDLE.set(hashBytes, 8, hash1);
-    LONG_HANDLE.set(hashBytes, 16, hash2);
-    LONG_HANDLE.set(hashBytes, 24, hash3);
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
+    setLong(hashBytes, 16, hash2);
+    setLong(hashBytes, 24, hash3);
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
-    long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
-    long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
-    long rand = (long) LONG_HANDLE.get(seedBytes, 16);
+    long seed0 = getLong(seedBytes, 0);
+    long seed1 = getLong(seedBytes, 8);
+    long rand = getLong(seedBytes, 16);
 
     long hash0 = Hashing.wyhashFinal3().hashCharsToLong(c);
     long hash1 = Hashing.wyhashFinal3(seed0).hashCharsToLong(c);
@@ -72,17 +75,17 @@ class WyhashFinal3Test extends AbstractHasher64Test {
       hash3 = Hashing.wyhashFinal3(seed0, seed1).hashCharsToLong(c);
     }
 
-    LONG_HANDLE.set(hashBytes, 0, hash0);
-    LONG_HANDLE.set(hashBytes, 8, hash1);
-    LONG_HANDLE.set(hashBytes, 16, hash2);
-    LONG_HANDLE.set(hashBytes, 24, hash3);
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
+    setLong(hashBytes, 16, hash2);
+    setLong(hashBytes, 24, hash3);
   }
 
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
-    long seed0 = (long) LONG_HANDLE.get(seedBytes, 0);
-    long seed1 = (long) LONG_HANDLE.get(seedBytes, 8);
-    long rand = (long) LONG_HANDLE.get(seedBytes, 16);
+    long seed0 = getLong(seedBytes, 0);
+    long seed1 = getLong(seedBytes, 8);
+    long rand = getLong(seedBytes, 16);
     if ((rand & 0x3fL) == 0) {
       return List.of(
           Hashing.wyhashFinal3().hashStream(),

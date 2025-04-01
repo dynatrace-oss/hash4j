@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.Arrays;
@@ -40,35 +42,35 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
-    long tweak = (long) LONG_HANDLE.get(seedBytes, 0);
-    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
-    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+    long tweak = getLong(seedBytes, 0);
+    long seed0 = getLong(seedBytes, 8);
+    long seed1 = getLong(seedBytes, 16);
 
     long hash0 = Hashing.polymurHash2_0(tweak, seed0).hashBytesToLong(dataBytes);
     long hash1 = Hashing.polymurHash2_0(tweak, seed0, seed1).hashBytesToLong(dataBytes);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0);
-    LONG_HANDLE.set(hashBytes, 8, hash1);
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
-    long tweak = (long) LONG_HANDLE.get(seedBytes, 0);
-    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
-    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+    long tweak = getLong(seedBytes, 0);
+    long seed0 = getLong(seedBytes, 8);
+    long seed1 = getLong(seedBytes, 16);
 
     long hash0 = Hashing.polymurHash2_0(tweak, seed0).hashCharsToLong(c);
     long hash1 = Hashing.polymurHash2_0(tweak, seed0, seed1).hashCharsToLong(c);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0);
-    LONG_HANDLE.set(hashBytes, 8, hash1);
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
   }
 
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
-    long tweak = (long) LONG_HANDLE.get(seedBytes, 0);
-    long seed0 = (long) LONG_HANDLE.get(seedBytes, 8);
-    long seed1 = (long) LONG_HANDLE.get(seedBytes, 16);
+    long tweak = getLong(seedBytes, 0);
+    long seed0 = getLong(seedBytes, 8);
+    long seed1 = getLong(seedBytes, 16);
     return List.of(
         Hashing.polymurHash2_0(tweak, seed0).hashStream(),
         Hashing.polymurHash2_0(tweak, seed0, seed1).hashStream());

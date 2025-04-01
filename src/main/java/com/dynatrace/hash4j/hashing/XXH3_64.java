@@ -37,7 +37,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 
 class XXH3_64 extends XXH3Base {
 

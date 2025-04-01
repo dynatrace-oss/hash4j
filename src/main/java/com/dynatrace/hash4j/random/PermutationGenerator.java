@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.random;
 
-import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
 
 import java.util.Arrays;
 

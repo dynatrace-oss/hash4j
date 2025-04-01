@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
@@ -121,7 +122,7 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
   protected void getHashBytes(List<HashStream> hashStreams, byte[] hashBytes) {
     int off = 0;
     for (HashStream hashStream : hashStreams) {
-      INT_HANDLE.set(hashBytes, off, ((HashStream32) hashStream).getAsInt());
+      setInt(hashBytes, off, ((HashStream32) hashStream).getAsInt());
       off += 4;
     }
     Arrays.fill(hashBytes, off, hashBytes.length, (byte) 0);

@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-interface AbstractHasher32 extends AbstractHasher, Hasher32 {
+interface AbstractHasher32 extends Hasher32, Hasher {
 
   @Override
   default <T> int hashToInt(T data, HashFunnel<T> funnel) {

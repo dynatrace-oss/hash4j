@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dynatrace LLC
+ * Copyright 2024-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -124,7 +125,7 @@ public class AbstractHashStreamTest {
       }
       byte[] expected = new byte[2 * len];
       for (int i = 0; i < len; ++i) {
-        AbstractHasher.setChar(expected, 2 * i, data[i]);
+        setChar(expected, 2 * i, data[i]);
       }
       assertBytes(h -> h.putChars(data), TestUtils.byteArrayToHexString(expected));
       assertBytes(h -> h.putChars(new String(data)), TestUtils.byteArrayToHexString(expected));
@@ -138,7 +139,7 @@ public class AbstractHashStreamTest {
         }
         byte[] expected = new byte[2 * len];
         for (int i = 0; i < len; ++i) {
-          AbstractHasher.setChar(expected, 2 * i, data[off + i]);
+          setChar(expected, 2 * i, data[off + i]);
         }
         int finalOff = off;
         int finalLen = len;
@@ -183,7 +184,7 @@ public class AbstractHashStreamTest {
       }
       byte[] expected = new byte[2 * len];
       for (int i = 0; i < len; ++i) {
-        AbstractHasher.setShort(expected, 2 * i, data[i]);
+        setShort(expected, 2 * i, data[i]);
       }
       assertBytes(h -> h.putShorts(data), TestUtils.byteArrayToHexString(expected));
     }
@@ -196,7 +197,7 @@ public class AbstractHashStreamTest {
         }
         byte[] expected = new byte[2 * len];
         for (int i = 0; i < len; ++i) {
-          AbstractHasher.setShort(expected, 2 * i, data[off + i]);
+          setShort(expected, 2 * i, data[off + i]);
         }
         int finalOff = off;
         int finalLen = len;

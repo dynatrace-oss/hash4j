@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  */
 package com.dynatrace.hash4j.util;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 import static java.util.Objects.requireNonNull;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.function.LongBinaryOperator;
 
@@ -27,37 +25,6 @@ import java.util.function.LongBinaryOperator;
 public final class PackedArray {
 
   private PackedArray() {}
-
-  private static final VarHandle LONG_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle SHORT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(short[].class, ByteOrder.LITTLE_ENDIAN);
-
-  private static short getShort(byte[] b, int off) {
-    return (short) SHORT_HANDLE.get(b, off);
-  }
-
-  private static int getInt(byte[] b, int off) {
-    return (int) INT_HANDLE.get(b, off);
-  }
-
-  private static long getLong(byte[] b, int off) {
-    return (long) LONG_HANDLE.get(b, off);
-  }
-
-  private static void setLong(byte[] b, int off, long v) {
-    LONG_HANDLE.set(b, off, v);
-  }
-
-  private static void setInt(byte[] b, int off, int v) {
-    INT_HANDLE.set(b, off, v);
-  }
-
-  private static void setShort(byte[] b, int off, short v) {
-    SHORT_HANDLE.set(b, off, v);
-  }
 
   private static final byte[] ZERO_BYTES = new byte[0];
 
@@ -627,18 +594,18 @@ public final class PackedArray {
         this.availableBits = remainingBytes << 3;
 
         if (array.length >= 8) {
-          buffer = (long) LONG_HANDLE.get(array, 0);
+          buffer = getLong(array, 0);
           readPos = remainingBytes;
         } else {
           readPos = 0;
           buffer = 0;
           if (remainingBytes >= 4) {
-            buffer |= (int) INT_HANDLE.get(array, readPos) & 0xFFFFFFFFL;
+            buffer |= getInt(array, readPos) & 0xFFFFFFFFL;
             readPos += 4;
             remainingBytes -= 4;
           }
           if (remainingBytes >= 2) {
-            buffer |= ((short) SHORT_HANDLE.get(array, readPos) & 0xFFFFL) << (readPos << 3);
+            buffer |= (getShort(array, readPos) & 0xFFFFL) << (readPos << 3);
             readPos += 2;
             remainingBytes -= 2;
           }
@@ -660,7 +627,7 @@ public final class PackedArray {
         long result = buffer;
         buffer >>>= bitSize;
         if (availableBits < bitSize) {
-          buffer = (long) LONG_HANDLE.get(array, readPos);
+          buffer = getLong(array, readPos);
           result |= buffer << availableBits;
           buffer >>>= 1;
           buffer >>>= ~(availableBits - bitSize);
@@ -695,23 +662,19 @@ public final class PackedArray {
         this.availableBits = remainingBytes << 3;
 
         if (array1.length >= 8) {
-          buffer = ((long) LONG_HANDLE.get(array1, 0)) ^ ((long) LONG_HANDLE.get(array2, 0));
+          buffer = getLong(array1, 0) ^ getLong(array2, 0);
           readPos = remainingBytes;
         } else {
           readPos = 0;
           buffer = 0;
           if (remainingBytes >= 4) {
-            buffer |=
-                (((int) INT_HANDLE.get(array1, readPos)) ^ ((int) INT_HANDLE.get(array2, readPos)))
-                    & 0xFFFFFFFFL;
+            buffer |= (getInt(array1, readPos) ^ getInt(array2, readPos)) & 0xFFFFFFFFL;
             readPos += 4;
             remainingBytes -= 4;
           }
           if (remainingBytes >= 2) {
             buffer |=
-                ((((short) SHORT_HANDLE.get(array1, readPos))
-                            ^ ((short) SHORT_HANDLE.get(array2, readPos)))
-                        & 0xFFFFL)
+                ((getShort(array1, readPos) ^ getShort(array2, readPos)) & 0xFFFFL)
                     << (readPos << 3);
             readPos += 2;
             remainingBytes -= 2;
@@ -727,8 +690,7 @@ public final class PackedArray {
         long result = buffer;
         buffer >>>= bitSize;
         if (availableBits < bitSize) {
-          buffer =
-              ((long) LONG_HANDLE.get(array1, readPos)) ^ ((long) LONG_HANDLE.get(array2, readPos));
+          buffer = getLong(array1, readPos) ^ getLong(array2, readPos);
           result |= buffer << availableBits;
           buffer >>>= 1;
           buffer >>>= ~(availableBits - bitSize);
