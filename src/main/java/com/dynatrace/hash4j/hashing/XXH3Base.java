@@ -37,8 +37,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
-import static com.dynatrace.hash4j.hashing.AbstractHasher.copyCharsToByteArray;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 
 abstract class XXH3Base implements AbstractHasher64 {
   protected static final int BLOCK_LEN_EXP = 10;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 package com.dynatrace.hash4j.hashing;
+
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,29 +38,29 @@ public class XXH3_64Test extends AbstractHasher64Test {
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
-    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed = getLong(seedBytes, 0);
 
     long hash0 = Hashing.xxh3_64().hashBytesToLong(dataBytes);
     long hash1 = Hashing.xxh3_64(seed).hashBytesToLong(dataBytes);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0);
-    LONG_HANDLE.set(hashBytes, 8, hash1);
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
-    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed = getLong(seedBytes, 0);
 
     long hash0 = Hashing.xxh3_64().hashCharsToLong(c);
     long hash1 = Hashing.xxh3_64(seed).hashCharsToLong(c);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0);
-    LONG_HANDLE.set(hashBytes, 8, hash1);
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
   }
 
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
-    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed = getLong(seedBytes, 0);
     return List.of(Hashing.xxh3_64().hashStream(), Hashing.xxh3_64(seed).hashStream());
   }
 

@@ -15,6 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -35,33 +38,33 @@ public class XXH3_128Test extends AbstractHasher128Test {
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
-    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed = getLong(seedBytes, 0);
 
     HashValue128 hash0 = Hashing.xxh3_128().hashBytesTo128Bits(dataBytes);
     HashValue128 hash1 = Hashing.xxh3_128(seed).hashBytesTo128Bits(dataBytes);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 8, hash0.getMostSignificantBits());
-    LONG_HANDLE.set(hashBytes, 16, hash1.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 24, hash1.getMostSignificantBits());
+    setLong(hashBytes, 0, hash0.getLeastSignificantBits());
+    setLong(hashBytes, 8, hash0.getMostSignificantBits());
+    setLong(hashBytes, 16, hash1.getLeastSignificantBits());
+    setLong(hashBytes, 24, hash1.getMostSignificantBits());
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
-    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed = getLong(seedBytes, 0);
 
     HashValue128 hash0 = Hashing.xxh3_128().hashCharsTo128Bits(c);
     HashValue128 hash1 = Hashing.xxh3_128(seed).hashCharsTo128Bits(c);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 8, hash0.getMostSignificantBits());
-    LONG_HANDLE.set(hashBytes, 16, hash1.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 24, hash1.getMostSignificantBits());
+    setLong(hashBytes, 0, hash0.getLeastSignificantBits());
+    setLong(hashBytes, 8, hash0.getMostSignificantBits());
+    setLong(hashBytes, 16, hash1.getLeastSignificantBits());
+    setLong(hashBytes, 24, hash1.getMostSignificantBits());
   }
 
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
-    long seed = (long) LONG_HANDLE.get(seedBytes, 0);
+    long seed = getLong(seedBytes, 0);
     return List.of(Hashing.xxh3_128().hashStream(), Hashing.xxh3_128(seed).hashStream());
   }
 

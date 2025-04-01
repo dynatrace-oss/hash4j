@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
@@ -84,15 +85,15 @@ interface AbstractHashStream extends HashStream {
   default HashStream putBytes(byte[] b, int off, int len) {
     int end = len + off;
     while (off <= end - 8) {
-      putLong(AbstractHasher.getLong(b, off));
+      putLong(getLong(b, off));
       off += 8;
     }
     if (off <= end - 4) {
-      putInt(AbstractHasher.getInt(b, off));
+      putInt(getInt(b, off));
       off += 4;
     }
     if (off <= end - 2) {
-      putChar(AbstractHasher.getChar(b, off));
+      putChar(getChar(b, off));
       off += 2;
     }
     if (off < end) {
@@ -145,11 +146,11 @@ interface AbstractHashStream extends HashStream {
     int end = s.length();
     int off = 0;
     while (off <= end - 4) {
-      putLong(AbstractHasher.getLong(s, off));
+      putLong(getLong(s, off));
       off += 4;
     }
     if (off <= end - 2) {
-      putInt(AbstractHasher.getInt(s, off));
+      putInt(getInt(s, off));
       off += 2;
     }
     if (off < end) {

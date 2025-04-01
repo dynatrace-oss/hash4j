@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.AbstractHasher.*;
 import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 
 abstract class AbstractWyhashFinal implements AbstractHasher64 {
 

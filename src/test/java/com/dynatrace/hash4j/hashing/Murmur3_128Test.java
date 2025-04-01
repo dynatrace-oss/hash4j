@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -40,33 +42,33 @@ class Murmur3_128Test extends AbstractHasher128Test {
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
-    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int seed = getInt(seedBytes, 0);
 
     HashValue128 hash0 = Hashing.murmur3_128().hashBytesTo128Bits(dataBytes);
     HashValue128 hash1 = Hashing.murmur3_128(seed).hashBytesTo128Bits(dataBytes);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 8, hash0.getMostSignificantBits());
-    LONG_HANDLE.set(hashBytes, 16, hash1.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 24, hash1.getMostSignificantBits());
+    setLong(hashBytes, 0, hash0.getLeastSignificantBits());
+    setLong(hashBytes, 8, hash0.getMostSignificantBits());
+    setLong(hashBytes, 16, hash1.getLeastSignificantBits());
+    setLong(hashBytes, 24, hash1.getMostSignificantBits());
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
-    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int seed = getInt(seedBytes, 0);
 
     HashValue128 hash0 = Hashing.murmur3_128().hashCharsTo128Bits(c);
     HashValue128 hash1 = Hashing.murmur3_128(seed).hashCharsTo128Bits(c);
 
-    LONG_HANDLE.set(hashBytes, 0, hash0.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 8, hash0.getMostSignificantBits());
-    LONG_HANDLE.set(hashBytes, 16, hash1.getLeastSignificantBits());
-    LONG_HANDLE.set(hashBytes, 24, hash1.getMostSignificantBits());
+    setLong(hashBytes, 0, hash0.getLeastSignificantBits());
+    setLong(hashBytes, 8, hash0.getMostSignificantBits());
+    setLong(hashBytes, 16, hash1.getLeastSignificantBits());
+    setLong(hashBytes, 24, hash1.getMostSignificantBits());
   }
 
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
-    int seed = (int) INT_HANDLE.get(seedBytes, 0);
+    int seed = getInt(seedBytes, 0);
     return List.of(Hashing.murmur3_128().hashStream(), Hashing.murmur3_128(seed).hashStream());
   }
 

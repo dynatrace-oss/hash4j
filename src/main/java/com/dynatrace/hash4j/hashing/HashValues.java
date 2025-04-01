@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
 
 /** Utility class for hash values. */
 public final class HashValues {
 
   private HashValues() {}
-
-  private static final VarHandle LONG_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.LITTLE_ENDIAN);
-  private static final VarHandle INT_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.LITTLE_ENDIAN);
 
   private static final char[] HEX_DIGITS_LOWER_CASE = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
@@ -47,7 +41,7 @@ public final class HashValues {
    */
   public static byte[] toByteArray(int hashValue) {
     byte[] b = new byte[4];
-    INT_HANDLE.set(b, 0, hashValue);
+    setInt(b, 0, hashValue);
     return b;
   }
 
@@ -61,7 +55,7 @@ public final class HashValues {
    */
   public static byte[] toByteArray(long hashValue) {
     byte[] b = new byte[8];
-    LONG_HANDLE.set(b, 0, hashValue);
+    setLong(b, 0, hashValue);
     return b;
   }
 
@@ -73,8 +67,8 @@ public final class HashValues {
    */
   public static byte[] toByteArray(HashValue128 hashValue) {
     byte[] b = new byte[16];
-    LONG_HANDLE.set(b, 0, hashValue.getLeastSignificantBits());
-    LONG_HANDLE.set(b, 8, hashValue.getMostSignificantBits());
+    setLong(b, 0, hashValue.getLeastSignificantBits());
+    setLong(b, 8, hashValue.getMostSignificantBits());
     return b;
   }
 

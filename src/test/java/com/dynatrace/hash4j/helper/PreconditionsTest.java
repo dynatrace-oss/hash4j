@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.util;
+package com.dynatrace.hash4j.helper;
 
 import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.helper.Preconditions.checkState;

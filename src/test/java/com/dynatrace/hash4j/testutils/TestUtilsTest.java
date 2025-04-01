@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  */
 package com.dynatrace.hash4j.testutils;
 
+import static com.dynatrace.hash4j.helper.ByteArrayUtil.setChar;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
 import org.junit.jupiter.api.Test;
 
 class TestUtilsTest {
-
-  private static final VarHandle CHAR_HANDLE =
-      MethodHandles.byteArrayViewVarHandle(char[].class, ByteOrder.LITTLE_ENDIAN);
 
   @Test
   void testByteArrayToCharSequence() {
@@ -50,7 +45,7 @@ class TestUtilsTest {
     byte[] actual = new byte[expected.length];
     for (int i = 0; i < charSequence.length(); ++i) {
       char c = charSequence.charAt(i);
-      CHAR_HANDLE.set(actual, 2 * i, c);
+      setChar(actual, 2 * i, c);
     }
     assertThat(actual).isEqualTo(expected);
   }
