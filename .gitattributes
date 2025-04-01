@@ -10,4 +10,5 @@ gradlew.bat text eol=crlf
 gradlew text eol=lf
 *.gradle eol=lf
 *.sh text eol=lf
+*.yml text eol=lf
 *.jar binary

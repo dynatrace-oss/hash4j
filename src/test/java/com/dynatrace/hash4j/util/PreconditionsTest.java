@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.util;
 
-import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
-import static com.dynatrace.hash4j.util.Preconditions.checkState;
+import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.helper.Preconditions.checkState;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;

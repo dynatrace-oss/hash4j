@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.util.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import java.util.*;
