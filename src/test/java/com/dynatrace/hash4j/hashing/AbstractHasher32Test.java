@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.TestUtils.createHasherWithFixedHash;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,51 +57,6 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
 
   @Override
   protected abstract List<? extends Hasher32> getHashers();
-
-  private static Hasher32 createHasherWithFixedHash(int hash) {
-    return new AbstractHasher32() {
-      @Override
-      public int hashBytesToInt(byte[] input, int off, int len) {
-        return hash;
-      }
-
-      @Override
-      public int hashCharsToInt(CharSequence input) {
-        return hash;
-      }
-
-      @Override
-      public HashStream32 hashStream() {
-        return new AbstractHashStream32() {
-
-          @Override
-          public HashStream32 putByte(byte v) {
-            return this;
-          }
-
-          @Override
-          public HashStream32 reset() {
-            return this;
-          }
-
-          @Override
-          public HashStream32 copy() {
-            return this;
-          }
-
-          @Override
-          public int getAsInt() {
-            return hash;
-          }
-
-          @Override
-          public int getHashBitSize() {
-            return 32;
-          }
-        };
-      }
-    };
-  }
 
   @Test
   void testHashBytesToInt() {
