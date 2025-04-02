@@ -16,8 +16,8 @@
 package com.dynatrace.hash4j.distinctcount;
 
 import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.getInt;
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.util.PackedArray;

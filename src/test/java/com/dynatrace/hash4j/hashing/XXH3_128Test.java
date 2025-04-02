@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.getLong;
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.setLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 
 import java.util.Arrays;
 import java.util.List;

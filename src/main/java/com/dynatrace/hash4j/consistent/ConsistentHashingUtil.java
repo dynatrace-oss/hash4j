@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 class ConsistentHashingUtil {
 

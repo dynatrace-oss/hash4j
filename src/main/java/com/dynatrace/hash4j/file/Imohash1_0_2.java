@@ -42,7 +42,7 @@
  */
 package com.dynatrace.hash4j.file;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 import com.dynatrace.hash4j.hashing.HashStream128;
 import com.dynatrace.hash4j.hashing.HashValue128;

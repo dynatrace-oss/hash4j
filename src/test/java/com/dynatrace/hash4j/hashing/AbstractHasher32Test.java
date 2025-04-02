@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;

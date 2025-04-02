@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
 class Murmur3_128 implements AbstractHasher128 {
 

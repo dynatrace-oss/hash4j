@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 

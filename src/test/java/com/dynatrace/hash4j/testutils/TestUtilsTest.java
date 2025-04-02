@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.testutils;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.setChar;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setChar;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;

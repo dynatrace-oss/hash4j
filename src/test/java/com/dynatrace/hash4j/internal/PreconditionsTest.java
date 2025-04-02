@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.helper;
+package com.dynatrace.hash4j.internal;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
-import static com.dynatrace.hash4j.helper.Preconditions.checkState;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkState;
 import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
