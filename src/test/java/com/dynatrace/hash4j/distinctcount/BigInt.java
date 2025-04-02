@@ -15,9 +15,9 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
-import com.dynatrace.hash4j.helper.Preconditions;
+import com.dynatrace.hash4j.internal.Preconditions;
 import java.math.BigInteger;
 import java.util.Objects;
 

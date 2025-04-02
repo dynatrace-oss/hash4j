@@ -15,11 +15,11 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import com.dynatrace.hash4j.helper.ArraySizeUtil;
+import com.dynatrace.hash4j.internal.ArraySizeUtil;
 import java.util.*;
 import java.util.function.ToLongFunction;
 

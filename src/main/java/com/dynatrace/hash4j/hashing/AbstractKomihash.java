@@ -42,8 +42,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
-import static com.dynatrace.hash4j.helper.UnsignedMultiplyUtil.unsignedMultiplyHigh;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 abstract class AbstractKomihash implements AbstractHasher64 {
 

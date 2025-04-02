@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.helper;
+package com.dynatrace.hash4j.internal;
 
-import static com.dynatrace.hash4j.helper.ArraySizeUtil.increaseArraySize;
+import static com.dynatrace.hash4j.internal.ArraySizeUtil.increaseArraySize;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 

@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.similarity;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;

@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.util;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;

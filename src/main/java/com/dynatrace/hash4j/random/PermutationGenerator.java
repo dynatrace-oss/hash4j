@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.random;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 import java.util.Arrays;
 

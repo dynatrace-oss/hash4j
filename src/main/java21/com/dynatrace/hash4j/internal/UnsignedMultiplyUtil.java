@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.helper;
+package com.dynatrace.hash4j.internal;
 
 /** Utility class for the unsigned multiplication of {@code long} values. */
 public final class UnsignedMultiplyUtil {
@@ -21,18 +21,14 @@ public final class UnsignedMultiplyUtil {
   private UnsignedMultiplyUtil() {}
 
   /**
-   * Returns the most significant 64 bits of the unsigned 128-bit product of two unsigned 64-bit
-   * factors as a long.
-   *
-   * <p>This function was added in <a
-   * href="https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/lang/Math.html#unsignedMultiplyHigh(long,long)">Java
-   * 18</a> and potentially can be removed in future.
+   * Returns as a long the most significant 64 bits of the unsigned 128-bit product of two unsigned
+   * 64-bit factors.
    *
    * @param x the first value
    * @param y the second value
    * @return the result
    */
   public static long unsignedMultiplyHigh(long x, long y) {
-    return Math.multiplyHigh(x, y) + ((x >> 63) & y) + ((y >> 63) & x);
+    return Math.unsignedMultiplyHigh(x, y);
   }
 }

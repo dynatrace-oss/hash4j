@@ -58,7 +58,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static java.lang.Long.rotateRight;
 
 class FarmHashNa extends AbstractFarmHash {

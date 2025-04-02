@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 /**
  * A martingale estimator, that can be used in conjunction with a distinct counter such as {@link
