@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 class ConsistentHashingDemo {
 
   @Test
-  void demoJumphash() {
+  void demoJumpBackHash() {
 
     // create a consistent bucket hasher
     ConsistentBucketHasher consistentBucketHasher =
