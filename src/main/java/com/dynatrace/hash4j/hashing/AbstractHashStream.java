@@ -19,6 +19,7 @@ import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.helper.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
+import com.dynatrace.hash4j.helper.ArraySizeUtil;
 import java.util.*;
 import java.util.function.ToLongFunction;
 
@@ -393,7 +394,8 @@ interface AbstractHashStream extends HashStream {
       int counter = 0;
       for (T d : data) {
         if (counter >= elementHashes.length) {
-          elementHashes = Arrays.copyOf(elementHashes, increaseArraySize(elementHashes.length));
+          elementHashes =
+              Arrays.copyOf(elementHashes, ArraySizeUtil.increaseArraySize(elementHashes.length));
         }
         elementHashes[counter] = elementHashFunction.applyAsLong(d);
         counter += 1;
@@ -403,23 +405,6 @@ interface AbstractHashStream extends HashStream {
       putInt(counter);
     }
     return this;
-  }
-
-  // maximum array length that can be allocated on VMs
-  // compare ArrayList implementation
-  int SOFT_MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
-
-  // visible for testing
-  static int increaseArraySize(int currentSize) {
-    if (currentSize <= (SOFT_MAX_ARRAY_LENGTH >>> 1)) {
-      return currentSize << 1; // increase by 100%
-    } else if (currentSize < SOFT_MAX_ARRAY_LENGTH) {
-      return SOFT_MAX_ARRAY_LENGTH;
-    } else if (currentSize < Integer.MAX_VALUE) {
-      return currentSize + 1;
-    } else {
-      throw new OutOfMemoryError();
-    }
   }
 
   private void putSorted(long l0, long l1) {

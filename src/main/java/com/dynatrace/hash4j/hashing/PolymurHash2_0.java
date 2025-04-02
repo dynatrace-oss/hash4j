@@ -40,8 +40,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 import static com.dynatrace.hash4j.helper.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.helper.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 class PolymurHash2_0 implements AbstractHasher64 {
 
