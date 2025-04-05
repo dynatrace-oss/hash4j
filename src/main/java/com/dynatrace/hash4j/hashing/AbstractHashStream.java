@@ -15,11 +15,11 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.internal.ArraySizeUtil.increaseArraySize;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import com.dynatrace.hash4j.internal.ArraySizeUtil;
 import java.util.*;
 import java.util.function.ToLongFunction;
 
@@ -395,7 +395,7 @@ interface AbstractHashStream extends HashStream {
       for (T d : data) {
         if (counter >= elementHashes.length) {
           elementHashes =
-              Arrays.copyOf(elementHashes, ArraySizeUtil.increaseArraySize(elementHashes.length));
+              Arrays.copyOf(elementHashes, increaseArraySize(elementHashes.length, counter));
         }
         elementHashes[counter] = elementHashFunction.applyAsLong(d);
         counter += 1;

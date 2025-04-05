@@ -21,30 +21,39 @@ public final class ArraySizeUtil {
   // maximum array length that can be allocated on VMs
   // compare ArrayList implementation
   private static final int SOFT_MAX_ARRAY_LENGTH = Integer.MAX_VALUE - 8;
+  private static final int MIN_ARRAY_LENGTH = 8;
 
   private ArraySizeUtil() {}
 
   /**
-   * Returns a new array size that is greater than the current array size. If possible, this
-   * function doubles the current array size.
+   * Returns a new array size that is greater than the current array size and that supports the
+   * given required index.
+   *
+   * <p>If possible, this function doubles the current array size.
+   *
+   * <p>It is guaranteed that the return value is greater than the current size. If the current size
+   * is equal to {@link Integer#MAX_VALUE}, an {@link OutOfMemoryError} exception is thrown.
    *
    * <p>This function takes care that the maximum allowed arrow size is not exceeded.
    *
    * @param currentSize current array size
-   * @return new array size
+   * @param requiredIndex the index that needs to be supported/covered with the new array size
+   * @return the new array size
    * @throws OutOfMemoryError if the current size is equal to {@link Integer#MAX_VALUE}
    */
-  public static int increaseArraySize(int currentSize) {
-    if (currentSize <= 0) {
-      return 1;
+  public static int increaseArraySize(int currentSize, int requiredIndex) {
+    int newSize;
+    if (currentSize <= 4) {
+      newSize = MIN_ARRAY_LENGTH;
     } else if (currentSize <= (SOFT_MAX_ARRAY_LENGTH >>> 1)) {
-      return currentSize << 1; // increase by 100%
+      newSize = currentSize << 1; // increase by 100%
     } else if (currentSize < SOFT_MAX_ARRAY_LENGTH) {
-      return SOFT_MAX_ARRAY_LENGTH;
+      newSize = SOFT_MAX_ARRAY_LENGTH;
     } else if (currentSize < Integer.MAX_VALUE) {
-      return currentSize + 1;
+      newSize = currentSize + 1;
     } else {
       throw new OutOfMemoryError();
     }
+    return Math.max(newSize, requiredIndex + 1);
   }
 }

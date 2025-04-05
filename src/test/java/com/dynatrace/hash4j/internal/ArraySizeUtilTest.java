@@ -25,23 +25,43 @@ public class ArraySizeUtilTest {
 
   @Test
   void testIncreaseArraySize() {
-    assertThat(increaseArraySize(0)).isEqualTo(1);
-    assertThat(increaseArraySize(1)).isEqualTo(2);
-    assertThat(increaseArraySize(2)).isEqualTo(4);
-    assertThat(increaseArraySize(3)).isEqualTo(6);
-    assertThat(increaseArraySize(Integer.MAX_VALUE / 2)).isEqualTo(Integer.MAX_VALUE - 8);
-    assertThat(increaseArraySize(Integer.MAX_VALUE / 2 + 1)).isEqualTo(Integer.MAX_VALUE - 8);
-    assertThat(increaseArraySize(Integer.MAX_VALUE / 2 + 2)).isEqualTo(Integer.MAX_VALUE - 8);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 9)).isEqualTo(Integer.MAX_VALUE - 8);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 8)).isEqualTo(Integer.MAX_VALUE - 7);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 7)).isEqualTo(Integer.MAX_VALUE - 6);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 6)).isEqualTo(Integer.MAX_VALUE - 5);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 5)).isEqualTo(Integer.MAX_VALUE - 4);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 4)).isEqualTo(Integer.MAX_VALUE - 3);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 3)).isEqualTo(Integer.MAX_VALUE - 2);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 2)).isEqualTo(Integer.MAX_VALUE - 1);
-    assertThat(increaseArraySize(Integer.MAX_VALUE - 1)).isEqualTo(Integer.MAX_VALUE);
-    assertThatThrownBy(() -> increaseArraySize(Integer.MAX_VALUE))
+    assertThat(increaseArraySize(Integer.MIN_VALUE, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(-1, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(0, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(1, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(2, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(3, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(4, Integer.MIN_VALUE)).isEqualTo(8);
+    assertThat(increaseArraySize(5, Integer.MIN_VALUE)).isEqualTo(10);
+    assertThat(increaseArraySize(6, Integer.MIN_VALUE)).isEqualTo(12);
+    assertThat(increaseArraySize(Integer.MAX_VALUE / 2, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 8);
+    assertThat(increaseArraySize(Integer.MAX_VALUE / 2 + 1, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 8);
+    assertThat(increaseArraySize(Integer.MAX_VALUE / 2 + 2, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 8);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 9, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 8);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 8, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 7);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 7, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 6);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 6, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 5);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 5, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 4);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 4, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 3);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 3, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 2);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 2, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE - 1);
+    assertThat(increaseArraySize(Integer.MAX_VALUE - 1, Integer.MIN_VALUE))
+        .isEqualTo(Integer.MAX_VALUE);
+    assertThatThrownBy(() -> increaseArraySize(Integer.MAX_VALUE, Integer.MIN_VALUE))
         .isInstanceOf(OutOfMemoryError.class);
+
+    assertThat(increaseArraySize(3, 100)).isEqualTo(101);
+    assertThat(increaseArraySize(102, 100)).isEqualTo(204);
   }
 }
