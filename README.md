@@ -200,49 +200,91 @@ HashValue128 hash = FileHashing.imohash1_0_2().hashFileTo128Bits(file);
 See also [FileHashingDemo.java](src/test/java/com/dynatrace/hash4j/file/FileHashingDemo.java).
 
 ## Consistent hashing
-This library contains various algorithms for the distributed agreement on the assignment of hash values to a given number of buckets.
-In the naive approach, the hash values are assigned to the buckets with the modulo operation according to
+This library contains various algorithms for the distributed agreement on the assignment of keys to a given number of buckets.
+
+A naive way to distribute keys over a given number of buckets, is to hash the keys and assign them using the modulo operation according to  
 `bucketIdx = abs(hash) % numBuckets`.
-If the number of buckets is changed, the bucket index will change for most hash values.
+However, if the number of buckets is changed, the assigned bucket index will change for most keys.
 With a consistent hash algorithm, the above expression can be replaced by
 `bucketIdx = consistentBucketHasher.getBucket(hash, numBuckets)`
 to minimize the number of reassignments while still ensuring a fair distribution across all buckets.
 
-The following consistent hashing algorithms are available:
-* [JumpHash](https://arxiv.org/abs/1406.2294): This algorithm has a calculation time that scales logarithmically with the number of buckets  
+The library provides following **ConsistentBucketHasher** implementations:
+* [JumpHash](https://arxiv.org/abs/1406.2294): This algorithm has a calculation time that scales logarithmically with the number of buckets
 * [Improved Consistent Weighted Sampling](https://doi.org/10.1109/ICDM.2010.80): This algorithm is based on improved
-consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
-JumpHash for a large number of buckets.
+  consistent weighted sampling with a constant computation time independent of the number of buckets. This algorithm is faster than
+  JumpHash for a large number of buckets.
 * [JumpBackHash](https://doi.org/10.1002/spe.3385): In contrast to JumpHash, which traverses "active indices" (see [here](https://doi.org/10.1109/ICDM.2010.80) for a definition)
-in ascending order, JumpBackHash does this in the opposite direction. In this way, floating-point operations can be completely avoided.
-Further optimizations minimize the number of random values that need to be generated to reach
-the largest "active index" within the given bucket range in amortized constant time. The largest "active index",
-defines the bucket assignment of the given hash value. In the worst case,
-this algorithm consumes an average of 5/3 = 1.667 64-bit random values.
+  in ascending order, JumpBackHash does this in the opposite direction. In this way, floating-point operations can be completely avoided.
+  Further optimizations minimize the number of random values that need to be generated to reach
+  the largest "active index" within the given bucket range in amortized constant time. The largest "active index",
+  defines the bucket assignment of the given hash value. In the worst case,
+  this algorithm consumes an average of 5/3 = 1.667 64-bit random values. JumpBackHash is the recommended algorithm.
+
+All these algorithms define stateless mappings which only require the hash of the key
+and the number of buckets. However, they are limited to cases where buckets are
+added or removed only at the end of the list of buckets.
+When buckets are added or removed not in first-in-last-out but in a random order, a **ConsistentBucketSetHasher**
+can be used instead. This library provides an implementation based on JumpBackHash and ideas from
+[AnchorHash](https://doi.org/10.1109/TNET.2020.3039547) and [MementoHash](https://doi.org/10.1109/TNET.2024.3393476).
+A **ConsistentBucketSetHasher** has a state, that must be shared across
+all instances in a distributed environment to have a consistent mapping. Therefore, it provides methods to get and set the state as byte array.
   
 ### Usage
+Using a **ConsistentBucketHasher** to have a modulo-like, stateless consistent random assignment of keys to buckets:  
 ```java
+// list of 64-bit hash values of the keys
+List<Long> keys = asList(0x7f7487ee708c8a96L, 0x6265648fbc797f25L, 0x85ef23a0b545d53bL);
+
 // create a consistent bucket hasher
-ConsistentBucketHasher consistentBucketHasher =
-    ConsistentHashing.jumpBackHash(PseudoRandomGeneratorProvider.splitMix64_V1());
+var consistentBucketHasher = ConsistentHashing.jumpBackHash(PseudoRandomGeneratorProvider.splitMix64_V1());
 
-long[] hashValues = {9184114998275508886L, 7090183756869893925L, -8795772374088297157L};
+// determine mapping of keys to 2 buckets
+var mapping2 = keys.stream().collect(groupingBy(k -> consistentBucketHasher.getBucket(k, 2), mapping(Long::toHexString, toList())));
+// gives {0=[6265648fbc797f25, 85ef23a0b545d53b], 1=[7f7487ee708c8a96]}
 
-// determine assignment of hash values to 2 buckets
-Map<Integer, List<Long>> assignment2Buckets =
-    LongStream.of(hashValues)
-        .boxed()
-        .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 2)));
-// gives {0=[7090183756869893925, -8795772374088297157], 1=[9184114998275508886]}
-
-// determine assignment of hash values to 3 buckets
-Map<Integer, List<Long>> assignment3Buckets =
-    LongStream.of(hashValues)
-        .boxed()
-        .collect(groupingBy(hash -> consistentBucketHasher.getBucket(hash, 3)));
-// gives {0=[7090183756869893925], 1=[9184114998275508886], 2=[-8795772374088297157]}
-// hash value -8795772374088297157 got reassigned from bucket 0 to bucket 2
+// determine mapping of keys to 3 buckets
+var mapping3 = keys.stream().collect(groupingBy(k -> consistentBucketHasher.getBucket(k, 3), mapping(Long::toHexString, toList())));
+// gives {0=[6265648fbc797f25], 1=[7f7487ee708c8a96], 2=[85ef23a0b545d53b]}
+// key 85ef23a0b545d53b got reassigned from bucket 0 to bucket 2
 // probability of reassignment is equal to 1/3
+```
+Using a **ConsistentBucketSetHasher** to allow adding and removing buckets in arbitrary order.
+This requires a state that can be retrieved and used to initialize another instance,
+such that consistent assignment can be realized in distributed environments:
+```java
+    // list of 64-bit hash values of the keys
+    List<Long> keys = asList(0x48ac502166f761a8L, 0x9b7193f97ec9cb79L, 0x6ce88bf7de8c06c2L);
+
+    // create a consistent bucket set hasher
+    var hasher = ConsistentHashing.jumpBackAnchorHash(PseudoRandomGeneratorProvider.splitMix64_V1());
+
+    // add 3 buckets
+    int bucket1 = hasher.addBucket(); // == 0
+    int bucket2 = hasher.addBucket(); // == 1
+    int bucket3 = hasher.addBucket(); // == 2
+
+    // determine mapping of keys to the 3 buckets
+    var mapping3 = keys.stream().collect(groupingBy(k -> hasher.getBucket(k), mapping(Long::toHexString, toList())));
+    // gives {0=[9b7193f97ec9cb79], 1=[48ac502166f761a8], 2=[6ce88bf7de8c06c2]}
+
+    // remove bucket 2
+    hasher.removeBucket(bucket2);
+
+    // determine mapping of keys to remaining 2 buckets
+    var mapping2 = keys.stream().collect(groupingBy(k -> hasher.getBucket(k), mapping(Long::toHexString, toList())));
+    // gives {0=[9b7193f97ec9cb79], 2=[48ac502166f761a8, 6ce88bf7de8c06c2]}
+    // key 48ac502166f761a8 got reassigned from bucket 1 to bucket 2
+
+    // get state of hasher
+    byte[] state = hasher.getState();
+
+    // create another instance with same mapping
+    var otherHasher = ConsistentHashing.jumpBackAnchorHash(PseudoRandomGeneratorProvider.splitMix64_V1()).setState(state);
+
+    // determine mapping of keys using other instance
+    var otherMapping2 = keys.stream().collect(groupingBy(k -> otherHasher.getBucket(k), mapping(Long::toHexString, toList())));
+    // gives again {0=[9b7193f97ec9cb79], 2=[48ac502166f761a8, 6ce88bf7de8c06c2]}
 ```
 See also [ConsistentHashingDemo.java](src/test/java/com/dynatrace/hash4j/consistent/ConsistentHashingDemo.java).
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,15 @@ package com.dynatrace.hash4j.consistent;
 public interface ConsistentBucketHasher {
 
   /**
-   * Returns a bucket index in the range {@code [0, numBuckets)} based on the given hash value.
+   * Returns a bucket index in the range {@code [0, numBuckets)} based on a 64-bit hash value of the
+   * key.
    *
    * <p>The returned bucket index is uniformly distributed. If {@code numBuckets} is changed,
    * remapping to other bucket indices is minimized.
    *
-   * <p>For more details see Lamping, John, and Eric Veach. "A fast, minimal memory, consistent hash
-   * algorithm." arXiv preprint <a href="https://arxiv.org/abs/1406.2294">arXiv:1406.2294</a>
-   * (2014).
+   * <p>This function is not thread-safe!
    *
-   * @param hash a 64-bit hash value
+   * @param hash a 64-bit hash value of the key
    * @param numBuckets the number of buckets, must be positive
    * @return the bucket index
    */
