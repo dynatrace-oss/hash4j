@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.TestUtils.createHasherWithFixedHash;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,51 +54,6 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
       @Override
       public HashStream64 copy() {
         return hashStream64.copy();
-      }
-    };
-  }
-
-  private static Hasher64 createHasherWithFixedHash(long hash) {
-    return new AbstractHasher64() {
-      @Override
-      public long hashBytesToLong(byte[] input, int off, int len) {
-        return hash;
-      }
-
-      @Override
-      public long hashCharsToLong(CharSequence input) {
-        return hash;
-      }
-
-      @Override
-      public HashStream64 hashStream() {
-        return new AbstractHashStream64() {
-
-          @Override
-          public HashStream64 putByte(byte v) {
-            return this;
-          }
-
-          @Override
-          public HashStream64 reset() {
-            return this;
-          }
-
-          @Override
-          public HashStream64 copy() {
-            return this;
-          }
-
-          @Override
-          public long getAsLong() {
-            return hash;
-          }
-
-          @Override
-          public int getHashBitSize() {
-            return 64;
-          }
-        };
       }
     };
   }

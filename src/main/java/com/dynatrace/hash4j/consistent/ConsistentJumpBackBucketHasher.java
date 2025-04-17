@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Dynatrace LLC
+ * Copyright 2024-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,11 @@ class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
       return 0;
     }
     pseudoRandomGenerator.reset(hash);
+    return getBucket(numBuckets, pseudoRandomGenerator);
+  }
+
+  // numBuckets must be at least 2!
+  static final int getBucket(int numBuckets, PseudoRandomGenerator pseudoRandomGenerator) {
     long r0 = pseudoRandomGenerator.nextLong();
     int xMasked =
         ((int) (r0 ^ (r0 >>> 32))) & (0xFFFFFFFF >>> Integer.numberOfLeadingZeros(numBuckets - 1));

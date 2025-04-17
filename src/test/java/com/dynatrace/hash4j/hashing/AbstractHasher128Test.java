@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.TestUtils.createHasherWithFixedHash;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -55,51 +56,6 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
       @Override
       public HashStream128 copy() {
         return hashStream128.copy();
-      }
-    };
-  }
-
-  private static Hasher128 createHasherWithFixedHash(HashValue128 hash) {
-    return new AbstractHasher128() {
-      @Override
-      public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-        return hash;
-      }
-
-      @Override
-      public HashValue128 hashCharsTo128Bits(CharSequence input) {
-        return hash;
-      }
-
-      @Override
-      public HashStream128 hashStream() {
-        return new AbstractHashStream128() {
-
-          @Override
-          public HashStream128 putByte(byte v) {
-            return this;
-          }
-
-          @Override
-          public HashStream128 reset() {
-            return this;
-          }
-
-          @Override
-          public HashStream128 copy() {
-            return this;
-          }
-
-          @Override
-          public HashValue128 get() {
-            return hash;
-          }
-
-          @Override
-          public int getHashBitSize() {
-            return 128;
-          }
-        };
       }
     };
   }
