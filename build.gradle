@@ -219,7 +219,7 @@ spotless {
 			"src/main/java/com/dynatrace/hash4j/hashing/XXH3_128.java",
 			"src/main/java/com/dynatrace/hash4j/hashing/XXH3Base.java"
 		]),
-		new Tuple3("javaConsistentJumpBackBucketSetHasher", "APACHE_2_0_ANCHOR_HASH",[
+		new Tuple3("javaConsistentJumpBackAnchorBucketSetHasher", "MIT_ANCHOR_HASH",[
 			"src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBackAnchorBucketSetHasher.java"
 		])
 	]
