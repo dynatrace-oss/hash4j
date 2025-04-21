@@ -253,38 +253,38 @@ Using a **ConsistentBucketSetHasher** to allow adding and removing buckets in ar
 This requires a state that can be retrieved and used to initialize another instance,
 such that consistent assignment can be realized in distributed environments:
 ```java
-    // list of 64-bit hash values of the keys
-    List<Long> keys = asList(0x48ac502166f761a8L, 0x9b7193f97ec9cb79L, 0x6ce88bf7de8c06c2L);
+// list of 64-bit hash values of the keys
+List<Long> keys = asList(0x48ac502166f761a8L, 0x9b7193f97ec9cb79L, 0x6ce88bf7de8c06c2L);
 
-    // create a consistent bucket set hasher
-    var hasher = ConsistentHashing.jumpBackAnchorHash(PseudoRandomGeneratorProvider.splitMix64_V1());
+// create a consistent bucket set hasher
+var hasher = ConsistentHashing.jumpBackAnchorHash(PseudoRandomGeneratorProvider.splitMix64_V1());
 
-    // add 3 buckets
-    int bucket1 = hasher.addBucket(); // == 0
-    int bucket2 = hasher.addBucket(); // == 1
-    int bucket3 = hasher.addBucket(); // == 2
+// add 3 buckets
+int bucket1 = hasher.addBucket(); // == 0
+int bucket2 = hasher.addBucket(); // == 1
+int bucket3 = hasher.addBucket(); // == 2
 
-    // determine mapping of keys to the 3 buckets
-    var mapping3 = keys.stream().collect(groupingBy(k -> hasher.getBucket(k), mapping(Long::toHexString, toList())));
-    // gives {0=[9b7193f97ec9cb79], 1=[48ac502166f761a8], 2=[6ce88bf7de8c06c2]}
+// determine mapping of keys to the 3 buckets
+var mapping3 = keys.stream().collect(groupingBy(k -> hasher.getBucket(k), mapping(Long::toHexString, toList())));
+// gives {0=[9b7193f97ec9cb79], 1=[48ac502166f761a8], 2=[6ce88bf7de8c06c2]}
 
-    // remove bucket 2
-    hasher.removeBucket(bucket2);
+// remove bucket 2
+hasher.removeBucket(bucket2);
 
-    // determine mapping of keys to remaining 2 buckets
-    var mapping2 = keys.stream().collect(groupingBy(k -> hasher.getBucket(k), mapping(Long::toHexString, toList())));
-    // gives {0=[9b7193f97ec9cb79], 2=[48ac502166f761a8, 6ce88bf7de8c06c2]}
-    // key 48ac502166f761a8 got reassigned from bucket 1 to bucket 2
+// determine mapping of keys to remaining 2 buckets
+var mapping2 = keys.stream().collect(groupingBy(k -> hasher.getBucket(k), mapping(Long::toHexString, toList())));
+// gives {0=[9b7193f97ec9cb79], 2=[48ac502166f761a8, 6ce88bf7de8c06c2]}
+// key 48ac502166f761a8 got reassigned from bucket 1 to bucket 2
 
-    // get state of hasher
-    byte[] state = hasher.getState();
+// get state of hasher
+byte[] state = hasher.getState();
 
-    // create another instance with same mapping
-    var otherHasher = ConsistentHashing.jumpBackAnchorHash(PseudoRandomGeneratorProvider.splitMix64_V1()).setState(state);
+// create another instance with same mapping
+var otherHasher = ConsistentHashing.jumpBackAnchorHash(PseudoRandomGeneratorProvider.splitMix64_V1()).setState(state);
 
-    // determine mapping of keys using other instance
-    var otherMapping2 = keys.stream().collect(groupingBy(k -> otherHasher.getBucket(k), mapping(Long::toHexString, toList())));
-    // gives again {0=[9b7193f97ec9cb79], 2=[48ac502166f761a8, 6ce88bf7de8c06c2]}
+// determine mapping of keys using other instance
+var otherMapping2 = keys.stream().collect(groupingBy(k -> otherHasher.getBucket(k), mapping(Long::toHexString, toList())));
+// gives again {0=[9b7193f97ec9cb79], 2=[48ac502166f761a8, 6ce88bf7de8c06c2]}
 ```
 See also [ConsistentHashingDemo.java](src/test/java/com/dynatrace/hash4j/consistent/ConsistentHashingDemo.java).
 
