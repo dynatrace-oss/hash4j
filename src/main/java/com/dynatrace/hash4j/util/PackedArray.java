@@ -16,6 +16,7 @@
 package com.dynatrace.hash4j.util;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.EmptyArray.EMPTY_BYTE_ARRAY;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
@@ -25,8 +26,6 @@ import java.util.function.LongBinaryOperator;
 public final class PackedArray {
 
   private PackedArray() {}
-
-  private static final byte[] ZERO_BYTES = new byte[0];
 
   /** Gives access to indexed long values. */
   @FunctionalInterface
@@ -766,7 +765,7 @@ public final class PackedArray {
         @Override
         public byte[] create(int length) {
           PackedArray.checkArrayLength(length, 0);
-          return ZERO_BYTES;
+          return EMPTY_BYTE_ARRAY;
         }
 
         @Override
