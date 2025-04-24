@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.similarity;
 
+import static com.dynatrace.hash4j.internal.EmptyArray.EMPTY_LONG_ARRAY;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
@@ -23,8 +24,6 @@ import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.util.Arrays;
 
 final class DistinctElementHashProvider implements ElementHashProvider {
-
-  private static final long[] EMPTY_LONG_ARRAY = new long[0];
 
   private static final double EXTENSION_FACTOR = 1.5;
 

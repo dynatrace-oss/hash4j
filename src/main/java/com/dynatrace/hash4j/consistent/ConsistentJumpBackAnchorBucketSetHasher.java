@@ -49,6 +49,8 @@ package com.dynatrace.hash4j.consistent;
 import static com.dynatrace.hash4j.internal.ArraySizeUtil.increaseArraySize;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.EmptyArray.EMPTY_INT_ARRAY;
+import static com.dynatrace.hash4j.internal.EmptyArray.EMPTY_LONG_ARRAY;
 import static java.util.Objects.requireNonNull;
 
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
@@ -57,8 +59,6 @@ import java.util.Arrays;
 
 class ConsistentJumpBackAnchorBucketSetHasher implements ConsistentBucketSetHasher {
 
-  private static final int[] EMPTY_INT_ARRAY = new int[0];
-  private static final long[] EMPTY_LONG_ARRAY = new long[0];
   private static final String ILLEGAL_STATE_EXCEPTION_MESSAGE = "Illegal state!";
   private static final String NO_BUCKETS_AVAILABLE_EXCEPTION_MESSAGE = "No buckets available!";
 

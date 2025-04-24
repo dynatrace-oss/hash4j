@@ -37,9 +37,6 @@
 [submodule "reference-implementations/xxh3_128/xxHash"]
 	path = reference-implementations/xxh3_128/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
-[submodule "reference-implementations/komihash_5_15/komihash"]
-	path = reference-implementations/komihash_5_18/komihash
-	url = https://github.com/avaneev/komihash.git
-[submodule "reference-implementations/komihash_5_19/komihash"]
-	path = reference-implementations/komihash_5_19/komihash
+[submodule "reference-implementations/komihash_5_26/komihash"]
+	path = reference-implementations/komihash_5_26/komihash
 	url = https://github.com/avaneev/komihash.git

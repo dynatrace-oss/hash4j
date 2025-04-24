@@ -24,10 +24,6 @@ public final class UnsignedMultiplyUtil {
    * Returns the most significant 64 bits of the unsigned 128-bit product of two unsigned 64-bit
    * factors as a long.
    *
-   * <p>This function was added in <a
-   * href="https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/lang/Math.html#unsignedMultiplyHigh(long,long)">Java
-   * 18</a> and potentially can be removed in future.
-   *
    * @param x the first value
    * @param y the second value
    * @return the result
