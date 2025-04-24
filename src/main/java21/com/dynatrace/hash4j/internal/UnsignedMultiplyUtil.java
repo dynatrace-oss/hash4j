@@ -21,8 +21,8 @@ public final class UnsignedMultiplyUtil {
   private UnsignedMultiplyUtil() {}
 
   /**
-   * Returns as a long the most significant 64 bits of the unsigned 128-bit product of two unsigned
-   * 64-bit factors.
+   * Returns the most significant 64 bits of the unsigned 128-bit product of two unsigned 64-bit
+   * factors as a long.
    *
    * @param x the first value
    * @param y the second value
