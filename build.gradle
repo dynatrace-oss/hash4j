@@ -289,13 +289,13 @@ jmh {
 	resultFormat = "JSON"
 }
 
-task evaluateBenchmarks(type:Exec) {
+tasks.register("evaluateBenchmarks", Exec) {
 	group = "evaluation"
 	workingDir = "."
 	commandLine "python", "python/benchmark_evaluation.py"
 }
 
-task evaluateEstimationErrors(type:Exec) {
+tasks.register("evaluateEstimationErrors", Exec) {
 	group = "evaluation"
 	workingDir = "."
 	commandLine "python", "python/estimation_error_evaluation.py"
@@ -324,7 +324,7 @@ for (sketch in sketches) {
 	for (p in pValues) {
 		def sketchTaskName = "simulate" + sketch + "EstimationErrorsP" + String.format( "%02d", p )
 		def outputFileName = "test-results/" + sketch.toLowerCase() + "-estimation-error-p" + String.format( "%02d", p )  + ".csv"
-		task "${sketchTaskName}"(type: JavaExec) {
+		tasks.register("${sketchTaskName}", JavaExec) {
 			outputs.files outputFileName
 			group = "evaluation"
 			classpath = sourceSets.test.runtimeClasspath
@@ -335,13 +335,13 @@ for (sketch in sketches) {
 		sketchTasks.add(sketchTaskName)
 	}
 	def evaluationTaskName = "simulate" + sketch + "EstimationErrors"
-	task "${evaluationTaskName}" {
+	tasks.register("${evaluationTaskName}") {
 		group = "evaluation"
 		dependsOn sketchTasks
 	}
 	evaluationTasks.add(evaluationTaskName)
 }
-task "simulateEstimationErrors" {
+tasks.register("simulateEstimationErrors") {
 	group = "evaluation"
 	dependsOn evaluationTasks
 }
