@@ -376,6 +376,11 @@ class FarmHashUo extends AbstractFarmHash {
     }
 
     @Override
+    public Hasher64 getHasher() {
+      return FarmHashUo.this;
+    }
+
+    @Override
     protected void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
 

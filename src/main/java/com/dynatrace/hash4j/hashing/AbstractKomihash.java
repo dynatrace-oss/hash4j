@@ -332,6 +332,11 @@ abstract class AbstractKomihash implements AbstractHasher64 {
       hashStream.byteCount = byteCount;
       System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
     }
+
+    @Override
+    public Hasher64 getHasher() {
+      return AbstractKomihash.this;
+    }
   }
 
   protected static long finish(long r2h, long r2l, long see5) {

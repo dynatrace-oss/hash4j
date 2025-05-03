@@ -55,6 +55,11 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
       public HashStream64 copy() {
         return hashStream64.copy();
       }
+
+      @Override
+      public Hasher64 getHasher() {
+        return (Hasher64) hasher;
+      }
     };
   }
 

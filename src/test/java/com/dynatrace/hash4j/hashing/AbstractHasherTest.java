@@ -1104,6 +1104,7 @@ abstract class AbstractHasherTest {
 
       @Override
       public HashStream32 hashStream() {
+        Hasher32 hasher = this;
 
         return new AbstractHashStream32() {
 
@@ -1128,6 +1129,11 @@ abstract class AbstractHasherTest {
           public HashStream32 copy() {
             return referenceHashStream.copy();
           }
+
+          @Override
+          public Hasher32 getHasher() {
+            return hasher;
+          }
         };
       }
 
@@ -1148,6 +1154,8 @@ abstract class AbstractHasherTest {
 
       @Override
       public HashStream64 hashStream() {
+
+        Hasher64 hasher = this;
 
         return new AbstractHashStream64() {
 
@@ -1171,6 +1179,11 @@ abstract class AbstractHasherTest {
           @Override
           public HashStream64 copy() {
             return referenceHashStream.copy();
+          }
+
+          @Override
+          public Hasher64 getHasher() {
+            return hasher;
           }
         };
       }
@@ -1512,5 +1525,11 @@ abstract class AbstractHasherTest {
             .isEqualTo(hasher128.hashBytesTo128Bits(data));
       }
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testStreamGetHasher(Hasher hasher) {
+    assertThat(hasher.hashStream().getHasher()).isSameAs(hasher);
   }
 }

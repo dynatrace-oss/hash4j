@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -182,4 +182,11 @@ interface HashStream extends HashSink {
    * @return new instance
    */
   HashStream copy();
+
+  /**
+   * Returns a reference of the underlying hasher.
+   *
+   * @return a reference to the underlying hasher
+   */
+  Hasher getHasher();
 }

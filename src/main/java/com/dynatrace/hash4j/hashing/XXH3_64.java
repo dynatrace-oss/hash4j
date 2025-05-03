@@ -207,6 +207,11 @@ class XXH3_64 extends XXH3Base {
       copyImpl(hashStream);
       return hashStream;
     }
+
+    @Override
+    public Hasher64 getHasher() {
+      return XXH3_64.this;
+    }
   }
 
   private static long rrmxmx(long h64, final long length) {

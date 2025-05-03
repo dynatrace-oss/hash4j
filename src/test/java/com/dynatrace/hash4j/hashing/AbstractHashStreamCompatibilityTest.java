@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,11 @@ class AbstractHashStreamCompatibilityTest {
 
           @Override
           public HashStream128 copy() {
+            throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Hasher128 getHasher() {
             throw new UnsupportedOperationException();
           }
 

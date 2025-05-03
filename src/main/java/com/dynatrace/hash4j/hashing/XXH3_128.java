@@ -234,6 +234,11 @@ class XXH3_128 extends XXH3Base implements AbstractHasher128 {
       copyImpl(hashStream);
       return hashStream;
     }
+
+    @Override
+    public Hasher128 getHasher() {
+      return XXH3_128.this;
+    }
   }
 
   @Override

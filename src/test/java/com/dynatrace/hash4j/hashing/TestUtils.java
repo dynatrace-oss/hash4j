@@ -33,6 +33,7 @@ public final class TestUtils {
 
       @Override
       public HashStream32 hashStream() {
+        Hasher32 hasher = this;
         return new AbstractHashStream32() {
 
           @Override
@@ -48,6 +49,11 @@ public final class TestUtils {
           @Override
           public HashStream32 copy() {
             return this;
+          }
+
+          @Override
+          public Hasher32 getHasher() {
+            return hasher;
           }
 
           @Override
@@ -78,6 +84,7 @@ public final class TestUtils {
 
       @Override
       public HashStream64 hashStream() {
+        Hasher64 hasher = this;
         return new AbstractHashStream64() {
 
           @Override
@@ -93,6 +100,11 @@ public final class TestUtils {
           @Override
           public HashStream64 copy() {
             return this;
+          }
+
+          @Override
+          public Hasher64 getHasher() {
+            return hasher;
           }
 
           @Override
@@ -123,6 +135,7 @@ public final class TestUtils {
 
       @Override
       public HashStream128 hashStream() {
+        Hasher128 hasher = this;
         return new AbstractHashStream128() {
 
           @Override
@@ -138,6 +151,11 @@ public final class TestUtils {
           @Override
           public HashStream128 copy() {
             return this;
+          }
+
+          @Override
+          public Hasher128 getHasher() {
+            return hasher;
           }
 
           @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,4 +189,7 @@ public interface HashStream128 extends HashStream64 {
    * @return a 128-bit hash value
    */
   <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel);
+
+  @Override
+  Hasher128 getHasher();
 }

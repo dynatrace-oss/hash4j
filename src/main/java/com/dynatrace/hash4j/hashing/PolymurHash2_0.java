@@ -539,6 +539,11 @@ class PolymurHash2_0 implements AbstractHasher64 {
     }
 
     @Override
+    public Hasher64 getHasher() {
+      return PolymurHash2_0.this;
+    }
+
+    @Override
     public HashStream64 putByte(byte v) {
       buffer[offset] = v;
       offset += 1;
