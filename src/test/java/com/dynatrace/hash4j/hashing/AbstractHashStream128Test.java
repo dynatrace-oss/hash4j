@@ -64,6 +64,11 @@ public class AbstractHashStream128Test extends AbstractHashStreamTest {
       return new TestHashStream128(hashStream.copy());
     }
 
+    @Override
+    public Hasher128 getHasher() {
+      throw new UnsupportedOperationException();
+    }
+
     public byte[] getData() {
       return hashStream.getData();
     }

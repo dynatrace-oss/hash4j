@@ -255,6 +255,11 @@ class Murmur3_128 implements AbstractHasher128 {
     }
 
     @Override
+    public Hasher128 getHasher() {
+      return Murmur3_128.this;
+    }
+
+    @Override
     public HashStream128 putByte(byte b) {
       buffer1 |= ((b & 0xFFL) << bitCount);
       if ((bitCount & 0x38L) == 0x38L) {

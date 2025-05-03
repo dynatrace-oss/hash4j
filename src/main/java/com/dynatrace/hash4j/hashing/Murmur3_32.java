@@ -147,6 +147,11 @@ class Murmur3_32 implements AbstractHasher32 {
     }
 
     @Override
+    public Hasher32 getHasher() {
+      return Murmur3_32.this;
+    }
+
+    @Override
     public HashStream32 putByte(byte b) {
       buffer |= ((b & 0xFFL) << shift);
       shift += 8;

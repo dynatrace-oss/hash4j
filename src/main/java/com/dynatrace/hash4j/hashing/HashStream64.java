@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,4 +186,7 @@ public interface HashStream64 extends HashStream32 {
    * @return a 64-bit hash value
    */
   <T> long resetAndHashToLong(T obj, HashFunnel<T> funnel);
+
+  @Override
+  Hasher64 getHasher();
 }

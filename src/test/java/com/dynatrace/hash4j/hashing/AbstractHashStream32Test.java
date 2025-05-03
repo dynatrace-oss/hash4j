@@ -64,6 +64,11 @@ public class AbstractHashStream32Test extends AbstractHashStreamTest {
       return new TestHashStream32(hashStream.copy());
     }
 
+    @Override
+    public Hasher32 getHasher() {
+      throw new UnsupportedOperationException();
+    }
+
     public byte[] getData() {
       return hashStream.getData();
     }

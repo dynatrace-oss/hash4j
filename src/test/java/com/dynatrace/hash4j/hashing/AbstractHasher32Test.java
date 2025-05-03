@@ -52,6 +52,11 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
       public HashStream32 copy() {
         return hashStream32.copy();
       }
+
+      @Override
+      public Hasher32 getHasher() {
+        return (Hasher32) hasher;
+      }
     };
   }
 

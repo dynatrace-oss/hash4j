@@ -145,6 +145,17 @@ acceptedBreaks:
     - code: "java.class.removed"
       old: "class com.dynatrace.hash4j.util.Preconditions"
       justification: "removed preconditions"
+  "0.22.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.Hasher128 com.dynatrace.hash4j.hashing.HashStream128::getHasher()"
+      justification: "added new method getHasher to hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.Hasher32 com.dynatrace.hash4j.hashing.HashStream32::getHasher()"
+      justification: "added new method getHasher to hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.Hasher64 com.dynatrace.hash4j.hashing.HashStream64::getHasher()"
+      justification: "added new method getHasher to hash streams"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"

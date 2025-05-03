@@ -57,6 +57,11 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
       public HashStream128 copy() {
         return hashStream128.copy();
       }
+
+      @Override
+      public Hasher128 getHasher() {
+        return (Hasher128) hasher;
+      }
     };
   }
 

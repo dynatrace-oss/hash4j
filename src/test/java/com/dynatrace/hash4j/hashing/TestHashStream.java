@@ -47,6 +47,11 @@ class TestHashStream implements AbstractHashStream {
   }
 
   @Override
+  public Hasher getHasher() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public int getHashBitSize() {
     throw new UnsupportedOperationException();
   }

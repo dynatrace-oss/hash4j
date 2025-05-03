@@ -283,6 +283,11 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
     }
 
     @Override
+    public Hasher64 getHasher() {
+      return AbstractWyhashFinal.this;
+    }
+
+    @Override
     public HashStream64 putByte(byte v) {
       if (offset >= 48) {
         offset -= 48;
