@@ -58,7 +58,6 @@ java {
 	withJavadocJar()
 }
 
-
 sourceSets {
 	jmh
 	main
@@ -70,9 +69,8 @@ sourceSets {
 		dependencies {
 			// add Java 21 dependencies here to make them available for Java 21 code
 		}
-		// include main source code to make it accessible from Java 21
-		compileClasspath += sourceSets.main.output
-		runtimeClasspath += sourceSets.main.output
+		compileClasspath += sourceSets.main.compileClasspath
+		runtimeClasspath += sourceSets.main.runtimeClasspath
 	}
 	java21Test {
 		java {
@@ -81,9 +79,8 @@ sourceSets {
 		dependencies {
 			// add Java 21 dependencies here to make them available for Java 21 code
 		}
-		// include test source code to make it accessible from Java 21
-		compileClasspath += sourceSets.test.output
-		runtimeClasspath += sourceSets.test.output
+		compileClasspath += sourceSets.test.compileClasspath
+		runtimeClasspath += sourceSets.test.runtimeClasspath
 	}
 }
 
@@ -125,7 +122,7 @@ tasks.register("java21Test", Test) {
 	}
 	// run Java 21 specific and generic tests
 	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
-	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath + sourceSets.test.runtimeClasspath
+	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath
 }
 
 tasks.check {
