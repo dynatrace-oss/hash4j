@@ -115,14 +115,17 @@ class ConsistentJumpBackAnchorBucketSetHasher implements ConsistentBucketSetHash
       if (removedBuckets.length <= numRemovedBuckets) {
         removedBuckets =
             Arrays.copyOf(
-                removedBuckets, increaseArraySize(removedBuckets.length, numRemovedBuckets));
+                removedBuckets,
+                Math.min(
+                    historicMaxNumBuckets - 1,
+                    increaseArraySize(removedBuckets.length, numRemovedBuckets)));
       }
       removedBuckets[numRemovedBuckets] = b;
       numRemovedBuckets += 1;
       int n = historicMaxNumBuckets - numRemovedBuckets;
       int h = bucketAtView(n, n + 1, null);
       if (ka.length <= b) {
-        ka = Arrays.copyOf(ka, increaseArraySize(ka.length, b));
+        ka = Arrays.copyOf(ka, Math.min(historicMaxNumBuckets, increaseArraySize(ka.length, b)));
       }
       ka[b] = ((long) (h - b) << 32) | (0xFFFFFFFFL & n);
     }
