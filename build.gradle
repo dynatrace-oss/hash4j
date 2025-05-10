@@ -79,8 +79,8 @@ sourceSets {
 		dependencies {
 			// add Java 21 dependencies here to make them available for Java 21 code
 		}
-		compileClasspath += sourceSets.test.compileClasspath
-		runtimeClasspath += sourceSets.test.runtimeClasspath
+		compileClasspath += sourceSets.java21.runtimeClasspath + sourceSets.test.compileClasspath
+		runtimeClasspath += sourceSets.java21.runtimeClasspath + sourceSets.test.runtimeClasspath
 	}
 }
 
@@ -113,6 +113,7 @@ tasks.test {
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(11)
 	}
+	finalizedBy jacocoTestReport
 }
 
 tasks.register("java21Test", Test) {
@@ -120,13 +121,13 @@ tasks.register("java21Test", Test) {
 	javaLauncher = javaToolchains.launcherFor {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
-	// run Java 21 specific and generic tests
 	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
 	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath
+	finalizedBy "jacocoTestReportJava21"
 }
 
 tasks.check {
-	dependsOn(java21Test)
+	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21"
 }
 
 tasks.withType(Test).configureEach {
@@ -182,9 +183,9 @@ static def readPythonLicense(licenseName) {
 
 apply plugin: "groovy"
 spotless {
-	def googleJavaFormatVersion = "1.25.2"
+	def googleJavaFormatVersion = "1.27.0"
 	def eclipseCdtVersion = "11.6"
-	def blackVersion = "24.10.0"
+	def blackVersion = "25.1.0"
 	def greclipseVersion = "4.32"
 	def specialLicenseHeaders = [
 		new Tuple3("javaImohash", "MIT_IMOHASH", [
@@ -367,10 +368,8 @@ tasks.register("deleteBenchmarkReport", Delete) {
 	delete "build/results/jmh/results.json"
 }
 
-tasks.test.finalizedBy jacocoTestReport
 tasks.jmh.finalizedBy copyBenchmarkReport
 tasks.copyBenchmarkReport.finalizedBy deleteBenchmarkReport
-check.dependsOn jacocoTestCoverageVerification
 tasks.jmh.dependsOn checkStatusForBenchmarks
 tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
 tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
@@ -382,17 +381,29 @@ javadoc {
 }
 
 jacoco {
-	toolVersion = "0.8.11"
+	toolVersion = "0.8.13"
 }
 
 jacocoTestReport {
+	dependsOn test
+}
+
+tasks.register("jacocoTestReportJava21", JacocoReport) {
+	dependsOn java21Test
+	executionData java21Test
+	sourceSets sourceSets.java21
 	reports {
-		xml.required = true
-		csv.required = true
+		html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java21Test")
 	}
 }
 
-jacocoTestCoverageVerification {
+tasks.register("jacocoTestCoverageVerificationJava21", JacocoCoverageVerification) {
+	dependsOn jacocoTestReportJava21
+	executionData jacocoTestReportJava21.executionData
+	sourceSets sourceSets.java21
+}
+
+tasks.withType(JacocoCoverageVerification).configureEach {
 	violationRules {
 		rule {
 			limit {
