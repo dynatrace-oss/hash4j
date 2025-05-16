@@ -67,22 +67,31 @@ sourceSets {
 			srcDir "src/main/java21"
 		}
 		dependencies {
-			// add Java 21 dependencies here to make them available for Java 21 code
+			java21Implementation sourceSets.main.output.classesDirs
 		}
-		compileClasspath += sourceSets.main.compileClasspath
-		runtimeClasspath += sourceSets.main.runtimeClasspath
 	}
 	java21Test {
 		java {
 			srcDir "src/test/java21"
 		}
 		dependencies {
-			// add Java 21 dependencies here to make them available for Java 21 code
+			java21TestImplementation sourceSets.java21.output.classesDirs
+			java21TestImplementation sourceSets.main.output.classesDirs
 		}
-		compileClasspath += sourceSets.java21.runtimeClasspath + sourceSets.test.compileClasspath
-		runtimeClasspath += sourceSets.java21.runtimeClasspath + sourceSets.test.runtimeClasspath
 	}
 }
+
+
+configurations {
+	java21Implementation.extendsFrom implementation
+	java21TestImplementation {
+		extendsFrom testImplementation
+		attributes {
+			attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,  objects.named(LibraryElements.class, LibraryElements.JAR))
+		}
+	}
+}
+
 
 jar {
 	dependsOn "compileJava21Java"
@@ -122,7 +131,7 @@ tasks.register("java21Test", Test) {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
-	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath
+	classpath = files(jar) + sourceSets.java21Test.output + sourceSets.test.runtimeClasspath
 	finalizedBy "jacocoTestReportJava21"
 }
 
