@@ -403,6 +403,8 @@ tasks.register("jacocoTestReportJava21", JacocoReport) {
 	sourceSets sourceSets.java21
 	reports {
 		html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java21Test")
+		xml.required = true
+		csv.required = true
 	}
 }
 
