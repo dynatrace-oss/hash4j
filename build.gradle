@@ -395,6 +395,10 @@ jacoco {
 
 jacocoTestReport {
 	dependsOn test
+	reports {
+		xml.required = true
+		csv.required = true
+	}
 }
 
 tasks.register("jacocoTestReportJava21", JacocoReport) {
