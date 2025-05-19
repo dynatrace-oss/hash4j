@@ -71,23 +71,12 @@ sourceSets {
 		compileClasspath += sourceSets.test.output + sourceSets.java21.output + sourceSets.main.output
 		runtimeClasspath += sourceSets.test.output
 	}
-	java24 {
-		java.srcDir "src/main/java24"
-		compileClasspath += sourceSets.java21.output + sourceSets.main.output
-	}
-	java24Test {
-		java.srcDir "src/test/java24"
-		compileClasspath += sourceSets.java21Test.output + sourceSets.test.output + sourceSets.java24.output + sourceSets.java21.output + sourceSets.main.output
-		runtimeClasspath += sourceSets.java21Test.output + sourceSets.test.output
-	}
 }
 
 
 configurations {
 	java21TestImplementation.extendsFrom testImplementation
-	java24TestImplementation.extendsFrom java21TestImplementation
 	java21TestRuntimeOnly.extendsFrom testRuntimeOnly
-	java24TestRuntimeOnly.extendsFrom java21TestRuntimeOnly
 }
 
 
