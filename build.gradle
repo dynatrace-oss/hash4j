@@ -63,34 +63,33 @@ sourceSets {
 	main
 	test
 	java21 {
-		java {
-			srcDir "src/main/java21"
-		}
-		dependencies {
-			java21Implementation sourceSets.main.output.classesDirs
-		}
+		java.srcDir "src/main/java21"
+		compileClasspath += sourceSets.main.output
 	}
 	java21Test {
-		java {
-			srcDir "src/test/java21"
-		}
-		dependencies {
-			java21TestImplementation sourceSets.java21.output.classesDirs
-			java21TestImplementation sourceSets.main.output.classesDirs
-		}
+		java.srcDir "src/test/java21"
+		compileClasspath += sourceSets.test.output + sourceSets.java21.output + sourceSets.main.output
+		runtimeClasspath += sourceSets.test.output
+	}
+	java24 {
+		java.srcDir "src/main/java24"
+		compileClasspath += sourceSets.java21.output + sourceSets.main.output
+	}
+	java24Test {
+		java.srcDir "src/test/java24"
+		compileClasspath += sourceSets.java21Test.output + sourceSets.test.output + sourceSets.java24.output + sourceSets.java21.output + sourceSets.main.output
+		runtimeClasspath += sourceSets.java21Test.output + sourceSets.test.output
 	}
 }
 
 
 configurations {
-	java21Implementation.extendsFrom implementation
-	java21TestImplementation {
-		extendsFrom testImplementation
-		attributes {
-			attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,  objects.named(LibraryElements.class, LibraryElements.JAR))
-		}
-	}
+	java21TestImplementation.extendsFrom testImplementation
+	java24TestImplementation.extendsFrom java21TestImplementation
+	java21TestRuntimeOnly.extendsFrom testRuntimeOnly
+	java24TestRuntimeOnly.extendsFrom java21TestRuntimeOnly
 }
+
 
 
 jar {
@@ -103,20 +102,10 @@ jar {
 	}
 }
 
-tasks.compileJava {
-	options.release.set(11)
-}
-
-tasks.compileTestJava {
-	options.release.set(11)
-}
-
-tasks.compileJava21Java {
-	options.release.set(21)
-}
-tasks.compileJava21TestJava {
-	options.release.set(21)
-}
+tasks.compileJava.options.release.set(11)
+tasks.compileTestJava.options.release.set(11)
+tasks.compileJava21Java.options.release.set(21)
+tasks.compileJava21TestJava.options.release.set(21)
 
 tasks.test {
 	javaLauncher = javaToolchains.launcherFor {
@@ -131,7 +120,7 @@ tasks.register("java21Test", Test) {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
-	classpath = files(jar) + sourceSets.java21Test.output + sourceSets.test.runtimeClasspath
+	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath
 	finalizedBy "jacocoTestReportJava21"
 }
 
@@ -395,20 +384,19 @@ jacoco {
 
 jacocoTestReport {
 	dependsOn test
-	reports {
-		xml.required = true
-		csv.required = true
-	}
 }
 
 tasks.register("jacocoTestReportJava21", JacocoReport) {
 	dependsOn java21Test
 	executionData java21Test
 	sourceSets sourceSets.java21
+	reports.html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java21Test")
+}
+
+tasks.withType(JacocoReport).configureEach {
 	reports {
-		html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java21Test")
-		xml.required = true
-		csv.required = true
+		xml.required = true // needed for sonarqube
+		csv.required = true // needed for sonarqube
 	}
 }
 
