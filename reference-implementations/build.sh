@@ -11,7 +11,7 @@ komihash_4_3/komihash_4_3_checksum_config.cpp \
 komihash_4_7/komihash_4_7_checksum_config.cpp \
 komihash_5_0/komihash_5_0_checksum_config.cpp \
 komihash_5_10/komihash_5_10_checksum_config.cpp \
-komihash_5_26/komihash_5_26_checksum_config.cpp \
+komihash_5_27/komihash_5_27_checksum_config.cpp \
 murmur3_32/murmur3_32_checksum_config.cpp \
 murmur3_128/murmur3_128_checksum_config.cpp \
 murmur3_128/smhasher/src/MurmurHash3.cpp \
