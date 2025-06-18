@@ -156,6 +156,26 @@ acceptedBreaks:
     - code: "java.method.addedToInterface"
       new: "method com.dynatrace.hash4j.hashing.Hasher64 com.dynatrace.hash4j.hashing.HashStream64::getHasher()"
       justification: "added new method getHasher to hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method int com.dynatrace.hash4j.hashing.Hasher32::hashIntIntToInt(int,\
+        \ int)"
+      justification: "additional methods for direct hashing of ints and longs"
+    - code: "java.method.addedToInterface"
+      new: "method int com.dynatrace.hash4j.hashing.Hasher32::hashIntToInt(int)"
+      justification: "additional methods for direct hashing of ints and longs"
+    - code: "java.method.addedToInterface"
+      new: "method int com.dynatrace.hash4j.hashing.Hasher32::hashLongToInt(long)"
+      justification: "additional methods for direct hashing of ints and longs"
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashIntIntToLong(int,\
+        \ int)"
+      justification: "additional methods for direct hashing of ints and longs"
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashIntToLong(int)"
+      justification: "additional methods for direct hashing of ints and longs"
+    - code: "java.method.addedToInterface"
+      new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongToLong(long)"
+      justification: "additional methods for direct hashing of ints and longs"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"

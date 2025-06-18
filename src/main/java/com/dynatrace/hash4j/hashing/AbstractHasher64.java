@@ -43,23 +43,28 @@ interface AbstractHasher64 extends AbstractHasher32, Hasher64 {
   }
 
   @Override
-  default long hashLongLongToLong(long v1, long v2) {
-    return hashStream().putLong(v1).putLong(v2).getAsLong();
+  default int hashIntToInt(int v) {
+    return (int) hashIntToLong(v);
   }
 
   @Override
-  default long hashLongLongLongToLong(long v1, long v2, long v3) {
-    return hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong();
+  default long hashIntToLong(int v) {
+    return hashStream().putInt(v).getAsLong();
   }
 
   @Override
-  default long hashLongIntToLong(long v1, int v2) {
-    return hashStream().putLong(v1).putInt(v2).getAsLong();
+  default int hashIntIntToInt(int v1, int v2) {
+    return (int) hashIntIntToLong(v1, v2);
   }
 
   @Override
-  default long hashIntLongToLong(int v1, long v2) {
-    return hashStream().putInt(v1).putLong(v2).getAsLong();
+  default long hashIntIntToLong(int v1, int v2) {
+    return hashLongToLong((v1 & 0xFFFFFFFFL) | ((long) v2 << 32));
+  }
+
+  @Override
+  default int hashIntIntIntToInt(int v1, int v2, int v3) {
+    return (int) hashIntIntIntToLong(v1, v2, v3);
   }
 
   @Override
@@ -68,8 +73,33 @@ interface AbstractHasher64 extends AbstractHasher32, Hasher64 {
   }
 
   @Override
+  default int hashIntLongToInt(int v1, long v2) {
+    return (int) hashIntLongToLong(v1, v2);
+  }
+
+  @Override
+  default long hashIntLongToLong(int v1, long v2) {
+    return hashStream().putInt(v1).putLong(v2).getAsLong();
+  }
+
+  @Override
+  default int hashLongToInt(long v) {
+    return (int) hashLongToLong(v);
+  }
+
+  @Override
+  default long hashLongToLong(long v) {
+    return hashStream().putLong(v).getAsLong();
+  }
+
+  @Override
   default int hashLongLongToInt(long v1, long v2) {
     return (int) hashLongLongToLong(v1, v2);
+  }
+
+  @Override
+  default long hashLongLongToLong(long v1, long v2) {
+    return hashStream().putLong(v1).putLong(v2).getAsLong();
   }
 
   @Override
@@ -78,17 +108,17 @@ interface AbstractHasher64 extends AbstractHasher32, Hasher64 {
   }
 
   @Override
+  default long hashLongLongLongToLong(long v1, long v2, long v3) {
+    return hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong();
+  }
+
+  @Override
   default int hashLongIntToInt(long v1, int v2) {
     return (int) hashLongIntToLong(v1, v2);
   }
 
   @Override
-  default int hashIntLongToInt(int v1, long v2) {
-    return (int) hashIntLongToLong(v1, v2);
-  }
-
-  @Override
-  default int hashIntIntIntToInt(int v1, int v2, int v3) {
-    return (int) hashIntIntIntToLong(v1, v2, v3);
+  default long hashLongIntToLong(long v1, int v2) {
+    return hashStream().putLong(v1).putInt(v2).getAsLong();
   }
 }

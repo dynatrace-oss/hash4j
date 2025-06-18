@@ -515,6 +515,34 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
   }
 
   @Override
+  public long hashIntToLong(int v) {
+    long a = ((long) v << 32) | (v & 0xFFFFFFFFL);
+    return finish(a, a, seed, 4);
+  }
+
+  @Override
+  public long hashIntIntToLong(int v1, int v2) {
+    return finish(
+        ((long) v1 << 32) | (v2 & 0xFFFFFFFFL), ((long) v2 << 32) | (v1 & 0xFFFFFFFFL), seed, 8);
+  }
+
+  @Override
+  public long hashIntIntIntToLong(int v1, int v2, int v3) {
+    long x = v2 & 0xFFFFFFFFL;
+    return finish(((long) v1 << 32) | x, ((long) v3 << 32) | x, seed, 12);
+  }
+
+  @Override
+  public long hashIntLongToLong(int v1, long v2) {
+    return finish(((long) v1 << 32) | (v2 & 0xFFFFFFFFL), v2, seed, 12);
+  }
+
+  @Override
+  public long hashLongToLong(long v) {
+    return finish((v << 32) | (v >>> 32), v, seed, 8);
+  }
+
+  @Override
   public long hashLongLongToLong(long v1, long v2) {
     return finish(
         (v1 << 32) | (v2 & 0xFFFFFFFFL), (v2 & 0xFFFFFFFF00000000L) | (v1 >>> 32), seed, 16);
@@ -529,16 +557,5 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
   public long hashLongIntToLong(long v1, int v2) {
     long x = v1 >>> 32;
     return finish((v1 << 32) | x, ((long) v2 << 32) | x, seed, 12);
-  }
-
-  @Override
-  public long hashIntLongToLong(int v1, long v2) {
-    return finish(((long) v1 << 32) | (v2 & 0xFFFFFFFFL), v2, seed, 12);
-  }
-
-  @Override
-  public long hashIntIntIntToLong(int v1, int v2, int v3) {
-    long x = v2 & 0xFFFFFFFFL;
-    return finish(((long) v1 << 32) | x, ((long) v3 << 32) | x, seed, 12);
   }
 }

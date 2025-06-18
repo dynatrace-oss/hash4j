@@ -1202,86 +1202,105 @@ abstract class AbstractHasherTest {
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testHashLongLongToLong(Hasher hasher) {
-    if (!(hasher instanceof Hasher64)) return;
-    final Hasher64 hasher64 = (Hasher64) hasher;
-    final Hasher64 hasherUsingDefaultImplementation =
-        getHasher64UsingDefaultImplementations(hasher64);
+  void testHashIntToInt(Hasher hasher) {
+    if (!(hasher instanceof Hasher32)) return;
+    final Hasher32 hasher32 = (Hasher32) hasher;
+    final Hasher32 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher32);
     int numCycles = 30;
-    SplittableRandom random = new SplittableRandom(0x983c79631cff1b49L);
-    byte[] data = new byte[16];
+    SplittableRandom random = new SplittableRandom(0x07a7515095360adcL);
+    byte[] data = new byte[4];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
-      long v1 = getLong(data, 0);
-      long v2 = getLong(data, 8);
-      assertThat(hasher64.hashLongLongToLong(v1, v2))
-          .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).getAsLong())
-          .isEqualTo(hasher64.hashBytesToLong(data))
-          .isEqualTo(hasherUsingDefaultImplementation.hashLongLongToLong(v1, v2));
+      int v = getInt(data, 0);
+      assertThat(hasher32.hashIntToInt(v))
+          .isEqualTo(hasher32.hashStream().putInt(v).getAsInt())
+          .isEqualTo(hasher32.hashBytesToInt(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntToInt(v));
     }
   }
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testHashLongLongLongToLong(Hasher hasher) {
+  void testHashIntToLong(Hasher hasher) {
     if (!(hasher instanceof Hasher64)) return;
     final Hasher64 hasher64 = (Hasher64) hasher;
     final Hasher64 hasherUsingDefaultImplementation =
         getHasher64UsingDefaultImplementations(hasher64);
     int numCycles = 30;
-    SplittableRandom random = new SplittableRandom(0xcbc1a1e7856cc27eL);
-    byte[] data = new byte[24];
+    SplittableRandom random = new SplittableRandom(0xb0f8a12bf764f27aL);
+    byte[] data = new byte[4];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
-      long v1 = getLong(data, 0);
-      long v2 = getLong(data, 8);
-      long v3 = getLong(data, 16);
-      assertThat(hasher64.hashLongLongLongToLong(v1, v2, v3))
-          .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong())
+      int v = getInt(data, 0);
+      assertThat(hasher64.hashIntToLong(v))
+          .isEqualTo(hasher64.hashStream().putInt(v).getAsLong())
           .isEqualTo(hasher64.hashBytesToLong(data))
-          .isEqualTo(hasherUsingDefaultImplementation.hashLongLongLongToLong(v1, v2, v3));
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntToLong(v));
     }
   }
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testHashLongIntToLong(Hasher hasher) {
-    if (!(hasher instanceof Hasher64)) return;
-    final Hasher64 hasher64 = (Hasher64) hasher;
-    final Hasher64 hasherUsingDefaultImplementation =
-        getHasher64UsingDefaultImplementations(hasher64);
+  void testHashIntIntToInt(Hasher hasher) {
+    if (!(hasher instanceof Hasher32)) return;
+    final Hasher32 hasher32 = (Hasher32) hasher;
+    final Hasher32 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher32);
     int numCycles = 30;
-    SplittableRandom random = new SplittableRandom(0xc96c7abc2271f116L);
-    byte[] data = new byte[12];
+    SplittableRandom random = new SplittableRandom(0x365b4b47b3a5193eL);
+    byte[] data = new byte[8];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
-      long v1 = getLong(data, 0);
-      int v2 = getInt(data, 8);
-      assertThat(hasher64.hashLongIntToLong(v1, v2))
-          .isEqualTo(hasher64.hashStream().putLong(v1).putInt(v2).getAsLong())
-          .isEqualTo(hasher64.hashBytesToLong(data))
-          .isEqualTo(hasherUsingDefaultImplementation.hashLongIntToLong(v1, v2));
+      int v1 = getInt(data, 0);
+      int v2 = getInt(data, 4);
+      assertThat(hasher32.hashIntIntToInt(v1, v2))
+          .isEqualTo(hasher32.hashStream().putInt(v1).putInt(v2).getAsInt())
+          .isEqualTo(hasher32.hashBytesToInt(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntIntToInt(v1, v2));
     }
   }
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testHashIntLongToLong(Hasher hasher) {
+  void testHashIntIntToLong(Hasher hasher) {
     if (!(hasher instanceof Hasher64)) return;
     final Hasher64 hasher64 = (Hasher64) hasher;
     final Hasher64 hasherUsingDefaultImplementation =
         getHasher64UsingDefaultImplementations(hasher64);
     int numCycles = 30;
-    SplittableRandom random = new SplittableRandom(0xd8bcfbc67ca54c67L);
+    SplittableRandom random = new SplittableRandom(0x90b40542d7d5d1d1L);
+    byte[] data = new byte[8];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      int v1 = getInt(data, 0);
+      int v2 = getInt(data, 4);
+      assertThat(hasher64.hashIntIntToLong(v1, v2))
+          .isEqualTo(hasher64.hashStream().putInt(v1).putInt(v2).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntIntToLong(v1, v2));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashIntIntIntToInt(Hasher hasher) {
+    if (!(hasher instanceof Hasher32)) return;
+    final Hasher32 hasher32 = (Hasher32) hasher;
+    final Hasher32 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher32);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0x17bbe71e06c336e1L);
     byte[] data = new byte[12];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
       int v1 = getInt(data, 0);
-      long v2 = getLong(data, 4);
-      assertThat(hasher64.hashIntLongToLong(v1, v2))
-          .isEqualTo(hasher64.hashStream().putInt(v1).putLong(v2).getAsLong())
-          .isEqualTo(hasher64.hashBytesToLong(data))
-          .isEqualTo(hasherUsingDefaultImplementation.hashIntLongToLong(v1, v2));
+      int v2 = getInt(data, 4);
+      int v3 = getInt(data, 8);
+      assertThat(hasher32.hashIntIntIntToInt(v1, v2, v3))
+          .isEqualTo(hasher32.hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt())
+          .isEqualTo(hasher32.hashBytesToInt(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntIntIntToInt(v1, v2, v3));
     }
   }
 
@@ -1309,6 +1328,88 @@ abstract class AbstractHasherTest {
 
   @ParameterizedTest
   @MethodSource("getHashers")
+  void testHashIntLongToInt(Hasher hasher) {
+    if (!(hasher instanceof Hasher32)) return;
+    final Hasher32 hasher32 = (Hasher32) hasher;
+    final Hasher32 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher32);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0xad336777bf507094L);
+    byte[] data = new byte[12];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      int v1 = getInt(data, 0);
+      long v2 = getLong(data, 4);
+      assertThat(hasher32.hashIntLongToInt(v1, v2))
+          .isEqualTo(hasher32.hashStream().putInt(v1).putLong(v2).getAsInt())
+          .isEqualTo(hasher32.hashBytesToInt(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntLongToInt(v1, v2));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashIntLongToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher64);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0xd8bcfbc67ca54c67L);
+    byte[] data = new byte[12];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      int v1 = getInt(data, 0);
+      long v2 = getLong(data, 4);
+      assertThat(hasher64.hashIntLongToLong(v1, v2))
+          .isEqualTo(hasher64.hashStream().putInt(v1).putLong(v2).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashIntLongToLong(v1, v2));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashLongToInt(Hasher hasher) {
+    if (!(hasher instanceof Hasher32)) return;
+    final Hasher32 hasher32 = (Hasher32) hasher;
+    final Hasher32 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher32);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0x98c15b040f7e6cf7L);
+    byte[] data = new byte[8];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      long v = getLong(data, 0);
+      assertThat(hasher32.hashLongToInt(v))
+          .isEqualTo(hasher32.hashStream().putLong(v).getAsInt())
+          .isEqualTo(hasher32.hashBytesToInt(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongToInt(v));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashLongToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher64);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0xb25e9d93a8958bc9L);
+    byte[] data = new byte[8];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      long v = getLong(data, 0);
+      assertThat(hasher64.hashLongToLong(v))
+          .isEqualTo(hasher64.hashStream().putLong(v).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongToLong(v));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
   void testHashLongLongToInt(Hasher hasher) {
     if (!(hasher instanceof Hasher32)) return;
     final Hasher32 hasher32 = (Hasher32) hasher;
@@ -1325,6 +1426,27 @@ abstract class AbstractHasherTest {
           .isEqualTo(hasher32.hashStream().putLong(v1).putLong(v2).getAsInt())
           .isEqualTo(hasher32.hashBytesToInt(data))
           .isEqualTo(hasherUsingDefaultImplementation.hashLongLongToInt(v1, v2));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testHashLongLongToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher64);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0x983c79631cff1b49L);
+    byte[] data = new byte[16];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      long v1 = getLong(data, 0);
+      long v2 = getLong(data, 8);
+      assertThat(hasher64.hashLongLongToLong(v1, v2))
+          .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongLongToLong(v1, v2));
     }
   }
 
@@ -1352,6 +1474,28 @@ abstract class AbstractHasherTest {
 
   @ParameterizedTest
   @MethodSource("getHashers")
+  void testHashLongLongLongToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher64);
+    int numCycles = 30;
+    SplittableRandom random = new SplittableRandom(0xcbc1a1e7856cc27eL);
+    byte[] data = new byte[24];
+    for (int i = 0; i < numCycles; ++i) {
+      random.nextBytes(data);
+      long v1 = getLong(data, 0);
+      long v2 = getLong(data, 8);
+      long v3 = getLong(data, 16);
+      assertThat(hasher64.hashLongLongLongToLong(v1, v2, v3))
+          .isEqualTo(hasher64.hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongLongLongToLong(v1, v2, v3));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
   void testHashLongIntToInt(Hasher hasher) {
     if (!(hasher instanceof Hasher32)) return;
     final Hasher32 hasher32 = (Hasher32) hasher;
@@ -1373,44 +1517,22 @@ abstract class AbstractHasherTest {
 
   @ParameterizedTest
   @MethodSource("getHashers")
-  void testHashIntLongToInt(Hasher hasher) {
-    if (!(hasher instanceof Hasher32)) return;
-    final Hasher32 hasher32 = (Hasher32) hasher;
-    final Hasher32 hasherUsingDefaultImplementation =
-        getHasher64UsingDefaultImplementations(hasher32);
+  void testHashLongIntToLong(Hasher hasher) {
+    if (!(hasher instanceof Hasher64)) return;
+    final Hasher64 hasher64 = (Hasher64) hasher;
+    final Hasher64 hasherUsingDefaultImplementation =
+        getHasher64UsingDefaultImplementations(hasher64);
     int numCycles = 30;
-    SplittableRandom random = new SplittableRandom(0xad336777bf507094L);
+    SplittableRandom random = new SplittableRandom(0xc96c7abc2271f116L);
     byte[] data = new byte[12];
     for (int i = 0; i < numCycles; ++i) {
       random.nextBytes(data);
-      int v1 = getInt(data, 0);
-      long v2 = getLong(data, 4);
-      assertThat(hasher32.hashIntLongToInt(v1, v2))
-          .isEqualTo(hasher32.hashStream().putInt(v1).putLong(v2).getAsInt())
-          .isEqualTo(hasher32.hashBytesToInt(data))
-          .isEqualTo(hasherUsingDefaultImplementation.hashIntLongToInt(v1, v2));
-    }
-  }
-
-  @ParameterizedTest
-  @MethodSource("getHashers")
-  void testHashIntIntIntToInt(Hasher hasher) {
-    if (!(hasher instanceof Hasher32)) return;
-    final Hasher32 hasher32 = (Hasher32) hasher;
-    final Hasher32 hasherUsingDefaultImplementation =
-        getHasher64UsingDefaultImplementations(hasher32);
-    int numCycles = 30;
-    SplittableRandom random = new SplittableRandom(0x17bbe71e06c336e1L);
-    byte[] data = new byte[12];
-    for (int i = 0; i < numCycles; ++i) {
-      random.nextBytes(data);
-      int v1 = getInt(data, 0);
-      int v2 = getInt(data, 4);
-      int v3 = getInt(data, 8);
-      assertThat(hasher32.hashIntIntIntToInt(v1, v2, v3))
-          .isEqualTo(hasher32.hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt())
-          .isEqualTo(hasher32.hashBytesToInt(data))
-          .isEqualTo(hasherUsingDefaultImplementation.hashIntIntIntToInt(v1, v2, v3));
+      long v1 = getLong(data, 0);
+      int v2 = getInt(data, 8);
+      assertThat(hasher64.hashLongIntToLong(v1, v2))
+          .isEqualTo(hasher64.hashStream().putLong(v1).putInt(v2).getAsLong())
+          .isEqualTo(hasher64.hashBytesToLong(data))
+          .isEqualTo(hasherUsingDefaultImplementation.hashLongIntToLong(v1, v2));
     }
   }
 

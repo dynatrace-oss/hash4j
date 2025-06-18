@@ -618,6 +618,26 @@ final class Murmur3_128 implements AbstractHasher128 {
   }
 
   @Override
+  public long hashIntToLong(int v) {
+    return finalizeHashToLong(seed ^ mixK1(v & 0xFFFFFFFFL), seed, 4);
+  }
+
+  @Override
+  public long hashIntIntIntToLong(int v1, int v2, int v3) {
+    return finish12Bytes(v3 & 0xFFFFFFFFL, (v1 & 0xFFFFFFFFL) | ((long) v2 << 32));
+  }
+
+  @Override
+  public long hashIntLongToLong(int v1, long v2) {
+    return finish12Bytes(v2 >>> 32, (v1 & 0xFFFFFFFFL) | (v2 << 32));
+  }
+
+  @Override
+  public long hashLongToLong(long v) {
+    return finalizeHashToLong(seed ^ mixK1(v), seed, 8);
+  }
+
+  @Override
   public long hashLongLongToLong(long v1, long v2) {
     long h1 = seed;
     long h2 = seed;
@@ -644,26 +664,16 @@ final class Murmur3_128 implements AbstractHasher128 {
     return finalizeHashToLong(h1, h2, 24);
   }
 
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    return finish12Bytes(v2 & 0xFFFFFFFFL, v1);
+  }
+
   private long finish12Bytes(long a, long b) {
     long h1 = seed;
     long h2 = seed;
     h2 ^= mixK2(a & 0xFFFFFFFFL);
     h1 ^= mixK1(b);
     return finalizeHashToLong(h1, h2, 12);
-  }
-
-  @Override
-  public long hashLongIntToLong(long v1, int v2) {
-    return finish12Bytes(v2 & 0xFFFFFFFFL, v1);
-  }
-
-  @Override
-  public long hashIntIntIntToLong(int v1, int v2, int v3) {
-    return finish12Bytes(v3 & 0xFFFFFFFFL, (v1 & 0xFFFFFFFFL) | ((long) v2 << 32));
-  }
-
-  @Override
-  public long hashIntLongToLong(int v1, long v2) {
-    return finish12Bytes(v2 >>> 32, (v1 & 0xFFFFFFFFL) | (v2 << 32));
   }
 }

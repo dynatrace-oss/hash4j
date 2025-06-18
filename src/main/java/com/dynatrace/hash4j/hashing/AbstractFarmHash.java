@@ -230,6 +230,32 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
   protected abstract long hashCharsToLongLength33Plus(CharSequence input);
 
   @Override
+  public long hashIntToLong(int v) {
+    long a = v & 0xFFFFFFFFL;
+    return finalizeHash(hashLength16(4 + (a << 3), a, K2 + 8));
+  }
+
+  @Override
+  public long hashIntIntIntToLong(int v1, int v2, int v3) {
+    return finish12Bytes(
+        (v1 & 0xFFFFFFFFL) + ((long) v2 << 32), (v2 & 0xFFFFFFFFL) + ((long) v3 << 32));
+  }
+
+  @Override
+  public long hashIntLongToLong(int v1, long v2) {
+    return finish12Bytes((v1 & 0xFFFFFFFFL) + (v2 << 32), v2);
+  }
+
+  @Override
+  public long hashLongToLong(long v) {
+    long mul = K2 + 16;
+    long a = K2 + v;
+    long c = rotateRight(v, 37) * mul + a;
+    long d = (rotateRight(a, 25) + v) * mul;
+    return finalizeHash(hashLength16(c, d, mul));
+  }
+
+  @Override
   public final long hashLongLongToLong(long v1, long v2) {
     long mul = K2 + 32;
     long a = v1 + K2;
@@ -252,17 +278,6 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
   @Override
   public long hashLongIntToLong(long v1, int v2) {
     return finish12Bytes(v1, (v1 >>> 32) | ((long) v2 << 32));
-  }
-
-  @Override
-  public long hashIntLongToLong(int v1, long v2) {
-    return finish12Bytes((v1 & 0xFFFFFFFFL) + (v2 << 32), v2);
-  }
-
-  @Override
-  public long hashIntIntIntToLong(int v1, int v2, int v3) {
-    return finish12Bytes(
-        (v1 & 0xFFFFFFFFL) + ((long) v2 << 32), (v2 & 0xFFFFFFFFL) + ((long) v3 << 32));
   }
 
   private long finish12Bytes(long a, long b) {

@@ -259,7 +259,7 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
       if (length >= 4) {
         long lo = getInt(input, off) & 0xFFFFFFFFL;
         long hi = getInt(input, off + length - 4);
-        long keyed = (lo + (hi << 32)) ^ bitflip23;
+        long keyed = lo ^ (hi << 32) ^ bitflip23;
         long pl = INIT_ACC_1 + (length << 2);
         long low = keyed * pl;
         long high = unsignedMultiplyHigh(keyed, pl) + (low << 1);
@@ -534,7 +534,7 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
       if (len >= 2) {
         long lo = getInt(charSequence, 0) & 0xFFFFFFFFL;
         long hi = getInt(charSequence, len - 2);
-        long keyed = (lo + (hi << 32)) ^ bitflip23;
+        long keyed = lo ^ (hi << 32) ^ bitflip23;
         long pl = INIT_ACC_1 + (len << 3);
         long low = keyed * pl;
         long high = unsignedMultiplyHigh(keyed, pl) + (low << 1);
@@ -760,6 +760,32 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
     }
 
     return finalizeHash((long) len << 1, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
+  }
+
+  @Override
+  public long hashIntToLong(int v) {
+    long keyed = (v & 0xFFFFFFFFL) ^ ((long) v << 32) ^ bitflip23;
+    long pl = INIT_ACC_1 + 16;
+    long low = keyed * pl;
+    long high = unsignedMultiplyHigh(keyed, pl) + (low << 1);
+    low ^= (high >>> 3);
+    low ^= low >>> 35;
+    low *= 0x9FB21C651E98DF25L;
+    low ^= low >>> 28;
+    return low;
+  }
+
+  @Override
+  public long hashLongToLong(long v) {
+    long keyed = v ^ bitflip23;
+    long pl = INIT_ACC_1 + 32;
+    long low = keyed * pl;
+    long high = unsignedMultiplyHigh(keyed, pl) + (low << 1);
+    low ^= (high >>> 3);
+    low ^= low >>> 35;
+    low *= 0x9FB21C651E98DF25L;
+    low ^= low >>> 28;
+    return low;
   }
 
   @Override

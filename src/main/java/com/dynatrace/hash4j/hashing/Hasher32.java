@@ -69,6 +69,61 @@ public interface Hasher32 extends Hasher {
   int hashCharsToInt(CharSequence input);
 
   /**
+   * Hashes a 32-bit {@code int} value into a 32-bit {@code int} value.
+   *
+   * <p>Equivalent to {@code hashStream().putInt(v).getAsInt();}
+   *
+   * @param v value
+   * @return the hash value
+   */
+  int hashIntToInt(int v);
+
+  /**
+   * Hashes/Mixes two 32-bit {@code int} values into a 32-bit {@code int} value.
+   *
+   * <p>Equivalent to {@code hashStream().putInt(v1).putInt(v2).getAsInt();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @return the hash value
+   */
+  int hashIntIntToInt(int v1, int v2);
+
+  /**
+   * Hashes/Mixes three 32-bit {@code int} values into a 32-bit {@code int} value.
+   *
+   * <p>Equivalent to {@code hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @param v3 third value
+   * @return the hash value
+   */
+  int hashIntIntIntToInt(int v1, int v2, int v3);
+
+  /**
+   * Hashes/Mixes a 32-bit {@code int} value and a 64-bit {@code long} value into a 32-bit {@code
+   * int} value.
+   *
+   * <p>Equivalent to {@code hashStream().putInt(v1).putLong(v2).getAsInt();}
+   *
+   * @param v1 first value
+   * @param v2 second value
+   * @return the hash value
+   */
+  int hashIntLongToInt(int v1, long v2);
+
+  /**
+   * Hashes a 64-bit {@code long} value into a 32-bit {@code int} value.
+   *
+   * <p>Equivalent to {@code hashStream().putLong(v).getAsInt();}
+   *
+   * @param v value
+   * @return the hash value
+   */
+  int hashLongToInt(long v);
+
+  /**
    * Hashes/Mixes two 64-bit {@code long} values into a 32-bit {@code int} value.
    *
    * <p>Equivalent to {@code hashStream().putLong(v1).putLong(v2).getAsInt();}
@@ -102,28 +157,4 @@ public interface Hasher32 extends Hasher {
    * @return the hash value
    */
   int hashLongIntToInt(long v1, int v2);
-
-  /**
-   * Hashes/Mixes a 32-bit {@code int} value and a 64-bit {@code long} value into a 32-bit {@code
-   * int} value.
-   *
-   * <p>Equivalent to {@code hashStream().putInt(v1).putLong(v2).getAsInt();}
-   *
-   * @param v1 first value
-   * @param v2 second value
-   * @return the hash value
-   */
-  int hashIntLongToInt(int v1, long v2);
-
-  /**
-   * Hashes/Mixes three 32-bit {@code int} values into a 32-bit {@code int} value.
-   *
-   * <p>Equivalent to {@code hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt();}
-   *
-   * @param v1 first value
-   * @param v2 second value
-   * @param v3 third value
-   * @return the hash value
-   */
-  int hashIntIntIntToInt(int v1, int v2, int v3);
 }
