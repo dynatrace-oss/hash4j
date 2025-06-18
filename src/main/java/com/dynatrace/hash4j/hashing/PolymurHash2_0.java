@@ -43,7 +43,7 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-class PolymurHash2_0 implements AbstractHasher64 {
+final class PolymurHash2_0 implements AbstractHasher64 {
 
   private static final long POLYMUR_P611 = (1L << 61) - 1;
 

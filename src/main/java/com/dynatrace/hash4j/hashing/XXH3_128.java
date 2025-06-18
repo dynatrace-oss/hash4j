@@ -40,7 +40,7 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-class XXH3_128 extends XXH3Base implements AbstractHasher128 {
+final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
 
   private final long secShift12;
   private final long secShift13;

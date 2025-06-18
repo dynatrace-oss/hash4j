@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
-class Murmur3_128 implements AbstractHasher128 {
+final class Murmur3_128 implements AbstractHasher128 {
 
   private static final long C1 = 0x87c37b91114253d5L;
   private static final long C2 = 0x4cf5ad432745937fL;
@@ -614,11 +614,6 @@ class Murmur3_128 implements AbstractHasher128 {
       }
       bitCount += ((long) len) << 4;
       return this;
-    }
-
-    @Override
-    public int getHashBitSize() {
-      return 128;
     }
   }
 

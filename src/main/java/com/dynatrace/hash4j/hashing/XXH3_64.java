@@ -39,7 +39,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
-class XXH3_64 extends XXH3Base {
+final class XXH3_64 extends XXH3Base {
 
   private final long secShift12;
   private final long secShift13;

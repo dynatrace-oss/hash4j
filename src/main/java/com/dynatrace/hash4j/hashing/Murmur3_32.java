@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
-class Murmur3_32 implements AbstractHasher32 {
+final class Murmur3_32 implements AbstractHasher32 {
 
   private static final int C1 = 0xcc9e2d51;
   private static final int C2 = 0x1b873593;
@@ -304,11 +304,6 @@ class Murmur3_32 implements AbstractHasher32 {
         }
       }
       return this;
-    }
-
-    @Override
-    public int getHashBitSize() {
-      return 32;
     }
   }
 

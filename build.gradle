@@ -214,7 +214,7 @@ spotless {
 		importOrder()
 		removeSemicolons()
 		greclipse(greclipseVersion)
-		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
+		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE"), "(package|import|public|class|module|plugins)"
 		target("**/build.gradle")
 	}
 	python {
@@ -272,6 +272,9 @@ jmh {
 	warmup = "1s"
 	iterations = 20
 	resultFormat = "JSON"
+	if (project.hasProperty("benchmarkIncludes")) {
+		includes = [benchmarkIncludes.trim()]
+	}
 }
 
 tasks.register("evaluateBenchmarks", Exec) {
@@ -335,8 +338,8 @@ tasks.register("checkStatusForBenchmarks") {
 	outputs.upToDateWhen { false }
 	doLast {
 		def status_text = "git status --porcelain".execute().text
-		if(status_text?.trim()) {
-			throw new GradleException("There are uncommitted changes:\n" + status_text)
+		if(status_text?.trim() && !(project.hasProperty('benchmarkIgnoreGitChanges') && benchmarkIgnoreGitChanges.trim().equals("true"))) {
+			throw new GradleException('There are uncommitted changes:\n' + status_text)
 		}
 	}
 }
@@ -346,7 +349,11 @@ tasks.register("copyBenchmarkReport", Copy) {
 	def revision = proc.text.trim()
 	from("build/results/jmh/") {
 		include "results.*"
-		rename "results", new Date().format("yyyy-MM-dd-HH-mm-ss") + " " + revision
+		if (project.hasProperty('benchmarkPrefix') && !benchmarkPrefix.trim().isEmpty()) {
+			rename 'results', benchmarkPrefix.trim() + '-' + new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision
+		} else {
+			rename 'results', new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision
+		}
 	}
 	into "benchmark-results"
 }
@@ -457,8 +464,4 @@ nexusPublishing {
 			password = System.getenv("OSSRH_PASSWORD")
 		}
 	}
-}
-
-if (file("extra-configuration.gradle").exists()) {
-	apply from: "extra-configuration.gradle"
 }

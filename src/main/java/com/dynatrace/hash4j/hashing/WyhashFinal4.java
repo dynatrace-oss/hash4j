@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-class WyhashFinal4 extends AbstractWyhashFinal {
+final class WyhashFinal4 extends AbstractWyhashFinal {
 
   private final long secret0;
 

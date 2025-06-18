@@ -98,17 +98,16 @@ class FarmHashNa extends AbstractFarmHash {
 
   @Override
   protected long hashBytesToLongLength65Plus(byte[] bytes, int offset, int length) {
-    int seed = 81;
-    long x = seed;
-    long y = seed * K1 + 113;
-    long z = shiftMix(y * K2 + 113) * K2;
+    long x = START_X;
+    long y = START_Y;
+    long z = START_Z;
     long v0 = 0;
     long v1 = 0;
     long w0 = 0;
     long w1 = 0;
     int end = offset + ((length - 1) & 0xFFFFFFC0);
     int last64offset = offset + length - 64;
-    x = x * K2 + getLong(bytes, offset);
+    x += getLong(bytes, offset);
     do {
       long b0 = getLong(bytes, offset);
       long b1 = getLong(bytes, offset + 8);
@@ -156,10 +155,9 @@ class FarmHashNa extends AbstractFarmHash {
   @Override
   protected long hashCharsToLongLength33Plus(CharSequence input) {
     int len = input.length();
-    int seed = 81;
-    long x = seed;
-    long y = seed * K1 + 113;
-    long z = shiftMix(y * K2 + 113) * K2;
+    long x = START_X;
+    long y = START_Y;
+    long z = START_Z;
     long v0 = 0;
     long v1 = 0;
     long w0 = 0;
@@ -167,7 +165,7 @@ class FarmHashNa extends AbstractFarmHash {
 
     int end = ((len - 1) & 0xFFFFFFE0);
     int last64offset = len - 32;
-    x = x * K2 + getLong(input, 0);
+    x += getLong(input, 0);
     int offset = 0;
     do {
       long b0 = getLong(input, offset + 0);
