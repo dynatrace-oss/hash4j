@@ -39,7 +39,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
-class XXH3_64 extends XXH3Base {
+final class XXH3_64 extends XXH3Base {
 
   private final long secShift12;
   private final long secShift13;
@@ -248,7 +248,7 @@ class XXH3_64 extends XXH3Base {
       if (length >= 4) {
         long input1 = getInt(input, off);
         long input2 = getInt(input, off + length - 4);
-        long keyed = ((input2 & 0xFFFFFFFFL) + (input1 << 32)) ^ bitflip12;
+        long keyed = (input2 & 0xFFFFFFFFL) ^ (input1 << 32) ^ bitflip12;
         return rrmxmx(keyed, length);
       }
       if (length != 0) {
@@ -445,7 +445,7 @@ class XXH3_64 extends XXH3Base {
       if (len >= 2) {
         long input1 = getInt(charSequence, 0);
         long input2 = getInt(charSequence, len - 2);
-        long keyed = ((input2 & 0xFFFFFFFFL) + (input1 << 32)) ^ bitflip12;
+        long keyed = (input2 & 0xFFFFFFFFL) ^ (input1 << 32) ^ bitflip12;
         return rrmxmx(keyed, len << 1);
       }
       if (len != 0) {
@@ -602,6 +602,21 @@ class XXH3_64 extends XXH3Base {
     }
 
     return finalizeHash((long) len << 1, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
+  }
+
+  @Override
+  public long hashIntIntToLong(int v1, int v2) {
+    return rrmxmx(((long) v1 << 32) ^ (v2 & 0xFFFFFFFFL) ^ bitflip12, 8);
+  }
+
+  @Override
+  public long hashIntToLong(int v) {
+    return rrmxmx((v & 0xFFFFFFFFL) ^ ((long) v << 32) ^ bitflip12, 4);
+  }
+
+  @Override
+  public long hashLongToLong(long v) {
+    return rrmxmx((v << 32) ^ (v >>> 32) ^ bitflip12, 8);
   }
 
   @Override

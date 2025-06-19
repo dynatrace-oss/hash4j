@@ -33,6 +33,31 @@ interface AbstractHasher32 extends Hasher32, Hasher {
   }
 
   @Override
+  default int hashIntToInt(int v) {
+    return hashStream().putInt(v).getAsInt();
+  }
+
+  @Override
+  default int hashIntIntToInt(int v1, int v2) {
+    return hashStream().putInt(v1).putInt(v2).getAsInt();
+  }
+
+  @Override
+  default int hashIntIntIntToInt(int v1, int v2, int v3) {
+    return hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt();
+  }
+
+  @Override
+  default int hashIntLongToInt(int v1, long v2) {
+    return hashStream().putInt(v1).putLong(v2).getAsInt();
+  }
+
+  @Override
+  default int hashLongToInt(long v) {
+    return hashStream().putLong(v).getAsInt();
+  }
+
+  @Override
   default int hashLongLongToInt(long v1, long v2) {
     return hashStream().putLong(v1).putLong(v2).getAsInt();
   }
@@ -45,15 +70,5 @@ interface AbstractHasher32 extends Hasher32, Hasher {
   @Override
   default int hashLongIntToInt(long v1, int v2) {
     return hashStream().putLong(v1).putInt(v2).getAsInt();
-  }
-
-  @Override
-  default int hashIntLongToInt(int v1, long v2) {
-    return hashStream().putInt(v1).putLong(v2).getAsInt();
-  }
-
-  @Override
-  default int hashIntIntIntToInt(int v1, int v2, int v3) {
-    return hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt();
   }
 }

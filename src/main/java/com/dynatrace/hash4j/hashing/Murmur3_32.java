@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
-class Murmur3_32 implements AbstractHasher32 {
+final class Murmur3_32 implements AbstractHasher32 {
 
   private static final int C1 = 0xcc9e2d51;
   private static final int C2 = 0x1b873593;
@@ -305,11 +305,23 @@ class Murmur3_32 implements AbstractHasher32 {
       }
       return this;
     }
+  }
 
-    @Override
-    public int getHashBitSize() {
-      return 32;
-    }
+  @Override
+  public int hashIntToInt(int v) {
+    int h1 = seed;
+    h1 = mixH1(h1, mixK1(v));
+    h1 ^= 4;
+    return fmix32(h1);
+  }
+
+  @Override
+  public int hashIntIntToInt(int v1, int v2) {
+    int h1 = seed;
+    h1 = mixH1(h1, mixK1(v1));
+    h1 = mixH1(h1, mixK1(v2));
+    h1 ^= 8;
+    return fmix32(h1);
   }
 
   @Override
@@ -328,8 +340,19 @@ class Murmur3_32 implements AbstractHasher32 {
   }
 
   @Override
-  public int hashLongIntToInt(long v1, int v2) {
-    return hashIntIntIntToInt((int) v1, (int) (v1 >>> 32), v2);
+  public int hashLongToInt(long v) {
+    return hashIntIntToInt((int) v, (int) (v >>> 32));
+  }
+
+  @Override
+  public int hashLongLongToInt(long v1, long v2) {
+    int h1 = seed;
+    h1 = mixH1(h1, mixK1((int) v1));
+    h1 = mixH1(h1, mixK1((int) (v1 >>> 32)));
+    h1 = mixH1(h1, mixK1((int) v2));
+    h1 = mixH1(h1, mixK1((int) (v2 >>> 32)));
+    h1 ^= 16;
+    return fmix32(h1);
   }
 
   @Override
@@ -346,13 +369,7 @@ class Murmur3_32 implements AbstractHasher32 {
   }
 
   @Override
-  public int hashLongLongToInt(long v1, long v2) {
-    int h1 = seed;
-    h1 = mixH1(h1, mixK1((int) v1));
-    h1 = mixH1(h1, mixK1((int) (v1 >>> 32)));
-    h1 = mixH1(h1, mixK1((int) v2));
-    h1 = mixH1(h1, mixK1((int) (v2 >>> 32)));
-    h1 ^= 16;
-    return fmix32(h1);
+  public int hashLongIntToInt(long v1, int v2) {
+    return hashIntIntIntToInt((int) v1, (int) (v1 >>> 32), v2);
   }
 }

@@ -525,11 +525,6 @@ abstract class XXH3Base implements AbstractHasher64 {
   protected abstract long finish12Bytes(long a, long b);
 
   @Override
-  public long hashLongIntToLong(long v1, int v2) {
-    return finish12Bytes(v1, ((long) v2 << 32) ^ (v1 >>> 32));
-  }
-
-  @Override
   public long hashIntIntIntToLong(int v1, int v2, int v3) {
     return finish12Bytes(
         (v1 & 0xFFFFFFFFL) ^ ((long) v2 << 32), ((long) v3 << 32) ^ (v2 & 0xFFFFFFFFL));
@@ -538,5 +533,10 @@ abstract class XXH3Base implements AbstractHasher64 {
   @Override
   public long hashIntLongToLong(int v1, long v2) {
     return finish12Bytes((v1 & 0xFFFFFFFFL) ^ (v2 << 32), v2);
+  }
+
+  @Override
+  public long hashLongIntToLong(long v1, int v2) {
+    return finish12Bytes(v1, ((long) v2 << 32) ^ (v1 >>> 32));
   }
 }
