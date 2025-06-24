@@ -28,6 +28,11 @@ package com.dynatrace.hash4j.hashing;
  */
 public interface Hasher64 extends Hasher32 {
 
+  /**
+   * Starts a hash stream.
+   *
+   * @return a new {@link HashStream64} instance
+   */
   @Override
   HashStream64 hashStream();
 
