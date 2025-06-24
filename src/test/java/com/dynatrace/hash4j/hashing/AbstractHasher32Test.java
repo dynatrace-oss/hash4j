@@ -15,7 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.createHasherWithFixedHash;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher32UsingDefaultImplementations;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher32WithFixedHash;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,37 +28,7 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
 
   @Override
   protected HashStream createNonOptimizedHashStream(Hasher hasher) {
-
-    HashStream hashStream = hasher.hashStream();
-    HashStream32 hashStream32 = (HashStream32) hashStream;
-    return new AbstractHashStream32() {
-      @Override
-      public int getAsInt() {
-        return hashStream32.getAsInt();
-      }
-
-      @Override
-      public HashStream32 putByte(byte v) {
-        hashStream32.putByte(v);
-        return this;
-      }
-
-      @Override
-      public HashStream32 reset() {
-        hashStream32.reset();
-        return this;
-      }
-
-      @Override
-      public HashStream32 copy() {
-        return hashStream32.copy();
-      }
-
-      @Override
-      public Hasher32 getHasher() {
-        return (Hasher32) hasher;
-      }
-    };
+    return createHasher32UsingDefaultImplementations((Hasher32) hasher).hashStream();
   }
 
   @Override
@@ -68,7 +39,7 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
 
     int hash = 0x6a6c9292;
 
-    Hasher32 hasher = createHasherWithFixedHash(hash);
+    Hasher32 hasher = createHasher32WithFixedHash(hash);
 
     byte[] b = {};
     String s = "";

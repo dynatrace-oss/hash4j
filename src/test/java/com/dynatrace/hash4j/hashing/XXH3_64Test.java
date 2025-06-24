@@ -21,7 +21,7 @@ import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import java.util.Arrays;
 import java.util.List;
 
-public class XXH3_64Test extends AbstractHasher64Test {
+class XXH3_64Test extends AbstractHasher64Test {
 
   private static final List<Hasher64> HASHERS =
       Arrays.asList(Hashing.xxh3_64(), Hashing.xxh3_64(0x1f628055b102c56bL));

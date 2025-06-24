@@ -61,6 +61,8 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static java.lang.Long.rotateRight;
 
+import java.util.Arrays;
+
 class FarmHashNa extends AbstractFarmHash {
 
   private static final long START_X = 0x1529cba0ca458ffL;
@@ -263,6 +265,35 @@ class FarmHashNa extends AbstractFarmHash {
     private long w1 = 0;
 
     @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          x,
+          that.x,
+          y,
+          that.y,
+          z,
+          that.z,
+          v0,
+          that.v0,
+          v1,
+          that.v1,
+          w0,
+          that.w0,
+          w1,
+          that.w1,
+          init,
+          that.init,
+          bufferCount,
+          that.bufferCount,
+          buffer,
+          that.buffer);
+    }
+
+    @Override
     public HashStream64 reset() {
       x = START_X;
       y = START_Y;
@@ -349,5 +380,45 @@ class FarmHashNa extends AbstractFarmHash {
       return FarmHashNa.this.finalizeHash(
           x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long xA,
+      long xB,
+      long yA,
+      long yB,
+      long zA,
+      long zB,
+      long v0A,
+      long v0B,
+      long v1A,
+      long v1B,
+      long w0A,
+      long w0B,
+      long w1A,
+      long w1B,
+      boolean initA,
+      boolean initB,
+      int bufferCountA,
+      int bufferCountB,
+      byte[] bufferA,
+      byte[] bufferB) {
+    return xA == xB
+        && yA == yB
+        && zA == zB
+        && v0A == v0B
+        && v1A == v1B
+        && w0A == w0B
+        && w1A == w1B
+        && initA == initB
+        && bufferCountA == bufferCountB
+        && Arrays.equals(
+            bufferA,
+            8,
+            initA ? bufferCountA : (64 + 8),
+            bufferB,
+            8,
+            initB ? bufferCountB : (64 + 8));
   }
 }

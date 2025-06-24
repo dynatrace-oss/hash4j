@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.Murmur3_128.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -101,5 +102,49 @@ class Murmur3_128Test extends AbstractHasher128Test {
     byte[] hashValueBytes = stream.get().toByteArray();
     byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
     assertThat(hashValueBytes).isEqualTo(expected);
+  }
+
+  @Test
+  void testEqualsHelper() {
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L)).isFalse();
+
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0x40L, 0x40L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0x40L, 0x40L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 1L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0x40L, 0x40L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 0L, 0x40L, 0x40L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 0x40L, 0x40L)).isTrue();
+
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 1L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L)).isTrue();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 0L, 0L, 0L)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 0L, 0L)).isTrue();
   }
 }

@@ -15,7 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.createHasherWithFixedHash;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher128UsingDefaultImplementations;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher128WithFixedHash;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
@@ -32,37 +33,7 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
 
   @Override
   protected HashStream createNonOptimizedHashStream(Hasher hasher) {
-
-    HashStream hashStream = hasher.hashStream();
-    HashStream128 hashStream128 = (HashStream128) hashStream;
-    return new AbstractHashStream128() {
-      @Override
-      public HashValue128 get() {
-        return hashStream128.get();
-      }
-
-      @Override
-      public HashStream128 putByte(byte v) {
-        hashStream128.putByte(v);
-        return this;
-      }
-
-      @Override
-      public HashStream128 reset() {
-        hashStream128.reset();
-        return this;
-      }
-
-      @Override
-      public HashStream128 copy() {
-        return hashStream128.copy();
-      }
-
-      @Override
-      public Hasher128 getHasher() {
-        return (Hasher128) hasher;
-      }
-    };
+    return createHasher128UsingDefaultImplementations((Hasher128) hasher).hashStream();
   }
 
   @Test
@@ -70,7 +41,7 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
 
     HashValue128 hash = new HashValue128(0x5cd2aeb8be6aa0bbL, 0x500e3ed0c42e364fL);
 
-    Hasher128 hasher = createHasherWithFixedHash(hash);
+    Hasher128 hasher = createHasher128WithFixedHash(hash);
 
     byte[] b = {};
     String s = "";

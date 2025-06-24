@@ -15,7 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.TestUtils.createHasherWithFixedHash;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher64UsingDefaultImplementations;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher64WithFixedHash;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,37 +31,7 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
 
   @Override
   protected HashStream createNonOptimizedHashStream(Hasher hasher) {
-
-    HashStream hashStream = hasher.hashStream();
-    HashStream64 hashStream64 = (HashStream64) hashStream;
-    return new AbstractHashStream64() {
-      @Override
-      public long getAsLong() {
-        return hashStream64.getAsLong();
-      }
-
-      @Override
-      public HashStream64 putByte(byte v) {
-        hashStream64.putByte(v);
-        return this;
-      }
-
-      @Override
-      public HashStream64 reset() {
-        hashStream64.reset();
-        return this;
-      }
-
-      @Override
-      public HashStream64 copy() {
-        return hashStream64.copy();
-      }
-
-      @Override
-      public Hasher64 getHasher() {
-        return (Hasher64) hasher;
-      }
-    };
+    return createHasher64UsingDefaultImplementations((Hasher64) hasher).hashStream();
   }
 
   @Test
@@ -68,7 +39,7 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
 
     long hash = 0x2a80de88db42361fL;
 
-    Hasher64 hasher = createHasherWithFixedHash(hash);
+    Hasher64 hasher = createHasher64WithFixedHash(hash);
 
     byte[] b = {};
     String s = "";

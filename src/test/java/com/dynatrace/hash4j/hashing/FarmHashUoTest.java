@@ -17,11 +17,13 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
+import org.junit.jupiter.api.Test;
 
-public class FarmHashUoTest extends AbstractHasher64Test {
+class FarmHashUoTest extends AbstractHasher64Test {
 
   private static final List<Hasher64> HASHERS =
       Arrays.asList(
@@ -94,5 +96,88 @@ public class FarmHashUoTest extends AbstractHasher64Test {
   @Override
   protected int getBlockLengthInBytes() {
     return 64;
+  }
+
+  private static byte[] B0A = {
+    -39, -52, -97, 103, 44, -99, -51, 76, 46, 125, -67, 95, 30, 70, -78, -128, 72, 66, -110, -112,
+    28, -109, 38, 118, 118, 102, 110, -61, -4, 8, -90, 46, -36, -53, -17, -97, -72, 113, -128, -3,
+    -117, -114, -50, 113, -118, -5, -52, 25, -118, -70, -82, 62, -122, -99, 9, 1, 30, -123, 127,
+    -108, 75, 78, 106, 116, -65, 76, -121, 17, -101, 125, -38, -48
+  };
+  private static byte[] B0B = {
+    39, 52, 97, -103, -44, 99, 51, -76, 46, 125, -67, 95, 30, 70, -78, -128, 72, 66, -110, -112, 28,
+    -109, 38, 118, 118, 102, 110, -61, -4, 8, -90, 46, -36, -53, -17, -97, -72, 113, -128, -3, -117,
+    -114, -50, 113, -118, -5, -52, 25, -118, -70, -82, 62, -122, -99, 9, 1, 30, -123, 127, -108, 75,
+    78, 106, 116, -65, 76, -121, 17, -101, 125, -38, -48
+  };
+  private static byte[] B1 = {
+    -39, -52, -97, 103, 44, -99, -51, 76, -46, 125, -67, 95, 30, 70, -78, -128, 72, 66, -110, -112,
+    28, -109, 38, 118, 118, 102, 110, -61, -4, 8, -90, 46, -36, -53, -17, -97, -72, 113, -128, -3,
+    -117, -114, -50, 113, -118, -5, -52, 25, -118, -70, -82, 62, -122, -99, 9, 1, 30, -123, 127,
+    -108, 75, 78, 106, 116, -65, 76, -121, 17, -101, 125, -38, -48
+  };
+
+  @Test
+  void testEqualsHelper() {
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isTrue();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, false, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, true, false, 0, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 1, 0,
+                B0A, B0B))
+        .isFalse();
+    assertThat(
+            FarmHashUo.equalsHelper(
+                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 1, 1,
+                B0A, B1))
+        .isFalse();
   }
 }

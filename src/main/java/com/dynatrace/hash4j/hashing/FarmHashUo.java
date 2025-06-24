@@ -61,6 +61,8 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static java.lang.Long.rotateRight;
 
+import java.util.Arrays;
+
 class FarmHashUo extends AbstractFarmHash {
 
   private final long seed0;
@@ -344,6 +346,37 @@ class FarmHashUo extends AbstractFarmHash {
     private long u = seed0 - z;
 
     @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          x,
+          that.x,
+          y,
+          that.y,
+          z,
+          that.z,
+          v0,
+          that.v0,
+          v1,
+          that.v1,
+          w0,
+          that.w0,
+          w1,
+          that.w1,
+          u,
+          that.u,
+          init,
+          that.init,
+          bufferCount,
+          that.bufferCount,
+          buffer,
+          that.buffer);
+    }
+
+    @Override
     public HashStream64 reset() {
       x = startX;
       y = startY;
@@ -459,5 +492,48 @@ class FarmHashUo extends AbstractFarmHash {
       return FarmHashUo.this.finalizeHash(
           u, x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long xA,
+      long xB,
+      long yA,
+      long yB,
+      long zA,
+      long zB,
+      long v0A,
+      long v0B,
+      long v1A,
+      long v1B,
+      long w0A,
+      long w0B,
+      long w1A,
+      long w1B,
+      long uA,
+      long uB,
+      boolean initA,
+      boolean initB,
+      int bufferCountA,
+      int bufferCountB,
+      byte[] bufferA,
+      byte[] bufferB) {
+    return xA == xB
+        && yA == yB
+        && zA == zB
+        && v0A == v0B
+        && v1A == v1B
+        && w0A == w0B
+        && w1A == w1B
+        && uA == uB
+        && initA == initB
+        && bufferCountA == bufferCountB
+        && Arrays.equals(
+            bufferA,
+            8,
+            initA ? bufferCountA : (64 + 8),
+            bufferB,
+            8,
+            initB ? bufferCountB : (64 + 8));
   }
 }
