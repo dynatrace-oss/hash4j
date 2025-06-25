@@ -34,10 +34,10 @@ repositories {
 }
 
 dependencies {
-	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.13.1"
-	testRuntimeOnly group: "org.junit.jupiter", name: "junit-jupiter-engine", version: "5.13.1"
-	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-params", version: "5.13.1"
-	testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: "1.13.1"
+	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.13.2"
+	testRuntimeOnly group: "org.junit.jupiter", name: "junit-jupiter-engine", version: "5.13.2"
+	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-params", version: "5.13.2"
+	testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: "1.13.2"
 	testImplementation group: "org.assertj", name: "assertj-core", version: "3.27.3"
 	testImplementation group: "org.hipparchus", name: "hipparchus-stat", version: "4.0.1"
 	testImplementation group: "org.hipparchus", name: "hipparchus-optim", version: "4.0.1"
@@ -47,7 +47,7 @@ dependencies {
 	testImplementation group: "com.appmattus.crypto", name: "cryptohash", version: "1.0.2"
 	testImplementation group: "org.greenrobot", name: "essentials", version: "3.1.0"
 	testImplementation group: "com.sangupta", name: "murmur", version: "1.0.0"
-	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.38.0"
+	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.39.0"
 }
 
 java {
