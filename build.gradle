@@ -23,7 +23,6 @@ plugins {
 	id "com.diffplug.spotless" version "7.0.4"
 	id "maven-publish"
 	id "signing"
-	id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
 	id "net.ltgt.errorprone" version "4.2.0"
 	id "org.revapi.revapi-gradle-plugin" version "1.8.0"
 }
@@ -446,6 +445,11 @@ publishing {
 			}
 		}
 	}
+	repositories {
+		maven {
+			url = "$projectDir/build/mavencentral/repo"
+		}
+	}
 }
 
 signing {
@@ -453,15 +457,9 @@ signing {
 	sign publishing.publications.mavenJava
 }
 
-nexusPublishing {
-	packageGroup = "com.dynatrace"
-	useStaging = true
-	repositories {
-		sonatype {
-			nexusUrl = uri("https://oss.sonatype.org/service/local/")
-			snapshotRepositoryUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-			username = System.getenv("OSSRH_USERNAME")
-			password = System.getenv("OSSRH_PASSWORD")
-		}
-	}
+tasks.register("createRepoForUploadToMavenCentral", Zip) {
+	dependsOn build, publish
+	from "$projectDir/build/mavencentral/repo"
+	destinationDirectory = file("$projectDir/build/mavencentral")
+	archiveFileName = "repo.zip"
 }
