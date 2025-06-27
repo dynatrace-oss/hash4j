@@ -18,6 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream128;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 
@@ -28,50 +29,6 @@ public class AbstractHashStream128Test extends AbstractHashStreamTest {
     TestHashStream128 hashStream = new TestHashStream128();
     c.accept(hashStream);
     assertThat(byteArrayToHexString(hashStream.getData())).isEqualTo(hexString);
-  }
-
-  private static final class TestHashStream128 implements AbstractHashStream128 {
-
-    private final TestHashStream hashStream;
-
-    public TestHashStream128(TestHashStream hashStream) {
-      this.hashStream = hashStream;
-    }
-
-    public TestHashStream128() {
-      this.hashStream = new TestHashStream();
-    }
-
-    @Override
-    public HashValue128 get() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public TestHashStream128 putByte(byte v) {
-      hashStream.putByte(v);
-      return this;
-    }
-
-    @Override
-    public TestHashStream128 reset() {
-      hashStream.reset();
-      return this;
-    }
-
-    @Override
-    public TestHashStream128 copy() {
-      return new TestHashStream128(hashStream.copy());
-    }
-
-    @Override
-    public Hasher128 getHasher() {
-      throw new UnsupportedOperationException();
-    }
-
-    public byte[] getData() {
-      return hashStream.getData();
-    }
   }
 
   @Test

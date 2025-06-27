@@ -19,6 +19,7 @@ import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream;
 import com.dynatrace.hash4j.testutils.TestUtils;
 import java.util.Arrays;
 import java.util.SplittableRandom;
@@ -26,7 +27,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 
-public class AbstractHashStreamTest {
+class AbstractHashStreamTest {
 
   protected void assertBytes(Consumer<HashStream> c, String hexString) {
     TestHashStream hashStream = new TestHashStream();

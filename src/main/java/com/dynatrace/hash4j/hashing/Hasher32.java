@@ -23,6 +23,11 @@ package com.dynatrace.hash4j.hashing;
  */
 public interface Hasher32 extends Hasher {
 
+  /**
+   * Starts a hash stream.
+   *
+   * @return a new {@link HashStream32} instance
+   */
   @Override
   HashStream32 hashStream();
 

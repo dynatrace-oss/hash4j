@@ -23,44 +23,28 @@ class AbstractHashStreamCompatibilityTest {
 
   @Test
   void testHashCompatibility() {
+    byte[] dummyByteArray = {};
+    String dummyChars = "";
 
     HashValue128 hash128 = new HashValue128(0x4cdfea92fccec3ffL, 0x85e6a3b83eb8873aL);
-    AbstractHashStream128 calculator =
-        new AbstractHashStream128() {
 
-          @Override
-          public HashStream128 putByte(byte v) {
-            return this;
-          }
+    Hasher128 hasher = HashMocks.createHasher128WithFixedHash(hash128);
+    HashStream128 hashStream = hasher.hashStream();
 
-          @Override
-          public HashStream128 reset() {
-            return this;
-          }
+    assertThat(hashStream.getAsInt()).isEqualTo(hash128.getAsInt());
+    assertThat(hashStream.getAsLong()).isEqualTo(hash128.getAsLong());
+    assertThat(hashStream.get()).isEqualTo(hash128);
 
-          @Override
-          public HashStream128 copy() {
-            throw new UnsupportedOperationException();
-          }
+    assertThat(hasher.hashBytesToInt(dummyByteArray)).isEqualTo(hash128.getAsInt());
+    assertThat(hasher.hashBytesToLong(dummyByteArray)).isEqualTo(hash128.getAsLong());
+    assertThat(hasher.hashBytesTo128Bits(dummyByteArray)).isEqualTo(hash128);
 
-          @Override
-          public Hasher128 getHasher() {
-            throw new UnsupportedOperationException();
-          }
+    assertThat(hasher.hashBytesToInt(dummyByteArray, 0, 0)).isEqualTo(hash128.getAsInt());
+    assertThat(hasher.hashBytesToLong(dummyByteArray, 0, 0)).isEqualTo(hash128.getAsLong());
+    assertThat(hasher.hashBytesTo128Bits(dummyByteArray, 0, 0)).isEqualTo(hash128);
 
-          @Override
-          public int getHashBitSize() {
-            return 128;
-          }
-
-          @Override
-          public HashValue128 get() {
-            return hash128;
-          }
-        };
-
-    assertThat(calculator.getAsInt()).isEqualTo(hash128.getAsInt());
-    assertThat(calculator.getAsLong()).isEqualTo(hash128.getAsLong());
-    assertThat(calculator.get()).isEqualTo(hash128);
+    assertThat(hasher.hashCharsToInt(dummyChars)).isEqualTo(hash128.getAsInt());
+    assertThat(hasher.hashCharsToLong(dummyChars)).isEqualTo(hash128.getAsLong());
+    assertThat(hasher.hashCharsTo128Bits(dummyChars)).isEqualTo(hash128);
   }
 }

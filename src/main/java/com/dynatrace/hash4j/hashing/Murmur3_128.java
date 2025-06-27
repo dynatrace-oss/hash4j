@@ -234,6 +234,30 @@ final class Murmur3_128 implements AbstractHasher128 {
     private long bitCount = 0;
 
     @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          h1,
+          that.h1,
+          h2,
+          that.h2,
+          buffer0,
+          that.buffer0,
+          buffer1,
+          that.buffer1,
+          bitCount,
+          that.bitCount);
+    }
+
+    @Override
     public HashStream128 reset() {
       h1 = seed;
       h2 = seed;
@@ -675,5 +699,24 @@ final class Murmur3_128 implements AbstractHasher128 {
     h2 ^= mixK2(a & 0xFFFFFFFFL);
     h1 ^= mixK1(b);
     return finalizeHashToLong(h1, h2, 12);
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long h1A,
+      long h1B,
+      long h2A,
+      long h2B,
+      long buffer0A,
+      long buffer0B,
+      long buffer1A,
+      long buffer1B,
+      long bitCountA,
+      long bitCountB) {
+    return h1A == h1B
+        && h2A == h2B
+        && bitCountA == bitCountB
+        && buffer1A == buffer1B
+        && (((bitCountA & 0x40L) == 0) || buffer0A == buffer0B);
   }
 }

@@ -23,7 +23,6 @@ plugins {
 	id "com.diffplug.spotless" version "7.0.4"
 	id "maven-publish"
 	id "signing"
-	id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
 	id "net.ltgt.errorprone" version "4.2.0"
 	id "org.revapi.revapi-gradle-plugin" version "1.8.0"
 }
@@ -34,10 +33,10 @@ repositories {
 }
 
 dependencies {
-	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.13.1"
-	testRuntimeOnly group: "org.junit.jupiter", name: "junit-jupiter-engine", version: "5.13.1"
-	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-params", version: "5.13.1"
-	testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: "1.13.1"
+	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.13.2"
+	testRuntimeOnly group: "org.junit.jupiter", name: "junit-jupiter-engine", version: "5.13.2"
+	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-params", version: "5.13.2"
+	testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: "1.13.2"
 	testImplementation group: "org.assertj", name: "assertj-core", version: "3.27.3"
 	testImplementation group: "org.hipparchus", name: "hipparchus-stat", version: "4.0.1"
 	testImplementation group: "org.hipparchus", name: "hipparchus-optim", version: "4.0.1"
@@ -47,7 +46,7 @@ dependencies {
 	testImplementation group: "com.appmattus.crypto", name: "cryptohash", version: "1.0.2"
 	testImplementation group: "org.greenrobot", name: "essentials", version: "3.1.0"
 	testImplementation group: "com.sangupta", name: "murmur", version: "1.0.0"
-	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.38.0"
+	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.39.0"
 }
 
 java {
@@ -129,7 +128,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 group = "com.dynatrace.hash4j"
-version = "0.22.0"
+version = "0.23.0"
 
 
 static def readJavaLicense(licenseName) {
@@ -446,6 +445,11 @@ publishing {
 			}
 		}
 	}
+	repositories {
+		maven {
+			url = "$projectDir/build/mavencentral/repo"
+		}
+	}
 }
 
 signing {
@@ -453,15 +457,9 @@ signing {
 	sign publishing.publications.mavenJava
 }
 
-nexusPublishing {
-	packageGroup = "com.dynatrace"
-	useStaging = true
-	repositories {
-		sonatype {
-			nexusUrl = uri("https://oss.sonatype.org/service/local/")
-			snapshotRepositoryUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-			username = System.getenv("OSSRH_USERNAME")
-			password = System.getenv("OSSRH_PASSWORD")
-		}
-	}
+tasks.register("createRepoForUploadToMavenCentral", Zip) {
+	dependsOn build, publish
+	from "$projectDir/build/mavencentral/repo"
+	destinationDirectory = file("$projectDir/build/mavencentral")
+	archiveFileName = "repo.zip"
 }

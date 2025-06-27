@@ -123,9 +123,23 @@ final class Murmur3_32 implements AbstractHasher32 {
   private class HashStreamImpl implements AbstractHashStream32 {
 
     private int h1 = seed;
-    private long buffer = 0;
-    private int shift = 0;
+    private long buffer = 0; // most significant 2 bytes are always zero
+    private int shift = 0; // == ((length & 3) << 3)
     private int length = 0;
+
+    @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(h1, that.h1, buffer, that.buffer, shift, that.shift, length, that.length);
+    }
 
     @Override
     public HashStream32 reset() {
@@ -371,5 +385,18 @@ final class Murmur3_32 implements AbstractHasher32 {
   @Override
   public int hashLongIntToInt(long v1, int v2) {
     return hashIntIntIntToInt((int) v1, (int) (v1 >>> 32), v2);
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      int h1A,
+      int h1B,
+      long bufferA,
+      long bufferB,
+      int shiftA,
+      int shiftB,
+      int lengthA,
+      int lengthB) {
+    return h1A == h1B && bufferA == bufferB && shiftA == shiftB && lengthA == lengthB;
   }
 }

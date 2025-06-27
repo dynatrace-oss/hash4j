@@ -18,6 +18,8 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
+import java.util.Arrays;
+
 abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
   protected final long seed;
@@ -254,11 +256,37 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
     private final byte[] buffer = new byte[48 + 8];
     private long byteCount = 0;
-    private int offset = 0;
+    private int offset = 0; // == byteCount % 48
 
     private long see0 = seed;
     private long see1 = seed;
     private long see2 = seed;
+
+    @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          see0,
+          that.see0,
+          see1,
+          that.see1,
+          see2,
+          that.see2,
+          offset,
+          that.offset,
+          byteCount,
+          that.byteCount,
+          buffer,
+          that.buffer);
+    }
 
     @Override
     public HashStream64 reset() {
@@ -557,5 +585,27 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
   public long hashLongIntToLong(long v1, int v2) {
     long x = v1 >>> 32;
     return finish((v1 << 32) | x, ((long) v2 << 32) | x, seed, 12);
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long see0A,
+      long see0B,
+      long see1A,
+      long see1B,
+      long see2A,
+      long see2B,
+      int offsetA,
+      int offsetB,
+      long byteCountA,
+      long byteCountB,
+      byte[] bufferA,
+      byte[] bufferB) {
+    return see0A == see0B
+        && see1A == see1B
+        && see2A == see2B
+        && offsetA == offsetB
+        && byteCountA == byteCountB
+        && Arrays.equals(bufferA, 0, offsetA, bufferB, 0, offsetB);
   }
 }

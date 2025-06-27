@@ -37,9 +37,11 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.XXH3Base.HashStreamImplBase.BULK_SIZE;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
 import com.dynatrace.hash4j.internal.UnsignedMultiplyUtil;
+import java.util.Arrays;
 
 abstract class XXH3Base implements AbstractHasher64 {
   protected static final int BLOCK_LEN_EXP = 10;
@@ -234,7 +236,7 @@ abstract class XXH3Base implements AbstractHasher64 {
     return (acc ^ (acc >>> 47) ^ sec) * INIT_ACC_7;
   }
 
-  protected abstract class HashStreamImplBase {
+  protected abstract class HashStreamImplBase implements HashStream32 {
 
     protected static final int BULK_SIZE = 256;
     protected static final int BULK_SIZE_HALF = 128;
@@ -249,8 +251,44 @@ abstract class XXH3Base implements AbstractHasher64 {
     protected long acc6 = INIT_ACC_6;
     protected long acc7 = INIT_ACC_7;
     protected final byte[] buffer = new byte[BULK_SIZE + 8];
-    protected int offset = 0;
+    protected int offset = 0; // == byteCount % BULK_SIZE
     protected long byteCount = 0;
+
+    @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof HashStreamImplBase)) return false;
+      HashStreamImplBase that = (HashStreamImplBase) o;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          acc0,
+          that.acc0,
+          acc1,
+          that.acc1,
+          acc2,
+          that.acc2,
+          acc3,
+          that.acc3,
+          acc4,
+          that.acc4,
+          acc5,
+          that.acc5,
+          acc6,
+          that.acc6,
+          acc7,
+          that.acc7,
+          byteCount,
+          that.byteCount,
+          offset,
+          that.offset,
+          buffer,
+          that.buffer);
+    }
 
     protected void putByteImpl(byte v) {
       if (offset >= BULK_SIZE) {
@@ -538,5 +576,42 @@ abstract class XXH3Base implements AbstractHasher64 {
   @Override
   public long hashLongIntToLong(long v1, int v2) {
     return finish12Bytes(v1, ((long) v2 << 32) ^ (v1 >>> 32));
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long acc0A,
+      long acc0B,
+      long acc1A,
+      long acc1B,
+      long acc2A,
+      long acc2B,
+      long acc3A,
+      long acc3B,
+      long acc4A,
+      long acc4B,
+      long acc5A,
+      long acc5B,
+      long acc6A,
+      long acc6B,
+      long acc7A,
+      long acc7B,
+      long byteCountA,
+      long byteCountB,
+      int offsetA,
+      int offsetB,
+      byte[] bufferA,
+      byte[] bufferB) {
+    return acc0A == acc0B
+        && acc1A == acc1B
+        && acc2A == acc2B
+        && acc3A == acc3B
+        && acc4A == acc4B
+        && acc5A == acc5B
+        && acc6A == acc6B
+        && acc7A == acc7B
+        && byteCountA == byteCountB
+        && offsetA == offsetB
+        && Arrays.equals(bufferA, 0, offsetA, bufferB, 0, offsetB);
   }
 }

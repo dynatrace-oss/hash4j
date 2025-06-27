@@ -45,6 +45,8 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
+import java.util.Arrays;
+
 abstract class AbstractKomihash implements AbstractHasher64 {
 
   protected final long seed1;
@@ -86,6 +88,40 @@ abstract class AbstractKomihash implements AbstractHasher64 {
     protected long see6 = AbstractKomihash.this.seed6;
     protected long see7 = AbstractKomihash.this.seed7;
     protected long see8 = AbstractKomihash.this.seed8;
+
+    @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          byteCount,
+          that.byteCount,
+          see1,
+          that.see1,
+          see2,
+          that.see2,
+          see3,
+          that.see3,
+          see4,
+          that.see4,
+          see5,
+          that.see5,
+          see6,
+          that.see6,
+          see7,
+          that.see7,
+          see8,
+          that.see8,
+          buffer,
+          that.buffer);
+    }
 
     @Override
     public HashStream64 reset() {
@@ -349,5 +385,39 @@ abstract class AbstractKomihash implements AbstractHasher64 {
     see1 ^= see5;
 
     return see1;
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long byteCountA,
+      long byteCountB,
+      long see1A,
+      long see1B,
+      long see2A,
+      long see2B,
+      long see3A,
+      long see3B,
+      long see4A,
+      long see4B,
+      long see5A,
+      long see5B,
+      long see6A,
+      long see6B,
+      long see7A,
+      long see7B,
+      long see8A,
+      long see8B,
+      byte[] bufferA,
+      byte[] bufferB) {
+    return byteCountA == byteCountB
+        && see1A == see1B
+        && see2A == see2B
+        && see3A == see3B
+        && see4A == see4B
+        && see5A == see5B
+        && see6A == see6B
+        && see7A == see7B
+        && see8A == see8B
+        && Arrays.equals(bufferA, 0, (int) byteCountA & 63, bufferB, 0, (int) byteCountB & 63);
   }
 }

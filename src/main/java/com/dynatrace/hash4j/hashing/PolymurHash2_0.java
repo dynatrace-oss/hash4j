@@ -43,6 +43,8 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
+import java.util.Arrays;
+
 final class PolymurHash2_0 implements AbstractHasher64 {
 
   private static final long POLYMUR_P611 = (1L << 61) - 1;
@@ -517,8 +519,23 @@ final class PolymurHash2_0 implements AbstractHasher64 {
 
     private final byte[] buffer = new byte[49 + 8];
     private long byteCount = 0;
-    private int offset = 0;
+    private int offset = 0; // == byteCount % 49
     private long h = 0;
+
+    @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof HashStreamImpl)) return false;
+      HashStreamImpl that = (HashStreamImpl) obj;
+      if (!getHasher().equals(that.getHasher())) return false;
+      return equalsHelper(
+          byteCount, that.byteCount, offset, that.offset, h, that.h, buffer, that.buffer);
+    }
 
     @Override
     public HashStream64 reset() {
@@ -899,5 +916,21 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     long m1 = (v1 >>> 16) + ((v2 & 0xFFL) << 48);
     long m2 = (v1 >>> 40) + ((v2 & 0xFFFFFFFFL) << 24);
     return finish12Bytes(m0, m1, m2);
+  }
+
+  /** visible for testing */
+  static boolean equalsHelper(
+      long byteCountA,
+      long byteCountB,
+      int offsetA,
+      int offsetB,
+      long hA,
+      long hB,
+      byte[] bufferA,
+      byte[] bufferB) {
+    return byteCountA == byteCountB
+        && offsetA == offsetB
+        && hA == hB
+        && Arrays.equals(bufferA, 0, offsetA, bufferB, 0, offsetB);
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.PolymurHash2_0.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -95,5 +96,17 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
   void testPolymurPow37() {
     assertThat(PolymurHash2_0.calculatePolymurPow37())
         .isEqualTo(PolymurHash2_0.calculatePolymurPow37Reference());
+  }
+
+  private static byte[] B0 = {0};
+  private static byte[] B1 = {1};
+
+  @Test
+  void testEqualsHelper() {
+    assertThat(equalsHelper(0L, 0L, 0, 0, 0L, 0L, B0, B0)).isTrue();
+    assertThat(equalsHelper(1L, 0L, 0, 0, 0L, 0L, B0, B0)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 1, 0, 0L, 0L, B0, B0)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 0, 0, 1L, 0L, B0, B0)).isFalse();
+    assertThat(equalsHelper(0L, 0L, 1, 1, 0L, 0L, B1, B0)).isFalse();
   }
 }

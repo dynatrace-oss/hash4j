@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.Murmur3_32.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -91,5 +92,14 @@ class Murmur3_32Test extends AbstractHasher32Test {
       stream.putByte((byte) i);
     }
     assertThat(stream.getAsInt()).isEqualTo(0x0038818d);
+  }
+
+  @Test
+  void testEqualsHelper() {
+    assertThat(equalsHelper(0, 0, 0L, 0L, 0, 0, 0, 0)).isTrue();
+    assertThat(equalsHelper(1, 0, 0L, 0L, 0, 0, 0, 0)).isFalse();
+    assertThat(equalsHelper(0, 0, 1L, 0L, 0, 0, 0, 0)).isFalse();
+    assertThat(equalsHelper(0, 0, 0L, 0L, 1, 0, 0, 0)).isFalse();
+    assertThat(equalsHelper(0, 0, 0L, 0L, 0, 0, 1, 0)).isFalse();
   }
 }

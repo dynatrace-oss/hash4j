@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-/** Represents a 128-bit hash value. */
+/** Represents a 128-bit hash value. This class is immutable. */
 public final class HashValue128 {
   private final long mostSignificantBits;
   private final long leastSignificantBits;
@@ -76,23 +76,11 @@ public final class HashValue128 {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    HashValue128 other = (HashValue128) obj;
-    if (leastSignificantBits != other.leastSignificantBits) {
-      return false;
-    }
-    if (mostSignificantBits != other.mostSignificantBits) {
-      return false;
-    }
-    return true;
+    if (this == obj) return true;
+    if (!(obj instanceof HashValue128)) return false;
+    HashValue128 that = (HashValue128) obj;
+    return leastSignificantBits == that.leastSignificantBits
+        && mostSignificantBits == that.mostSignificantBits;
   }
 
   @Override
