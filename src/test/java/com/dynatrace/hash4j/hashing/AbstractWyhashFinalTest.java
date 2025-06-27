@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 class AbstractWyhashFinalTest {
 
-  private static byte[] B0 = {0};
-  private static byte[] B1 = {1};
+  private static final byte[] B0 = {0};
+  private static final byte[] B1 = {1};
 
   @Test
   void testEqualsHelper() {
