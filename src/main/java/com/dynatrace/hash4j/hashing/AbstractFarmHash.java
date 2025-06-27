@@ -311,11 +311,6 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
     }
 
     @Override
-    public int hashCode() {
-      return getAsInt();
-    }
-
-    @Override
     public final HashStream64 putByte(byte v) {
       if (bufferCount >= 72) {
         processBuffer();

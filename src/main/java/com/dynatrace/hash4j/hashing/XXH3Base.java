@@ -37,7 +37,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.XXH3Base.HashStreamImplBase.BULK_SIZE;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
 import com.dynatrace.hash4j.internal.UnsignedMultiplyUtil;

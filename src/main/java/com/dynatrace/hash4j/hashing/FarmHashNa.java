@@ -294,6 +294,11 @@ class FarmHashNa extends AbstractFarmHash {
     }
 
     @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
     public HashStream64 reset() {
       x = START_X;
       y = START_Y;

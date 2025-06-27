@@ -377,6 +377,11 @@ class FarmHashUo extends AbstractFarmHash {
     }
 
     @Override
+    public int hashCode() {
+      return getAsInt();
+    }
+
+    @Override
     public HashStream64 reset() {
       x = startX;
       y = startY;

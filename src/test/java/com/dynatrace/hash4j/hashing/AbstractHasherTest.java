@@ -1608,9 +1608,9 @@ abstract class AbstractHasherTest {
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
           assertThat(defaultMethodWrapperEquals(hs1, hs2)).isTrue();
-          assertThat(hs1.hashCode()).isEqualTo(hsReference.hashCode());
-          assertThat(hs2.hashCode()).isEqualTo(hsReference.hashCode());
-          assertThat(hs1.hashCode()).isEqualTo(hs2.hashCode());
+          assertThat(hs1).hasSameHashCodeAs(hsReference);
+          assertThat(hs2).hasSameHashCodeAs(hsReference);
+          assertThat(hs1).hasSameHashCodeAs(hs2);
         }
       }
     }
@@ -1650,9 +1650,9 @@ abstract class AbstractHasherTest {
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
           assertThat(defaultMethodWrapperEquals(hs1, hs2)).isTrue();
-          assertThat(hs1.hashCode()).isEqualTo(hsReference.hashCode());
-          assertThat(hs2.hashCode()).isEqualTo(hsReference.hashCode());
-          assertThat(hs1.hashCode()).isEqualTo(hs2.hashCode());
+          assertThat(hs1).hasSameHashCodeAs(hsReference);
+          assertThat(hs2).hasSameHashCodeAs(hsReference);
+          assertThat(hs1).hasSameHashCodeAs(hs2);
         }
       }
     }
@@ -1692,9 +1692,9 @@ abstract class AbstractHasherTest {
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
           assertThat(defaultMethodWrapperEquals(hs1, hs2)).isTrue();
-          assertThat(hs1.hashCode()).isEqualTo(hsReference.hashCode());
-          assertThat(hs2.hashCode()).isEqualTo(hsReference.hashCode());
-          assertThat(hs1.hashCode()).isEqualTo(hs2.hashCode());
+          assertThat(hs1).hasSameHashCodeAs(hsReference);
+          assertThat(hs2).hasSameHashCodeAs(hsReference);
+          assertThat(hs1).hasSameHashCodeAs(hs2);
         }
       }
     }
