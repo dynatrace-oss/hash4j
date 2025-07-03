@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -401,5 +401,20 @@ class PackedArrayTest {
   void testReadIteratorNullArray(int bitSize) {
     PackedArrayHandler handler = PackedArray.getHandler(bitSize);
     assertThatNullPointerException().isThrownBy(() -> handler.readIterator(null, 1));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getBitSizes")
+  void testBigPackedArrayAllocations(int bitSize) {
+    PackedArrayHandler handler = PackedArray.getHandler(bitSize);
+    long[] bitLengths = {(1L << 32) - 7, 1L << 32};
+    for (long bitLength : bitLengths) {
+      int length =
+          (int)
+              Math.min(Integer.MAX_VALUE, (bitSize > 0) ? bitLength / bitSize : Integer.MAX_VALUE);
+      byte[] b = handler.create(length);
+      assertThat(handler.set(b, 0, 1)).isEqualTo(0);
+      assertThat(handler.set(b, length - 1, 1)).isEqualTo(0);
+    }
   }
 }

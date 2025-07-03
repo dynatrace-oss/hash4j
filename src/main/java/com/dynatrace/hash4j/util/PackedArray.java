@@ -222,7 +222,7 @@ public final class PackedArray {
 
     @Override
     public int numBytes(int length) {
-      return (bitSize * length + 7) >>> 3;
+      return Math.toIntExact(((long) bitSize * length + 7) >>> 3);
     }
 
     @Override
