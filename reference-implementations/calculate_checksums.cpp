@@ -27,6 +27,7 @@
 #include "polymur-hash_2_0/polymur-hash_2_0_checksum_config.hpp"
 #include "wyhash_final_3/wyhash_final_3_checksum_config.hpp"
 #include "wyhash_final_4/wyhash_final_4_checksum_config.hpp"
+#include "rapidhash_3/rapidhash_3_checksum_config.hpp"
 #include "murmur3_128/murmur3_128_checksum_config.hpp"
 #include "murmur3_32/murmur3_32_checksum_config.hpp"
 #include "farmhash_na/farmhash_na_checksum_config.hpp"
@@ -137,6 +138,7 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<Komihash5_27ChecksumConfig>();
 	computeAndPrintChecksum<WyhashFinal3ChecksumConfig>();
 	computeAndPrintChecksum<WyhashFinal4ChecksumConfig>();
+	computeAndPrintChecksum<Rapidhash3ChecksumConfig>();
 	computeAndPrintChecksum<Murmur3_128_ChecksumConfig>(
 			std::numeric_limits<int>::max());
 	computeAndPrintChecksum<Murmur3_32_ChecksumConfig>(
