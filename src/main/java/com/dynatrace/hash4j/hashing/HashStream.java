@@ -175,9 +175,11 @@ interface HashStream extends HashSink {
   HashStream reset();
 
   /**
-   * Copies hash stream.
+   * Creates a copy of this hash stream.
    *
    * <p>This allows to save the current state for reuse, without new hash computations.
+   *
+   * <p>Equivalent to {@code getHasher().hashStreamFromState(getState())}.
    *
    * @return new instance
    */

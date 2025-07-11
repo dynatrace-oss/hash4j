@@ -559,7 +559,7 @@ final class PolymurHash2_0 implements AbstractHasher64 {
       state[0] = SERIAL_VERSION_V0;
       int off = 1;
 
-      state[off++] = (byte) ((offset & 0x3f) | (init ? 128 : 0));
+      state[off++] = (byte) (offset | (init ? 128 : 0));
 
       if (init) {
         setLong(state, off, h);
@@ -670,10 +670,10 @@ final class PolymurHash2_0 implements AbstractHasher64 {
 
         while (len > 49) {
           h = PolymurHash2_0.this.processBuffer(b, off, h);
-          init = true;
           len -= 49;
           off += 49;
         }
+        init = true;
       }
 
       System.arraycopy(b, off, buffer, offset, len);
