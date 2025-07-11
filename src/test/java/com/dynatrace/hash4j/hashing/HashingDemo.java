@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,5 +282,32 @@ class HashingDemo {
 
     // both hash values are equal
     assertThat(hash1).isEqualTo(hash2).isEqualTo(0xef12d181ed93b2c7L);
+  }
+
+  @Test
+  void demoHashStreamSerialization() {
+
+    // create a hasher instance
+    Hasher64 hasher = Komihash5_0.create();
+
+    // some data
+    byte[] data = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+
+    // hash entire data at once
+    long expectedHash = hasher.hashBytesToLong(data);
+
+    // the same data coming in 2 chunks
+    byte[] dataPart1 = {0, 1, 2, 3, 4, 5, 6, 7};
+    byte[] dataPart2 = {8, 9, 10, 11, 12, 13, 14, 15};
+
+    // create hash stream, put first portion of the data, and retrieve state
+    byte[] state = hasher.hashStream().putBytes(dataPart1).getState();
+
+    // continue with another hash stream instance, put second portion of the data, and retrieve hash
+    // value
+    long hash = hasher.hashStreamFromState(state).putBytes(dataPart2).getAsLong();
+
+    // the result is the same as hashing the entire data at once
+    assertThat(hash).isEqualTo(expectedHash);
   }
 }
