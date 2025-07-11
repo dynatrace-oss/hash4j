@@ -169,6 +169,14 @@ abstract class AbstractHasherTest {
 
   @ParameterizedTest
   @MethodSource("getHashers")
+  void testResetEmpty(Hasher hasher) {
+    var emptyHashStream = hasher.hashStream();
+    var emptyResetHashStream = hasher.hashStream().reset();
+    assertHashStreamEquals(emptyHashStream, emptyResetHashStream, () -> "");
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
   void testHashBytesOffset(Hasher hasher) {
     int numCycles = 100000;
     int maxByteLength = 100;
