@@ -192,4 +192,10 @@ public interface HashStream128 extends HashStream64 {
 
   @Override
   Hasher128 getHasher();
+
+  @Override
+  byte[] getState();
+
+  @Override
+  HashStream128 setState(byte[] state);
 }

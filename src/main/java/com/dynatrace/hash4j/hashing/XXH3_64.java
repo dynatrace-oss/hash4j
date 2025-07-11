@@ -92,7 +92,7 @@ final class XXH3_64 extends XXH3Base {
 
     @Override
     public long getAsLong() {
-      if (byteCount <= BULK_SIZE) {
+      if (byteCount >= 0 && byteCount <= BULK_SIZE) {
         return hashBytesToLong(buffer, 0, (int) byteCount);
       }
       setLong(buffer, BULK_SIZE, getLong(buffer, 0));
@@ -202,15 +202,14 @@ final class XXH3_64 extends XXH3Base {
     }
 
     @Override
-    public HashStream64 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      copyImpl(hashStream);
-      return hashStream;
+    public Hasher64 getHasher() {
+      return XXH3_64.this;
     }
 
     @Override
-    public Hasher64 getHasher() {
-      return XXH3_64.this;
+    public HashStream64 setState(byte[] state) {
+      setStateImpl(state);
+      return this;
     }
   }
 
@@ -641,5 +640,18 @@ final class XXH3_64 extends XXH3Base {
     long hi = b ^ bitflip56;
     long acc = 12 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
     return avalanche3(acc);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof XXH3_64)) return false;
+    XXH3_64 that = (XXH3_64) obj;
+    return getSeed() == that.getSeed();
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.hashCode(getSeed());
   }
 }

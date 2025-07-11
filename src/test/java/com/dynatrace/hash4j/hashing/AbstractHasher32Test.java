@@ -32,7 +32,7 @@ abstract class AbstractHasher32Test extends AbstractHasherTest {
   }
 
   @Override
-  protected abstract List<? extends Hasher32> getHashers();
+  protected abstract List<? extends Hasher32> createHashers();
 
   @Test
   void testHashBytesToInt() {

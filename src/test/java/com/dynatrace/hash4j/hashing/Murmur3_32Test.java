@@ -15,23 +15,23 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.Murmur3_32.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
 class Murmur3_32Test extends AbstractHasher32Test {
 
-  private static final List<Hasher32> HASHERS =
-      Arrays.asList(Hashing.murmur3_32(), Hashing.murmur3_32(0x43a3fb15));
-
   @Override
-  protected List<Hasher32> getHashers() {
-    return HASHERS;
+  protected List<Hasher32> createHashers() {
+    return Arrays.asList(Hashing.murmur3_32(), Hashing.murmur3_32(0x43a3fb15));
   }
 
   @Override
@@ -78,6 +78,11 @@ class Murmur3_32Test extends AbstractHasher32Test {
     return 8;
   }
 
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
+
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
    * longer than {@link Integer#MAX_VALUE} as it uses a native unsigned {@code int} for the length
@@ -94,12 +99,25 @@ class Murmur3_32Test extends AbstractHasher32Test {
     assertThat(stream.getAsInt()).isEqualTo(0x0038818d);
   }
 
-  @Test
-  void testEqualsHelper() {
-    assertThat(equalsHelper(0, 0, 0L, 0L, 0, 0, 0, 0)).isTrue();
-    assertThat(equalsHelper(1, 0, 0L, 0L, 0, 0, 0, 0)).isFalse();
-    assertThat(equalsHelper(0, 0, 1L, 0L, 0, 0, 0, 0)).isFalse();
-    assertThat(equalsHelper(0, 0, 0L, 0L, 1, 0, 0, 0)).isFalse();
-    assertThat(equalsHelper(0, 0, 0L, 0L, 0, 0, 1, 0)).isFalse();
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "000000000000000000"));
+    }
+    return arguments.stream();
+  }
+
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+      arguments.add(arguments(hasher, "0000000000000000"));
+      arguments.add(arguments(hasher, "00000000000000000000"));
+    }
+    return arguments.stream();
   }
 }

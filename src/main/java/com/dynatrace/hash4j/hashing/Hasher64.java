@@ -37,6 +37,17 @@ public interface Hasher64 extends Hasher32 {
   HashStream64 hashStream();
 
   /**
+   * Reconstructs a hash stream from a given state.
+   *
+   * <p>The behavior is undefined, if the given state was not created by a hash stream of a hasher
+   * that is equal to this hasher.
+   *
+   * @return a new {@link HashStream64} instance
+   */
+  @Override
+  HashStream64 hashStreamFromState(byte[] state);
+
+  /**
    * Hashes an object to a 64-bit {@code long} value.
    *
    * @param obj the object

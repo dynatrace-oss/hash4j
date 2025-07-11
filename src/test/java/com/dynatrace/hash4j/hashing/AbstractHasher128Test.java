@@ -29,7 +29,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 abstract class AbstractHasher128Test extends AbstractHasherTest {
 
   @Override
-  protected abstract List<? extends Hasher128> getHashers();
+  protected abstract List<? extends Hasher128> createHashers();
 
   @Override
   protected HashStream createNonOptimizedHashStream(Hasher hasher) {

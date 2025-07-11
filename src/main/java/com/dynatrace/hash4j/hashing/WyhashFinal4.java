@@ -17,11 +17,14 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
+import java.util.Objects;
+
 final class WyhashFinal4 extends AbstractWyhashFinal {
 
   private final long secret0;
 
-  private WyhashFinal4(long seedForHash, long[] secret) {
+  // visible for testing
+  WyhashFinal4(long seedForHash, long[] secret) {
     super(seedForHash ^ wymix(seedForHash ^ secret[0], secret[1]), secret[1], secret[2], secret[3]);
     this.secret0 = secret[0];
   }
@@ -45,5 +48,22 @@ final class WyhashFinal4 extends AbstractWyhashFinal {
     a ^= secret1;
     b ^= seed;
     return wymix((a * b) ^ secret0 ^ len, unsignedMultiplyHigh(a, b) ^ secret1);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof WyhashFinal4)) return false;
+    WyhashFinal4 that = (WyhashFinal4) obj;
+    return seed == that.seed
+        && secret0 == that.secret0
+        && secret1 == that.secret1
+        && secret2 == that.secret2
+        && secret3 == that.secret3;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(seed, secret0, secret1, secret2, secret3);
   }
 }

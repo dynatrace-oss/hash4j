@@ -41,4 +41,9 @@ interface AbstractHasher128 extends AbstractHasher64, Hasher128 {
   default int getHashBitSize() {
     return 128;
   }
+
+  @Override
+  default HashStream128 hashStreamFromState(byte[] state) {
+    return hashStream().setState(state);
+  }
 }

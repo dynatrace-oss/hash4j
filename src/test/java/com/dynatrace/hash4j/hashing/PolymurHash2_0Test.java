@@ -15,25 +15,25 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.PolymurHash2_0.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
 class PolymurHash2_0Test extends AbstractHasher64Test {
 
-  private static final List<Hasher64> HASHERS =
-      Arrays.asList(
-          Hashing.polymurHash2_0(0xe5dbf194e07d973eL, 0x8d7c20f9caa22623L),
-          Hashing.polymurHash2_0(0xb0bb8ad791e9abaaL, 0x9c12700e86b09cfdL, 0xcea48e71394caa79L));
-
   @Override
-  protected List<Hasher64> getHashers() {
-    return HASHERS;
+  protected List<Hasher64> createHashers() {
+    return Arrays.asList(
+        Hashing.polymurHash2_0(0xe5dbf194e07d973eL, 0x8d7c20f9caa22623L),
+        Hashing.polymurHash2_0(0xb0bb8ad791e9abaaL, 0x9c12700e86b09cfdL, 0xcea48e71394caa79L));
   }
 
   @Override
@@ -92,21 +92,48 @@ class PolymurHash2_0Test extends AbstractHasher64Test {
     return 49;
   }
 
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
+
   @Test
   void testPolymurPow37() {
     assertThat(PolymurHash2_0.calculatePolymurPow37())
         .isEqualTo(PolymurHash2_0.calculatePolymurPow37Reference());
   }
 
-  private static final byte[] B0 = {0};
-  private static final byte[] B1 = {1};
-
   @Test
-  void testEqualsHelper() {
-    assertThat(equalsHelper(0L, 0L, 0, 0, 0L, 0L, B0, B0)).isTrue();
-    assertThat(equalsHelper(1L, 0L, 0, 0, 0L, 0L, B0, B0)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 1, 0, 0L, 0L, B0, B0)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0, 0, 1L, 0L, B0, B0)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 1, 1, 0L, 0L, B1, B0)).isFalse();
+  void testEqualsAdditionalCases() {
+    assertThat(PolymurHash2_0.create(0, 0, 0)).isNotEqualTo(PolymurHash2_0.create(1, 0, 0));
+    assertThat(PolymurHash2_0.create(0, 0, 0)).isNotEqualTo(PolymurHash2_0.create(0, 1, 0));
+    assertThat(PolymurHash2_0.create(0, 0, 0)).isNotEqualTo(PolymurHash2_0.create(0, 0, 1));
+  }
+
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "0081000000000000000000"));
+    }
+    return arguments.stream();
+  }
+
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+      arguments.add(arguments(hasher, "0080"));
+      arguments.add(arguments(hasher, "003F"));
+      arguments.add(arguments(hasher, "0081"));
+      arguments.add(arguments(hasher, "00810000000000000000"));
+      arguments.add(arguments(hasher, "008100000000000000000000"));
+      arguments.add(arguments(hasher, "0001"));
+      arguments.add(arguments(hasher, "00010000"));
+    }
+    return arguments.stream();
   }
 }

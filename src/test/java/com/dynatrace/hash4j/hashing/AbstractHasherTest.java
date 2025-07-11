@@ -16,15 +16,20 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.hashing.HashMocks.*;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.*;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.GeneratedBufferingCharSequence;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.generateRandomBytes;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
+import static com.dynatrace.hash4j.testutils.TestUtils.hexStringToByteArray;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
+import com.dynatrace.hash4j.hashing.HashTestUtils.ChecksumRecord;
+import com.dynatrace.hash4j.hashing.HashTestUtils.SplitMix64;
 import com.dynatrace.hash4j.internal.ByteArrayUtil;
 import com.dynatrace.hash4j.testutils.TestUtils;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,10 +41,13 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(PER_CLASS)
@@ -49,47 +57,11 @@ abstract class AbstractHasherTest {
 
   protected abstract HashStream createNonOptimizedHashStream(Hasher hasher);
 
-  protected abstract List<? extends Hasher> getHashers();
+  protected abstract List<? extends Hasher> createHashers();
 
   protected abstract int getBlockLengthInBytes();
 
-  public static final class ChecksumRecord {
-    private final long dataSize;
-    private final int numCycles;
-    private final long seed;
-    private final String checksum;
-
-    public ChecksumRecord(long dataSize, int numCycles, long seed, String checksumString) {
-      this.dataSize = dataSize;
-      this.numCycles = numCycles;
-      this.seed = seed;
-      this.checksum = checksumString;
-    }
-
-    public String getChecksum() {
-      return checksum;
-    }
-
-    public long getDataSize() {
-      return dataSize;
-    }
-
-    public int getNumCycles() {
-      return numCycles;
-    }
-
-    public long getSeed() {
-      return seed;
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("dataSize", dataSize)
-          .add("numCycles", numCycles)
-          .toString();
-    }
-  }
+  protected abstract byte getLatestStreamSerialVersion();
 
   private List<ChecksumRecord> getChecksumRecords() {
 
@@ -121,6 +93,17 @@ abstract class AbstractHasherTest {
 
   protected abstract String getChecksumResourceFileName();
 
+  private List<? extends Hasher> hashers;
+
+  @BeforeAll
+  void initHashers() {
+    hashers = createHashers();
+  }
+
+  protected List<? extends Hasher> getHashers() {
+    return hashers;
+  }
+
   @ParameterizedTest
   @MethodSource("getHashers")
   void testRepetitiveGet(Hasher hasher) {
@@ -128,11 +111,13 @@ abstract class AbstractHasherTest {
     SplittableRandom random = new SplittableRandom(0xba77cd23c7b2d080L);
     HashStream hashStream = hasher.hashStream();
     for (int len = 0; len <= maxLen; ++len) {
-      byte[] result = getBytes(hashStream);
+      byte[] state = hashStream.getState();
+      byte[] hash = getHashAsByteArray(hashStream);
 
       int numRecalculations = 3;
       for (int i = 0; i < numRecalculations; ++i) {
-        assertThat(getBytes(hashStream)).isEqualTo(result);
+        assertThat(hashStream.getState()).isEqualTo(state);
+        assertThat(getHashAsByteArray(hashStream)).isEqualTo(hash);
       }
       hashStream.putByte((byte) random.nextInt());
     }
@@ -229,20 +214,6 @@ abstract class AbstractHasherTest {
     }
   }
 
-  private byte[] getBytes(HashStream hashStream) {
-    byte[] result = new byte[hashStream.getHashBitSize() / 8];
-    if (hashStream.getHashBitSize() == 32) {
-      return HashValues.toByteArray(((HashStream32) hashStream).getAsInt());
-    } else if (hashStream.getHashBitSize() == 64) {
-      return HashValues.toByteArray(((HashStream64) hashStream).getAsLong());
-    } else if (hashStream.getHashBitSize() == 128) {
-      return HashValues.toByteArray(((HashStream128) hashStream).get());
-    } else {
-      fail("hash stream has unexpected bit size");
-    }
-    return result;
-  }
-
   private void testPut(
       Hasher hasher,
       long seed,
@@ -269,30 +240,6 @@ abstract class AbstractHasherTest {
           hashStreamExpectedBase.putByte(preData[preSize]);
         }
       }
-    }
-  }
-
-  private static void assertHashStreamEquals(
-      HashStream hashStreamExpected,
-      HashStream hashStreamActual,
-      Supplier<String> descriptionSupplier) {
-    assertThat(hashStreamActual.getHashBitSize()).isEqualTo(hashStreamExpected.getHashBitSize());
-    assertThat(hashStreamActual).isEqualTo(hashStreamExpected);
-    int hashBitSize = hashStreamExpected.getHashBitSize();
-    if (hashBitSize == 128) {
-      assertThat(((HashStream128) hashStreamActual).get())
-          .describedAs(descriptionSupplier)
-          .isEqualTo(((HashStream128) hashStreamExpected).get());
-    } else if (hashBitSize == 64) {
-      assertThat(((HashStream64) hashStreamActual).getAsLong())
-          .describedAs(descriptionSupplier)
-          .isEqualTo(((HashStream64) hashStreamExpected).getAsLong());
-    } else if (hashBitSize == 32) {
-      assertThat(((HashStream32) hashStreamActual).getAsInt())
-          .describedAs(descriptionSupplier)
-          .isEqualTo(((HashStream32) hashStreamExpected).getAsInt());
-    } else {
-      fail();
     }
   }
 
@@ -610,25 +557,6 @@ abstract class AbstractHasherTest {
     }
   }
 
-  private static CharSequence asCharSequence(byte[] data, int off, int len) {
-    return new CharSequence() {
-      @Override
-      public int length() {
-        return len;
-      }
-
-      @Override
-      public char charAt(int index) {
-        return getChar(data, off + 2 * index);
-      }
-
-      @Override
-      public CharSequence subSequence(int start, int end) {
-        return asCharSequence(data, off + 2 * start, end - start);
-      }
-    };
-  }
-
   @ParameterizedTest
   @MethodSource("getHashers")
   void testPutBytesVsPutByteVsHashBytes(Hasher hasher) {
@@ -760,47 +688,12 @@ abstract class AbstractHasherTest {
 
   abstract int getHashSizeForChecksum();
 
-  private void generateRandomBytes(byte[] data, SplitMix64 pseudoRandomGenerator) {
-    int i = 0;
-    for (; i <= data.length - 8; i += 8) {
-      setLong(data, i, pseudoRandomGenerator.nextLong());
-    }
-    if (i < data.length) {
-      long l = pseudoRandomGenerator.nextLong();
-      do {
-        data[i] = (byte) (l >>> (8 * i));
-        i += 1;
-      } while (i < data.length);
-    }
-  }
-
   protected abstract List<HashStream> getHashStreams(byte[] seedBytes);
 
   protected abstract void getHashBytes(List<HashStream> hashStreams, byte[] hashBytes);
 
   private static final int ARRAY_MAX_SIZE =
       Integer.MAX_VALUE - 8; // see https://www.baeldung.com/java-arrays-max-size
-
-  private static final class SplitMix64 {
-
-    private long state;
-
-    public long nextLong() {
-      state += 0x9e3779b97f4a7c15L;
-      long z = state;
-      z = (z ^ (z >>> 30)) * 0xbf58476d1ce4e5b9L;
-      z = (z ^ (z >>> 27)) * 0x94d049bb133111ebL;
-      return z ^ (z >>> 31);
-    }
-
-    public void reset(long seed) {
-      this.state = seed;
-    }
-
-    public long getState() {
-      return state;
-    }
-  }
 
   private static boolean testLength(long len) {
     return len <= 1_000_000L;
@@ -840,51 +733,6 @@ abstract class AbstractHasherTest {
       assertThat(checksum)
           .describedAs(() -> checksumRecord.toString())
           .isEqualTo(checksumRecord.getChecksum());
-    }
-  }
-
-  private static final class GeneratedBufferingCharSequence implements CharSequence {
-
-    private static final int NUM_CHARS_IN_BUFFER_EXPONENT = 11;
-    private static final int NUM_CHARS_IN_BUFFER = 1 << NUM_CHARS_IN_BUFFER_EXPONENT;
-
-    private final byte[] buffer = new byte[NUM_CHARS_IN_BUFFER << 1];
-    private SplitMix64 pseudoRandomGenerator;
-    private long randomResetState;
-    private int length;
-    private long maxCharIdx;
-
-    public void reset(int length, SplitMix64 pseudoRandomGenerator) {
-      this.length = length;
-      this.pseudoRandomGenerator = pseudoRandomGenerator;
-      this.randomResetState = pseudoRandomGenerator.getState();
-      this.maxCharIdx = 0;
-    }
-
-    @Override
-    public int length() {
-      return length;
-    }
-
-    @Override
-    public char charAt(int index) {
-      if (index < maxCharIdx - NUM_CHARS_IN_BUFFER) {
-        this.maxCharIdx = 0;
-        this.pseudoRandomGenerator.reset(randomResetState);
-      }
-      while (index >= maxCharIdx) {
-        setLong(
-            buffer,
-            ((int) maxCharIdx & (NUM_CHARS_IN_BUFFER - 1)) << 1,
-            pseudoRandomGenerator.nextLong());
-        maxCharIdx += 4;
-      }
-      return getChar(buffer, (index & (NUM_CHARS_IN_BUFFER - 1)) << 1);
-    }
-
-    @Override
-    public CharSequence subSequence(int start, int end) {
-      throw new UnsupportedOperationException();
     }
   }
 
@@ -1444,7 +1292,7 @@ abstract class AbstractHasherTest {
     }
   }
 
-  private static byte[] generateRandomBytes(SplittableRandom random, int maxLen) {
+  private static byte[] generateRandomByteArray(SplittableRandom random, int maxLen) {
     byte[] data = new byte[random.nextInt(maxLen + 1)];
     random.nextBytes(data);
     return data;
@@ -1462,7 +1310,7 @@ abstract class AbstractHasherTest {
 
     for (int i = 0; i < 20; ++i) {
       if (hasher instanceof Hasher32) {
-        byte[] data = generateRandomBytes(random, maxDataLen);
+        byte[] data = generateRandomByteArray(random, maxDataLen);
         Hasher32 hasher32 = (Hasher32) hasher;
         assertThat(
                 ((HashStream32) hashStream)
@@ -1470,7 +1318,7 @@ abstract class AbstractHasherTest {
             .isEqualTo(hasher32.hashBytesToInt(data));
       }
       if (hasher instanceof Hasher64) {
-        byte[] data = generateRandomBytes(random, maxDataLen);
+        byte[] data = generateRandomByteArray(random, maxDataLen);
         Hasher64 hasher64 = (Hasher64) hasher;
         assertThat(
                 ((HashStream64) hashStream)
@@ -1478,7 +1326,7 @@ abstract class AbstractHasherTest {
             .isEqualTo(hasher64.hashBytesToLong(data));
       }
       if (hasher instanceof Hasher128) {
-        byte[] data = generateRandomBytes(random, maxDataLen);
+        byte[] data = generateRandomByteArray(random, maxDataLen);
         Hasher128 hasher128 = (Hasher128) hasher;
         assertThat(
                 ((HashStream128) hashStream)
@@ -1578,6 +1426,7 @@ abstract class AbstractHasherTest {
   @MethodSource("getHashers")
   void testPut8BytesWithDifferentOffsets(Hasher hasher) {
     SplittableRandom random = new SplittableRandom(0xc4eafee5c8b3bd4cL);
+    byte[] hsEmptyState = hasher.hashStream().getState();
 
     int numCycles = 5;
     int maxLen = getBlockLengthInBytes() * 3 / 8 + 1;
@@ -1590,6 +1439,9 @@ abstract class AbstractHasherTest {
           hs1.reset();
           hs2.reset();
           hsReference.reset();
+          assertThat(hs1.getState()).isEqualTo(hsEmptyState);
+          assertThat(hs2.getState()).isEqualTo(hsEmptyState);
+          assertThat(hsReference.getState()).isEqualTo(hsEmptyState);
           for (int k = 0; k < off; ++k) {
             byte b = (byte) random.nextInt();
             hs1.putByte(b);
@@ -1620,6 +1472,7 @@ abstract class AbstractHasherTest {
   @MethodSource("getHashers")
   void testPut4BytesWithDifferentOffsets(Hasher hasher) {
     SplittableRandom random = new SplittableRandom(0x297e88f2286ff078L);
+    byte[] hsEmptyState = hasher.hashStream().getState();
 
     int numCycles = 5;
     int maxLen = getBlockLengthInBytes() * 3 / 4 + 1;
@@ -1632,6 +1485,9 @@ abstract class AbstractHasherTest {
           hs1.reset();
           hs2.reset();
           hsReference.reset();
+          assertThat(hs1.getState()).isEqualTo(hsEmptyState);
+          assertThat(hs2.getState()).isEqualTo(hsEmptyState);
+          assertThat(hsReference.getState()).isEqualTo(hsEmptyState);
           for (int k = 0; k < off; ++k) {
             byte b = (byte) random.nextInt();
             hs1.putByte(b);
@@ -1662,6 +1518,7 @@ abstract class AbstractHasherTest {
   @MethodSource("getHashers")
   void testPut2BytesWithDifferentOffsets(Hasher hasher) {
     SplittableRandom random = new SplittableRandom(0x0c573981e850e0eaL);
+    byte[] hsEmptyState = hasher.hashStream().getState();
 
     int numCycles = 5;
     int maxLen = getBlockLengthInBytes() * 3 / 2 + 1;
@@ -1674,6 +1531,9 @@ abstract class AbstractHasherTest {
           hs1.reset();
           hs2.reset();
           hsReference.reset();
+          assertThat(hs1.getState()).isEqualTo(hsEmptyState);
+          assertThat(hs2.getState()).isEqualTo(hsEmptyState);
+          assertThat(hsReference.getState()).isEqualTo(hsEmptyState);
           for (int k = 0; k < off; ++k) {
             byte b = (byte) random.nextInt();
             hs1.putByte(b);
@@ -1698,5 +1558,141 @@ abstract class AbstractHasherTest {
         }
       }
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testIllegalArgumentHashStreamSetState(Hasher hasher) {
+    HashStream hashStream = hasher.hashStream();
+    byte[] correctState = hashStream.getState();
+    assertThat(correctState[0]).isEqualTo(getLatestStreamSerialVersion());
+
+    byte[] invalidSerialVersionState = Arrays.copyOf(correctState, correctState.length);
+    invalidSerialVersionState[0] = (byte) (getLatestStreamSerialVersion() + 1);
+
+    byte[] invalidLengthState = Arrays.copyOf(correctState, correctState.length + 1);
+
+    byte[] nullState = null;
+    byte[] zeroLengthState = {};
+
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> hashStream.setState(invalidSerialVersionState));
+    assertThatIllegalArgumentException().isThrownBy(() -> hashStream.setState(invalidLengthState));
+    assertThatIllegalArgumentException().isThrownBy(() -> hashStream.setState(nullState));
+    assertThatIllegalArgumentException().isThrownBy(() -> hashStream.setState(zeroLengthState));
+  }
+
+  @Test
+  void testEqualsAndHashCode() {
+
+    var hashers1 = getHashers();
+    var hashers2 = createHashers();
+
+    for (int i1 = 0; i1 < hashers1.size(); ++i1) {
+      for (int i2 = 0; i2 < hashers2.size(); ++i2) {
+        var hasher1 = hashers1.get(i1);
+        var hasher2 = hashers2.get(i2);
+
+        assertThat(hasher1.equals(hasher1)).isTrue();
+        assertThat(hasher2.equals(hasher2)).isTrue();
+
+        assertThat(hasher1).isNotEqualTo(null);
+        assertThat(hasher2).isNotEqualTo(null);
+        assertThat(hasher1.equals(hasher2)).isEqualTo(i1 == i2);
+
+        assertThat(hasher1).hasSameHashCodeAs(hasher1);
+        assertThat(hasher1.hashCode() == hasher2.hashCode()).isEqualTo(i1 == i2);
+      }
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testRandomStateModifications(Hasher hasher) {
+    SplittableRandom random = new SplittableRandom(0x262a062b1dba9d07L);
+    int maxLen = getBlockLengthInBytes() * 2 + 3;
+    byte[] data = new byte[maxLen];
+    random.nextBytes(data);
+    int maxNumExtraBytes = 5;
+
+    for (int len = 0; len <= maxLen; ++len) {
+      byte[] state = hasher.hashStream().putBytes(data, 0, len).getState();
+      byte[] modifiedState = Arrays.copyOf(state, state.length);
+      assertThat(state[0]).isEqualTo(getLatestStreamSerialVersion());
+      for (int pos = 1; pos < state.length; ++pos) {
+        modifiedState[pos] = (byte) (modifiedState[pos] ^ 0xFF);
+        try {
+          HashStream hs = hasher.hashStreamFromState(state);
+          HashStream hsModified = hasher.hashStreamFromState(modifiedState);
+          int k;
+          for (k = 0; k < maxNumExtraBytes; ++k) {
+            if (hs.hashCode() != hsModified.hashCode()) break;
+            byte b = (byte) random.nextInt();
+            hs.putByte(b);
+            hsModified.putByte(b);
+          }
+          int finalLen = len;
+          int finalPos = pos;
+          assertThat(k)
+              .describedAs(() -> "len = " + finalLen + ", pos = " + finalPos)
+              .isNotEqualTo(maxNumExtraBytes);
+        } catch (IllegalArgumentException e) {
+          // illegal states are ignored
+        } catch (RuntimeException e) {
+          fail("len = " + len + ", pos = " + pos, e);
+        }
+
+        modifiedState[pos] = (byte) (modifiedState[pos] ^ 0xFF);
+      }
+    }
+  }
+
+  protected abstract Stream<Arguments> getLegalStateCases();
+
+  @ParameterizedTest
+  @MethodSource("getLegalStateCases")
+  void testLegalStates(Hasher hasher, String state) {
+    byte[] stateBytes = hexStringToByteArray(state);
+    assertThat(hasher.hashStreamFromState(hexStringToByteArray(state)).getState())
+        .isEqualTo(stateBytes);
+  }
+
+  protected abstract Stream<Arguments> getIllegalStateCases();
+
+  @ParameterizedTest
+  @MethodSource("getIllegalStateCases")
+  void testIllegalStates(Hasher hasher, String state) {
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> hasher.hashStreamFromState(hexStringToByteArray(state)));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getHashers")
+  void testGetAndSetState(Hasher hasher) {
+
+    SplittableRandom random = new SplittableRandom(0x7fc12603d0b3a7e5L);
+
+    int maxLen = getBlockLengthInBytes() * 4 + 3;
+    int numCycles = 5;
+
+    byte[] data = new byte[maxLen];
+    for (int cycleCounter = 0; cycleCounter < numCycles; ++cycleCounter) {
+      random.nextBytes(data);
+      byte[] state = hasher.hashStream().getState();
+      for (int i = 0; i < data.length; ++i) {
+        assertHashStream(hasher.hashStreamFromState(state), hasher, data, 0, i);
+        state = hasher.hashStreamFromState(state).putByte(data[i]).getState();
+      }
+      assertHashStream(hasher.hashStreamFromState(state), hasher, data, 0, data.length);
+    }
+  }
+
+  @Test
+  void testCopy() {
+
+    HashStream hashStream1 = new HashMocks.TestHashStream().putLong(0x61c589aaf31dae79L);
+    HashStream hashStream2 = new HashMocks.TestHashStream().putLong(0x61c589aaf31dae79L);
+    HashStream hashStream3 = hashStream2.copy();
+    assertThat(hashStream1).isEqualTo(hashStream2).isEqualTo(hashStream3);
   }
 }

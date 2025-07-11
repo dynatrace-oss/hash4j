@@ -45,8 +45,6 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-import java.util.Arrays;
-
 abstract class AbstractKomihash implements AbstractHasher64 {
 
   protected final long seed1;
@@ -57,6 +55,7 @@ abstract class AbstractKomihash implements AbstractHasher64 {
   protected final long seed6;
   protected final long seed7;
   protected final long seed8;
+  protected final long initSeed;
 
   protected AbstractKomihash(long seed) {
     long s1 = 0x243F6A8885A308D3L ^ (seed & 0x5555555555555555L);
@@ -73,13 +72,15 @@ abstract class AbstractKomihash implements AbstractHasher64 {
     this.seed6 = 0xBE5466CF34E90C6CL ^ s5;
     this.seed7 = 0xC0AC29B7C97C50DDL ^ s5;
     this.seed8 = 0x3F84D5B5B5470917L ^ s5;
+    this.initSeed = seed;
   }
 
   protected abstract class HashStreamImpl implements AbstractHashStream64 {
 
-    protected final byte[] buffer = new byte[64 + 7];
-    protected long byteCount = 0;
+    protected boolean init = false;
+    protected int bufferCount = 0;
 
+    protected final byte[] buffer = new byte[64 + 7];
     protected long see1 = AbstractKomihash.this.seed1;
     protected long see2 = AbstractKomihash.this.seed2;
     protected long see3 = AbstractKomihash.this.seed3;
@@ -96,35 +97,12 @@ abstract class AbstractKomihash implements AbstractHasher64 {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          byteCount,
-          that.byteCount,
-          see1,
-          that.see1,
-          see2,
-          that.see2,
-          see3,
-          that.see3,
-          see4,
-          that.see4,
-          see5,
-          that.see5,
-          see6,
-          that.see6,
-          see7,
-          that.see7,
-          see8,
-          that.see8,
-          buffer,
-          that.buffer);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
     public HashStream64 reset() {
+      init = false;
       see1 = AbstractKomihash.this.seed1;
       see2 = AbstractKomihash.this.seed2;
       see3 = AbstractKomihash.this.seed3;
@@ -133,68 +111,73 @@ abstract class AbstractKomihash implements AbstractHasher64 {
       see6 = AbstractKomihash.this.seed6;
       see7 = AbstractKomihash.this.seed7;
       see8 = AbstractKomihash.this.seed8;
-      byteCount = 0;
+      bufferCount = 0;
       return this;
     }
 
     @Override
     public HashStream64 putByte(byte v) {
-      buffer[(int) (byteCount & 0x3FL)] = v;
-      if ((byteCount & 0x3FL) >= 0x3FL) {
+      buffer[bufferCount] = v;
+      bufferCount += 1;
+      if (bufferCount > 0x3f) {
         processBuffer();
+        bufferCount = 0;
       }
-      byteCount += 1;
       return this;
     }
 
     @Override
     public HashStream64 putShort(short v) {
-      setShort(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x3EL) {
+      setShort(buffer, bufferCount, v);
+      bufferCount += 2;
+      if (bufferCount > 0x3f) {
         processBuffer();
-        buffer[0] = (byte) (v >>> -(byteCount << 3));
+        buffer[0] = (byte) (v >>> 8);
+        bufferCount &= 0x3f;
       }
-      byteCount += 2;
       return this;
     }
 
     @Override
     public HashStream64 putChar(char v) {
-      setChar(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x3EL) {
+      setChar(buffer, bufferCount, v);
+      bufferCount += 2;
+      if (bufferCount > 0x3f) {
         processBuffer();
-        buffer[0] = (byte) (v >>> -(byteCount << 3));
+        buffer[0] = (byte) (v >>> 8);
+        bufferCount &= 0x3f;
       }
-      byteCount += 2;
       return this;
     }
 
     @Override
     public HashStream64 putInt(int v) {
-      setInt(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x3CL) {
+      setInt(buffer, bufferCount, v);
+      bufferCount += 4;
+      if (bufferCount > 0x3f) {
         processBuffer();
-        setInt(buffer, 0, v >>> -(byteCount << 3));
+        setInt(buffer, 0, v >>> -(bufferCount << 3));
+        bufferCount &= 0x3f;
       }
-      byteCount += 4;
       return this;
     }
 
     @Override
     public HashStream64 putLong(long v) {
-      setLong(buffer, (int) (byteCount & 0x3FL), v);
-      if ((byteCount & 0x3FL) >= 0x38L) {
+      setLong(buffer, bufferCount, v);
+      bufferCount += 8;
+      if (bufferCount > 0x3f) {
         processBuffer();
-        setLong(buffer, 0, v >>> -(byteCount << 3));
+        setLong(buffer, 0, v >>> -(bufferCount << 3));
+        bufferCount &= 0x3f;
       }
-      byteCount += 8;
       return this;
     }
 
     @Override
     public HashStream64 putBytes(byte[] b, int off, int len) {
-      int offset = ((int) byteCount) & 0x3F;
-      byteCount += len;
+      int offset = bufferCount;
+      bufferCount = (bufferCount + len) & 0x3f;
       int x = 64 - offset;
       if (len >= x) {
         if (offset != 0) {
@@ -214,10 +197,11 @@ abstract class AbstractKomihash implements AbstractHasher64 {
           long b6 = getLong(b, off + 48);
           long b7 = getLong(b, off + 56);
           processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+          init = true;
           off += 64;
           len -= 64;
         }
-        if (len == 0) {
+        if (isLastByteNeeded() && len == 0) {
           buffer[63] = b[off - 1];
         }
       }
@@ -225,11 +209,13 @@ abstract class AbstractKomihash implements AbstractHasher64 {
       return this;
     }
 
+    protected abstract boolean isLastByteNeeded();
+
     @Override
     public HashStream64 putChars(CharSequence s) {
       int remainingChars = s.length();
-      int offset = (int) byteCount & 0x3F;
-      byteCount += ((long) remainingChars) << 1;
+      int offset = bufferCount;
+      bufferCount = (bufferCount + (remainingChars << 1)) & 0x3f;
       int off = 0;
       int x = (65 - offset) >>> 1;
       if (remainingChars >= x) {
@@ -245,6 +231,7 @@ abstract class AbstractKomihash implements AbstractHasher64 {
         }
         if (remainingChars >= 32) {
           long b0, b1, b2, b3, b4, b5, b6, b7;
+          init = true;
           if (offset == 0) {
             do {
               b0 = getLong(s, off);
@@ -304,6 +291,7 @@ abstract class AbstractKomihash implements AbstractHasher64 {
       long b7 = getLong(buffer, 56);
 
       processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+      init = true;
     }
 
     protected abstract void processBuffer(
@@ -316,12 +304,12 @@ abstract class AbstractKomihash implements AbstractHasher64 {
 
       long se5 = this.see5;
       long se1 = this.see1;
-      if (byteCount > 63) {
+      if (init) {
         se5 ^= see6 ^ see7 ^ see8;
         se1 ^= see2 ^ see3 ^ see4;
       }
 
-      int len = (int) (byteCount & 0x3f);
+      int len = bufferCount;
       int off = 0;
 
       if (len > 31) {
@@ -356,19 +344,6 @@ abstract class AbstractKomihash implements AbstractHasher64 {
       return finalizeGetAsLong(se1, se5, off, len);
     }
 
-    protected void copyTo(HashStreamImpl hashStream) {
-      hashStream.see1 = see1;
-      hashStream.see2 = see2;
-      hashStream.see3 = see3;
-      hashStream.see4 = see4;
-      hashStream.see5 = see5;
-      hashStream.see6 = see6;
-      hashStream.see7 = see7;
-      hashStream.see8 = see8;
-      hashStream.byteCount = byteCount;
-      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
-    }
-
     @Override
     public Hasher64 getHasher() {
       return AbstractKomihash.this;
@@ -385,39 +360,5 @@ abstract class AbstractKomihash implements AbstractHasher64 {
     see1 ^= see5;
 
     return see1;
-  }
-
-  /** visible for testing */
-  static boolean equalsHelper(
-      long byteCountA,
-      long byteCountB,
-      long see1A,
-      long see1B,
-      long see2A,
-      long see2B,
-      long see3A,
-      long see3B,
-      long see4A,
-      long see4B,
-      long see5A,
-      long see5B,
-      long see6A,
-      long see6B,
-      long see7A,
-      long see7B,
-      long see8A,
-      long see8B,
-      byte[] bufferA,
-      byte[] bufferB) {
-    return byteCountA == byteCountB
-        && see1A == see1B
-        && see2A == see2B
-        && see3A == see3B
-        && see4A == see4B
-        && see5A == see5B
-        && see6A == see6B
-        && see7A == see7B
-        && see8A == see8B
-        && Arrays.equals(bufferA, 0, (int) byteCountA & 63, bufferB, 0, (int) byteCountB & 63);
   }
 }

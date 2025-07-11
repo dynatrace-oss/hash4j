@@ -15,4 +15,18 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-class XXH3BaseTest {}
+import java.util.Arrays;
+
+final class HashUtil {
+
+  private HashUtil() {}
+
+  static <T extends HashStream> boolean equalsHelper(T hashStream, Object obj) {
+    if (hashStream == obj) return true;
+    if (obj == null) return false;
+    if (hashStream.getClass() != obj.getClass()) return false;
+    T that = (T) obj;
+    return hashStream.getHasher().equals(that.getHasher())
+        && Arrays.equals(hashStream.getState(), that.getState());
+  }
+}

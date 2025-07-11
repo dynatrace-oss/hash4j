@@ -71,4 +71,9 @@ interface AbstractHasher32 extends Hasher32, Hasher {
   default int hashLongIntToInt(long v1, int v2) {
     return hashStream().putLong(v1).putInt(v2).getAsInt();
   }
+
+  @Override
+  default HashStream32 hashStreamFromState(byte[] state) {
+    return hashStream().setState(state);
+  }
 }

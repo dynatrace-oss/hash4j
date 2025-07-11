@@ -41,9 +41,10 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 final class PolymurHash2_0 implements AbstractHasher64 {
 
@@ -68,6 +69,7 @@ final class PolymurHash2_0 implements AbstractHasher64 {
   private final long k14;
   private final long s;
   private final long tweak;
+  private final long kSeed;
 
   static long[] calculatePolymurPow37() {
     return new long[] {
@@ -179,7 +181,7 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     return new PolymurHash2_0(tweak, kSeed, sSeed);
   }
 
-  private PolymurHash2_0(long tweak, long kSeed, long sSeed) {
+  private PolymurHash2_0(final long tweak, long kSeed, final long sSeed) {
     long kTmp;
     long k2Tmp;
     long k7Tmp;
@@ -233,6 +235,11 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     this.k5 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(kTmp, k4), kTmp * k4));
     this.k6 = polymurExtrared611(polymurRed611(unsignedMultiplyHigh(k2Tmp, k4), k2Tmp * k4));
     this.k14 = polymurRed611(unsignedMultiplyHigh(k7Tmp, k7Tmp), k7Tmp * k7Tmp);
+    this.kSeed = kSeed;
+  }
+
+  private long getSSeed() {
+    return s ^ POLYMUR_ARBITRARY1;
   }
 
   public static Hasher64 create(long tweak, long seed) {
@@ -516,10 +523,9 @@ final class PolymurHash2_0 implements AbstractHasher64 {
   }
 
   private class HashStreamImpl implements AbstractHashStream64 {
-
+    private boolean init = false;
+    private int offset = 0;
     private final byte[] buffer = new byte[49 + 8];
-    private long byteCount = 0;
-    private int offset = 0; // == byteCount % 49
     private long h = 0;
 
     @Override
@@ -529,30 +535,15 @@ final class PolymurHash2_0 implements AbstractHasher64 {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          byteCount, that.byteCount, offset, that.offset, h, that.h, buffer, that.buffer);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
     public HashStream64 reset() {
-      byteCount = 0;
+      init = false;
       offset = 0;
       h = 0;
       return this;
-    }
-
-    @Override
-    public HashStream64 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      hashStream.byteCount = byteCount;
-      hashStream.offset = offset;
-      hashStream.h = h;
-      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
-      return hashStream;
     }
 
     @Override
@@ -560,11 +551,54 @@ final class PolymurHash2_0 implements AbstractHasher64 {
       return PolymurHash2_0.this;
     }
 
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      byte[] state = new byte[2 + (init ? 8 : 0) + offset];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      state[off++] = (byte) ((offset & 0x3f) | (init ? 128 : 0));
+
+      if (init) {
+        setLong(state, off, h);
+        off += 8;
+      }
+
+      System.arraycopy(buffer, 0, state, off, offset);
+
+      return state;
+    }
+
+    @Override
+    public HashStream64 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 2);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byte b = state[off++];
+      offset = b & 0x7f;
+      init = b < 0;
+      checkArgument((offset > 0 && offset <= 49) || (offset == 0 && !init));
+
+      checkArgument(state.length == 2 + (init ? 8 : 0) + offset);
+
+      if (init) {
+        h = getLong(state, off);
+        off += 8;
+      }
+
+      System.arraycopy(state, off, buffer, 0, offset);
+
+      return this;
+    }
+
     @Override
     public HashStream64 putByte(byte v) {
       buffer[offset] = v;
       offset += 1;
-      byteCount += 1;
       if (offset > 49) {
         offset -= 49;
         processBuffer();
@@ -577,11 +611,10 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     public HashStream64 putShort(short v) {
       setShort(buffer, offset, v);
       offset += 2;
-      byteCount += 2;
       if (offset > 49) {
         offset -= 49;
         processBuffer();
-        setShort(buffer, 0, getShort(buffer, 49));
+        setShort(buffer, 0, (short) (v << (offset << 3) >>> 16));
       }
       return this;
     }
@@ -590,11 +623,10 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     public HashStream64 putChar(char v) {
       setChar(buffer, offset, v);
       offset += 2;
-      byteCount += 2;
       if (offset > 49) {
         offset -= 49;
         processBuffer();
-        setChar(buffer, 0, getChar(buffer, 49));
+        setChar(buffer, 0, (char) (v << (offset << 3) >>> 16));
       }
       return this;
     }
@@ -603,11 +635,10 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     public HashStream64 putInt(int v) {
       setInt(buffer, offset, v);
       offset += 4;
-      byteCount += 4;
       if (offset > 49) {
         offset -= 49;
         processBuffer();
-        setInt(buffer, 0, getInt(buffer, 49));
+        setInt(buffer, 0, v >>> -(offset << 3));
       }
       return this;
     }
@@ -616,19 +647,16 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     public HashStream64 putLong(long v) {
       setLong(buffer, offset, v);
       offset += 8;
-      byteCount += 8;
       if (offset > 49) {
         offset -= 49;
         processBuffer();
-        setLong(buffer, 0, getLong(buffer, 49));
+        setLong(buffer, 0, v >>> -(offset << 3));
       }
       return this;
     }
 
     @Override
     public HashStream64 putBytes(byte[] b, int off, int len) {
-      byteCount += len;
-
       int x = 49 - offset;
       if (len > x) {
 
@@ -642,7 +670,7 @@ final class PolymurHash2_0 implements AbstractHasher64 {
 
         while (len > 49) {
           h = PolymurHash2_0.this.processBuffer(b, off, h);
-
+          init = true;
           len -= 49;
           off += 49;
         }
@@ -658,7 +686,6 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     public HashStream64 putChars(CharSequence s) {
 
       int i = 0;
-      byteCount += (long) s.length() << 1;
       if (s.length() >= (51 - offset) >>> 1) {
         i = (51 - offset) >>> 1;
         copyCharsToByteArray(s, 0, buffer, offset, i);
@@ -728,6 +755,7 @@ final class PolymurHash2_0 implements AbstractHasher64 {
             h =
                 PolymurHash2_0.this.processBuffer(
                     v0 >>> 8, v1 >>> 8, v2 >>> 8, v3 >>> 8, v4 >>> 8, v5 >>> 8, v6 >>> 8, h);
+            init = true;
           } while (i <= s.length() - ((51 - offset) >>> 1));
           setChar(buffer, 0, (char) x);
         }
@@ -739,14 +767,15 @@ final class PolymurHash2_0 implements AbstractHasher64 {
 
     private void processBuffer() {
       h = PolymurHash2_0.this.processBuffer(buffer, 0, h);
+      init = true;
     }
 
     private long finish() {
       long polyAcc = tweak;
-      if (byteCount >= 8) {
+      if (init || offset >= 8) {
         long k3Local = k3;
         long k4Local = k4;
-        if (byteCount > 49) {
+        if (init) {
           k3Local = k3x;
           k4Local = k4x;
           long ph = polymurExtrared611(h);
@@ -918,19 +947,16 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     return finish12Bytes(m0, m1, m2);
   }
 
-  /** visible for testing */
-  static boolean equalsHelper(
-      long byteCountA,
-      long byteCountB,
-      int offsetA,
-      int offsetB,
-      long hA,
-      long hB,
-      byte[] bufferA,
-      byte[] bufferB) {
-    return byteCountA == byteCountB
-        && offsetA == offsetB
-        && hA == hB
-        && Arrays.equals(bufferA, 0, offsetA, bufferB, 0, offsetB);
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof PolymurHash2_0)) return false;
+    PolymurHash2_0 that = (PolymurHash2_0) obj;
+    return getSSeed() == that.getSSeed() && tweak == that.tweak && kSeed == that.kSeed;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getSSeed(), tweak, kSeed);
   }
 }

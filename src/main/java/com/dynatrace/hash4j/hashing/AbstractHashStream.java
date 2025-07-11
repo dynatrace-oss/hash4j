@@ -26,6 +26,11 @@ import java.util.function.ToLongFunction;
 interface AbstractHashStream extends HashStream {
 
   @Override
+  default int getHashBitSize() {
+    return getHasher().getHashBitSize();
+  }
+
+  @Override
   default HashStream putBoolean(boolean v) {
     putByte((byte) (v ? 1 : 0));
     return this;
@@ -1470,5 +1475,10 @@ interface AbstractHashStream extends HashStream {
       putBoolean(false);
     }
     return this;
+  }
+
+  @Override
+  default HashStream copy() {
+    return getHasher().hashStreamFromState(getState());
   }
 }

@@ -22,6 +22,8 @@ final class HashMocks {
 
   private HashMocks() {}
 
+  private static final byte[] EMPTY_BYTE_ARRAY = {};
+
   private static final class FixedHasher32 implements AbstractHasher32 {
 
     private final int hash;
@@ -76,13 +78,18 @@ final class HashMocks {
       }
 
       @Override
-      public HashStream32 copy() {
-        return this;
+      public Hasher32 getHasher() {
+        return hasher;
       }
 
       @Override
-      public Hasher32 getHasher() {
-        return hasher;
+      public byte[] getState() {
+        return EMPTY_BYTE_ARRAY;
+      }
+
+      @Override
+      public HashStream32 setState(byte[] state) {
+        return this;
       }
 
       @Override
@@ -150,13 +157,18 @@ final class HashMocks {
       }
 
       @Override
-      public HashStream64 copy() {
+      public Hasher64 getHasher() {
+        return hasher;
+      }
+
+      @Override
+      public HashStream64 setState(byte[] state) {
         return this;
       }
 
       @Override
-      public Hasher64 getHasher() {
-        return hasher;
+      public byte[] getState() {
+        return EMPTY_BYTE_ARRAY;
       }
 
       @Override
@@ -224,13 +236,18 @@ final class HashMocks {
       }
 
       @Override
-      public HashStream128 copy() {
+      public Hasher128 getHasher() {
+        return hasher;
+      }
+
+      @Override
+      public HashStream128 setState(byte[] state) {
         return this;
       }
 
       @Override
-      public Hasher128 getHasher() {
-        return hasher;
+      public byte[] getState() {
+        return EMPTY_BYTE_ARRAY;
       }
 
       @Override
@@ -284,7 +301,7 @@ final class HashMocks {
 
       @Override
       public boolean equals(Object obj) {
-        throw new UnsupportedOperationException();
+        return HashUtil.equalsHelper(this, obj);
       }
 
       @Override
@@ -303,13 +320,18 @@ final class HashMocks {
       }
 
       @Override
-      public HashStream32 copy() {
-        return hashStream.copy();
+      public Hasher32 getHasher() {
+        return hasher;
       }
 
       @Override
-      public Hasher32 getHasher() {
-        return hasher;
+      public HashStream32 setState(byte[] state) {
+        return hashStream.setState(state);
+      }
+
+      @Override
+      public byte[] getState() {
+        return hashStream.getState();
       }
     }
   }
@@ -358,7 +380,7 @@ final class HashMocks {
 
       @Override
       public boolean equals(Object obj) {
-        throw new UnsupportedOperationException();
+        return HashUtil.equalsHelper(this, obj);
       }
 
       @Override
@@ -377,13 +399,18 @@ final class HashMocks {
       }
 
       @Override
-      public HashStream64 copy() {
-        return hashStream.copy();
+      public Hasher64 getHasher() {
+        return hasher;
       }
 
       @Override
-      public Hasher64 getHasher() {
-        return hasher;
+      public HashStream64 setState(byte[] state) {
+        return hashStream.setState(state);
+      }
+
+      @Override
+      public byte[] getState() {
+        return hashStream.getState();
       }
     }
   }
@@ -432,7 +459,7 @@ final class HashMocks {
 
       @Override
       public boolean equals(Object obj) {
-        throw new UnsupportedOperationException();
+        return HashUtil.equalsHelper(this, obj);
       }
 
       @Override
@@ -451,19 +478,38 @@ final class HashMocks {
       }
 
       @Override
-      public HashStream128 copy() {
-        return hashStream.copy();
+      public Hasher128 getHasher() {
+        return hasher;
       }
 
       @Override
-      public Hasher128 getHasher() {
-        return hasher;
+      public HashStream128 setState(byte[] state) {
+        return hashStream.setState(state);
+      }
+
+      @Override
+      public byte[] getState() {
+        return hashStream.getState();
       }
     }
   }
 
   public static Hasher128 createHasher128UsingDefaultImplementations(Hasher128 referenceHasher) {
     return new DefaultMethodWrapperHasher128(referenceHasher);
+  }
+
+  private enum TestHasher implements Hasher {
+    INSTANCE {
+      @Override
+      public HashStream hashStream() {
+        return new TestHashStream();
+      }
+
+      @Override
+      public int getHashBitSize() {
+        throw new UnsupportedOperationException();
+      }
+    }
   }
 
   public static class TestHashStream implements AbstractHashStream {
@@ -487,21 +533,20 @@ final class HashMocks {
     }
 
     @Override
-    public TestHashStream copy() {
-      final TestHashStream hashStream = new TestHashStream();
-      hashStream.size = size;
-      System.arraycopy(data, 0, hashStream.data, 0, data.length);
-      return hashStream;
-    }
-
-    @Override
     public Hasher getHasher() {
-      throw new UnsupportedOperationException();
+      return TestHasher.INSTANCE;
     }
 
     @Override
-    public int getHashBitSize() {
-      throw new UnsupportedOperationException();
+    public byte[] getState() {
+      return Arrays.copyOf(data, size);
+    }
+
+    @Override
+    public HashStream setState(byte[] state) {
+      data = Arrays.copyOf(state, state.length);
+      size = state.length;
+      return this;
     }
 
     public byte[] getData() {
@@ -521,13 +566,28 @@ final class HashMocks {
     }
   }
 
+  private enum TestHasher32 implements AbstractHasher32 {
+    INSTANCE {
+      @Override
+      public HashStream32 hashStream() {
+        return new TestHashStream32();
+      }
+
+      @Override
+      public int hashBytesToInt(byte[] input, int off, int len) {
+        return hashStream().putBytes(input, off, len).getAsInt();
+      }
+
+      @Override
+      public int hashCharsToInt(CharSequence input) {
+        return hashStream().putChars(input).getAsInt();
+      }
+    }
+  }
+
   public static final class TestHashStream32 implements AbstractHashStream32 {
 
     private final TestHashStream hashStream;
-
-    public TestHashStream32(TestHashStream hashStream) {
-      this.hashStream = hashStream;
-    }
 
     public TestHashStream32() {
       this.hashStream = new TestHashStream();
@@ -551,13 +611,19 @@ final class HashMocks {
     }
 
     @Override
-    public TestHashStream32 copy() {
-      return new TestHashStream32(hashStream.copy());
+    public Hasher32 getHasher() {
+      return TestHasher32.INSTANCE;
     }
 
     @Override
-    public Hasher32 getHasher() {
-      throw new UnsupportedOperationException();
+    public HashStream32 setState(byte[] state) {
+      hashStream.setState(state);
+      return this;
+    }
+
+    @Override
+    public byte[] getState() {
+      return hashStream.getState();
     }
 
     public byte[] getData() {
@@ -574,6 +640,25 @@ final class HashMocks {
     @Override
     public int hashCode() {
       return hashStream.hashCode();
+    }
+  }
+
+  private enum TestHasher64 implements AbstractHasher64 {
+    INSTANCE {
+      @Override
+      public HashStream64 hashStream() {
+        return new TestHashStream64();
+      }
+
+      @Override
+      public long hashBytesToLong(byte[] input, int off, int len) {
+        return hashStream().putBytes(input, off, len).getAsLong();
+      }
+
+      @Override
+      public long hashCharsToLong(CharSequence input) {
+        return hashStream().putChars(input).getAsLong();
+      }
     }
   }
 
@@ -607,13 +692,19 @@ final class HashMocks {
     }
 
     @Override
-    public TestHashStream64 copy() {
-      return new TestHashStream64(hashStream.copy());
+    public Hasher64 getHasher() {
+      return TestHasher64.INSTANCE;
     }
 
     @Override
-    public Hasher64 getHasher() {
-      throw new UnsupportedOperationException();
+    public byte[] getState() {
+      return hashStream.getState();
+    }
+
+    @Override
+    public HashStream64 setState(byte[] state) {
+      hashStream.setState(state);
+      return this;
     }
 
     public byte[] getData() {
@@ -630,6 +721,25 @@ final class HashMocks {
     @Override
     public int hashCode() {
       return hashStream.hashCode();
+    }
+  }
+
+  private enum TestHasher128 implements AbstractHasher128 {
+    INSTANCE {
+      @Override
+      public HashStream128 hashStream() {
+        return new TestHashStream128();
+      }
+
+      @Override
+      public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
+        return hashStream().putBytes(input, off, len).get();
+      }
+
+      @Override
+      public HashValue128 hashCharsTo128Bits(CharSequence input) {
+        return hashStream().putChars(input).get();
+      }
     }
   }
 
@@ -663,13 +773,19 @@ final class HashMocks {
     }
 
     @Override
-    public TestHashStream128 copy() {
-      return new TestHashStream128(hashStream.copy());
+    public Hasher128 getHasher() {
+      return TestHasher128.INSTANCE;
     }
 
     @Override
-    public Hasher128 getHasher() {
-      throw new UnsupportedOperationException();
+    public byte[] getState() {
+      return hashStream.getState();
+    }
+
+    @Override
+    public HashStream128 setState(byte[] state) {
+      hashStream.setState(state);
+      return this;
     }
 
     public byte[] getData() {

@@ -15,26 +15,26 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.FarmHashNa.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
 class FarmHashNaTest extends AbstractHasher64Test {
 
-  private static final List<Hasher64> HASHERS =
-      Arrays.asList(
-          Hashing.farmHashNa(),
-          Hashing.farmHashNa(0x1b5af6b8376953d2L),
-          Hashing.farmHashNa(0x1b0fd3d0cecf44bbL, 0x1d195f7db40c4a96L));
-
   @Override
-  protected List<Hasher64> getHashers() {
-    return HASHERS;
+  protected List<Hasher64> createHashers() {
+    return Arrays.asList(
+        Hashing.farmHashNa(),
+        Hashing.farmHashNa(0x1b5af6b8376953d2L),
+        Hashing.farmHashNa(0x1b0fd3d0cecf44bbL, 0x1d195f7db40c4a96L));
   }
 
   @Override
@@ -99,81 +99,37 @@ class FarmHashNaTest extends AbstractHasher64Test {
     return 64;
   }
 
-  private static byte[] B0A = {
-    -39, -52, -97, 103, 44, -99, -51, 76, 46, 125, -67, 95, 30, 70, -78, -128, 72, 66, -110, -112,
-    28, -109, 38, 118, 118, 102, 110, -61, -4, 8, -90, 46, -36, -53, -17, -97, -72, 113, -128, -3,
-    -117, -114, -50, 113, -118, -5, -52, 25, -118, -70, -82, 62, -122, -99, 9, 1, 30, -123, 127,
-    -108, 75, 78, 106, 116, -65, 76, -121, 17, -101, 125, -38, -48
-  };
-  private static byte[] B0B = {
-    39, 52, 97, -103, -44, 99, 51, -76, 46, 125, -67, 95, 30, 70, -78, -128, 72, 66, -110, -112, 28,
-    -109, 38, 118, 118, 102, 110, -61, -4, 8, -90, 46, -36, -53, -17, -97, -72, 113, -128, -3, -117,
-    -114, -50, 113, -118, -5, -52, 25, -118, -70, -82, 62, -122, -99, 9, 1, 30, -123, 127, -108, 75,
-    78, 106, 116, -65, 76, -121, 17, -101, 125, -38, -48
-  };
-  private static byte[] B1 = {
-    -39, -52, -97, 103, 44, -99, -51, 76, -46, 125, -67, 95, 30, 70, -78, -128, 72, 66, -110, -112,
-    28, -109, 38, 118, 118, 102, 110, -61, -4, 8, -90, 46, -36, -53, -17, -97, -72, 113, -128, -3,
-    -117, -114, -50, 113, -118, -5, -52, 25, -118, -70, -82, 62, -122, -99, 9, 1, 30, -123, 127,
-    -108, 75, 78, 106, 116, -65, 76, -121, 17, -101, 125, -38, -48
-  };
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
 
   @Test
-  void testEqualsHelper() {
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isTrue();
-    assertThat(
-            equalsHelper(
-                1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, false, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, true, false, 0, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 1, 0, B0A,
-                B0B))
-        .isFalse();
-    assertThat(
-            equalsHelper(
-                0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, false, false, 1, 1, B0A,
-                B1))
-        .isFalse();
+  void testEqualsAdditionalCases() {
+    assertThat(FarmHashNa.create(0)).isNotEqualTo(FarmHashNa.create(1));
+    assertThat(FarmHashNa.create(0, 0)).isNotEqualTo(FarmHashNa.create(1, 0));
+    assertThat(FarmHashNa.create(0, 0)).isNotEqualTo(FarmHashNa.create(0, 1));
+  }
+
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "0080"));
+    }
+    return arguments.stream();
+  }
+
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+      arguments.add(arguments(hasher, "007f"));
+      arguments.add(arguments(hasher, "0000"));
+    }
+    return arguments.stream();
   }
 }

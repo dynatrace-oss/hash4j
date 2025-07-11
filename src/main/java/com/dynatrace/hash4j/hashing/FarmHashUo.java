@@ -59,14 +59,15 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.lang.Long.rotateRight;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 class FarmHashUo extends AbstractFarmHash {
 
-  private final long seed0;
-  private final long seed1;
+  protected final long seed0;
+  protected final long seed1;
   private final long mul;
   private final long startX;
   private final long startY;
@@ -82,28 +83,83 @@ class FarmHashUo extends AbstractFarmHash {
     this.mul = K2 + (u & 0x82);
   }
 
-  private static final FarmHashUo INSTANCE = new FarmHashUo(81, 0);
+  private static final FarmHashUo INSTANCE = new FarmHashUoWithoutSeed();
+
+  private static final class FarmHashUoWithoutSeed extends FarmHashUo {
+
+    private FarmHashUoWithoutSeed() {
+      super(81, 0);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof FarmHashUoWithoutSeed;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0x142d1607;
+    }
+  }
 
   static Hasher64 create() {
     return INSTANCE;
   }
 
+  private static final class FarmHashUoWithOneSeed extends FarmHashUo {
+    private FarmHashUoWithOneSeed(long seed) {
+      super(0, seed);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof FarmHashUoWithOneSeed)) return false;
+      FarmHashUoWithOneSeed that = (FarmHashUoWithOneSeed) obj;
+      return seed1 == that.seed1;
+    }
+
+    @Override
+    public int hashCode() {
+      return Long.hashCode(seed1);
+    }
+
+    @Override
+    protected long finalizeHash(long hash) {
+      return hashLen16(hash - K2, seed1, K_MUL);
+    }
+  }
+
   static Hasher64 create(long seed) {
-    return new FarmHashUo(0, seed) {
-      @Override
-      protected long finalizeHash(long hash) {
-        return hashLen16(hash - K2, seed, K_MUL);
-      }
-    };
+    return new FarmHashUoWithOneSeed(seed);
+  }
+
+  private static final class FarmHashUoWithTwoSeeds extends FarmHashUo {
+    private FarmHashUoWithTwoSeeds(long seed0, long seed1) {
+      super(seed0, seed1);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof FarmHashUoWithTwoSeeds)) return false;
+      FarmHashUoWithTwoSeeds that = (FarmHashUoWithTwoSeeds) obj;
+      return seed0 == that.seed0 && seed1 == that.seed1;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(seed0, seed1);
+    }
+
+    @Override
+    protected long finalizeHash(long hash) {
+      return hashLen16(hash - seed0, seed1, K_MUL);
+    }
   }
 
   static Hasher64 create(long seed0, long seed1) {
-    return new FarmHashUo(seed0, seed1) {
-      @Override
-      protected long finalizeHash(long hash) {
-        return hashLen16(hash - seed0, seed1, K_MUL);
-      }
-    };
+    return new FarmHashUoWithTwoSeeds(seed0, seed1);
   }
 
   private static long uoH(long x, long y, long mul, int r) {
@@ -347,33 +403,7 @@ class FarmHashUo extends AbstractFarmHash {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          x,
-          that.x,
-          y,
-          that.y,
-          z,
-          that.z,
-          v0,
-          that.v0,
-          v1,
-          that.v1,
-          w0,
-          that.w0,
-          w1,
-          that.w1,
-          u,
-          that.u,
-          init,
-          that.init,
-          bufferCount,
-          that.bufferCount,
-          buffer,
-          that.buffer);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
@@ -397,25 +427,103 @@ class FarmHashUo extends AbstractFarmHash {
     }
 
     @Override
-    public HashStream64 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      hashStream.x = x;
-      hashStream.y = y;
-      hashStream.z = z;
-      hashStream.v0 = v0;
-      hashStream.v1 = v1;
-      hashStream.w0 = w0;
-      hashStream.w1 = w1;
-      hashStream.u = u;
-      hashStream.bufferCount = bufferCount;
-      hashStream.init = init;
-      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
-      return hashStream;
+    public Hasher64 getHasher() {
+      return FarmHashUo.this;
+    }
+
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      int numBufferBytes = init ? bufferCount - 8 : 64;
+      byte[] state = new byte[2 + (init ? 0 : 64) + numBufferBytes];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      state[off++] = (byte) ((bufferCount - 8) | (init ? 128 : 0));
+
+      if (!init) {
+        setLong(state, off, x);
+        off += 8;
+
+        setLong(state, off, y);
+        off += 8;
+
+        setLong(state, off, z);
+        off += 8;
+
+        setLong(state, off, v0);
+        off += 8;
+
+        setLong(state, off, v1);
+        off += 8;
+
+        setLong(state, off, w0);
+        off += 8;
+
+        setLong(state, off, w1);
+        off += 8;
+
+        setLong(state, off, u);
+        off += 8;
+      }
+      System.arraycopy(buffer, 8, state, off, numBufferBytes);
+
+      return state;
     }
 
     @Override
-    public Hasher64 getHasher() {
-      return FarmHashUo.this;
+    public HashStream64 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 2);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byte b = state[off++];
+      bufferCount = 8 + (b & 0x7f);
+      init = b < 0;
+
+      checkArgument((bufferCount >= 9 && bufferCount <= 72) || (bufferCount == 8 && init));
+      int numBufferBytes = init ? bufferCount - 8 : 64;
+      checkArgument(state.length == 2 + (init ? 0 : 64) + numBufferBytes);
+
+      if (!init) {
+        x = getLong(state, off);
+        off += 8;
+
+        y = getLong(state, off);
+        off += 8;
+
+        z = getLong(state, off);
+        off += 8;
+
+        v0 = getLong(state, off);
+        off += 8;
+
+        v1 = getLong(state, off);
+        off += 8;
+
+        w0 = getLong(state, off);
+        off += 8;
+
+        w1 = getLong(state, off);
+        off += 8;
+
+        u = getLong(state, off);
+        off += 8;
+      } else {
+        x = startX;
+        y = startY;
+        z = startZ;
+        v0 = seed0;
+        v1 = seed1;
+        w0 = 0;
+        w1 = 0;
+        u = seed0 - z;
+      }
+      System.arraycopy(state, off, buffer, 8, numBufferBytes);
+
+      return this;
     }
 
     @Override
@@ -497,48 +605,5 @@ class FarmHashUo extends AbstractFarmHash {
       return FarmHashUo.this.finalizeHash(
           u, x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
-  }
-
-  /** visible for testing */
-  static boolean equalsHelper(
-      long xA,
-      long xB,
-      long yA,
-      long yB,
-      long zA,
-      long zB,
-      long v0A,
-      long v0B,
-      long v1A,
-      long v1B,
-      long w0A,
-      long w0B,
-      long w1A,
-      long w1B,
-      long uA,
-      long uB,
-      boolean initA,
-      boolean initB,
-      int bufferCountA,
-      int bufferCountB,
-      byte[] bufferA,
-      byte[] bufferB) {
-    return xA == xB
-        && yA == yB
-        && zA == zB
-        && v0A == v0B
-        && v1A == v1B
-        && w0A == w0B
-        && w1A == w1B
-        && uA == uB
-        && initA == initB
-        && bufferCountA == bufferCountB
-        && Arrays.equals(
-            bufferA,
-            8,
-            initA ? bufferCountA : (64 + 8),
-            bufferB,
-            8,
-            initB ? bufferCountB : (64 + 8));
   }
 }

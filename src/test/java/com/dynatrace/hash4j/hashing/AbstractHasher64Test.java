@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 abstract class AbstractHasher64Test extends AbstractHasherTest {
 
   @Override
-  protected abstract List<? extends Hasher64> getHashers();
+  protected abstract List<? extends Hasher64> createHashers();
 
   @Override
   protected HashStream createNonOptimizedHashStream(Hasher hasher) {

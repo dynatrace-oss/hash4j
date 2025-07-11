@@ -15,25 +15,25 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.Murmur3_128.equalsHelper;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.LongStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
 class Murmur3_128Test extends AbstractHasher128Test {
 
-  private static final List<Hasher128> HASHERS =
-      Arrays.asList(Hashing.murmur3_128(), Hashing.murmur3_128(0xfc64a346));
-
   @Override
-  protected List<Hasher128> getHashers() {
-    return HASHERS;
+  protected List<Hasher128> createHashers() {
+    return Arrays.asList(Hashing.murmur3_128(), Hashing.murmur3_128(0xfc64a346));
   }
 
   @Override
@@ -88,6 +88,11 @@ class Murmur3_128Test extends AbstractHasher128Test {
     return 16;
   }
 
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
+
   /**
    * The C reference implementation does not define the hash value computation of byte sequences
    * longer than {@link Integer#MAX_VALUE} as it uses a native unsigned {@code int} for the length
@@ -104,47 +109,37 @@ class Murmur3_128Test extends AbstractHasher128Test {
     assertThat(hashValueBytes).isEqualTo(expected);
   }
 
-  @Test
-  void testEqualsHelper() {
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L)).isFalse();
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "000000000000000000"));
+      arguments.add(arguments(hasher, "000100000000000000AA"));
+      arguments.add(arguments(hasher, "001000000000000000AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBB"));
+      arguments.add(arguments(hasher, "00F0FFFFFFFFFFFFFF11111111111111111111111111111111"));
+      arguments.add(arguments(hasher, "00F1FFFFFFFFFFFFFF1111111111111111111111111111111122"));
+    }
+    return arguments.stream();
+  }
 
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0x40L, 0x40L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0x40L, 0x40L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 1L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0x40L, 0x40L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 0L, 0x40L, 0x40L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 0x40L, 0x40L)).isTrue();
-
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 0L, 1L, 1L, 1L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 0L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 0L, 1L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 0L, 1L, 1L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 0L, 0L, 0L)).isTrue();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 0L, 1L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 0L, 0L, 0L)).isFalse();
-    assertThat(equalsHelper(0L, 0L, 0L, 0L, 1L, 1L, 1L, 1L, 0L, 0L)).isTrue();
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+      arguments.add(arguments(hasher, "0000000000000000"));
+      arguments.add(arguments(hasher, "000000000000000000AA"));
+      arguments.add(arguments(hasher, "000100000000000000"));
+      arguments.add(arguments(hasher, "000100000000000000AABB"));
+      arguments.add(arguments(hasher, "001000000000000000AAAAAAAAAAAAAAAABBBBBBBBBBBBBB"));
+      arguments.add(arguments(hasher, "001000000000000000AAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBCC"));
+      arguments.add(arguments(hasher, "00F0FFFFFFFFFFFFFF111111111111111111111111111111"));
+      arguments.add(arguments(hasher, "00F0FFFFFFFFFFFFFF1111111111111111111111111111111133"));
+      arguments.add(arguments(hasher, "00F1FFFFFFFFFFFFFF11111111111111111111111111111111"));
+      arguments.add(arguments(hasher, "00F1FFFFFFFFFFFFFF111111111111111111111111111111112233"));
+    }
+    return arguments.stream();
   }
 }

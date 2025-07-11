@@ -59,9 +59,10 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.lang.Long.rotateRight;
 
-import java.util.Arrays;
+import java.util.Objects;
 
 class FarmHashNa extends AbstractFarmHash {
 
@@ -69,28 +70,60 @@ class FarmHashNa extends AbstractFarmHash {
   private static final long START_Y = 0x226bb95b4e64b6d4L;
   private static final long START_Z = 0x134a747f856d0526L;
 
-  private static final FarmHashNa INSTANCE = new FarmHashNa();
+  private static final FarmHashNa INSTANCE = new FarmHashNaWithoutSeed();
+
+  private static final class FarmHashNaWithoutSeed extends FarmHashNa {
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof FarmHashNaWithoutSeed;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0xe8e33139;
+    }
+  }
 
   static Hasher64 create() {
     return INSTANCE;
   }
 
   static Hasher64 create(long seed) {
-    return new FarmHashNa() {
-      @Override
-      protected long finalizeHash(long hash) {
-        return hashLen16(hash - K2, seed, K_MUL);
-      }
-    };
+    return new FarmHashNaWithSeeds(K2, seed);
+  }
+
+  private static final class FarmHashNaWithSeeds extends FarmHashNa {
+
+    private final long seed0;
+    private final long seed1;
+
+    private FarmHashNaWithSeeds(long seed0, long seed1) {
+      this.seed0 = seed0;
+      this.seed1 = seed1;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) return true;
+      if (!(obj instanceof FarmHashNaWithSeeds)) return false;
+      FarmHashNaWithSeeds that = (FarmHashNaWithSeeds) obj;
+      return seed0 == that.seed0 && seed1 == that.seed1;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(seed0, seed1);
+    }
+
+    @Override
+    protected long finalizeHash(long hash) {
+      return hashLen16(hash - seed0, seed1, K_MUL);
+    }
   }
 
   static Hasher64 create(long seed0, long seed1) {
-    return new FarmHashNa() {
-      @Override
-      protected long finalizeHash(long hash) {
-        return hashLen16(hash - seed0, seed1, K_MUL);
-      }
-    };
+    return new FarmHashNaWithSeeds(seed0, seed1);
   }
 
   @Override
@@ -266,31 +299,7 @@ class FarmHashNa extends AbstractFarmHash {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          x,
-          that.x,
-          y,
-          that.y,
-          z,
-          that.z,
-          v0,
-          that.v0,
-          v1,
-          that.v1,
-          w0,
-          that.w0,
-          w1,
-          that.w1,
-          init,
-          that.init,
-          bufferCount,
-          that.bufferCount,
-          buffer,
-          that.buffer);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
@@ -313,24 +322,97 @@ class FarmHashNa extends AbstractFarmHash {
     }
 
     @Override
-    public HashStream64 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      hashStream.x = x;
-      hashStream.y = y;
-      hashStream.z = z;
-      hashStream.v0 = v0;
-      hashStream.v1 = v1;
-      hashStream.w0 = w0;
-      hashStream.w1 = w1;
-      hashStream.bufferCount = bufferCount;
-      hashStream.init = init;
-      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
-      return hashStream;
+    public Hasher64 getHasher() {
+      return FarmHashNa.this;
+    }
+
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      int numBufferBytes = init ? bufferCount - 8 : 64;
+      byte[] state = new byte[2 + (init ? 0 : 56) + numBufferBytes];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      state[off++] = (byte) ((bufferCount - 8) | (init ? 128 : 0));
+
+      if (!init) {
+        setLong(state, off, x);
+        off += 8;
+
+        setLong(state, off, y);
+        off += 8;
+
+        setLong(state, off, z);
+        off += 8;
+
+        setLong(state, off, v0);
+        off += 8;
+
+        setLong(state, off, v1);
+        off += 8;
+
+        setLong(state, off, w0);
+        off += 8;
+
+        setLong(state, off, w1);
+        off += 8;
+      }
+      System.arraycopy(buffer, 8, state, off, numBufferBytes);
+
+      return state;
     }
 
     @Override
-    public Hasher64 getHasher() {
-      return FarmHashNa.this;
+    public HashStream64 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 2);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byte b = state[off++];
+      bufferCount = 8 + (b & 0x7f);
+      init = b < 0;
+
+      checkArgument((bufferCount >= 9 && bufferCount <= 72) || (bufferCount == 8 && init));
+      int numBufferBytes = init ? bufferCount - 8 : 64;
+      checkArgument(state.length == 2 + (init ? 0 : 56) + numBufferBytes);
+
+      if (!init) {
+        x = getLong(state, off);
+        off += 8;
+
+        y = getLong(state, off);
+        off += 8;
+
+        z = getLong(state, off);
+        off += 8;
+
+        v0 = getLong(state, off);
+        off += 8;
+
+        v1 = getLong(state, off);
+        off += 8;
+
+        w0 = getLong(state, off);
+        off += 8;
+
+        w1 = getLong(state, off);
+        off += 8;
+      } else {
+        x = START_X;
+        y = START_Y;
+        z = START_Z;
+        v0 = 0;
+        v1 = 0;
+        w0 = 0;
+        w1 = 0;
+      }
+
+      System.arraycopy(state, off, buffer, 8, numBufferBytes);
+
+      return this;
     }
 
     @Override
@@ -385,45 +467,5 @@ class FarmHashNa extends AbstractFarmHash {
       return FarmHashNa.this.finalizeHash(
           x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
-  }
-
-  /** visible for testing */
-  static boolean equalsHelper(
-      long xA,
-      long xB,
-      long yA,
-      long yB,
-      long zA,
-      long zB,
-      long v0A,
-      long v0B,
-      long v1A,
-      long v1B,
-      long w0A,
-      long w0B,
-      long w1A,
-      long w1B,
-      boolean initA,
-      boolean initB,
-      int bufferCountA,
-      int bufferCountB,
-      byte[] bufferA,
-      byte[] bufferB) {
-    return xA == xB
-        && yA == yB
-        && zA == zB
-        && v0A == v0B
-        && v1A == v1B
-        && w0A == w0B
-        && w1A == w1B
-        && initA == initB
-        && bufferCountA == bufferCountB
-        && Arrays.equals(
-            bufferA,
-            8,
-            initA ? bufferCountA : (64 + 8),
-            bufferB,
-            8,
-            initB ? bufferCountB : (64 + 8));
   }
 }

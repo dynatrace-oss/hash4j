@@ -17,18 +17,19 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.provider.Arguments;
 
 class XXH3_128Test extends AbstractHasher128Test {
 
-  private static final List<Hasher128> HASHERS =
-      Arrays.asList(Hashing.xxh3_128(), Hashing.xxh3_128(0x84bef0228911ff91L));
-
   @Override
-  protected List<Hasher128> getHashers() {
-    return HASHERS;
+  protected List<Hasher128> createHashers() {
+    return Arrays.asList(Hashing.xxh3_128(), Hashing.xxh3_128(0x84bef0228911ff91L));
   }
 
   @Override
@@ -81,5 +82,31 @@ class XXH3_128Test extends AbstractHasher128Test {
   @Override
   protected int getBlockLengthInBytes() {
     return 1024;
+  }
+
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
+
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "000000000000000000"));
+    }
+    return arguments.stream();
+  }
+
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+      arguments.add(arguments(hasher, "00000000000000000000"));
+    }
+    return arguments.stream();
   }
 }

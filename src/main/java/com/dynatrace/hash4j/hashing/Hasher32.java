@@ -32,6 +32,17 @@ public interface Hasher32 extends Hasher {
   HashStream32 hashStream();
 
   /**
+   * Reconstructs a hash stream from a given state.
+   *
+   * <p>The behavior is undefined, if the given state was not created by a hash stream of a hasher
+   * that is equal to this hasher.
+   *
+   * @return a new {@link HashStream32} instance
+   */
+  @Override
+  HashStream32 hashStreamFromState(byte[] state);
+
+  /**
    * Hashes an object to a 32-bit integer value.
    *
    * @param obj the object

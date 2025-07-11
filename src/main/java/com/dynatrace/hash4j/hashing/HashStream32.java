@@ -184,4 +184,10 @@ public interface HashStream32 extends HashStream {
 
   @Override
   Hasher32 getHasher();
+
+  @Override
+  byte[] getState();
+
+  @Override
+  HashStream32 setState(byte[] state);
 }

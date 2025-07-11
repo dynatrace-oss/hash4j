@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,18 @@ interface Hasher {
    * @return a new {@link HashStream} instance
    */
   HashStream hashStream();
+
+  /**
+   * Reconstructs a hash stream from a given state.
+   *
+   * <p>The behavior is undefined, if the state was not previously created by a hash stream of the
+   * same hasher with same seed parameters.
+   *
+   * @return a new {@link HashStream} instance
+   */
+  default HashStream hashStreamFromState(byte[] state) {
+    return hashStream().setState(state);
+  }
 
   /**
    * The size of the hash value in bits.
