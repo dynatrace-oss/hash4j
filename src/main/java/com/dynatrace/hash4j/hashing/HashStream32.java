@@ -163,9 +163,25 @@ public interface HashStream32 extends HashStream {
   @Override
   HashStream32 putOptionalDouble(OptionalDouble v);
 
+  /**
+   * Resets the hash stream.
+   *
+   * <p>This allows to reuse this instance for new hash computations.
+   *
+   * @return this
+   */
   @Override
   HashStream32 reset();
 
+  /**
+   * Creates a copy of this hash stream.
+   *
+   * <p>This allows to save the current state for reuse, without new hash computations.
+   *
+   * <p>Equivalent to {@code getHasher().hashStreamFromState(getState())}.
+   *
+   * @return new instance
+   */
   @Override
   HashStream32 copy();
 
@@ -182,12 +198,35 @@ public interface HashStream32 extends HashStream {
    */
   <T> int resetAndHashToInt(T obj, HashFunnel<T> funnel);
 
+  /**
+   * Returns a reference of the underlying hasher.
+   *
+   * @return a reference to the underlying hasher
+   */
   @Override
   Hasher32 getHasher();
 
+  /**
+   * Returns the state of the hash stream.
+   *
+   * <p>The state allows to continue the processing after creating a new instance using the {@code
+   * hashStreamFromState(byte[])} of the corresponding hasher instance or initializing an existing
+   * instance using {@link #setState(byte[])}.
+   *
+   * @return the state
+   */
   @Override
   byte[] getState();
 
+  /**
+   * Sets the state of the hash stream.
+   *
+   * <p>The behavior is undefined, if the given state was not created by a hash stream of a hasher
+   * that is equal to {@link #getHasher()}.
+   *
+   * @param state the state
+   * @return a reference to the underlying hasher
+   */
   @Override
   HashStream32 setState(byte[] state);
 }
