@@ -43,6 +43,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 final class Komihash5_0 extends AbstractKomihash {
@@ -277,6 +278,11 @@ final class Komihash5_0 extends AbstractKomihash {
   private class HashStreamImpl extends AbstractKomihash.HashStreamImpl {
 
     @Override
+    protected boolean isLastByteNeeded() {
+      return false;
+    }
+
+    @Override
     protected void processBuffer(
         long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7) {
       b0 ^= see1;
@@ -315,18 +321,105 @@ final class Komihash5_0 extends AbstractKomihash {
       if (len > 7) {
         r2l ^= getLong(buffer, off);
         r2h ^= y | (getLong(buffer, off + 8) & (y - 1));
-      } else if (byteCount > 0) {
+      } else if (init || bufferCount > 0) {
         r2l ^= y | (getLong(buffer, off) & (y - 1));
       }
 
       return finish(r2h, r2l, se5);
     }
 
+    private static final byte SERIAL_VERSION_V0 = 0;
+
     @Override
-    public HashStream64 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      copyTo(hashStream);
-      return hashStream;
+    public byte[] getState() {
+      byte[] state = new byte[2 + (init ? 64 : 0) + bufferCount];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      state[off++] = (byte) (bufferCount | (init ? 128 : 0));
+
+      if (init) {
+        setLong(state, off, see1);
+        off += 8;
+
+        setLong(state, off, see2);
+        off += 8;
+
+        setLong(state, off, see3);
+        off += 8;
+
+        setLong(state, off, see4);
+        off += 8;
+
+        setLong(state, off, see5);
+        off += 8;
+
+        setLong(state, off, see6);
+        off += 8;
+
+        setLong(state, off, see7);
+        off += 8;
+
+        setLong(state, off, see8);
+        off += 8;
+      }
+
+      System.arraycopy(buffer, 0, state, off, bufferCount);
+
+      return state;
+    }
+
+    @Override
+    public HashStream64 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 2);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byte b = state[off++];
+      bufferCount = b & 0x7f;
+      init = b < 0;
+      checkArgument(bufferCount <= 63);
+      checkArgument(state.length == 2 + (init ? 64 : 0) + bufferCount);
+
+      if (init) {
+        see1 = getLong(state, off);
+        off += 8;
+
+        see2 = getLong(state, off);
+        off += 8;
+
+        see3 = getLong(state, off);
+        off += 8;
+
+        see4 = getLong(state, off);
+        off += 8;
+
+        see5 = getLong(state, off);
+        off += 8;
+
+        see6 = getLong(state, off);
+        off += 8;
+
+        see7 = getLong(state, off);
+        off += 8;
+
+        see8 = getLong(state, off);
+        off += 8;
+      } else {
+        see1 = seed1;
+        see2 = seed2;
+        see3 = seed3;
+        see4 = seed4;
+        see5 = seed5;
+        see6 = seed6;
+        see7 = seed7;
+        see8 = seed8;
+      }
+
+      System.arraycopy(state, off, buffer, 0, bufferCount);
+
+      return this;
     }
   }
 
@@ -375,5 +468,18 @@ final class Komihash5_0 extends AbstractKomihash {
   @Override
   public long hashLongIntToLong(long v1, int v2) {
     return finish12Bytes(v1, (1L << 32) ^ (v2 & 0xFFFFFFFFL));
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof Komihash5_0)) return false;
+    Komihash5_0 that = (Komihash5_0) obj;
+    return initSeed == that.initSeed;
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.hashCode(initSeed);
   }
 }

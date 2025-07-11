@@ -38,9 +38,9 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 import com.dynatrace.hash4j.internal.UnsignedMultiplyUtil;
-import java.util.Arrays;
 
 abstract class XXH3Base implements AbstractHasher64 {
   protected static final int BLOCK_LEN_EXP = 10;
@@ -202,6 +202,10 @@ abstract class XXH3Base implements AbstractHasher64 {
         };
   }
 
+  protected long getSeed() {
+    return secret00 - SECRET_00;
+  }
+
   protected static long unsignedLongMulXorFold(final long lhs, final long rhs) {
     long upper = UnsignedMultiplyUtil.unsignedMultiplyHigh(lhs, rhs);
     long lower = lhs * rhs;
@@ -235,7 +239,7 @@ abstract class XXH3Base implements AbstractHasher64 {
     return (acc ^ (acc >>> 47) ^ sec) * INIT_ACC_7;
   }
 
-  protected abstract class HashStreamImplBase implements HashStream32 {
+  protected abstract class HashStreamImplBase implements HashStream64 {
 
     protected static final int BULK_SIZE = 256;
     protected static final int BULK_SIZE_HALF = 128;
@@ -250,7 +254,7 @@ abstract class XXH3Base implements AbstractHasher64 {
     protected long acc6 = INIT_ACC_6;
     protected long acc7 = INIT_ACC_7;
     protected final byte[] buffer = new byte[BULK_SIZE + 8];
-    protected int offset = 0; // == byteCount % BULK_SIZE
+    protected int offset = 0;
     protected long byteCount = 0;
 
     @Override
@@ -260,33 +264,7 @@ abstract class XXH3Base implements AbstractHasher64 {
 
     @Override
     public boolean equals(Object o) {
-      if (this == o) return true;
-      if (!(o instanceof HashStreamImplBase)) return false;
-      HashStreamImplBase that = (HashStreamImplBase) o;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          acc0,
-          that.acc0,
-          acc1,
-          that.acc1,
-          acc2,
-          that.acc2,
-          acc3,
-          that.acc3,
-          acc4,
-          that.acc4,
-          acc5,
-          that.acc5,
-          acc6,
-          that.acc6,
-          acc7,
-          that.acc7,
-          byteCount,
-          that.byteCount,
-          offset,
-          that.offset,
-          buffer,
-          that.buffer);
+      return HashUtil.equalsHelper(this, o);
     }
 
     protected void putByteImpl(byte v) {
@@ -446,18 +424,110 @@ abstract class XXH3Base implements AbstractHasher64 {
       byteCount = 0;
     }
 
-    protected void copyImpl(HashStreamImplBase hashStream) {
-      hashStream.acc0 = acc0;
-      hashStream.acc1 = acc1;
-      hashStream.acc2 = acc2;
-      hashStream.acc3 = acc3;
-      hashStream.acc4 = acc4;
-      hashStream.acc5 = acc5;
-      hashStream.acc6 = acc6;
-      hashStream.acc7 = acc7;
-      hashStream.offset = offset;
-      hashStream.byteCount = byteCount;
-      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      int numBufferBytes = ((byteCount > BULK_SIZE || byteCount < 0) && offset < 64) ? 64 : offset;
+      byte[] state =
+          new byte[9 + ((byteCount > BULK_SIZE || byteCount < 0) ? 64 : 0) + numBufferBytes];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      setLong(state, off, byteCount);
+      off += 8;
+
+      if (byteCount > BULK_SIZE || byteCount < 0) {
+        setLong(state, off, acc0);
+        off += 8;
+
+        setLong(state, off, acc1);
+        off += 8;
+
+        setLong(state, off, acc2);
+        off += 8;
+
+        setLong(state, off, acc3);
+        off += 8;
+
+        setLong(state, off, acc4);
+        off += 8;
+
+        setLong(state, off, acc5);
+        off += 8;
+
+        setLong(state, off, acc6);
+        off += 8;
+
+        setLong(state, off, acc7);
+        off += 8;
+      }
+
+      if ((byteCount > BULK_SIZE || byteCount < 0) && offset < 64) {
+        System.arraycopy(buffer, BULK_SIZE - 64 + offset, state, off, 64 - offset);
+        off += 64 - offset;
+      }
+
+      System.arraycopy(buffer, 0, state, off, offset);
+
+      return state;
+    }
+
+    protected void setStateImpl(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 9);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byteCount = getLong(state, off);
+      off += 8;
+
+      offset = (byteCount != 0) ? (((int) byteCount - 1) & BULK_SIZE_MASK) + 1 : 0;
+      int numBufferBytes = ((byteCount > BULK_SIZE || byteCount < 0) && offset < 64) ? 64 : offset;
+      checkArgument(
+          state.length == 9 + ((byteCount > BULK_SIZE || byteCount < 0) ? 64 : 0) + numBufferBytes);
+
+      if (byteCount > BULK_SIZE || byteCount < 0) {
+        acc0 = getLong(state, off);
+        off += 8;
+
+        acc1 = getLong(state, off);
+        off += 8;
+
+        acc2 = getLong(state, off);
+        off += 8;
+
+        acc3 = getLong(state, off);
+        off += 8;
+
+        acc4 = getLong(state, off);
+        off += 8;
+
+        acc5 = getLong(state, off);
+        off += 8;
+
+        acc6 = getLong(state, off);
+        off += 8;
+
+        acc7 = getLong(state, off);
+        off += 8;
+      } else {
+        acc0 = INIT_ACC_0;
+        acc1 = INIT_ACC_1;
+        acc2 = INIT_ACC_2;
+        acc3 = INIT_ACC_3;
+        acc4 = INIT_ACC_4;
+        acc5 = INIT_ACC_5;
+        acc6 = INIT_ACC_6;
+        acc7 = INIT_ACC_7;
+      }
+
+      if ((byteCount > BULK_SIZE || byteCount < 0) && offset < 64) {
+        System.arraycopy(state, off, buffer, BULK_SIZE - 64 + offset, 64 - offset);
+        off += 64 - offset;
+      }
+
+      System.arraycopy(state, off, buffer, 0, offset);
     }
 
     private void processBuffer() {
@@ -575,42 +645,5 @@ abstract class XXH3Base implements AbstractHasher64 {
   @Override
   public long hashLongIntToLong(long v1, int v2) {
     return finish12Bytes(v1, ((long) v2 << 32) ^ (v1 >>> 32));
-  }
-
-  /** visible for testing */
-  static boolean equalsHelper(
-      long acc0A,
-      long acc0B,
-      long acc1A,
-      long acc1B,
-      long acc2A,
-      long acc2B,
-      long acc3A,
-      long acc3B,
-      long acc4A,
-      long acc4B,
-      long acc5A,
-      long acc5B,
-      long acc6A,
-      long acc6B,
-      long acc7A,
-      long acc7B,
-      long byteCountA,
-      long byteCountB,
-      int offsetA,
-      int offsetB,
-      byte[] bufferA,
-      byte[] bufferB) {
-    return acc0A == acc0B
-        && acc1A == acc1B
-        && acc2A == acc2B
-        && acc3A == acc3B
-        && acc4A == acc4B
-        && acc5A == acc5B
-        && acc6A == acc6B
-        && acc7A == acc7B
-        && byteCountA == byteCountB
-        && offsetA == offsetB
-        && Arrays.equals(bufferA, 0, offsetA, bufferB, 0, offsetB);
   }
 }

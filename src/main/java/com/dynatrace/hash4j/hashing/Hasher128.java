@@ -37,6 +37,17 @@ public interface Hasher128 extends Hasher64 {
   HashStream128 hashStream();
 
   /**
+   * Reconstructs a hash stream from a given state.
+   *
+   * <p>The behavior is undefined, if the given state was not created by a hash stream of a hasher
+   * that is equal to this hasher.
+   *
+   * @return a new {@link HashStream128} instance
+   */
+  @Override
+  HashStream128 hashStreamFromState(byte[] state);
+
+  /**
    * Hashes an object to a 128-bit {@link HashValue128} value.
    *
    * @param obj the object

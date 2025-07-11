@@ -189,4 +189,26 @@ interface HashStream extends HashSink {
    * @return a reference to the underlying hasher
    */
   Hasher getHasher();
+
+  /**
+   * Returns the state of the hash stream.
+   *
+   * <p>The state allows to continue the processing after creating a new instance using the {@code
+   * hashStreamFromState(byte[])} of the corresponding hasher instance or initializing an existing
+   * instance using {@link #setState(byte[])}.
+   *
+   * @return the state
+   */
+  byte[] getState();
+
+  /**
+   * Sets the state of the hash stream.
+   *
+   * <p>The behavior is undefined, if the given state was not created by a hash stream of a hasher
+   * that is equal to {@link #getHasher()}.
+   *
+   * @param state the state
+   * @return a reference to the underlying hasher
+   */
+  HashStream setState(byte[] state);
 }

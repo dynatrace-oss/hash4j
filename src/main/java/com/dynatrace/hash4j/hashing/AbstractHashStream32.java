@@ -21,11 +21,6 @@ import java.util.function.ToLongFunction;
 interface AbstractHashStream32 extends AbstractHashStream, HashStream32 {
 
   @Override
-  default int getHashBitSize() {
-    return 32;
-  }
-
-  @Override
   default HashStream32 putBoolean(boolean v) {
     AbstractHashStream.super.putBoolean(v);
     return this;
@@ -296,5 +291,10 @@ interface AbstractHashStream32 extends AbstractHashStream, HashStream32 {
   default <T> int resetAndHashToInt(T obj, HashFunnel<T> funnel) {
     funnel.put(obj, reset());
     return getAsInt();
+  }
+
+  @Override
+  default HashStream32 copy() {
+    return getHasher().hashStreamFromState(getState());
   }
 }

@@ -189,4 +189,10 @@ public interface HashStream64 extends HashStream32 {
 
   @Override
   Hasher64 getHasher();
+
+  @Override
+  byte[] getState();
+
+  @Override
+  HashStream64 setState(byte[] state);
 }

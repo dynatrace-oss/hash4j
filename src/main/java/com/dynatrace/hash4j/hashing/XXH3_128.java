@@ -119,7 +119,7 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
 
     @Override
     public HashValue128 get() {
-      if (byteCount <= BULK_SIZE) {
+      if (byteCount >= 0 && byteCount <= BULK_SIZE) {
         return hashBytesTo128Bits(buffer, 0, (int) byteCount);
       }
       setLong(buffer, BULK_SIZE, getLong(buffer, 0));
@@ -229,15 +229,14 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
     }
 
     @Override
-    public HashStream128 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      copyImpl(hashStream);
-      return hashStream;
+    public Hasher128 getHasher() {
+      return XXH3_128.this;
     }
 
     @Override
-    public Hasher128 getHasher() {
-      return XXH3_128.this;
+    public HashStream128 setState(byte[] state) {
+      setStateImpl(state);
+      return this;
     }
   }
 
@@ -812,5 +811,18 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
     long m128Hi = unsignedMultiplyHigh(lo, INIT_ACC_1) + hi + (hi & 0xFFFFFFFFL) * (INIT_ACC_5 - 1);
     long m128Lo = (lo * INIT_ACC_1 + 0x2c0000000000000L) ^ Long.reverseBytes(m128Hi);
     return avalanche3(m128Lo * INIT_ACC_2);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof XXH3_128)) return false;
+    XXH3_128 that = (XXH3_128) obj;
+    return getSeed() == that.getSeed();
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.hashCode(getSeed());
   }
 }

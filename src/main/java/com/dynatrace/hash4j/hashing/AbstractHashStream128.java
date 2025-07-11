@@ -21,11 +21,6 @@ import java.util.function.ToLongFunction;
 interface AbstractHashStream128 extends AbstractHashStream64, HashStream128 {
 
   @Override
-  default int getHashBitSize() {
-    return 128;
-  }
-
-  @Override
   default long getAsLong() {
     return get().getAsLong();
   }
@@ -294,5 +289,10 @@ interface AbstractHashStream128 extends AbstractHashStream64, HashStream128 {
   default <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel) {
     funnel.put(obj, reset());
     return get();
+  }
+
+  @Override
+  default HashStream128 copy() {
+    return getHasher().hashStreamFromState(getState());
   }
 }

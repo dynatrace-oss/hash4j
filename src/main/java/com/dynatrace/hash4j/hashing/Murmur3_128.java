@@ -16,6 +16,9 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 final class Murmur3_128 implements AbstractHasher128 {
 
@@ -29,8 +32,7 @@ final class Murmur3_128 implements AbstractHasher128 {
   }
 
   static Hasher128 create(int seed) {
-    long longSeed = seed & 0xFFFFFFFFL;
-    return new Murmur3_128(longSeed);
+    return new Murmur3_128(seed);
   }
 
   private static long fmix64(long k) {
@@ -98,8 +100,8 @@ final class Murmur3_128 implements AbstractHasher128 {
 
   private final long seed;
 
-  public Murmur3_128(long seed) {
-    this.seed = seed;
+  public Murmur3_128(int seed) {
+    this.seed = seed & 0xFFFFFFFFL;
   }
 
   @Override
@@ -231,7 +233,7 @@ final class Murmur3_128 implements AbstractHasher128 {
     private long h2 = seed;
     private long buffer0 = 0;
     private long buffer1 = 0;
-    private long bitCount = 0;
+    private long byteCount = 0;
 
     @Override
     public int hashCode() {
@@ -240,21 +242,7 @@ final class Murmur3_128 implements AbstractHasher128 {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          h1,
-          that.h1,
-          h2,
-          that.h2,
-          buffer0,
-          that.buffer0,
-          buffer1,
-          that.buffer1,
-          bitCount,
-          that.bitCount);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
@@ -263,19 +251,8 @@ final class Murmur3_128 implements AbstractHasher128 {
       h2 = seed;
       buffer0 = 0;
       buffer1 = 0;
-      bitCount = 0;
+      byteCount = 0;
       return this;
-    }
-
-    @Override
-    public HashStream128 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      hashStream.h1 = h1;
-      hashStream.h2 = h2;
-      hashStream.buffer0 = buffer0;
-      hashStream.buffer1 = buffer1;
-      hashStream.bitCount = bitCount;
-      return hashStream;
     }
 
     @Override
@@ -283,17 +260,89 @@ final class Murmur3_128 implements AbstractHasher128 {
       return Murmur3_128.this;
     }
 
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      int numBufferBytes = (int) (byteCount & 15);
+      byte[] state = new byte[9 + ((byteCount < 0 || byteCount >= 16) ? 16 : 0) + numBufferBytes];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      setLong(state, off, byteCount);
+      off += 8;
+
+      if (byteCount < 0 || byteCount >= 16) {
+        setLong(state, off, h1);
+        off += 8;
+
+        setLong(state, off, h2);
+        off += 8;
+      }
+
+      if (numBufferBytes >= 8) {
+        setLong(state, off, buffer0);
+        off += 8;
+      }
+
+      for (int i = 0; i < (numBufferBytes & 7); i++) {
+        state[off++] = (byte) (buffer1 >>> (i << 3));
+      }
+
+      return state;
+    }
+
+    @Override
+    public HashStream128 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 9);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byteCount = getLong(state, off);
+      off += 8;
+
+      int numBufferBytes = (int) (byteCount & 15);
+      checkArgument(
+          state.length == 9 + ((byteCount < 0 || byteCount >= 16) ? 16 : 0) + numBufferBytes);
+
+      if (byteCount < 0 || byteCount >= 16) {
+        h1 = getLong(state, off);
+        off += 8;
+
+        h2 = getLong(state, off);
+        off += 8;
+      } else {
+        h1 = seed;
+        h2 = seed;
+      }
+
+      if (numBufferBytes >= 8) {
+        buffer0 = getLong(state, off);
+        off += 8;
+      } else {
+        buffer0 = 0;
+      }
+
+      buffer1 = 0;
+      for (int i = 0; i < (numBufferBytes & 7); i++) {
+        buffer1 |= (state[off++] & 0xFFL) << (i << 3);
+      }
+
+      return this;
+    }
+
     @Override
     public HashStream128 putByte(byte b) {
-      buffer1 |= ((b & 0xFFL) << bitCount);
-      if ((bitCount & 0x38L) == 0x38L) {
-        if ((bitCount & 0x40L) != 0) {
+      buffer1 |= ((b & 0xFFL) << (byteCount << 3));
+      if ((byteCount & 0x7L) == 0x7L) {
+        if ((byteCount & 0x8L) != 0) {
           processBuffer(buffer0, buffer1);
         }
         buffer0 = buffer1;
         buffer1 = 0;
       }
-      bitCount += 8;
+      byteCount += 1;
       return this;
     }
 
@@ -308,70 +357,70 @@ final class Murmur3_128 implements AbstractHasher128 {
     }
 
     private HashStream128 putTwoBytes(long l) {
-      buffer1 |= l << bitCount;
-      if ((bitCount & 0x30L) == 0x30L) {
-        if ((bitCount & 0x40L) != 0) {
+      buffer1 |= l << (byteCount << 3);
+      if ((byteCount & 0x6L) == 0x6L) {
+        if ((byteCount & 0x8L) != 0) {
           processBuffer(buffer0, buffer1);
         }
         buffer0 = buffer1;
-        buffer1 = (l >>> -bitCount);
+        buffer1 = l >>> -(byteCount << 3);
       }
-      bitCount += 16;
+      byteCount += 2;
       return this;
     }
 
     @Override
     public HashStream128 putInt(int v) {
       final long l = v & 0xFFFFFFFFL;
-      buffer1 |= l << bitCount;
-      if ((bitCount & 0x20L) != 0) {
-        if ((bitCount & 0x40L) != 0) {
+      buffer1 |= l << (byteCount << 3);
+      if ((byteCount & 0x4L) != 0) {
+        if ((byteCount & 0x8L) != 0) {
           processBuffer(buffer0, buffer1);
         }
         buffer0 = buffer1;
-        buffer1 = (l >>> -bitCount);
+        buffer1 = l >>> -(byteCount << 3);
       }
-      bitCount += 32;
+      byteCount += 4;
       return this;
     }
 
     @Override
     public HashStream128 putLong(long l) {
-      buffer1 |= (l << bitCount);
-      if ((bitCount & 0x40L) != 0) {
+      buffer1 |= (l << (byteCount << 3));
+      if ((byteCount & 0x8L) != 0) {
         processBuffer(buffer0, buffer1);
       }
       buffer0 = buffer1;
-      buffer1 = (l >>> 1 >>> ~bitCount);
-      bitCount += 64;
+      buffer1 = l >>> 1 >>> ~(byteCount << 3);
+      byteCount += 8;
       return this;
     }
 
     @Override
     public HashStream128 putBytes(byte[] b, int off, int len) {
 
-      final long oldBitCount = bitCount;
-      final int numWrittenBytes = (int) bitCount >>> 3;
-      final int regularBlockStartIdx = -numWrittenBytes & 0xF;
-      final int regularBlockEndIdx = len - ((len + numWrittenBytes) & 0xF);
-      bitCount += ((long) len) << 3;
+      final int bufferOffset = (int) byteCount;
+      final int bitOffset = bufferOffset << 3;
+      final int regularBlockStartIdx = -bufferOffset & 0xF;
+      final int regularBlockEndIdx = len - ((len + bufferOffset) & 0xF);
+      byteCount += len;
 
       if (regularBlockEndIdx < regularBlockStartIdx) {
-        int z = -numWrittenBytes & 0x7;
+        int z = -bufferOffset & 0x7;
         if (len < z) {
           for (int x = 0; x < len; ++x) {
-            buffer1 |= (b[off + x] & 0xFFL) << ((x + numWrittenBytes) << 3);
+            buffer1 |= (b[off + x] & 0xFFL) << ((x + bufferOffset) << 3);
           }
         } else {
           if (0 < z) {
             for (int x = 0; x < z; ++x) {
-              buffer1 |= (b[off + x] & 0xFFL) << ((x + numWrittenBytes) << 3);
+              buffer1 |= (b[off + x] & 0xFFL) << ((x + bufferOffset) << 3);
             }
             buffer0 = buffer1;
             buffer1 = 0;
           }
           for (int x = z; x < len; ++x) {
-            buffer1 |= (b[off + x] & 0xFFL) << ((x + numWrittenBytes) << 3);
+            buffer1 |= (b[off + x] & 0xFFL) << ((x + bufferOffset) << 3);
           }
         }
         return this;
@@ -380,11 +429,11 @@ final class Murmur3_128 implements AbstractHasher128 {
       if (regularBlockStartIdx > 0) {
         if (regularBlockStartIdx >= 8) {
           if (regularBlockStartIdx > 8) {
-            buffer0 = buffer1 | getLong(b, off) << oldBitCount;
+            buffer0 = buffer1 | (getLong(b, off) << bitOffset);
           }
           buffer1 = getLong(b, off + regularBlockStartIdx - 8);
         } else if (len >= 8) {
-          buffer1 |= getLong(b, off) << oldBitCount;
+          buffer1 |= getLong(b, off) << bitOffset;
         } else {
           if (regularBlockStartIdx >= 4) {
             if (regularBlockStartIdx >= 5) {
@@ -465,16 +514,16 @@ final class Murmur3_128 implements AbstractHasher128 {
       long g1 = h1;
       long g2 = h2;
 
-      if ((bitCount & 0x7FL) != 0) {
-        buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -bitCount);
-        if ((bitCount & 0x40L) == 0) {
+      if ((byteCount & 0xFL) != 0) {
+        buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -(byteCount << 3));
+        if ((byteCount & 0x8L) == 0) {
           g1 ^= mixK1(buffer1);
         } else {
           g1 ^= mixK1(buffer0);
           g2 ^= mixK2(buffer1);
         }
       }
-      return finalizeHash(g1, g2, bitCount >>> 3);
+      return finalizeHash(g1, g2, byteCount);
     }
 
     @Override
@@ -482,9 +531,9 @@ final class Murmur3_128 implements AbstractHasher128 {
       long g1 = h1;
       long g2 = h2;
 
-      if ((bitCount & 0x7FL) != 0) {
-        buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -bitCount);
-        if ((bitCount & 0x40L) == 0) {
+      if ((byteCount & 0xFL) != 0) {
+        buffer1 &= (0xFFFFFFFFFFFFFFFFL >>> -(byteCount << 3));
+        if ((byteCount & 0x8L) == 0) {
           g1 ^= mixK1(buffer1);
         } else {
           g1 ^= mixK1(buffer0);
@@ -492,27 +541,27 @@ final class Murmur3_128 implements AbstractHasher128 {
         }
       }
 
-      return finalizeHashToLong(g1, g2, bitCount >>> 3);
+      return finalizeHashToLong(g1, g2, byteCount);
     }
 
     @Override
     public HashStream128 putChars(CharSequence s) {
       final int len = s.length();
-      int i = ((8 - (int) bitCount) >>> 4) & 0x7;
+      int i = ((1 - (int) byteCount) >>> 1) & 0x7;
       if (len < i) {
         for (int j = 0; j < len; j++) {
           final long l = s.charAt(j);
-          buffer1 |= l << bitCount;
-          if ((bitCount & 0x30L) == 0x30L) {
+          buffer1 |= l << (byteCount << 3);
+          if ((byteCount & 0x6L) == 0x6L) {
             buffer0 = buffer1;
-            buffer1 = l >>> -bitCount;
+            buffer1 = l >>> -(byteCount << 3);
           }
-          bitCount += 16;
+          byteCount += 2;
         }
         return this;
       }
 
-      if ((bitCount & 0xFL) == 0) {
+      if ((byteCount & 0x1L) == 0) {
         if (i - 1 >= 0) {
           if (i - 2 >= 0) {
             if (i - 3 >= 0) {
@@ -636,7 +685,7 @@ final class Murmur3_128 implements AbstractHasher128 {
           }
         }
       }
-      bitCount += ((long) len) << 4;
+      byteCount += ((long) len) << 1;
       return this;
     }
   }
@@ -701,22 +750,16 @@ final class Murmur3_128 implements AbstractHasher128 {
     return finalizeHashToLong(h1, h2, 12);
   }
 
-  /** visible for testing */
-  static boolean equalsHelper(
-      long h1A,
-      long h1B,
-      long h2A,
-      long h2B,
-      long buffer0A,
-      long buffer0B,
-      long buffer1A,
-      long buffer1B,
-      long bitCountA,
-      long bitCountB) {
-    return h1A == h1B
-        && h2A == h2B
-        && bitCountA == bitCountB
-        && buffer1A == buffer1B
-        && (((bitCountA & 0x40L) == 0) || buffer0A == buffer0B);
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof Murmur3_128)) return false;
+    Murmur3_128 that = (Murmur3_128) obj;
+    return seed == that.seed;
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.hashCode(seed);
   }
 }

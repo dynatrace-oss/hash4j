@@ -16,9 +16,9 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
-
-import java.util.Arrays;
 
 abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
@@ -256,7 +256,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
     private final byte[] buffer = new byte[48 + 8];
     private long byteCount = 0;
-    private int offset = 0; // == byteCount % 48
+    private int offset = 0;
 
     private long see0 = seed;
     private long see1 = seed;
@@ -269,23 +269,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(
-          see0,
-          that.see0,
-          see1,
-          that.see1,
-          see2,
-          that.see2,
-          offset,
-          that.offset,
-          byteCount,
-          that.byteCount,
-          buffer,
-          that.buffer);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
@@ -299,20 +283,82 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
     }
 
     @Override
-    public HashStream64 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      hashStream.byteCount = byteCount;
-      hashStream.offset = offset;
-      hashStream.see0 = see0;
-      hashStream.see1 = see1;
-      hashStream.see2 = see2;
-      System.arraycopy(buffer, 0, hashStream.buffer, 0, buffer.length);
-      return hashStream;
+    public Hasher64 getHasher() {
+      return AbstractWyhashFinal.this;
+    }
+
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      int numBufferBytes = (offset < 16 && (byteCount >= 16 || byteCount < 0)) ? 16 : offset;
+      byte[] state = new byte[9 + ((byteCount > 48 || byteCount < 0) ? 24 : 0) + numBufferBytes];
+      int off = 0;
+
+      state[off++] = SERIAL_VERSION_V0;
+
+      setLong(state, off, byteCount);
+      off += 8;
+
+      if (byteCount > 48 || byteCount < 0) {
+        setLong(state, off, see0);
+        off += 8;
+
+        setLong(state, off, see1);
+        off += 8;
+
+        setLong(state, off, see2);
+        off += 8;
+      }
+
+      if (offset < 16 && (byteCount >= 16 || byteCount < 0)) {
+        System.arraycopy(buffer, 32 + offset, state, off, 16 - offset);
+        off += 16 - offset;
+      }
+
+      System.arraycopy(buffer, 0, state, off, offset);
+
+      return state;
     }
 
     @Override
-    public Hasher64 getHasher() {
-      return AbstractWyhashFinal.this;
+    public HashStream64 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 9);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      byteCount = getLong(state, off);
+      off += 8;
+      offset = (byteCount == 0) ? 0 : (int) Long.remainderUnsigned(byteCount - 1, 48) + 1;
+
+      int numBufferBytes = (offset < 16 && (byteCount >= 16 || byteCount < 0)) ? 16 : offset;
+      checkArgument(
+          state.length == 9 + ((byteCount > 48 || byteCount < 0) ? 24 : 0) + numBufferBytes);
+
+      if (byteCount > 48 || byteCount < 0) {
+        see0 = getLong(state, off);
+        off += 8;
+
+        see1 = getLong(state, off);
+        off += 8;
+
+        see2 = getLong(state, off);
+        off += 8;
+      } else {
+        see0 = seed;
+        see1 = seed;
+        see2 = seed;
+      }
+
+      if (offset < 16 && (byteCount >= 16 || byteCount < 0)) {
+        System.arraycopy(state, off, buffer, 32 + offset, 16 - offset);
+        off += 16 - offset;
+      }
+
+      System.arraycopy(state, off, buffer, 0, offset);
+
+      return this;
     }
 
     @Override
@@ -335,7 +381,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       if (offset > 48) {
         offset -= 48;
         processBuffer();
-        setShort(buffer, 0, getShort(buffer, 48));
+        setShort(buffer, 0, (short) (v << (offset << 3) >>> 16));
       }
       return this;
     }
@@ -348,7 +394,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       if (offset > 48) {
         offset -= 48;
         processBuffer();
-        setChar(buffer, 0, getChar(buffer, 48));
+        setChar(buffer, 0, (char) (v << (offset << 3) >>> 16));
       }
       return this;
     }
@@ -361,7 +407,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       if (offset > 48) {
         offset -= 48;
         processBuffer();
-        setInt(buffer, 0, getInt(buffer, 48));
+        setInt(buffer, 0, v >>> -(offset << 3));
       }
       return this;
     }
@@ -374,7 +420,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       if (offset > 48) {
         offset -= 48;
         processBuffer();
-        setLong(buffer, 0, getLong(buffer, 48));
+        setLong(buffer, 0, v >>> -(offset << 3));
       }
       return this;
     }
@@ -585,27 +631,5 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
   public long hashLongIntToLong(long v1, int v2) {
     long x = v1 >>> 32;
     return finish((v1 << 32) | x, ((long) v2 << 32) | x, seed, 12);
-  }
-
-  /** visible for testing */
-  static boolean equalsHelper(
-      long see0A,
-      long see0B,
-      long see1A,
-      long see1B,
-      long see2A,
-      long see2B,
-      int offsetA,
-      int offsetB,
-      long byteCountA,
-      long byteCountB,
-      byte[] bufferA,
-      byte[] bufferB) {
-    return see0A == see0B
-        && see1A == see1B
-        && see2A == see2B
-        && offsetA == offsetB
-        && byteCountA == byteCountB
-        && Arrays.equals(bufferA, 0, offsetA, bufferB, 0, offsetB);
   }
 }

@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 final class Murmur3_32 implements AbstractHasher32 {
 
@@ -124,7 +126,7 @@ final class Murmur3_32 implements AbstractHasher32 {
 
     private int h1 = seed;
     private long buffer = 0; // most significant 2 bytes are always zero
-    private int shift = 0; // == ((length & 3) << 3)
+    private int shift = 0;
     private int length = 0;
 
     @Override
@@ -134,11 +136,7 @@ final class Murmur3_32 implements AbstractHasher32 {
 
     @Override
     public boolean equals(Object obj) {
-      if (this == obj) return true;
-      if (!(obj instanceof HashStreamImpl)) return false;
-      HashStreamImpl that = (HashStreamImpl) obj;
-      if (!getHasher().equals(that.getHasher())) return false;
-      return equalsHelper(h1, that.h1, buffer, that.buffer, shift, that.shift, length, that.length);
+      return HashUtil.equalsHelper(this, obj);
     }
 
     @Override
@@ -151,18 +149,56 @@ final class Murmur3_32 implements AbstractHasher32 {
     }
 
     @Override
-    public HashStream32 copy() {
-      final HashStreamImpl hashStream = new HashStreamImpl();
-      hashStream.h1 = h1;
-      hashStream.buffer = buffer;
-      hashStream.shift = shift;
-      hashStream.length = length;
-      return hashStream;
+    public Hasher32 getHasher() {
+      return Murmur3_32.this;
+    }
+
+    private static final byte SERIAL_VERSION_V0 = 0;
+
+    @Override
+    public byte[] getState() {
+      int numBufferBytes = length & 3;
+      byte[] state = new byte[9 + numBufferBytes];
+      state[0] = SERIAL_VERSION_V0;
+      int off = 1;
+
+      setInt(state, off, length);
+      off += 4;
+
+      setInt(state, off, h1);
+      off += 4;
+
+      for (int i = 0; i < numBufferBytes; i++) {
+        state[off++] = (byte) (buffer >>> (i << 3));
+      }
+
+      return state;
     }
 
     @Override
-    public Hasher32 getHasher() {
-      return Murmur3_32.this;
+    public HashStream32 setState(byte[] state) {
+      checkArgument(state != null);
+      checkArgument(state.length >= 9);
+      checkArgument(state[0] == SERIAL_VERSION_V0);
+      int off = 1;
+
+      length = getInt(state, off);
+      off += 4;
+
+      h1 = getInt(state, off);
+      off += 4;
+
+      int numBufferBytes = length & 3;
+      checkArgument(state.length == 9 + numBufferBytes);
+
+      buffer = 0;
+      for (int i = 0; i < numBufferBytes; i++) {
+        buffer |= (state[off++] & 0xFF) << (i << 3);
+      }
+
+      shift = numBufferBytes << 3;
+
+      return this;
     }
 
     @Override
@@ -387,16 +423,16 @@ final class Murmur3_32 implements AbstractHasher32 {
     return hashIntIntIntToInt((int) v1, (int) (v1 >>> 32), v2);
   }
 
-  /** visible for testing */
-  static boolean equalsHelper(
-      int h1A,
-      int h1B,
-      long bufferA,
-      long bufferB,
-      int shiftA,
-      int shiftB,
-      int lengthA,
-      int lengthB) {
-    return h1A == h1B && bufferA == bufferB && shiftA == shiftB && lengthA == lengthB;
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (!(obj instanceof Murmur3_32)) return false;
+    Murmur3_32 that = (Murmur3_32) obj;
+    return seed == that.seed;
+  }
+
+  @Override
+  public int hashCode() {
+    return Integer.hashCode(seed);
   }
 }

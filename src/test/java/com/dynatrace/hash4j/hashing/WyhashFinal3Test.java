@@ -17,21 +17,24 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
 class WyhashFinal3Test extends AbstractHasher64Test {
 
-  private static final List<Hasher64> HASHERS =
-      Arrays.asList(
-          Hashing.wyhashFinal3(),
-          Hashing.wyhashFinal3(0xdfd1434b2173588fL),
-          Hashing.wyhashFinal3(0xfa681c2ee9f17f88L, 0x3c88abf5128e96cbL));
-
   @Override
-  protected List<Hasher64> getHashers() {
-    return HASHERS;
+  protected List<Hasher64> createHashers() {
+    return Arrays.asList(
+        Hashing.wyhashFinal3(),
+        Hashing.wyhashFinal3(0xdfd1434b2173588fL),
+        Hashing.wyhashFinal3(0xfa681c2ee9f17f88L, 0x3c88abf5128e96cbL));
   }
 
   @Override
@@ -110,5 +113,50 @@ class WyhashFinal3Test extends AbstractHasher64Test {
   @Override
   protected int getBlockLengthInBytes() {
     return 48;
+  }
+
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
+
+  @Test
+  void testEqualsAdditionalCases() {
+    assertThat(new WyhashFinal3(0, new long[] {0, 0, 0, 0}))
+        .isEqualTo(new WyhashFinal3(0, new long[] {0, 0, 0, 0}));
+    assertThat(new WyhashFinal3(0, new long[] {0, 0, 0, 0}))
+        .isNotEqualTo(new WyhashFinal3(1, new long[] {0, 0, 0, 0}));
+    assertThat(new WyhashFinal3(0, new long[] {0, 0, 0, 0}))
+        .isNotEqualTo(new WyhashFinal3(0, new long[] {1, 0, 0, 0}));
+    assertThat(new WyhashFinal3(0, new long[] {0, 0, 0, 0}))
+        .isNotEqualTo(new WyhashFinal3(0, new long[] {0, 1, 0, 0}));
+    assertThat(new WyhashFinal3(0, new long[] {0, 0, 0, 0}))
+        .isNotEqualTo(new WyhashFinal3(0, new long[] {0, 0, 1, 0}));
+    assertThat(new WyhashFinal3(0, new long[] {0, 0, 0, 0}))
+        .isNotEqualTo(new WyhashFinal3(0, new long[] {0, 0, 0, 1}));
+  }
+
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "000000000000000000"));
+      arguments.add(
+          arguments(
+              hasher,
+              "0001FFFFFFFFFFFFFFF1111111111111111111111111111111111111111111111122222222222222222222222222222222"));
+    }
+    return arguments.stream();
+  }
+
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+    }
+    return arguments.stream();
   }
 }

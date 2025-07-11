@@ -17,18 +17,19 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.provider.Arguments;
 
 class XXH3_64Test extends AbstractHasher64Test {
 
-  private static final List<Hasher64> HASHERS =
-      Arrays.asList(Hashing.xxh3_64(), Hashing.xxh3_64(0x1f628055b102c56bL));
-
   @Override
-  protected List<Hasher64> getHashers() {
-    return HASHERS;
+  protected List<Hasher64> createHashers() {
+    return Arrays.asList(Hashing.xxh3_64(), Hashing.xxh3_64(0x1f628055b102c56bL));
   }
 
   @Override
@@ -77,5 +78,35 @@ class XXH3_64Test extends AbstractHasher64Test {
   @Override
   protected int getBlockLengthInBytes() {
     return 1024;
+  }
+
+  @Override
+  protected byte getLatestStreamSerialVersion() {
+    return 0;
+  }
+
+  @Override
+  protected Stream<Arguments> getLegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, "000000000000000000"));
+      arguments.add(
+          arguments(
+              hasher,
+              "0001FFFFFFFFFFFFFFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"));
+    }
+    return arguments.stream();
+  }
+
+  @Override
+  protected Stream<Arguments> getIllegalStateCases() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (Hasher hasher : getHashers()) {
+      arguments.add(arguments(hasher, ""));
+      arguments.add(arguments(hasher, "00"));
+      arguments.add(arguments(hasher, "01"));
+      arguments.add(arguments(hasher, "00000000000000000000"));
+    }
+    return arguments.stream();
   }
 }

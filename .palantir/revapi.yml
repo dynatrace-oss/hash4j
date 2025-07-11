@@ -176,6 +176,44 @@ acceptedBreaks:
     - code: "java.method.addedToInterface"
       new: "method long com.dynatrace.hash4j.hashing.Hasher64::hashLongToLong(long)"
       justification: "additional methods for direct hashing of ints and longs"
+  "0.23.1":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.method.addedToInterface"
+      new: "method byte[] com.dynatrace.hash4j.hashing.HashStream128::getState()"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method byte[] com.dynatrace.hash4j.hashing.HashStream32::getState()"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method byte[] com.dynatrace.hash4j.hashing.HashStream64::getState()"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream128 com.dynatrace.hash4j.hashing.HashStream128::setState(byte[])"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream128 com.dynatrace.hash4j.hashing.Hasher128::hashStreamFromState(byte[])"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream32 com.dynatrace.hash4j.hashing.HashStream32::setState(byte[])"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream32 com.dynatrace.hash4j.hashing.Hasher32::hashStreamFromState(byte[])"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream64 com.dynatrace.hash4j.hashing.HashStream64::setState(byte[])"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
+    - code: "java.method.addedToInterface"
+      new: "method com.dynatrace.hash4j.hashing.HashStream64 com.dynatrace.hash4j.hashing.Hasher64::hashStreamFromState(byte[])"
+      justification: "added methods for serializing and deserializing the state of\
+        \ hash streams"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"
