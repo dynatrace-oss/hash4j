@@ -434,4 +434,35 @@ public final class Hashing {
   public static Hasher128 xxh3_128(long seed) {
     return XXH3_128.create(seed);
   }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit RapidHash v3 algorithm using a seed value of
+   * zero and the default secret.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code rapidhash}
+   * defined in <a
+   * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L506">rapidhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 rapidhash3() {
+    return Rapidhash3.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit RapidHash v3 algorithm using the given seed
+   * value and the default secret.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * rapidhash_withSeed} defined in <a
+   * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L492">rapidhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 rapidhash3(long seed) {
+    return Rapidhash3.create(seed);
+  }
 }
