@@ -473,12 +473,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
         }
         if (offset == 0) {
           if (remainingChars > 24) {
-            long b0;
-            long b1;
-            long b2;
-            long b3;
-            long b4;
-            long b5;
+            long b0, b1, b2, b3, b4, b5;
             do {
               b0 = getLong(s, off);
               b1 = getLong(s, off + 4);

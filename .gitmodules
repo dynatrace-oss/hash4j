@@ -40,3 +40,6 @@
 [submodule "reference-implementations/komihash_5_27/komihash"]
 	path = reference-implementations/komihash_5_27/komihash
 	url = https://github.com/avaneev/komihash.git
+[submodule "reference-implementations/rapidhash_3/rapidhash"]
+	path = reference-implementations/rapidhash_3/rapidhash
+	url = https://github.com/Nicoshev/rapidhash.git
