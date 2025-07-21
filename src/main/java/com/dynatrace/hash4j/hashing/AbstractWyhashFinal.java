@@ -15,10 +15,10 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.HashUtil.mix;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
-import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
@@ -61,15 +61,15 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       long see1 = seed;
       long see2 = seed;
       while (i > 48) {
-        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
-        see1 = wymix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
-        see2 = wymix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
+        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
+        see1 = mix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
+        see2 = mix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
         p += 48;
         i -= 48;
       }
       see0 ^= see1 ^ see2;
       while (i > 16) {
-        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
+        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
         i -= 16;
         p += 16;
       }
@@ -109,15 +109,15 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       long see1 = seed;
       long see2 = seed;
       while (i > 24) {
-        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
-        see1 = wymix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
-        see2 = wymix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
+        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
+        see1 = mix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
+        see2 = mix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
         p += 24;
         i -= 24;
       }
       see0 ^= see1 ^ see2;
       while (i > 8) {
-        see0 = wymix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
+        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
         i -= 8;
         p += 8;
       }
@@ -125,12 +125,6 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       b = getLong(input, len - 4);
     }
     return finish(a, b, see0, ((long) len) << 1);
-  }
-
-  protected static long wymix(long a, long b) {
-    long x = a * b;
-    long y = unsignedMultiplyHigh(a, b);
-    return x ^ y;
   }
 
   private static long wyr3(byte[] data, int off, int k) {
@@ -227,7 +221,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
         ok = true;
         seed += 0xa0761d6478bd642fL;
         secret[i] =
-            (c[(int) Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length)]
+            (c[(int) Long.remainderUnsigned(mix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length)]
                 & 0xFFL);
         if ((secret[i] & 1) == 0) {
           seed += 0x633acdbf4d2dbd49L; // = 7 * 0xa0761d6478bd642fL
@@ -237,7 +231,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
         for (int j = 8; j < 64; j += 8) {
           seed += 0xa0761d6478bd642fL;
           secret[i] |=
-              (c[(int) Long.remainderUnsigned(wymix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length)]
+              (c[(int) Long.remainderUnsigned(mix(seed, seed ^ 0xe7037ed1a0b428dbL), c.length)]
                       & 0xFFL)
                   << j;
         }
@@ -533,9 +527,9 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
     }
 
     private void processBuffer(long b0, long b1, long b2, long b3, long b4, long b5) {
-      see0 = wymix(b0 ^ secret1, b1 ^ see0);
-      see1 = wymix(b2 ^ secret2, b3 ^ see1);
-      see2 = wymix(b4 ^ secret3, b5 ^ see2);
+      see0 = mix(b0 ^ secret1, b1 ^ see0);
+      see1 = mix(b2 ^ secret2, b3 ^ see1);
+      see2 = mix(b4 ^ secret3, b5 ^ see2);
     }
 
     @Override
@@ -559,7 +553,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
         int i = offset;
         int p = 0;
         while (i > 16) {
-          s = wymix(getLong(buffer, p) ^ secret1, getLong(buffer, p + 8) ^ s);
+          s = mix(getLong(buffer, p) ^ secret1, getLong(buffer, p + 8) ^ s);
           i -= 16;
           p += 16;
         }
@@ -619,7 +613,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
   @Override
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
-    return finish(v2, v3, wymix(v1 ^ secret1, v2 ^ seed), 24);
+    return finish(v2, v3, mix(v1 ^ secret1, v2 ^ seed), 24);
   }
 
   @Override

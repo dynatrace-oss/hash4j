@@ -37,6 +37,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.HashUtil.mix;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
 final class XXH3_64 extends XXH3Base {
@@ -241,7 +242,7 @@ final class XXH3_64 extends XXH3Base {
       if (length > 8) {
         long lo = getLong(input, off) ^ bitflip34;
         long hi = getLong(input, off + length - 8) ^ bitflip56;
-        long acc = length + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
+        long acc = length + Long.reverseBytes(lo) + hi + mix(lo, hi);
         return avalanche3(acc);
       }
       if (length >= 4) {
@@ -438,7 +439,7 @@ final class XXH3_64 extends XXH3Base {
       if (len > 4) {
         long lo = getLong(charSequence, 0) ^ bitflip34;
         long hi = getLong(charSequence, len - 4) ^ bitflip56;
-        long acc = (len << 1) + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
+        long acc = (len << 1) + Long.reverseBytes(lo) + hi + mix(lo, hi);
         return avalanche3(acc);
       }
       if (len >= 2) {
@@ -622,7 +623,7 @@ final class XXH3_64 extends XXH3Base {
   public long hashLongLongToLong(long v1, long v2) {
     long lo = v1 ^ bitflip34;
     long hi = v2 ^ bitflip56;
-    long acc = 16 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
+    long acc = 16 + Long.reverseBytes(lo) + hi + mix(lo, hi);
     return avalanche3(acc);
   }
 
@@ -638,7 +639,7 @@ final class XXH3_64 extends XXH3Base {
   protected long finish12Bytes(long a, long b) {
     long lo = a ^ bitflip34;
     long hi = b ^ bitflip56;
-    long acc = 12 + Long.reverseBytes(lo) + hi + unsignedLongMulXorFold(lo, hi);
+    long acc = 12 + Long.reverseBytes(lo) + hi + mix(lo, hi);
     return avalanche3(acc);
   }
 
