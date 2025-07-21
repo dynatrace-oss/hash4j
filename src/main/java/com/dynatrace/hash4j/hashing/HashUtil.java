@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
+
 import java.util.Arrays;
 
 final class HashUtil {
@@ -28,5 +30,11 @@ final class HashUtil {
     T that = (T) obj;
     return hashStream.getHasher().equals(that.getHasher())
         && Arrays.equals(hashStream.getState(), that.getState());
+  }
+
+  static long mix(long a, long b) {
+    long x = a * b;
+    long y = unsignedMultiplyHigh(a, b);
+    return x ^ y;
   }
 }

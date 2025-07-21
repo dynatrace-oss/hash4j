@@ -37,10 +37,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.HashUtil.mix;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
-
-import com.dynatrace.hash4j.internal.UnsignedMultiplyUtil;
 
 abstract class XXH3Base implements AbstractHasher64 {
   protected static final int BLOCK_LEN_EXP = 10;
@@ -206,12 +205,6 @@ abstract class XXH3Base implements AbstractHasher64 {
     return secret00 - SECRET_00;
   }
 
-  protected static long unsignedLongMulXorFold(final long lhs, final long rhs) {
-    long upper = UnsignedMultiplyUtil.unsignedMultiplyHigh(lhs, rhs);
-    long lower = lhs * rhs;
-    return lower ^ upper;
-  }
-
   protected static long avalanche64(long h64) {
     h64 ^= h64 >>> 33;
     h64 *= INIT_ACC_2;
@@ -227,7 +220,7 @@ abstract class XXH3Base implements AbstractHasher64 {
   }
 
   protected static long mix2Accs(final long lh, final long rh, long sec0, long sec8) {
-    return unsignedLongMulXorFold(lh ^ sec0, rh ^ sec8);
+    return mix(lh ^ sec0, rh ^ sec8);
   }
 
   protected static long contrib(long a, long b) {

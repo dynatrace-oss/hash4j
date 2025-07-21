@@ -40,6 +40,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.HashUtil.mix;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
@@ -58,7 +59,7 @@ final class Rapidhash3 implements AbstractHasher64 {
   private final long seed;
 
   private Rapidhash3(long seed) {
-    this.seed = seed ^ rapidMix(seed ^ SEC2, SEC1);
+    this.seed = seed ^ mix(seed ^ SEC2, SEC1);
   }
 
   static Hasher64 create() {
@@ -108,13 +109,13 @@ final class Rapidhash3 implements AbstractHasher64 {
       long see6 = see0;
       if (len > 112) {
         do {
-          see0 = rapidMix(getLong(input, off) ^ SEC0, getLong(input, off + 8) ^ see0);
-          see1 = rapidMix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 24) ^ see1);
-          see2 = rapidMix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 40) ^ see2);
-          see3 = rapidMix(getLong(input, off + 48) ^ SEC3, getLong(input, off + 56) ^ see3);
-          see4 = rapidMix(getLong(input, off + 64) ^ SEC4, getLong(input, off + 72) ^ see4);
-          see5 = rapidMix(getLong(input, off + 80) ^ SEC5, getLong(input, off + 88) ^ see5);
-          see6 = rapidMix(getLong(input, off + 96) ^ SEC6, getLong(input, off + 104) ^ see6);
+          see0 = mix(getLong(input, off) ^ SEC0, getLong(input, off + 8) ^ see0);
+          see1 = mix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 24) ^ see1);
+          see2 = mix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 40) ^ see2);
+          see3 = mix(getLong(input, off + 48) ^ SEC3, getLong(input, off + 56) ^ see3);
+          see4 = mix(getLong(input, off + 64) ^ SEC4, getLong(input, off + 72) ^ see4);
+          see5 = mix(getLong(input, off + 80) ^ SEC5, getLong(input, off + 88) ^ see5);
+          see6 = mix(getLong(input, off + 96) ^ SEC6, getLong(input, off + 104) ^ see6);
           off += 112;
           len -= 112;
         } while (len > 112);
@@ -126,17 +127,17 @@ final class Rapidhash3 implements AbstractHasher64 {
         see0 ^= see2;
       }
       if (len > 16) {
-        see0 = rapidMix(getLong(input, off) ^ SEC2, getLong(input, off + 8) ^ see0);
+        see0 = mix(getLong(input, off) ^ SEC2, getLong(input, off + 8) ^ see0);
         if (len > 32) {
-          see0 = rapidMix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 24) ^ see0);
+          see0 = mix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 24) ^ see0);
           if (len > 48) {
-            see0 = rapidMix(getLong(input, off + 32) ^ SEC1, getLong(input, off + 40) ^ see0);
+            see0 = mix(getLong(input, off + 32) ^ SEC1, getLong(input, off + 40) ^ see0);
             if (len > 64) {
-              see0 = rapidMix(getLong(input, off + 48) ^ SEC1, getLong(input, off + 56) ^ see0);
+              see0 = mix(getLong(input, off + 48) ^ SEC1, getLong(input, off + 56) ^ see0);
               if (len > 80) {
-                see0 = rapidMix(getLong(input, off + 64) ^ SEC2, getLong(input, off + 72) ^ see0);
+                see0 = mix(getLong(input, off + 64) ^ SEC2, getLong(input, off + 72) ^ see0);
                 if (len > 96) {
-                  see0 = rapidMix(getLong(input, off + 80) ^ SEC1, getLong(input, off + 88) ^ see0);
+                  see0 = mix(getLong(input, off + 80) ^ SEC1, getLong(input, off + 88) ^ see0);
                 }
               }
             }
@@ -153,7 +154,7 @@ final class Rapidhash3 implements AbstractHasher64 {
     len ^= SEC1;
     a ^= len;
     b ^= seed;
-    return rapidMix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ len);
+    return mix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ len);
   }
 
   @Override
@@ -191,13 +192,13 @@ final class Rapidhash3 implements AbstractHasher64 {
       long see6 = see0;
       if (len > 56) {
         do {
-          see0 = rapidMix(getLong(input, off) ^ SEC0, getLong(input, off + 4) ^ see0);
-          see1 = rapidMix(getLong(input, off + 8) ^ SEC1, getLong(input, off + 12) ^ see1);
-          see2 = rapidMix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 20) ^ see2);
-          see3 = rapidMix(getLong(input, off + 24) ^ SEC3, getLong(input, off + 28) ^ see3);
-          see4 = rapidMix(getLong(input, off + 32) ^ SEC4, getLong(input, off + 36) ^ see4);
-          see5 = rapidMix(getLong(input, off + 40) ^ SEC5, getLong(input, off + 44) ^ see5);
-          see6 = rapidMix(getLong(input, off + 48) ^ SEC6, getLong(input, off + 52) ^ see6);
+          see0 = mix(getLong(input, off) ^ SEC0, getLong(input, off + 4) ^ see0);
+          see1 = mix(getLong(input, off + 8) ^ SEC1, getLong(input, off + 12) ^ see1);
+          see2 = mix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 20) ^ see2);
+          see3 = mix(getLong(input, off + 24) ^ SEC3, getLong(input, off + 28) ^ see3);
+          see4 = mix(getLong(input, off + 32) ^ SEC4, getLong(input, off + 36) ^ see4);
+          see5 = mix(getLong(input, off + 40) ^ SEC5, getLong(input, off + 44) ^ see5);
+          see6 = mix(getLong(input, off + 48) ^ SEC6, getLong(input, off + 52) ^ see6);
           off += 56;
           len -= 56;
         } while (len > 56);
@@ -209,17 +210,17 @@ final class Rapidhash3 implements AbstractHasher64 {
         see0 ^= see2;
       }
       if (len > 8) {
-        see0 = rapidMix(getLong(input, off) ^ SEC2, getLong(input, off + 4) ^ see0);
+        see0 = mix(getLong(input, off) ^ SEC2, getLong(input, off + 4) ^ see0);
         if (len > 16) {
-          see0 = rapidMix(getLong(input, off + 8) ^ SEC2, getLong(input, off + 12) ^ see0);
+          see0 = mix(getLong(input, off + 8) ^ SEC2, getLong(input, off + 12) ^ see0);
           if (len > 24) {
-            see0 = rapidMix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 20) ^ see0);
+            see0 = mix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 20) ^ see0);
             if (len > 32) {
-              see0 = rapidMix(getLong(input, off + 24) ^ SEC1, getLong(input, off + 28) ^ see0);
+              see0 = mix(getLong(input, off + 24) ^ SEC1, getLong(input, off + 28) ^ see0);
               if (len > 40) {
-                see0 = rapidMix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 36) ^ see0);
+                see0 = mix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 36) ^ see0);
                 if (len > 48) {
-                  see0 = rapidMix(getLong(input, off + 40) ^ SEC1, getLong(input, off + 44) ^ see0);
+                  see0 = mix(getLong(input, off + 40) ^ SEC1, getLong(input, off + 44) ^ see0);
                 }
               }
             }
@@ -230,12 +231,6 @@ final class Rapidhash3 implements AbstractHasher64 {
       b = getLong(input, off + len - 4);
     }
     return finish(a, b, see0, (long) len << 1);
-  }
-
-  private static long rapidMix(long a, long b) {
-    long x = a * b;
-    long y = unsignedMultiplyHigh(a, b);
-    return x ^ y;
   }
 
   private class HashStreamImpl implements AbstractHashStream64 {
@@ -610,13 +605,13 @@ final class Rapidhash3 implements AbstractHasher64 {
         long b11,
         long b12,
         long b13) {
-      see0 = rapidMix(b0 ^ SEC0, b1 ^ see0);
-      see1 = rapidMix(b2 ^ SEC1, b3 ^ see1);
-      see2 = rapidMix(b4 ^ SEC2, b5 ^ see2);
-      see3 = rapidMix(b6 ^ SEC3, b7 ^ see3);
-      see4 = rapidMix(b8 ^ SEC4, b9 ^ see4);
-      see5 = rapidMix(b10 ^ SEC5, b11 ^ see5);
-      see6 = rapidMix(b12 ^ SEC6, b13 ^ see6);
+      see0 = mix(b0 ^ SEC0, b1 ^ see0);
+      see1 = mix(b2 ^ SEC1, b3 ^ see1);
+      see2 = mix(b4 ^ SEC2, b5 ^ see2);
+      see3 = mix(b6 ^ SEC3, b7 ^ see3);
+      see4 = mix(b8 ^ SEC4, b9 ^ see4);
+      see5 = mix(b10 ^ SEC5, b11 ^ see5);
+      see6 = mix(b12 ^ SEC6, b13 ^ see6);
     }
 
     @Override
@@ -654,17 +649,17 @@ final class Rapidhash3 implements AbstractHasher64 {
           see0 ^= see2;
         }
         if (offset > 16) {
-          see0 = rapidMix(getLong(buffer, 0) ^ SEC2, getLong(buffer, 8) ^ see0);
+          see0 = mix(getLong(buffer, 0) ^ SEC2, getLong(buffer, 8) ^ see0);
           if (offset > 32) {
-            see0 = rapidMix(getLong(buffer, 16) ^ SEC2, getLong(buffer, 24) ^ see0);
+            see0 = mix(getLong(buffer, 16) ^ SEC2, getLong(buffer, 24) ^ see0);
             if (offset > 48) {
-              see0 = rapidMix(getLong(buffer, 32) ^ SEC1, getLong(buffer, 40) ^ see0);
+              see0 = mix(getLong(buffer, 32) ^ SEC1, getLong(buffer, 40) ^ see0);
               if (offset > 64) {
-                see0 = rapidMix(getLong(buffer, 48) ^ SEC1, getLong(buffer, 56) ^ see0);
+                see0 = mix(getLong(buffer, 48) ^ SEC1, getLong(buffer, 56) ^ see0);
                 if (offset > 80) {
-                  see0 = rapidMix(getLong(buffer, 64) ^ SEC2, getLong(buffer, 72) ^ see0);
+                  see0 = mix(getLong(buffer, 64) ^ SEC2, getLong(buffer, 72) ^ see0);
                   if (offset > 96) {
-                    see0 = rapidMix(getLong(buffer, 80) ^ SEC1, getLong(buffer, 88) ^ see0);
+                    see0 = mix(getLong(buffer, 80) ^ SEC1, getLong(buffer, 88) ^ see0);
                   }
                 }
               }
@@ -695,7 +690,7 @@ final class Rapidhash3 implements AbstractHasher64 {
   public long hashIntToLong(int v) {
     long b = (v & 0xFFFFFFFFL) ^ (seed ^ 4);
     long a = (v & 0xFFFFFFFFL) ^ SEC1;
-    return rapidMix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ (SEC1 ^ 4));
+    return mix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ (SEC1 ^ 4));
   }
 
   @Override
@@ -703,7 +698,7 @@ final class Rapidhash3 implements AbstractHasher64 {
     long v = (v1 & 0xFFFFFFFFL) ^ ((long) v2 << 32);
     long a = v ^ SEC1;
     long b = v ^ (seed ^ 8);
-    return rapidMix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ (SEC1 ^ 8));
+    return mix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ (SEC1 ^ 8));
   }
 
   @Override
@@ -724,7 +719,7 @@ final class Rapidhash3 implements AbstractHasher64 {
   public long hashLongToLong(long v) {
     long a = v ^ SEC1;
     long b = v ^ (seed ^ 8);
-    return rapidMix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ (SEC1 ^ 8));
+    return mix((a * b) ^ SEC7, unsignedMultiplyHigh(a, b) ^ (SEC1 ^ 8));
   }
 
   @Override
@@ -734,7 +729,7 @@ final class Rapidhash3 implements AbstractHasher64 {
 
   @Override
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
-    return finish(v2, v3, rapidMix(v1 ^ SEC2, v2 ^ seed), 24);
+    return finish(v2, v3, mix(v1 ^ SEC2, v2 ^ seed), 24);
   }
 
   @Override

@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.HashUtil.mix;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 import java.util.Objects;
@@ -25,7 +26,7 @@ final class WyhashFinal4 extends AbstractWyhashFinal {
 
   // visible for testing
   WyhashFinal4(long seedForHash, long[] secret) {
-    super(seedForHash ^ wymix(seedForHash ^ secret[0], secret[1]), secret[1], secret[2], secret[3]);
+    super(seedForHash ^ mix(seedForHash ^ secret[0], secret[1]), secret[1], secret[2], secret[3]);
     this.secret0 = secret[0];
   }
 
@@ -47,7 +48,7 @@ final class WyhashFinal4 extends AbstractWyhashFinal {
   protected long finish(long a, long b, long seed, long len) {
     a ^= secret1;
     b ^= seed;
-    return wymix((a * b) ^ secret0 ^ len, unsignedMultiplyHigh(a, b) ^ secret1);
+    return mix((a * b) ^ secret0 ^ len, unsignedMultiplyHigh(a, b) ^ secret1);
   }
 
   @Override

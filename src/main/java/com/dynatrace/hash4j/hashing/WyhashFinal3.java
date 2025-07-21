@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.HashUtil.mix;
+
 import java.util.Objects;
 
 final class WyhashFinal3 extends AbstractWyhashFinal {
@@ -26,7 +28,7 @@ final class WyhashFinal3 extends AbstractWyhashFinal {
 
   @Override
   protected long finish(long a, long b, long seed, long len) {
-    return wymix(secret1 ^ len, wymix(a ^ secret1, b ^ seed));
+    return mix(secret1 ^ len, mix(a ^ secret1, b ^ seed));
   }
 
   static Hasher64 create() {
