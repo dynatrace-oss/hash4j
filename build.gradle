@@ -128,7 +128,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 group = "com.dynatrace.hash4j"
-version = "0.24.0"
+version = "0.25.0"
 
 
 static def readJavaLicense(licenseName) {
