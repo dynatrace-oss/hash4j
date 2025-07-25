@@ -51,7 +51,7 @@ final class HashMocks {
 
       private final FixedHasher32 hasher;
 
-      public HashStreamImpl(FixedHasher32 hasher) {
+      HashStreamImpl(FixedHasher32 hasher) {
         this.hasher = hasher;
       }
 
@@ -130,7 +130,7 @@ final class HashMocks {
 
       private final FixedHasher64 hasher;
 
-      public HashStreamImpl(FixedHasher64 hasher) {
+      HashStreamImpl(FixedHasher64 hasher) {
         this.hasher = hasher;
       }
 
@@ -209,7 +209,7 @@ final class HashMocks {
 
       private final FixedHasher128 hasher;
 
-      public HashStreamImpl(FixedHasher128 hasher) {
+      HashStreamImpl(FixedHasher128 hasher) {
         this.hasher = hasher;
       }
 
@@ -265,7 +265,7 @@ final class HashMocks {
 
     private final Hasher32 referenceHasher;
 
-    public DefaultMethodWrapperHasher32(Hasher32 referenceHasher) {
+    DefaultMethodWrapperHasher32(Hasher32 referenceHasher) {
       this.referenceHasher = referenceHasher;
     }
 
@@ -344,7 +344,7 @@ final class HashMocks {
 
     private final Hasher64 referenceHasher;
 
-    public DefaultMethodWrapperHasher64(Hasher64 referenceHasher) {
+    DefaultMethodWrapperHasher64(Hasher64 referenceHasher) {
       this.referenceHasher = referenceHasher;
     }
 
@@ -423,7 +423,7 @@ final class HashMocks {
 
     private final Hasher128 referenceHasher;
 
-    public DefaultMethodWrapperHasher128(Hasher128 referenceHasher) {
+    DefaultMethodWrapperHasher128(Hasher128 referenceHasher) {
       this.referenceHasher = referenceHasher;
     }
 

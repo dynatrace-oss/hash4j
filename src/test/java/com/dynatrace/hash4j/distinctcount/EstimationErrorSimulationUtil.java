@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,8 +66,7 @@ public final class EstimationErrorSimulationUtil {
     private final List<HashGenerator> hashGenerators;
     private final int p;
 
-    public LocalState(
-        T sketch, PseudoRandomGenerator prg, List<HashGenerator> hashGenerators, int p) {
+    LocalState(T sketch, PseudoRandomGenerator prg, List<HashGenerator> hashGenerators, int p) {
       this.sketch = sketch;
       this.transitions = new Transition[hashGenerators.size() * (1 << p)];
       this.prg = prg;
@@ -75,7 +74,7 @@ public final class EstimationErrorSimulationUtil {
       this.p = p;
     }
 
-    public void generateTransitions(BigInt distinctCountOffset) {
+    void generateTransitions(BigInt distinctCountOffset) {
       TestUtils.generateTransitions(transitions, distinctCountOffset, hashGenerators, p, prg);
     }
   }

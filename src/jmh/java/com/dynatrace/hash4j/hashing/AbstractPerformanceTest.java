@@ -47,7 +47,7 @@ public abstract class AbstractPerformanceTest {
     private final byte[] e;
     private final float f;
 
-    public TestObject1(SplittableRandom random) {
+    TestObject1(SplittableRandom random) {
       a = random.nextInt();
       b = random.nextLong();
       c = random.nextBoolean();
@@ -95,7 +95,7 @@ public abstract class AbstractPerformanceTest {
 
     private final long[] data;
 
-    public TestObject2(SplittableRandom random) {
+    TestObject2(SplittableRandom random) {
       data = createRandomLongArray(LEN, LEN, random);
     }
 
@@ -125,7 +125,7 @@ public abstract class AbstractPerformanceTest {
 
     private final Map<String, String> data;
 
-    public TestObject3(SplittableRandom random) {
+    TestObject3(SplittableRandom random) {
       int numKeyValuePairs = random.nextInt(1, 6);
       Map<String, String> temporaryMap = new HashMap<>();
       while (temporaryMap.size() < numKeyValuePairs) {
@@ -167,7 +167,7 @@ public abstract class AbstractPerformanceTest {
     private final boolean b;
     private final String s;
 
-    public TestObject4(SplittableRandom random) {
+    TestObject4(SplittableRandom random) {
       b = random.nextBoolean();
       s = createRandomString(0, 16384, random);
     }

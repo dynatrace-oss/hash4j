@@ -77,7 +77,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
 
     private final Collection<T> collection;
 
-    public TestCollection(Collection<T> collection) {
+    TestCollection(Collection<T> collection) {
       this.collection = collection;
     }
 
@@ -96,7 +96,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
   // this implementation is only used for having 100% test coverage
   private static final class TestRandomAccessCollection<T> extends TestCollection<T>
       implements RandomAccess {
-    public TestRandomAccessCollection(Collection<T> collection) {
+    TestRandomAccessCollection(Collection<T> collection) {
       super(collection);
     }
   }
@@ -226,7 +226,7 @@ class AbstractHashSinkPutUnorderedIterableTest {
     private final boolean[] direction;
     private int[] nextPermutation;
 
-    public PermutationIterator(int size) {
+    PermutationIterator(int size) {
       keys = new int[size];
       direction = new boolean[size];
       Arrays.fill(direction, false);

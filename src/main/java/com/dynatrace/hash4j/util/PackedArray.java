@@ -186,14 +186,14 @@ public final class PackedArray {
   }
 
   private abstract static class AbstractPackedArrayHandler implements PackedArrayHandler {
-    protected final int bitSize;
-    protected final long mask;
+    final int bitSize;
+    final long mask;
 
-    private void checkArrayLength(int length) {
+    void checkArrayLength(int length) {
       PackedArray.checkArrayLength(length, bitSize);
     }
 
-    private AbstractPackedArrayHandler(int bitSize) {
+    AbstractPackedArrayHandler(int bitSize) {
       this.bitSize = bitSize;
       this.mask = (1L << 1 << (bitSize - 1)) - 1;
     }
@@ -230,14 +230,14 @@ public final class PackedArray {
       Arrays.fill(array, (byte) 0);
     }
 
-    protected abstract int getOffset(int idx);
+    abstract int getOffset(int idx);
 
-    protected long get1(byte[] array, int idx, int off, int shift) {
+    long get1(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (array[offset] >>> shift) & mask;
     }
 
-    protected long set1(byte[] array, int idx, int off, int shift, long value) {
+    long set1(byte[] array, int idx, int off, int shift, long value) {
       int offset = getOffset(idx) + off;
       long current = array[offset];
       long ret = current >>> shift;
@@ -246,7 +246,7 @@ public final class PackedArray {
       return ret & mask;
     }
 
-    protected long update1(
+    long update1(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       int offset = getOffset(idx) + off;
       long current = array[offset];
@@ -256,12 +256,12 @@ public final class PackedArray {
       return ret;
     }
 
-    protected long get2(byte[] array, int idx, int off, int shift) {
+    long get2(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (getShort(array, offset) >>> shift) & mask;
     }
 
-    protected long set2(byte[] array, int idx, int off, int shift, long value) {
+    long set2(byte[] array, int idx, int off, int shift, long value) {
       int offset = getOffset(idx) + off;
       long current = getShort(array, offset);
       long ret = current >>> shift;
@@ -270,7 +270,7 @@ public final class PackedArray {
       return ret & mask;
     }
 
-    protected long update2(
+    long update2(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       int offset = getOffset(idx) + off;
       long current = getShort(array, offset);
@@ -280,7 +280,7 @@ public final class PackedArray {
       return ret;
     }
 
-    protected long get3(byte[] array, int idx, int off, int shift) {
+    long get3(byte[] array, int idx, int off, int shift) {
       if (idx > 0) {
         return get4(array, idx, off - 1, shift + 8);
       } else {
@@ -289,7 +289,7 @@ public final class PackedArray {
       }
     }
 
-    protected long set3(byte[] array, int idx, int off, int shift, long value) {
+    long set3(byte[] array, int idx, int off, int shift, long value) {
       if (idx > 0) {
         return set4(array, idx, off - 1, shift + 8, value);
       } else {
@@ -304,7 +304,7 @@ public final class PackedArray {
       }
     }
 
-    protected long update3(
+    long update3(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       if (idx > 0) {
         return update4(array, idx, off - 1, shift + 8, value, operator);
@@ -320,12 +320,12 @@ public final class PackedArray {
       }
     }
 
-    protected long get4(byte[] array, int idx, int off, int shift) {
+    long get4(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (getInt(array, offset) >>> shift) & mask;
     }
 
-    protected long set4(byte[] array, int idx, int off, int shift, long value) {
+    long set4(byte[] array, int idx, int off, int shift, long value) {
       int offset = getOffset(idx) + off;
       long current = getInt(array, offset);
       long ret = current >>> shift;
@@ -334,7 +334,7 @@ public final class PackedArray {
       return ret & mask;
     }
 
-    protected long update4(
+    long update4(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       int offset = getOffset(idx) + off;
       long current = getInt(array, offset);
@@ -344,7 +344,7 @@ public final class PackedArray {
       return ret;
     }
 
-    protected long get5(byte[] array, int idx, int off, int shift) {
+    long get5(byte[] array, int idx, int off, int shift) {
       if (idx > 0) {
         return get8(array, idx, off - 3, shift + 24);
       } else {
@@ -355,7 +355,7 @@ public final class PackedArray {
       }
     }
 
-    protected long set5(byte[] array, int idx, int off, int shift, long value) {
+    long set5(byte[] array, int idx, int off, int shift, long value) {
       if (idx > 0) {
         return set8(array, idx, off - 3, shift + 24, value);
       } else {
@@ -370,7 +370,7 @@ public final class PackedArray {
       }
     }
 
-    protected long update5(
+    long update5(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       if (idx > 0) {
         return update8(array, idx, off - 3, shift + 24, value, operator);
@@ -386,7 +386,7 @@ public final class PackedArray {
       }
     }
 
-    protected long get6(byte[] array, int idx, int off, int shift) {
+    long get6(byte[] array, int idx, int off, int shift) {
       if (idx > 0) {
         return get8(array, idx, off - 2, shift + 16);
       } else {
@@ -397,7 +397,7 @@ public final class PackedArray {
       }
     }
 
-    protected long set6(byte[] array, int idx, int off, int shift, long value) {
+    long set6(byte[] array, int idx, int off, int shift, long value) {
       if (idx > 0) {
         return set8(array, idx, off - 2, shift + 16, value);
       } else {
@@ -413,7 +413,7 @@ public final class PackedArray {
       }
     }
 
-    protected long update6(
+    long update6(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       if (idx > 0) {
         return update8(array, idx, off - 2, shift + 16, value, operator);
@@ -430,7 +430,7 @@ public final class PackedArray {
       }
     }
 
-    protected long get7(byte[] array, int idx, int off, int shift) {
+    long get7(byte[] array, int idx, int off, int shift) {
       if (idx > 0) {
         return get8(array, idx, off - 1, shift + 8);
       } else {
@@ -443,7 +443,7 @@ public final class PackedArray {
       }
     }
 
-    protected long set7(byte[] array, int idx, int off, int shift, long value) {
+    long set7(byte[] array, int idx, int off, int shift, long value) {
       if (idx > 0) {
         return set8(array, idx, off - 1, shift + 8, value);
       } else {
@@ -462,7 +462,7 @@ public final class PackedArray {
       }
     }
 
-    protected long update7(
+    long update7(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       if (idx > 0) {
         return update8(array, idx, off - 1, shift + 8, value, operator);
@@ -482,12 +482,12 @@ public final class PackedArray {
       }
     }
 
-    protected long get8(byte[] array, int idx, int off, int shift) {
+    long get8(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return (getLong(array, offset) >>> shift) & mask;
     }
 
-    protected long set8(byte[] array, int idx, int off, int shift, long value) {
+    long set8(byte[] array, int idx, int off, int shift, long value) {
       int offset = getOffset(idx) + off;
       long current = getLong(array, offset);
       long ret = current >>> shift;
@@ -496,7 +496,7 @@ public final class PackedArray {
       return ret & mask;
     }
 
-    protected long update8(
+    long update8(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       int offset = getOffset(idx) + off;
       long current = getLong(array, offset);
@@ -506,12 +506,12 @@ public final class PackedArray {
       return ret;
     }
 
-    protected long get9(byte[] array, int idx, int off, int shift) {
+    long get9(byte[] array, int idx, int off, int shift) {
       int offset = getOffset(idx) + off;
       return ((getLong(array, offset) >>> shift) | (((long) array[offset + 8]) << -shift)) & mask;
     }
 
-    protected long set9(byte[] array, int idx, int off, int shift, long value) {
+    long set9(byte[] array, int idx, int off, int shift, long value) {
       int offset = getOffset(idx) + off;
       long currentLong = getLong(array, offset);
       long currentByte = array[offset + 8];
@@ -522,7 +522,7 @@ public final class PackedArray {
       return ret & mask;
     }
 
-    protected long update9(
+    long update9(
         byte[] array, int idx, int off, int shift, long value, LongBinaryOperator operator) {
       int offset = getOffset(idx) + off;
       long currentLong = getLong(array, offset);
@@ -584,7 +584,7 @@ public final class PackedArray {
 
       private final byte[] array;
 
-      public PackedArrayReadIteratorImpl(byte[] array, int length) {
+      PackedArrayReadIteratorImpl(byte[] array, int length) {
         requireNonNull(array);
 
         this.length = length;
@@ -652,7 +652,7 @@ public final class PackedArray {
       private final byte[] array1;
       private final byte[] array2;
 
-      public ParallelXorPackedArrayReadIterator(byte[] array1, byte[] array2, int length) {
+      ParallelXorPackedArrayReadIterator(byte[] array1, byte[] array2, int length) {
         requireNonNull(array1);
 
         this.array1 = array1;
@@ -685,7 +685,7 @@ public final class PackedArray {
         }
       }
 
-      public long next() {
+      long next() {
         long result = buffer;
         buffer >>>= bitSize;
         if (availableBits < bitSize) {
@@ -705,7 +705,7 @@ public final class PackedArray {
   private abstract static class AbstractPackedArrayHandlerPeriod1
       extends AbstractPackedArrayHandler {
 
-    public AbstractPackedArrayHandlerPeriod1(int bitSize) {
+    AbstractPackedArrayHandlerPeriod1(int bitSize) {
       super(bitSize);
     }
 
@@ -718,7 +718,7 @@ public final class PackedArray {
   private abstract static class AbstractPackedArrayHandlerPeriod2
       extends AbstractPackedArrayHandler {
 
-    public AbstractPackedArrayHandlerPeriod2(int bitSize) {
+    AbstractPackedArrayHandlerPeriod2(int bitSize) {
       super(bitSize);
     }
 
@@ -731,7 +731,7 @@ public final class PackedArray {
   private abstract static class AbstractPackedArrayHandlerPeriod4
       extends AbstractPackedArrayHandler {
 
-    public AbstractPackedArrayHandlerPeriod4(int bitSize) {
+    AbstractPackedArrayHandlerPeriod4(int bitSize) {
       super(bitSize);
     }
 
@@ -744,7 +744,7 @@ public final class PackedArray {
   private abstract static class AbstractPackedArrayHandlerPeriod8
       extends AbstractPackedArrayHandler {
 
-    public AbstractPackedArrayHandlerPeriod8(int bitSize) {
+    AbstractPackedArrayHandlerPeriod8(int bitSize) {
       super(bitSize);
     }
 
