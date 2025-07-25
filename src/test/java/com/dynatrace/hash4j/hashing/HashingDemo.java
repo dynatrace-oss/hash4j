@@ -52,13 +52,13 @@ class HashingDemo {
     private final String firstName;
     private final String secondName;
 
-    public Person(String firstName, String secondName) {
+    Person(String firstName, String secondName) {
       this.firstName = firstName;
       this.secondName = secondName;
     }
 
     // this function defines how the individual fields contribute to the hash value
-    public void put(HashSink sink) {
+    void put(HashSink sink) {
       sink.putString(firstName);
       sink.putString(secondName);
       // putString automatically contributes the length of the string in order to decrease the
@@ -96,7 +96,7 @@ class HashingDemo {
     private byte[] rawData; // byte array with dynamic size
     private String socialSecurityNumber; // fixed-length 9-digit string
 
-    public Info(
+    Info(
         OptionalInt age,
         Optional<Person> spouse,
         String address,
@@ -169,12 +169,12 @@ class HashingDemo {
     private List<Person> personList;
     private Map<Person, Info> informationMap;
 
-    public DataBase(List<Person> personList, Map<Person, Info> informationMap) {
+    DataBase(List<Person> personList, Map<Person, Info> informationMap) {
       this.personList = new ArrayList<>(personList);
       this.informationMap = new HashMap<>(informationMap);
     }
 
-    public void put(HashSink sink) {
+    void put(HashSink sink) {
       sink.putOrderedIterable(personList, Person::put);
       sink.putUnorderedIterable(
           informationMap.entrySet(),

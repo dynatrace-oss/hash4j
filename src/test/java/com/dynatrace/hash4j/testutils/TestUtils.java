@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.dynatrace.hash4j.testutils;
+
+import static java.util.stream.Collectors.joining;
 
 import java.util.Comparator;
 
@@ -106,10 +108,9 @@ public final class TestUtils {
         return byteArrayToCharSequence(y);
       }
 
-      @SuppressWarnings("UnnecessaryStringBuilder")
       @Override
       public String toString() {
-        return new StringBuilder(length()).append(this).toString();
+        return chars().mapToObj(c -> String.valueOf((char) c)).collect(joining());
       }
     };
   }

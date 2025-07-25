@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,19 +238,19 @@ class Imohash1_0_2Test {
 
     private boolean throwExceptionWhenEOF = true;
 
-    public void setTotalLength(long totalLength) {
+    void setTotalLength(long totalLength) {
       this.totalLength = totalLength;
     }
 
-    public void setMaxSkipLength(long maxSkipLength) {
+    void setMaxSkipLength(long maxSkipLength) {
       this.maxSkipLength = maxSkipLength;
     }
 
-    public void setMinSkipLength(long minSkipLength) {
+    void setMinSkipLength(long minSkipLength) {
       this.minSkipLength = minSkipLength;
     }
 
-    public void setThrowExceptionWhenEOF(boolean throwExceptionWhenEOF) {
+    void setThrowExceptionWhenEOF(boolean throwExceptionWhenEOF) {
       this.throwExceptionWhenEOF = throwExceptionWhenEOF;
     }
 
