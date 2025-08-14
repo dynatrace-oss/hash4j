@@ -388,7 +388,9 @@ tasks.register("jacocoTestReportJava21", JacocoReport) {
 	dependsOn java21Test
 	executionData java21Test
 	sourceSets sourceSets.java21
-	reports.html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java21Test")
+	reports.html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java21Test/html")
+	reports.csv.outputLocation = layout.buildDirectory.file("reports/jacoco/java21Test/jacocoTestReport.csv")
+	reports.xml.outputLocation = layout.buildDirectory.file("reports/jacoco/java21Test/jacocoTestReport.xml")
 }
 
 tasks.withType(JacocoReport).configureEach {
