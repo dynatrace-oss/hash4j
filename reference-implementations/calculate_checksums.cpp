@@ -81,7 +81,7 @@ void computeAndPrintChecksum(
 		uint8_t checkSum[EVP_MAX_MD_SIZE];
 		EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
 
-		EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL);
+		EVP_DigestInit_ex(mdctx, EVP_sha256(), nullptr);
 
 		uint64_t seed = rng();
 		uint64_t rngState = seed;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,11 @@ void XXH3ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 	uint64_t seed;
 	memcpy(&seed, seedBytes, 8);
 
-	uint64_t hash0 = XXH3_64bits((char*) (&dataBytes[0]), size);
-	uint64_t hash1 = XXH3_64bits_withSeed((char*) (&dataBytes[0]), size, seed);
+	uint64_t hash0 = XXH3_64bits(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size);
+	uint64_t hash1 = XXH3_64bits_withSeed(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
+			seed);
 
 	memcpy(hashBytes, &hash0, 8);
 	memcpy(hashBytes + 8, &hash1, 8);

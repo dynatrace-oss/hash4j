@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,13 @@ void FarmHashNaChecksumConfig::calculateHash(const uint8_t *seedBytes,
 	memcpy(&seed0, seedBytes + 8, 8);
 	memcpy(&seed1, seedBytes + 16, 8);
 
-	uint64_t hash0 = farmhashna::Hash64((char*) (&dataBytes[0]), size);
-	uint64_t hash1 = farmhashna::Hash64WithSeed((char*) (&dataBytes[0]), size,
+	uint64_t hash0 = farmhashna::Hash64(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size);
+	uint64_t hash1 = farmhashna::Hash64WithSeed(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
 			seed);
-	uint64_t hash2 = farmhashna::Hash64WithSeeds((char*) (&dataBytes[0]), size,
+	uint64_t hash2 = farmhashna::Hash64WithSeeds(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
 			seed0, seed1);
 
 	memcpy(hashBytes, &hash0, 8);
