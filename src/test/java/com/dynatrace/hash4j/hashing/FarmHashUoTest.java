@@ -58,6 +58,27 @@ class FarmHashUoTest extends AbstractHasher64Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess) {
+    long seed = getLong(seedBytes, 0);
+    long seed0 = getLong(seedBytes, 8);
+    long seed1 = getLong(seedBytes, 16);
+
+    long hash0 = Hashing.farmHashUo().hashBytesToLong(o, off, len, byteAccess);
+    long hash1 = Hashing.farmHashUo(seed).hashBytesToLong(o, off, len, byteAccess);
+    long hash2 = Hashing.farmHashUo(seed0, seed1).hashBytesToLong(o, off, len, byteAccess);
+
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
+    setLong(hashBytes, 16, hash2);
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
     long seed = getLong(seedBytes, 0);
     long seed0 = getLong(seedBytes, 8);

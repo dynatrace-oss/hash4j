@@ -51,6 +51,25 @@ class XXH3_128Test extends AbstractHasher128Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess) {
+    long seed = getLong(seedBytes, 0);
+
+    HashValue128 hash0 = Hashing.xxh3_128().hashBytesTo128Bits(o, off, len, byteAccess);
+    HashValue128 hash1 = Hashing.xxh3_128(seed).hashBytesTo128Bits(o, off, len, byteAccess);
+
+    setLong(hashBytes, 0, hash0.getLeastSignificantBits());
+    setLong(hashBytes, 8, hash0.getMostSignificantBits());
+    setLong(hashBytes, 16, hash1.getLeastSignificantBits());
+    setLong(hashBytes, 24, hash1.getMostSignificantBits());
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
     long seed = getLong(seedBytes, 0);
 

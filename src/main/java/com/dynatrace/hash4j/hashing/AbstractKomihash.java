@@ -209,6 +209,41 @@ abstract class AbstractKomihash implements AbstractHasher64 {
       return this;
     }
 
+    @Override
+    public <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access) {
+      int offset = bufferCount;
+      bufferCount = (bufferCount + (int) len) & 0x3f;
+      int x = 64 - offset;
+      if (len >= x) {
+        if (offset != 0) {
+          access.copyToByteArray(b, off, buffer, offset, x);
+          len -= x;
+          off += x;
+          offset = 0;
+          processBuffer();
+        }
+        while (len > 63) {
+          long b0 = access.getLong(b, off);
+          long b1 = access.getLong(b, off + 8);
+          long b2 = access.getLong(b, off + 16);
+          long b3 = access.getLong(b, off + 24);
+          long b4 = access.getLong(b, off + 32);
+          long b5 = access.getLong(b, off + 40);
+          long b6 = access.getLong(b, off + 48);
+          long b7 = access.getLong(b, off + 56);
+          processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+          init = true;
+          off += 64;
+          len -= 64;
+        }
+        if (isLastByteNeeded() && len == 0) {
+          buffer[63] = access.getByte(b, off - 1);
+        }
+      }
+      access.copyToByteArray(b, off, buffer, offset, (int) len);
+      return this;
+    }
+
     protected abstract boolean isLastByteNeeded();
 
     @Override
@@ -350,13 +385,13 @@ abstract class AbstractKomihash implements AbstractHasher64 {
     }
   }
 
-  protected static long finish(long r2h, long r2l, long see5) {
-    see5 += unsignedMultiplyHigh(r2l, r2h);
-    long see1 = see5 ^ (r2l * r2h);
+  protected static long finish(long r1h, long r2h, long see5) {
+    see5 += unsignedMultiplyHigh(r1h, r2h);
+    long see1 = see5 ^ (r1h * r2h);
 
-    r2h = unsignedMultiplyHigh(see1, see5);
+    r1h = unsignedMultiplyHigh(see1, see5);
     see1 *= see5;
-    see5 += r2h;
+    see5 += r1h;
     see1 ^= see5;
 
     return see1;

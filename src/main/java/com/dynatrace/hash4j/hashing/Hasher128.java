@@ -80,6 +80,18 @@ public interface Hasher128 extends Hasher64 {
   HashValue128 hashBytesTo128Bits(byte[] input, int off, int len);
 
   /**
+   * Hashes a sequence of bytes to a 128-bit {@link HashValue128} value
+   *
+   * @param input the input
+   * @param off the offset
+   * @param len the length
+   * @param access a strategy to access the bytes of the input
+   * @param <T> the type of the input
+   * @return the hash value
+   */
+  <T> HashValue128 hashBytesTo128Bits(T input, long off, long len, ByteAccess<T> access);
+
+  /**
    * Hashes a {@link CharSequence} to a 128-bit {@link HashValue128} value.
    *
    * <p>Equivalent to {@code hashTo128Bits(input, (c, f) -> f.putChars(c))}.
