@@ -23,8 +23,11 @@ void Komihash5_27ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 	uint64_t seed;
 	memcpy(&seed, seedBytes, 8);
 
-	uint64_t hash0 = komihash((char*) (&dataBytes[0]), size, 0);
-	uint64_t hash1 = komihash((char*) (&dataBytes[0]), size, seed);
+	uint64_t hash0 = komihash(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size, 0);
+	uint64_t hash1 = komihash(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
+			seed);
 
 	memcpy(hashBytes, &hash0, 8);
 	memcpy(hashBytes + 8, &hash1, 8);

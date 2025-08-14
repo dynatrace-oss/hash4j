@@ -23,8 +23,10 @@ void XXH3_128_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 	uint64_t seed;
 	memcpy(&seed, seedBytes, 8);
 
-	XXH128_hash_t hash0 = XXH3_128bits((char*) (&dataBytes[0]), size);
-	XXH128_hash_t hash1 = XXH3_128bits_withSeed((char*) (&dataBytes[0]), size,
+	XXH128_hash_t hash0 = XXH3_128bits(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size);
+	XXH128_hash_t hash1 = XXH3_128bits_withSeed(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
 			seed);
 
 	memcpy(hashBytes, &hash0, 16);
