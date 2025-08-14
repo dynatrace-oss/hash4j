@@ -55,6 +55,25 @@ class Murmur3_128Test extends AbstractHasher128Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess) {
+    int seed = getInt(seedBytes, 0);
+
+    HashValue128 hash0 = Hashing.murmur3_128().hashBytesTo128Bits(o, off, len, byteAccess);
+    HashValue128 hash1 = Hashing.murmur3_128(seed).hashBytesTo128Bits(o, off, len, byteAccess);
+
+    setLong(hashBytes, 0, hash0.getLeastSignificantBits());
+    setLong(hashBytes, 8, hash0.getMostSignificantBits());
+    setLong(hashBytes, 16, hash1.getLeastSignificantBits());
+    setLong(hashBytes, 24, hash1.getMostSignificantBits());
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
     int seed = getInt(seedBytes, 0);
 
@@ -102,11 +121,19 @@ class Murmur3_128Test extends AbstractHasher128Test {
   @Test
   void testLongInput() {
     long len = 1L + Integer.MAX_VALUE;
+
     HashStream128 stream = Hashing.murmur3_128().hashStream();
     LongStream.range(0, len).forEach(i -> stream.putByte((byte) (i & 0xFF)));
-    byte[] hashValueBytes = stream.get().toByteArray();
+    byte[] hashValueBytes1 = stream.get().toByteArray();
+
+    byte[] hashValueBytes2 =
+        Hashing.murmur3_128()
+            .hashBytesTo128Bits(null, 0, len, (data, idx) -> (byte) idx)
+            .toByteArray();
+
     byte[] expected = TestUtils.hexStringToByteArray("4b32a2e0240ee13e2b5a84668f916ce2");
-    assertThat(hashValueBytes).isEqualTo(expected);
+    assertThat(hashValueBytes1).isEqualTo(expected);
+    assertThat(hashValueBytes2).isEqualTo(expected);
   }
 
   @Override

@@ -37,6 +37,9 @@ interface HashStream extends HashSink {
   HashStream putBytes(byte[] x, int off, int len);
 
   @Override
+  <T> HashStream putBytes(T b, long off, long len, ByteAccess<T> access);
+
+  @Override
   HashStream putByteArray(byte[] x);
 
   @Override

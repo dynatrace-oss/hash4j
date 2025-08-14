@@ -38,6 +38,9 @@ public interface HashStream32 extends HashStream {
   HashStream32 putBytes(byte[] x, int off, int len);
 
   @Override
+  <T> HashStream32 putBytes(T b, long off, long len, ByteAccess<T> access);
+
+  @Override
   HashStream32 putByteArray(byte[] x);
 
   @Override

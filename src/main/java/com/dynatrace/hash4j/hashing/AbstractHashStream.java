@@ -83,27 +83,32 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putBytes(byte[] b) {
-    putBytes(b, 0, b.length);
-    return this;
+    return putBytes(b, 0, b.length);
   }
 
   @Override
   default HashStream putBytes(byte[] b, int off, int len) {
-    int end = len + off;
-    while (off <= end - 8) {
-      putLong(getLong(b, off));
+    return putBytes(b, off, len, NativeByteArrayByteAccess.get());
+  }
+
+  @Override
+  default <T> HashStream putBytes(T b, long off, long len, ByteAccess<T> access) {
+    while (len >= 8) {
+      putLong(access.getLong(b, off));
       off += 8;
+      len -= 8;
     }
-    if (off <= end - 4) {
-      putInt(getInt(b, off));
+    if (len >= 4) {
+      putInt(access.getInt(b, off));
       off += 4;
+      len -= 4;
     }
-    if (off <= end - 2) {
-      putChar(getChar(b, off));
-      off += 2;
-    }
-    if (off < end) {
-      putByte(b[off]);
+    if (len > 0) {
+      putByte(access.getByte(b, off));
+      if (len > 1) {
+        putByte(access.getByte(b, off + 1));
+        if (len > 2) putByte(access.getByte(b, off + 2));
+      }
     }
     return this;
   }

@@ -40,6 +40,9 @@ public interface HashStream64 extends HashStream32 {
   HashStream64 putBytes(byte[] x, int off, int len);
 
   @Override
+  <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access);
+
+  @Override
   HashStream64 putByteArray(byte[] x);
 
   @Override

@@ -41,41 +41,83 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
   @Override
   public long hashBytesToLong(byte[] input, int off, int len) {
-    long see0 = seed;
-    long a;
-    long b;
     if (len <= 16) {
       if (len >= 4) {
-        a = (wyr4(input, off) << 32) | wyr4(input, off + ((len >>> 3) << 2));
-        b = (wyr4(input, off + len - 4) << 32) | wyr4(input, (off + len - 4) - ((len >>> 3) << 2));
+        long a =
+            ((long) getInt(input, off) << 32)
+                | (getInt(input, off + ((len >>> 3) << 2)) & 0xFFFFFFFFL);
+        long b =
+            ((long) getInt(input, off + len - 4) << 32)
+                | (getInt(input, (off + len - 4) - ((len >>> 3) << 2)) & 0xFFFFFFFFL);
+        return finish(a, b, seed, len);
       } else if (len > 0) {
-        a = wyr3(input, off, len);
-        b = 0;
+        int a = wyr3(input, off, len);
+        return finish(a, 0, seed, len);
       } else {
-        a = 0;
-        b = 0;
+        return finish(0, 0, seed, 0);
       }
-    } else {
-      int i = len;
-      int p = off;
-      long see1 = seed;
-      long see2 = seed;
-      while (i > 48) {
-        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
-        see1 = mix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
-        see2 = mix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
-        p += 48;
-        i -= 48;
-      }
-      see0 ^= see1 ^ see2;
-      while (i > 16) {
-        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
-        i -= 16;
-        p += 16;
-      }
-      a = getLong(input, p + i - 16);
-      b = getLong(input, p + i - 8);
     }
+    int i = len;
+    int p = off;
+    long see0 = seed;
+    long see1 = seed;
+    long see2 = seed;
+    while (i > 48) {
+      see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
+      see1 = mix(getLong(input, p + 16) ^ secret2, getLong(input, p + 24) ^ see1);
+      see2 = mix(getLong(input, p + 32) ^ secret3, getLong(input, p + 40) ^ see2);
+      p += 48;
+      i -= 48;
+    }
+    see0 ^= see1 ^ see2;
+    while (i > 16) {
+      see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 8) ^ see0);
+      i -= 16;
+      p += 16;
+    }
+    long a = getLong(input, p + i - 16);
+    long b = getLong(input, p + i - 8);
+    return finish(a, b, see0, len);
+  }
+
+  @Override
+  public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+    if (len <= 16) {
+      if (len >= 4) {
+        long a =
+            (access.getIntAsUnsignedLong(input, off) << 32)
+                | access.getIntAsUnsignedLong(input, off + ((len >>> 3) << 2));
+        long b =
+            (access.getIntAsUnsignedLong(input, off + len - 4) << 32)
+                | access.getIntAsUnsignedLong(input, (off + len - 4) - ((len >>> 3) << 2));
+        return finish(a, b, seed, len);
+      } else if (len > 0) {
+        int a = wyr3(input, off, len, access);
+        return finish(a, 0, seed, len);
+      } else {
+        return finish(0, 0, seed, len);
+      }
+    }
+    long i = len;
+    long p = off;
+    long see0 = seed;
+    long see1 = seed;
+    long see2 = seed;
+    while (i > 48) {
+      see0 = mix(access.getLong(input, p) ^ secret1, access.getLong(input, p + 8) ^ see0);
+      see1 = mix(access.getLong(input, p + 16) ^ secret2, access.getLong(input, p + 24) ^ see1);
+      see2 = mix(access.getLong(input, p + 32) ^ secret3, access.getLong(input, p + 40) ^ see2);
+      p += 48;
+      i -= 48;
+    }
+    see0 ^= see1 ^ see2;
+    while (i > 16) {
+      see0 = mix(access.getLong(input, p) ^ secret1, access.getLong(input, p + 8) ^ see0);
+      i -= 16;
+      p += 16;
+    }
+    long a = access.getLong(input, p + i - 16);
+    long b = access.getLong(input, p + i - 8);
     return finish(a, b, see0, len);
   }
 
@@ -83,58 +125,58 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
   @Override
   public long hashCharsToLong(CharSequence input) {
-    final long a;
-    final long b;
     int len = input.length();
-    long see0 = seed;
+
     if (len <= 8) {
       if (len >= 2) {
-        a = ((long) getInt(input, 0) << 32) | (getInt(input, (len >>> 2) << 1) & 0xFFFFFFFFL);
-        b =
+        long a = ((long) getInt(input, 0) << 32) | (getInt(input, (len >>> 2) << 1) & 0xFFFFFFFFL);
+        long b =
             ((long) getInt(input, len - 2) << 32)
                 | (getInt(input, (len - 2) - ((len >>> 2) << 1)) & 0xFFFFFFFFL);
+        return finish(a, b, seed, len << 1);
       } else if (len > 0) {
-        long ch = input.charAt(0) & 0xFFFFL;
-        long c0 = ch & 0xFFL;
-        long c1 = ch >>> 8;
-        a = (c0 << 16) | (c1 << 8) | c1;
-        b = 0;
+        int ch = input.charAt(0);
+        int c0 = ch & 0xFF;
+        int c1 = ch >>> 8;
+        int a = (c0 << 16) | (c1 << 8) | c1;
+        return finish(a, 0, seed, len << 1);
       } else {
-        a = 0;
-        b = 0;
+        return finish(0, 0, seed, 0);
       }
-    } else {
-      int i = len;
-      int p = 0;
-      long see1 = seed;
-      long see2 = seed;
-      while (i > 24) {
-        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
-        see1 = mix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
-        see2 = mix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
-        p += 24;
-        i -= 24;
-      }
-      see0 ^= see1 ^ see2;
-      while (i > 8) {
-        see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
-        i -= 8;
-        p += 8;
-      }
-      a = getLong(input, len - 8);
-      b = getLong(input, len - 4);
     }
-    return finish(a, b, see0, ((long) len) << 1);
+    int i = len;
+    int p = 0;
+    long see0 = seed;
+    long see1 = seed;
+    long see2 = seed;
+    while (i > 24) {
+      see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
+      see1 = mix(getLong(input, p + 8) ^ secret2, getLong(input, p + 12) ^ see1);
+      see2 = mix(getLong(input, p + 16) ^ secret3, getLong(input, p + 20) ^ see2);
+      p += 24;
+      i -= 24;
+    }
+    see0 ^= see1 ^ see2;
+    while (i > 8) {
+      see0 = mix(getLong(input, p) ^ secret1, getLong(input, p + 4) ^ see0);
+      i -= 8;
+      p += 8;
+    }
+    long a = getLong(input, len - 8);
+    long b = getLong(input, len - 4);
+    return finish(a, b, see0, (long) len << 1);
   }
 
-  private static long wyr3(byte[] data, int off, int k) {
-    return ((data[off] & 0xFFL) << 16)
-        | ((data[off + (k >>> 1)] & 0xFFL) << 8)
-        | (data[off + k - 1] & 0xFFL);
+  private static int wyr3(byte[] data, int off, int k) {
+    return ((data[off] & 0xFF) << 16)
+        | ((data[off + (k >>> 1)] & 0xFF) << 8)
+        | (data[off + k - 1] & 0xFF);
   }
 
-  private static long wyr4(byte[] data, int p) {
-    return getInt(data, p) & 0xFFFFFFFFL;
+  private static <T> int wyr3(T data, long off, long k, ByteAccess<T> access) {
+    return (access.getByteAsUnsignedInt(data, off) << 16)
+        | (access.getByteAsUnsignedInt(data, off + (k >>> 1)) << 8)
+        | access.getByteAsUnsignedInt(data, off + k - 1);
   }
 
   protected static final long[] DEFAULT_SECRET = {
@@ -453,6 +495,39 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
     }
 
     @Override
+    public <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access) {
+      byteCount += len;
+      int x = 48 - offset;
+      if (len > x) {
+        access.copyToByteArray(b, off, buffer, offset, x);
+        processBuffer();
+        len -= x;
+        off += x;
+        if (len > 48) {
+          do {
+            long b0 = access.getLong(b, off);
+            long b1 = access.getLong(b, off + 8);
+            long b2 = access.getLong(b, off + 16);
+            long b3 = access.getLong(b, off + 24);
+            long b4 = access.getLong(b, off + 32);
+            long b5 = access.getLong(b, off + 40);
+            processBuffer(b0, b1, b2, b3, b4, b5);
+            off += 48;
+            len -= 48;
+          } while (len > 48);
+          if (len < 16) {
+            int y = 16 - (int) len;
+            access.copyToByteArray(b, off - y, buffer, 32 + (int) len, y);
+          }
+        }
+        offset = 0;
+      }
+      access.copyToByteArray(b, off, buffer, offset, (int) len);
+      offset += (int) len;
+      return this;
+    }
+
+    @Override
     public HashStream64 putChars(CharSequence s) {
       int remainingChars = s.length();
       byteCount += ((long) remainingChars) << 1;
@@ -539,8 +614,12 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
       long s = see0;
       if (byteCount <= 16) {
         if (byteCount >= 4) {
-          a = (wyr4(buffer, 0) << 32) | wyr4(buffer, ((offset >>> 3) << 2));
-          b = (wyr4(buffer, offset - 4) << 32) | wyr4(buffer, offset - 4 - ((offset >>> 3) << 2));
+          a =
+              ((long) getInt(buffer, 0) << 32)
+                  | (getInt(buffer, (offset >>> 3) << 2) & 0xFFFFFFFFL);
+          b =
+              ((long) getInt(buffer, offset - 4) << 32)
+                  | (getInt(buffer, offset - 4 - ((offset >>> 3) << 2)) & 0xFFFFFFFFL);
         } else if (byteCount > 0) {
           a = wyr3(buffer, 0, offset);
           b = 0;

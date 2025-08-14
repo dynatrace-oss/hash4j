@@ -23,11 +23,11 @@ final class HashUtil {
 
   private HashUtil() {}
 
-  static <T extends HashStream> boolean equalsHelper(T hashStream, Object obj) {
+  static boolean equalsHelper(HashStream hashStream, Object obj) {
     if (hashStream == obj) return true;
     if (obj == null) return false;
     if (hashStream.getClass() != obj.getClass()) return false;
-    T that = (T) obj;
+    HashStream that = (HashStream) obj;
     return hashStream.getHasher().equals(that.getHasher())
         && Arrays.equals(hashStream.getState(), that.getState());
   }

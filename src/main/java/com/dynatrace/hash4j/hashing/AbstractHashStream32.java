@@ -57,6 +57,12 @@ interface AbstractHashStream32 extends AbstractHashStream, HashStream32 {
   }
 
   @Override
+  default <T> HashStream32 putBytes(T b, long off, long len, ByteAccess<T> access) {
+    AbstractHashStream.super.putBytes(b, off, len, access);
+    return this;
+  }
+
+  @Override
   default HashStream32 putByteArray(byte[] x) {
     AbstractHashStream.super.putByteArray(x);
     return this;

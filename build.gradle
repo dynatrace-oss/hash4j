@@ -119,6 +119,7 @@ tasks.check {
 tasks.withType(Test).configureEach {
 	useJUnitPlatform()
 	maxHeapSize = "8g"
+	maxParallelForks =  Runtime.runtime.availableProcessors()
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -277,6 +278,7 @@ jmh {
 	if (project.hasProperty("benchmarkIncludes")) {
 		includes = [benchmarkIncludes.trim()]
 	}
+	jvmArgs = ['-Xmx8g']
 }
 
 tasks.register("evaluateBenchmarks", Exec) {

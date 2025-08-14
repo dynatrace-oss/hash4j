@@ -35,7 +35,7 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
   }
 
   @Test
-  void testHashBytesToLong() {
+  void testHashCompatibility() {
 
     long hash = 0x2a80de88db42361fL;
 
@@ -49,6 +49,10 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
 
     assertThat(hasher.hashBytesToLong(b, 0, 0)).isEqualTo(hash);
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo((int) hash);
+
+    assertThat(hasher.hashBytesToLong(b, 0, 0, NativeByteArrayByteAccess.get())).isEqualTo(hash);
+    assertThat(hasher.hashBytesToInt(b, 0, 0, NativeByteArrayByteAccess.get()))
+        .isEqualTo((int) hash);
 
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToInt(s)).isEqualTo((int) hash);
