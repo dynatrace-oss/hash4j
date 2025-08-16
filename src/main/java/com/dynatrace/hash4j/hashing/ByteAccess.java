@@ -74,10 +74,10 @@ public interface ByteAccess<T> {
    * @return 4 bytes as integer
    */
   default int getInt(T data, long idx) {
-    return ((getByte(data, idx) & 0xFF) << 0)
+    return (getByte(data, idx) & 0xFF)
         | ((getByte(data, idx + 1) & 0xFF) << 8)
         | ((getByte(data, idx + 2) & 0xFF) << 16)
-        | ((getByte(data, idx + 3) & 0xFF) << 24);
+        | (getByte(data, idx + 3) << 24);
   }
 
   /**
