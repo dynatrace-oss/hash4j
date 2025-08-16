@@ -23,6 +23,11 @@ interface AbstractHasher32 extends Hasher32, Hasher {
   }
 
   @Override
+  default int hashBytesToInt(byte[] input, int off, int len) {
+    return hashBytesToInt(input, off, len, NativeByteArrayByteAccess.get());
+  }
+
+  @Override
   default int hashBytesToInt(byte[] input) {
     return hashBytesToInt(input, 0, input.length);
   }

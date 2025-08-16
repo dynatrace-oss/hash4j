@@ -40,6 +40,9 @@ public interface HashStream128 extends HashStream64 {
   HashStream128 putBytes(byte[] x, int off, int len);
 
   @Override
+  <T> HashStream128 putBytes(T b, long off, long len, ByteAccess<T> access);
+
+  @Override
   HashStream128 putByteArray(byte[] x);
 
   @Override

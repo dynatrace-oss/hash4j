@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,21 @@ public interface HashSink {
    * @return this
    */
   HashSink putBytes(byte[] x, int off, int len);
+
+  /**
+   * Adds a sequence of bytes to the hash computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code for (int i = 0; i < len; i++) putByte(access.getByte(input, off + i));}
+   *
+   * @param input the input
+   * @param off the offset
+   * @param len the length
+   * @param access a strategy to access the bytes of the input
+   * @param <T> the type of the input
+   * @return this
+   */
+  <T> HashSink putBytes(T input, long off, long len, ByteAccess<T> access);
 
   /**
    * Adds a {@code byte} array to the hash computation.

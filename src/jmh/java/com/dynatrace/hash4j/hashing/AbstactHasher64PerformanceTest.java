@@ -33,6 +33,12 @@ public abstract class AbstactHasher64PerformanceTest extends AbstractPerformance
   }
 
   @Override
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    blackhole.consume(
+        getHasherInstance().hashBytesToLong(b, 0, b.length, NativeByteArrayByteAccess.get()));
+  }
+
+  @Override
   protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
     blackhole.consume(getHasherInstance().hashToLong(b, BYTES_FUNNEL));
   }

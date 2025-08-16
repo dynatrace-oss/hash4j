@@ -80,6 +80,18 @@ public interface Hasher64 extends Hasher32 {
   long hashBytesToLong(byte[] input, int off, int len);
 
   /**
+   * Hashes a sequence of bytes to a 64-bit {@code long} value
+   *
+   * @param input the input
+   * @param off the offset
+   * @param len the length
+   * @param access a strategy to access the bytes of the input
+   * @param <T> the type of the input
+   * @return the hash value
+   */
+  <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access);
+
+  /**
    * Hashes a {@link CharSequence} to a 64-bit {@code long} value.
    *
    * <p>Equivalent to {@code hashToLong(input, (c, f) -> f.putChars(c))}.

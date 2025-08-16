@@ -249,15 +249,35 @@ final class PolymurHash2_0 implements AbstractHasher64 {
 
   private long polymurLoadLeU64_0_8(byte[] input, int off, int len) {
     if (len < 4) {
-      if (len == 0) return 0;
-      long v = input[off] & 0xFFL;
-      v |= (input[off + (len >>> 1)] & 0xFFL) << ((len >>> 1) << 3);
-      v |= (input[off + len - 1] & 0xFFL) << ((len - 1) << 3);
-      return v;
+      long result = 0;
+      if (len != 0) {
+        result += input[off] & 0xFFL;
+        if (len != 1) {
+          result += (input[off + 1] & 0xFFL) << 8;
+          if (len != 2) result += (input[off + 2] & 0xFFL) << 16;
+        }
+      }
+      return result;
     }
-
     long lo = getInt(input, off) & 0xFFFFFFFFL;
     long hi = getInt(input, off + len - 4) & 0xFFFFFFFFL;
+    return lo | (hi << ((len - 4) << 3));
+  }
+
+  private <T> long polymurLoadLeU64_0_8(T input, long off, long len, ByteAccess<T> access) {
+    if (len < 4) {
+      long result = 0;
+      if (len != 0) {
+        result += access.getByteAsUnsignedLong(input, off);
+        if (len != 1) {
+          result += access.getByteAsUnsignedLong(input, off + 1) << 8;
+          if (len != 2) result += access.getByteAsUnsignedLong(input, off + 2) << 16;
+        }
+      }
+      return result;
+    }
+    long lo = access.getIntAsUnsignedLong(input, off);
+    long hi = access.getIntAsUnsignedLong(input, off + len - 4);
     return lo | (hi << ((len - 4) << 3));
   }
 
@@ -319,6 +339,71 @@ final class PolymurHash2_0 implements AbstractHasher64 {
       }
     } else {
       long m0 = polymurLoadLeU64_0_8(input, off, len) + k;
+      long lenk2 = len + k2;
+      t1Hi = unsignedMultiplyHigh(m0, lenk2);
+      t1Lo = m0 * lenk2;
+    }
+    return polymurMix(polyAcc + polymurRed611(t1Hi, t1Lo)) + s;
+  }
+
+  @Override
+  public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+    long polyAcc = tweak;
+    long t1Hi;
+    long t1Lo;
+    long k3Local = this.k3;
+    long k4Local = this.k4;
+
+    if (len > 49) {
+      k3Local = k3x;
+      k4Local = k4x;
+      long h = 0;
+      do {
+        h = processBuffer(input, off, h, access);
+        len -= 49;
+        off += 49;
+      } while (len > 49);
+
+      long ph = polymurExtrared611(h);
+      long hk14 = polymurRed611(unsignedMultiplyHigh(ph, k14), ph * k14);
+      polyAcc += polymurExtrared611(hk14);
+    }
+
+    if (len >= 8) {
+      long m0 = getLong7(input, off, access) + k2;
+      long m1 = getLong7(input, off + ((len - 7) >>> 1), access) + k7;
+      long m2 = (access.getLong(input, off + len - 8) >>> 8) + k;
+      long t0Hi = unsignedMultiplyHigh(m0, m1);
+      long t0Lo = m0 * m1;
+      k3Local += len;
+      t1Hi = unsignedMultiplyHigh(m2, k3Local);
+      t1Lo = m2 * k3Local;
+
+      if (len <= 21) {
+        t1Lo += t0Lo;
+        t1Hi += t0Hi + ((t1Lo + 0x8000000000000000L < t0Lo + 0x8000000000000000L) ? 1 : 0);
+      } else {
+        long t0r = polymurRed611(t0Hi, t0Lo);
+
+        long m3 = getLong7(input, off + 7, access) + k2;
+        long m4 = getLong7(input, off + 14, access) + k7;
+        long m5 = getLong7(input, off + len - 21, access) + t0r;
+        long m6 = getLong7(input, off + len - 14, access) + k4Local;
+
+        long t2Hi = unsignedMultiplyHigh(m3, m4);
+        long t2Lo = m3 * m4;
+        long t3Hi = unsignedMultiplyHigh(m5, m6);
+        long t3Lo = m5 * m6;
+
+        t2Lo += 0x8000000000000000L;
+        t3Lo += 0x8000000000000000L;
+        t1Lo += t2Lo;
+        t1Hi += t2Hi + ((t1Lo < t2Lo) ? 1 : 0);
+        t1Lo += t3Lo;
+        t1Hi += t3Hi + ((t1Lo + 0x8000000000000000L < t3Lo) ? 1 : 0);
+      }
+    } else {
+      long m0 = polymurLoadLeU64_0_8(input, off, len, access) + k;
       long lenk2 = len + k2;
       t1Hi = unsignedMultiplyHigh(m0, lenk2);
       t1Lo = m0 * lenk2;
@@ -477,20 +562,36 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     return new HashStreamImpl();
   }
 
-  private long processBuffer(byte[] b, int off, long h) {
+  private long processBuffer(byte[] input, int off, long h) {
     return processBuffer(
-        getLong7(b, off),
-        getLong7(b, off + 7),
-        getLong7(b, off + 14),
-        getLong7(b, off + 21),
-        getLong7(b, off + 28),
-        getLong7(b, off + 35),
-        getLong7(b, off + 42),
+        getLong7(input, off),
+        getLong7(input, off + 7),
+        getLong7(input, off + 14),
+        getLong7(input, off + 21),
+        getLong7(input, off + 28),
+        getLong7(input, off + 35),
+        getLong7(input, off + 42),
+        h);
+  }
+
+  private <T> long processBuffer(T input, long off, long h, ByteAccess<T> access) {
+    return processBuffer(
+        getLong7(input, off, access),
+        getLong7(input, off + 7, access),
+        getLong7(input, off + 14, access),
+        getLong7(input, off + 21, access),
+        getLong7(input, off + 28, access),
+        getLong7(input, off + 35, access),
+        getLong7(input, off + 42, access),
         h);
   }
 
   private static long getLong7(byte[] b, int off) {
     return getLong(b, off) & 0x00ffffffffffffffL;
+  }
+
+  private static <T> long getLong7(T input, long off, ByteAccess<T> access) {
+    return access.getLong(input, off) & 0x00ffffffffffffffL;
   }
 
   private long processBuffer(
@@ -683,6 +784,33 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     }
 
     @Override
+    public <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access) {
+      int x = 49 - offset;
+      if (len > x) {
+
+        if (offset != 0) {
+          access.copyToByteArray(b, off, buffer, offset, x);
+          processBuffer();
+          len -= x;
+          off += x;
+          offset = 0;
+        }
+
+        while (len > 49) {
+          h = PolymurHash2_0.this.processBuffer(b, off, h, access);
+          len -= 49;
+          off += 49;
+        }
+        init = true;
+      }
+
+      access.copyToByteArray(b, off, buffer, offset, (int) len);
+      offset += (int) len;
+
+      return this;
+    }
+
+    @Override
     public HashStream64 putChars(CharSequence s) {
 
       int i = 0;
@@ -766,7 +894,16 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     }
 
     private void processBuffer() {
-      h = PolymurHash2_0.this.processBuffer(buffer, 0, h);
+      h =
+          PolymurHash2_0.this.processBuffer(
+              getLong7(buffer, 0),
+              getLong7(buffer, 0 + 7),
+              getLong7(buffer, 0 + 14),
+              getLong7(buffer, 0 + 21),
+              getLong7(buffer, 0 + 28),
+              getLong7(buffer, 0 + 35),
+              getLong7(buffer, 0 + 42),
+              h);
       init = true;
     }
 

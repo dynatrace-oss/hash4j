@@ -132,7 +132,7 @@ class FarmHashNa extends AbstractFarmHash {
   }
 
   @Override
-  protected long hashBytesToLongLength65Plus(byte[] bytes, int offset, int length) {
+  protected long hashBytesToLongLength65Plus(byte[] input, int off, int len) {
     long x = START_X;
     long y = START_Y;
     long z = START_Z;
@@ -140,18 +140,18 @@ class FarmHashNa extends AbstractFarmHash {
     long v1 = 0;
     long w0 = 0;
     long w1 = 0;
-    int end = offset + ((length - 1) & 0xFFFFFFC0);
-    int last64offset = offset + length - 64;
-    x += getLong(bytes, offset);
+    int end = off + ((len - 1) & 0xFFFFFFC0);
+    int last64offset = off + len - 64;
+    x += getLong(input, off);
     do {
-      long b0 = getLong(bytes, offset);
-      long b1 = getLong(bytes, offset + 8);
-      long b2 = getLong(bytes, offset + 16);
-      long b3 = getLong(bytes, offset + 24);
-      long b4 = getLong(bytes, offset + 32);
-      long b5 = getLong(bytes, offset + 40);
-      long b6 = getLong(bytes, offset + 48);
-      long b7 = getLong(bytes, offset + 56);
+      long b0 = getLong(input, off);
+      long b1 = getLong(input, off + 8);
+      long b2 = getLong(input, off + 16);
+      long b3 = getLong(input, off + 24);
+      long b4 = getLong(input, off + 32);
+      long b5 = getLong(input, off + 40);
+      long b6 = getLong(input, off + 48);
+      long b7 = getLong(input, off + 56);
 
       x = (rotateRight(x + y + v0 + b1, 37) * K1) ^ w1;
       y = (rotateRight(y + v1 + b6, 42) * K1) + v0 + b5;
@@ -171,19 +171,76 @@ class FarmHashNa extends AbstractFarmHash {
       z = x;
       x = t;
 
-      offset += 64;
-    } while (offset != end);
+      off += 64;
+    } while (off != end);
 
-    long b0 = getLong(bytes, last64offset);
-    long b1 = getLong(bytes, last64offset + 8);
-    long b2 = getLong(bytes, last64offset + 16);
-    long b3 = getLong(bytes, last64offset + 24);
-    long b4 = getLong(bytes, last64offset + 32);
-    long b5 = getLong(bytes, last64offset + 40);
-    long b6 = getLong(bytes, last64offset + 48);
-    long b7 = getLong(bytes, last64offset + 56);
+    long b0 = getLong(input, last64offset);
+    long b1 = getLong(input, last64offset + 8);
+    long b2 = getLong(input, last64offset + 16);
+    long b3 = getLong(input, last64offset + 24);
+    long b4 = getLong(input, last64offset + 32);
+    long b5 = getLong(input, last64offset + 40);
+    long b6 = getLong(input, last64offset + 48);
+    long b7 = getLong(input, last64offset + 56);
 
-    w0 += ((length - 1) & 63);
+    w0 += ((len - 1) & 63);
+    return finalizeHash(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+  }
+
+  @Override
+  protected <T> long hashBytesToLongLength65Plus(
+      T input, long off, long len, ByteAccess<T> access) {
+    long x = START_X;
+    long y = START_Y;
+    long z = START_Z;
+    long v0 = 0;
+    long v1 = 0;
+    long w0 = 0;
+    long w1 = 0;
+    long end = off + ((len - 1) & 0xFFFFFFFFFFFFFFC0L);
+    long last64offset = off + len - 64;
+    x += access.getLong(input, off);
+    do {
+      long b0 = access.getLong(input, off);
+      long b1 = access.getLong(input, off + 8);
+      long b2 = access.getLong(input, off + 16);
+      long b3 = access.getLong(input, off + 24);
+      long b4 = access.getLong(input, off + 32);
+      long b5 = access.getLong(input, off + 40);
+      long b6 = access.getLong(input, off + 48);
+      long b7 = access.getLong(input, off + 56);
+
+      x = (rotateRight(x + y + v0 + b1, 37) * K1) ^ w1;
+      y = (rotateRight(y + v1 + b6, 42) * K1) + v0 + b5;
+      z = rotateRight(z + w0, 33) * K1;
+      v1 *= K1;
+      v1 += b0;
+      v0 = v1 + (b1 + b2);
+      v1 += rotateRight(x + w0 + v1 + b3, 21);
+      v1 += rotateRight(v0, 44);
+      w1 += z + b4;
+      w0 = w1 + (b5 + b6);
+      w1 += rotateRight(y + w1 + b2 + b7, 21);
+      w1 += rotateRight(w0, 44);
+      v0 += b3;
+      w0 += b7;
+      long t = z;
+      z = x;
+      x = t;
+
+      off += 64;
+    } while (off != end);
+
+    long b0 = access.getLong(input, last64offset);
+    long b1 = access.getLong(input, last64offset + 8);
+    long b2 = access.getLong(input, last64offset + 16);
+    long b3 = access.getLong(input, last64offset + 24);
+    long b4 = access.getLong(input, last64offset + 32);
+    long b5 = access.getLong(input, last64offset + 40);
+    long b6 = access.getLong(input, last64offset + 48);
+    long b7 = access.getLong(input, last64offset + 56);
+
+    w0 += ((len - 1) & 63);
     return finalizeHash(x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
 
@@ -464,7 +521,7 @@ class FarmHashNa extends AbstractFarmHash {
       long b6 = getLong(buffer, (bufferCount + 48) & 0x3f);
       long b7 = getLong(buffer, bufferCount - 8);
 
-      return FarmHashNa.this.finalizeHash(
+      return finalizeHash(
           x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
   }

@@ -30,6 +30,11 @@ public abstract class AbstractZeroAllocationHashing64BitPerformanceTest
   }
 
   @Override
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    blackhole.consume(createHashFunction().hash(b, ZeroAllocationHashingAccess.get(), 0, b.length));
+  }
+
+  @Override
   protected void hashCharsDirect(String s, Blackhole blackhole) {
     blackhole.consume(createHashFunction().hashChars(s));
   }

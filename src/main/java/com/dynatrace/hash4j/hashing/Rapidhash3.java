@@ -79,11 +79,10 @@ final class Rapidhash3 implements AbstractHasher64 {
 
   @Override
   public long hashBytesToLong(byte[] input, int off, int len) {
-    long see0 = seed;
-    long a;
-    long b;
     if (len <= 16) {
       if (len >= 4) {
+        long a;
+        long b;
         if (len >= 8) {
           a = getLong(input, off);
           b = getLong(input, off + len - 8);
@@ -91,62 +90,142 @@ final class Rapidhash3 implements AbstractHasher64 {
           b = getInt(input, off) & 0xFFFFFFFFL;
           a = getInt(input, off + len - 4) & 0xFFFFFFFFL;
         }
-        a ^= len;
-        see0 ^= len;
+        return finish(a ^ len, b, seed ^ len, len);
       } else if (len > 0) {
-        a = ((input[off] & 0xFFL) << 45) ^ (input[off + len - 1] & 0xFFL) ^ len;
-        b = input[off + (len >> 1)] & 0xFFL;
+        long a = ((input[off] & 0xFFL) << 45) ^ (input[off + len - 1] & 0xFFL);
+        long b = input[off + (len >> 1)] & 0xFFL;
+        return finish(a ^ len, b, seed, len);
       } else {
-        a = 0;
-        b = 0;
+        return finish(0, 0, seed, len);
       }
-    } else {
-      long see1 = see0;
-      long see2 = see0;
-      long see3 = see0;
-      long see4 = see0;
-      long see5 = see0;
-      long see6 = see0;
-      if (len > 112) {
-        do {
-          see0 = mix(getLong(input, off) ^ SEC0, getLong(input, off + 8) ^ see0);
-          see1 = mix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 24) ^ see1);
-          see2 = mix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 40) ^ see2);
-          see3 = mix(getLong(input, off + 48) ^ SEC3, getLong(input, off + 56) ^ see3);
-          see4 = mix(getLong(input, off + 64) ^ SEC4, getLong(input, off + 72) ^ see4);
-          see5 = mix(getLong(input, off + 80) ^ SEC5, getLong(input, off + 88) ^ see5);
-          see6 = mix(getLong(input, off + 96) ^ SEC6, getLong(input, off + 104) ^ see6);
-          off += 112;
-          len -= 112;
-        } while (len > 112);
-        see0 ^= see1;
-        see2 ^= see3;
-        see4 ^= see5;
-        see0 ^= see6;
-        see2 ^= see4;
-        see0 ^= see2;
-      }
-      if (len > 16) {
-        see0 = mix(getLong(input, off) ^ SEC2, getLong(input, off + 8) ^ see0);
-        if (len > 32) {
-          see0 = mix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 24) ^ see0);
-          if (len > 48) {
-            see0 = mix(getLong(input, off + 32) ^ SEC1, getLong(input, off + 40) ^ see0);
-            if (len > 64) {
-              see0 = mix(getLong(input, off + 48) ^ SEC1, getLong(input, off + 56) ^ see0);
-              if (len > 80) {
-                see0 = mix(getLong(input, off + 64) ^ SEC2, getLong(input, off + 72) ^ see0);
-                if (len > 96) {
-                  see0 = mix(getLong(input, off + 80) ^ SEC1, getLong(input, off + 88) ^ see0);
-                }
+    }
+    long see0 = seed;
+    long see1 = seed;
+    long see2 = seed;
+    long see3 = seed;
+    long see4 = seed;
+    long see5 = seed;
+    long see6 = seed;
+    if (len > 112) {
+      do {
+        see0 = mix(getLong(input, off) ^ SEC0, getLong(input, off + 8) ^ see0);
+        see1 = mix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 24) ^ see1);
+        see2 = mix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 40) ^ see2);
+        see3 = mix(getLong(input, off + 48) ^ SEC3, getLong(input, off + 56) ^ see3);
+        see4 = mix(getLong(input, off + 64) ^ SEC4, getLong(input, off + 72) ^ see4);
+        see5 = mix(getLong(input, off + 80) ^ SEC5, getLong(input, off + 88) ^ see5);
+        see6 = mix(getLong(input, off + 96) ^ SEC6, getLong(input, off + 104) ^ see6);
+        off += 112;
+        len -= 112;
+      } while (len > 112);
+      see0 ^= see1;
+      see2 ^= see3;
+      see4 ^= see5;
+      see0 ^= see6;
+      see2 ^= see4;
+      see0 ^= see2;
+    }
+    if (len > 16) {
+      see0 = mix(getLong(input, off) ^ SEC2, getLong(input, off + 8) ^ see0);
+      if (len > 32) {
+        see0 = mix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 24) ^ see0);
+        if (len > 48) {
+          see0 = mix(getLong(input, off + 32) ^ SEC1, getLong(input, off + 40) ^ see0);
+          if (len > 64) {
+            see0 = mix(getLong(input, off + 48) ^ SEC1, getLong(input, off + 56) ^ see0);
+            if (len > 80) {
+              see0 = mix(getLong(input, off + 64) ^ SEC2, getLong(input, off + 72) ^ see0);
+              if (len > 96) {
+                see0 = mix(getLong(input, off + 80) ^ SEC1, getLong(input, off + 88) ^ see0);
               }
             }
           }
         }
       }
-      a = getLong(input, off + len - 16);
-      b = getLong(input, off + len - 8);
     }
+    long a = getLong(input, off + len - 16);
+    long b = getLong(input, off + len - 8);
+    return finish(a, b, see0, len);
+  }
+
+  @Override
+  public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+    if (len <= 16) {
+      if (len >= 4) {
+        long a;
+        long b;
+        if (len >= 8) {
+          a = access.getLong(input, off);
+          b = access.getLong(input, off + len - 8);
+        } else {
+          b = access.getIntAsUnsignedLong(input, off);
+          a = access.getIntAsUnsignedLong(input, off + len - 4);
+        }
+        return finish(a ^ len, b, seed ^ len, len);
+      } else if (len > 0) {
+        long a =
+            (access.getByteAsUnsignedLong(input, off) << 45)
+                ^ access.getByteAsUnsignedLong(input, off + len - 1);
+        long b = access.getByteAsUnsignedLong(input, off + (len >> 1));
+        return finish(a ^ len, b, seed, len);
+      } else {
+        return finish(0, 0, seed, len);
+      }
+    }
+    long see0 = seed;
+    long see1 = seed;
+    long see2 = seed;
+    long see3 = seed;
+    long see4 = seed;
+    long see5 = seed;
+    long see6 = seed;
+    if (len > 112) {
+      do {
+        see0 = mix(access.getLong(input, off) ^ SEC0, access.getLong(input, off + 8) ^ see0);
+        see1 = mix(access.getLong(input, off + 16) ^ SEC1, access.getLong(input, off + 24) ^ see1);
+        see2 = mix(access.getLong(input, off + 32) ^ SEC2, access.getLong(input, off + 40) ^ see2);
+        see3 = mix(access.getLong(input, off + 48) ^ SEC3, access.getLong(input, off + 56) ^ see3);
+        see4 = mix(access.getLong(input, off + 64) ^ SEC4, access.getLong(input, off + 72) ^ see4);
+        see5 = mix(access.getLong(input, off + 80) ^ SEC5, access.getLong(input, off + 88) ^ see5);
+        see6 = mix(access.getLong(input, off + 96) ^ SEC6, access.getLong(input, off + 104) ^ see6);
+        off += 112;
+        len -= 112;
+      } while (len > 112);
+      see0 ^= see1;
+      see2 ^= see3;
+      see4 ^= see5;
+      see0 ^= see6;
+      see2 ^= see4;
+      see0 ^= see2;
+    }
+    if (len > 16) {
+      see0 = mix(access.getLong(input, off) ^ SEC2, access.getLong(input, off + 8) ^ see0);
+      if (len > 32) {
+        see0 = mix(access.getLong(input, off + 16) ^ SEC2, access.getLong(input, off + 24) ^ see0);
+        if (len > 48) {
+          see0 =
+              mix(access.getLong(input, off + 32) ^ SEC1, access.getLong(input, off + 40) ^ see0);
+          if (len > 64) {
+            see0 =
+                mix(access.getLong(input, off + 48) ^ SEC1, access.getLong(input, off + 56) ^ see0);
+            if (len > 80) {
+              see0 =
+                  mix(
+                      access.getLong(input, off + 64) ^ SEC2,
+                      access.getLong(input, off + 72) ^ see0);
+              if (len > 96) {
+                see0 =
+                    mix(
+                        access.getLong(input, off + 80) ^ SEC1,
+                        access.getLong(input, off + 88) ^ see0);
+              }
+            }
+          }
+        }
+      }
+    }
+    long a = access.getLong(input, off + len - 16);
+    long b = access.getLong(input, off + len - 8);
     return finish(a, b, see0, len);
   }
 
@@ -160,12 +239,11 @@ final class Rapidhash3 implements AbstractHasher64 {
   @Override
   public long hashCharsToLong(CharSequence input) {
     int len = input.length();
-    long see0 = seed;
-    long a;
-    long b;
     int off = 0;
     if (len <= 8) {
       if (len >= 2) {
+        long a;
+        long b;
         if (len >= 4) {
           a = getLong(input, 0);
           b = getLong(input, len - 4);
@@ -173,63 +251,63 @@ final class Rapidhash3 implements AbstractHasher64 {
           b = getInt(input, 0) & 0xFFFFFFFFL;
           a = getInt(input, len - 2) & 0xFFFFFFFFL;
         }
-        see0 ^= (long) len << 1;
-        a ^= (long) len << 1;
+        return finish(a ^ (len << 1), b, seed ^ (len << 1), len << 1);
       } else if (len > 0) {
         char c = input.charAt(0);
-        b = (long) c >>> 8L;
-        a = ((c & 0xFFL) << 45) ^ b ^ 2L;
+        long b = (long) c >>> 8L;
+        long a = ((c & 0xFFL) << 45) ^ b ^ 2;
+        return finish(a, b, seed, len << 1);
       } else {
-        a = 0;
-        b = 0;
+        return finish(0, 0, seed, 0);
       }
-    } else {
-      long see1 = see0;
-      long see2 = see0;
-      long see3 = see0;
-      long see4 = see0;
-      long see5 = see0;
-      long see6 = see0;
-      if (len > 56) {
-        do {
-          see0 = mix(getLong(input, off) ^ SEC0, getLong(input, off + 4) ^ see0);
-          see1 = mix(getLong(input, off + 8) ^ SEC1, getLong(input, off + 12) ^ see1);
-          see2 = mix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 20) ^ see2);
-          see3 = mix(getLong(input, off + 24) ^ SEC3, getLong(input, off + 28) ^ see3);
-          see4 = mix(getLong(input, off + 32) ^ SEC4, getLong(input, off + 36) ^ see4);
-          see5 = mix(getLong(input, off + 40) ^ SEC5, getLong(input, off + 44) ^ see5);
-          see6 = mix(getLong(input, off + 48) ^ SEC6, getLong(input, off + 52) ^ see6);
-          off += 56;
-          len -= 56;
-        } while (len > 56);
-        see0 ^= see1;
-        see2 ^= see3;
-        see4 ^= see5;
-        see0 ^= see6;
-        see2 ^= see4;
-        see0 ^= see2;
-      }
-      if (len > 8) {
-        see0 = mix(getLong(input, off) ^ SEC2, getLong(input, off + 4) ^ see0);
-        if (len > 16) {
-          see0 = mix(getLong(input, off + 8) ^ SEC2, getLong(input, off + 12) ^ see0);
-          if (len > 24) {
-            see0 = mix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 20) ^ see0);
-            if (len > 32) {
-              see0 = mix(getLong(input, off + 24) ^ SEC1, getLong(input, off + 28) ^ see0);
-              if (len > 40) {
-                see0 = mix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 36) ^ see0);
-                if (len > 48) {
-                  see0 = mix(getLong(input, off + 40) ^ SEC1, getLong(input, off + 44) ^ see0);
-                }
+    }
+    long see0 = seed;
+    long see1 = seed;
+    long see2 = seed;
+    long see3 = seed;
+    long see4 = seed;
+    long see5 = seed;
+    long see6 = seed;
+    if (len > 56) {
+      do {
+        see0 = mix(getLong(input, off) ^ SEC0, getLong(input, off + 4) ^ see0);
+        see1 = mix(getLong(input, off + 8) ^ SEC1, getLong(input, off + 12) ^ see1);
+        see2 = mix(getLong(input, off + 16) ^ SEC2, getLong(input, off + 20) ^ see2);
+        see3 = mix(getLong(input, off + 24) ^ SEC3, getLong(input, off + 28) ^ see3);
+        see4 = mix(getLong(input, off + 32) ^ SEC4, getLong(input, off + 36) ^ see4);
+        see5 = mix(getLong(input, off + 40) ^ SEC5, getLong(input, off + 44) ^ see5);
+        see6 = mix(getLong(input, off + 48) ^ SEC6, getLong(input, off + 52) ^ see6);
+        off += 56;
+        len -= 56;
+      } while (len > 56);
+      see0 ^= see1;
+      see2 ^= see3;
+      see4 ^= see5;
+      see0 ^= see6;
+      see2 ^= see4;
+      see0 ^= see2;
+    }
+    if (len > 8) {
+      see0 = mix(getLong(input, off) ^ SEC2, getLong(input, off + 4) ^ see0);
+      if (len > 16) {
+        see0 = mix(getLong(input, off + 8) ^ SEC2, getLong(input, off + 12) ^ see0);
+        if (len > 24) {
+          see0 = mix(getLong(input, off + 16) ^ SEC1, getLong(input, off + 20) ^ see0);
+          if (len > 32) {
+            see0 = mix(getLong(input, off + 24) ^ SEC1, getLong(input, off + 28) ^ see0);
+            if (len > 40) {
+              see0 = mix(getLong(input, off + 32) ^ SEC2, getLong(input, off + 36) ^ see0);
+              if (len > 48) {
+                see0 = mix(getLong(input, off + 40) ^ SEC1, getLong(input, off + 44) ^ see0);
               }
             }
           }
         }
       }
-      a = getLong(input, off + len - 8);
-      b = getLong(input, off + len - 4);
     }
+    long a = getLong(input, off + len - 8);
+    long b = getLong(input, off + len - 4);
+
     return finish(a, b, see0, (long) len << 1);
   }
 
@@ -481,6 +559,47 @@ final class Rapidhash3 implements AbstractHasher64 {
       }
       System.arraycopy(b, off, buffer, offset, len);
       offset += len;
+      return this;
+    }
+
+    @Override
+    public <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access) {
+      byteCount += len;
+      int x = 112 - offset;
+      if (len > x) {
+        access.copyToByteArray(b, off, buffer, offset, x);
+        processBuffer();
+        len -= x;
+        off += x;
+        if (len > 112) {
+          do {
+            long b0 = access.getLong(b, off);
+            long b1 = access.getLong(b, off + 8);
+            long b2 = access.getLong(b, off + 16);
+            long b3 = access.getLong(b, off + 24);
+            long b4 = access.getLong(b, off + 32);
+            long b5 = access.getLong(b, off + 40);
+            long b6 = access.getLong(b, off + 48);
+            long b7 = access.getLong(b, off + 56);
+            long b8 = access.getLong(b, off + 64);
+            long b9 = access.getLong(b, off + 72);
+            long b10 = access.getLong(b, off + 80);
+            long b11 = access.getLong(b, off + 88);
+            long b12 = access.getLong(b, off + 96);
+            long b13 = access.getLong(b, off + 104);
+            processBuffer(b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13);
+            off += 112;
+            len -= 112;
+          } while (len > 112);
+          if (len < 16) {
+            int y = 16 - (int) len;
+            access.copyToByteArray(b, off - y, buffer, 96 + (int) len, y);
+          }
+        }
+        offset = 0;
+      }
+      access.copyToByteArray(b, off, buffer, offset, (int) len);
+      offset += (int) len;
       return this;
     }
 

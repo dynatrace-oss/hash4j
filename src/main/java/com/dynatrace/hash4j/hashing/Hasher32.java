@@ -75,6 +75,18 @@ public interface Hasher32 extends Hasher {
   int hashBytesToInt(byte[] input, int off, int len);
 
   /**
+   * Hashes a sequence of bytes to a 32-bit {@code int} value
+   *
+   * @param input the input
+   * @param off the offset
+   * @param len the length
+   * @param access a strategy to access the bytes of the input
+   * @param <T> the type of the input
+   * @return the hash value
+   */
+  <T> int hashBytesToInt(T input, long off, long len, ByteAccess<T> access);
+
+  /**
    * Hashes a {@link CharSequence} to a 32-bit {@code int} value.
    *
    * <p>Equivalent to {@code hashToInt(input, (c, f) -> f.putChars(c))}.

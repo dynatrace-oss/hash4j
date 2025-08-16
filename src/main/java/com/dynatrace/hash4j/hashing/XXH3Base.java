@@ -37,7 +37,6 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.HashUtil.mix;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
@@ -78,131 +77,90 @@ abstract class XXH3Base implements AbstractHasher64 {
   protected static final long INIT_ACC_6 = 0x27D4EB2F165667C5L;
   protected static final long INIT_ACC_7 = 0x000000009E3779B1L;
 
-  protected final long secret00;
-  protected final long secret01;
-  protected final long secret02;
-  protected final long secret03;
-  protected final long secret04;
-  protected final long secret05;
-  protected final long secret06;
-  protected final long secret07;
-  protected final long secret08;
-  protected final long secret09;
-  protected final long secret10;
-  protected final long secret11;
-  protected final long secret12;
-  protected final long secret13;
-  protected final long secret14;
-  protected final long secret15;
-  protected final long secret16;
-  protected final long secret17;
-  protected final long secret18;
-  protected final long secret19;
-  protected final long secret20;
-  protected final long secret21;
-  protected final long secret22;
-  protected final long secret23;
-
   protected final long secret[];
+  protected final long secShift[];
 
-  protected final long secShift00;
-  protected final long secShift01;
-  protected final long secShift02;
-  protected final long secShift03;
-  protected final long secShift04;
-  protected final long secShift05;
-  protected final long secShift06;
-  protected final long secShift07;
-  protected final long secShift08;
-  protected final long secShift09;
-  protected final long secShift10;
-  protected final long secShift11;
+  protected final long secShiftFinalA0;
+  protected final long secShiftFinalA1;
+  protected final long secShiftFinalA2;
+  protected final long secShiftFinalA3;
+  protected final long secShiftFinalA4;
+  protected final long secShiftFinalA5;
+  protected final long secShiftFinalA6;
+  protected final long secShiftFinalA7;
 
-  protected final long secShift16;
-  protected final long secShift17;
-  protected final long secShift18;
-  protected final long secShift19;
-  protected final long secShift20;
-  protected final long secShift21;
-  protected final long secShift22;
-  protected final long secShift23;
+  protected final long secShiftFinalB0;
+  protected final long secShiftFinalB1;
+  protected final long secShiftFinalB2;
+  protected final long secShiftFinalB3;
+  protected final long secShiftFinalB4;
+  protected final long secShiftFinalB5;
+  protected final long secShiftFinalB6;
+  protected final long secShiftFinalB7;
 
-  protected final long secShiftFinal0;
-  protected final long secShiftFinal1;
-  protected final long secShiftFinal2;
-  protected final long secShiftFinal3;
-  protected final long secShiftFinal4;
-  protected final long secShiftFinal5;
-  protected final long secShiftFinal6;
-  protected final long secShiftFinal7;
+  protected final long bitflip00;
 
-  protected XXH3Base(long seed) {
-    this.secret00 = SECRET_00 + seed;
-    this.secret01 = SECRET_01 - seed;
-    this.secret02 = SECRET_02 + seed;
-    this.secret03 = SECRET_03 - seed;
-    this.secret04 = SECRET_04 + seed;
-    this.secret05 = SECRET_05 - seed;
-    this.secret06 = SECRET_06 + seed;
-    this.secret07 = SECRET_07 - seed;
-    this.secret08 = SECRET_08 + seed;
-    this.secret09 = SECRET_09 - seed;
-    this.secret10 = SECRET_10 + seed;
-    this.secret11 = SECRET_11 - seed;
-    this.secret12 = SECRET_12 + seed;
-    this.secret13 = SECRET_13 - seed;
-    this.secret14 = SECRET_14 + seed;
-    this.secret15 = SECRET_15 - seed;
-    this.secret16 = SECRET_16 + seed;
-    this.secret17 = SECRET_17 - seed;
-    this.secret18 = SECRET_18 + seed;
-    this.secret19 = SECRET_19 - seed;
-    this.secret20 = SECRET_20 + seed;
-    this.secret21 = SECRET_21 - seed;
-    this.secret22 = SECRET_22 + seed;
-    this.secret23 = SECRET_23 - seed;
-
-    this.secShift00 = (SECRET_00 >>> 24) + (SECRET_01 << 40) + seed;
-    this.secShift01 = (SECRET_01 >>> 24) + (SECRET_02 << 40) - seed;
-    this.secShift02 = (SECRET_02 >>> 24) + (SECRET_03 << 40) + seed;
-    this.secShift03 = (SECRET_03 >>> 24) + (SECRET_04 << 40) - seed;
-    this.secShift04 = (SECRET_04 >>> 24) + (SECRET_05 << 40) + seed;
-    this.secShift05 = (SECRET_05 >>> 24) + (SECRET_06 << 40) - seed;
-    this.secShift06 = (SECRET_06 >>> 24) + (SECRET_07 << 40) + seed;
-    this.secShift07 = (SECRET_07 >>> 24) + (SECRET_08 << 40) - seed;
-    this.secShift08 = (SECRET_08 >>> 24) + (SECRET_09 << 40) + seed;
-    this.secShift09 = (SECRET_09 >>> 24) + (SECRET_10 << 40) - seed;
-    this.secShift10 = (SECRET_10 >>> 24) + (SECRET_11 << 40) + seed;
-    this.secShift11 = (SECRET_11 >>> 24) + (SECRET_12 << 40) - seed;
-
-    this.secShift16 = secret15 >>> 8 | secret16 << 56;
-    this.secShift17 = secret16 >>> 8 | secret17 << 56;
-    this.secShift18 = secret17 >>> 8 | secret18 << 56;
-    this.secShift19 = secret18 >>> 8 | secret19 << 56;
-    this.secShift20 = secret19 >>> 8 | secret20 << 56;
-    this.secShift21 = secret20 >>> 8 | secret21 << 56;
-    this.secShift22 = secret21 >>> 8 | secret22 << 56;
-    this.secShift23 = secret22 >>> 8 | secret23 << 56;
-
-    this.secShiftFinal0 = secret01 >>> 24 | secret02 << 40;
-    this.secShiftFinal1 = secret02 >>> 24 | secret03 << 40;
-    this.secShiftFinal2 = secret03 >>> 24 | secret04 << 40;
-    this.secShiftFinal3 = secret04 >>> 24 | secret05 << 40;
-    this.secShiftFinal4 = secret05 >>> 24 | secret06 << 40;
-    this.secShiftFinal5 = secret06 >>> 24 | secret07 << 40;
-    this.secShiftFinal6 = secret07 >>> 24 | secret08 << 40;
-    this.secShiftFinal7 = secret08 >>> 24 | secret09 << 40;
-
+  protected XXH3Base(long seed, boolean is128) {
     this.secret =
         new long[] {
-          secret00, secret01, secret02, secret03, secret04, secret05, secret06, secret07,
-          secret08, secret09, secret10, secret11, secret12, secret13, secret14, secret15,
-          secret16, secret17, secret18, secret19, secret20, secret21, secret22, secret23
+          SECRET_00 + seed, SECRET_01 - seed, SECRET_02 + seed, SECRET_03 - seed, SECRET_04 + seed,
+              SECRET_05 - seed, SECRET_06 + seed, SECRET_07 - seed,
+          SECRET_08 + seed, SECRET_09 - seed, SECRET_10 + seed, SECRET_11 - seed, SECRET_12 + seed,
+              SECRET_13 - seed, SECRET_14 + seed, SECRET_15 - seed,
+          SECRET_16 + seed, SECRET_17 - seed, SECRET_18 + seed, SECRET_19 - seed, SECRET_20 + seed,
+              SECRET_21 - seed, SECRET_22 + seed, SECRET_23 - seed
         };
+
+    this.secShift = new long[16];
+
+    this.secShift[0] = (SECRET_00 >>> 24) + (SECRET_01 << 40) + seed;
+    this.secShift[1] = (SECRET_01 >>> 24) + (SECRET_02 << 40) - seed;
+    this.secShift[2] = (SECRET_02 >>> 24) + (SECRET_03 << 40) + seed;
+    this.secShift[3] = (SECRET_03 >>> 24) + (SECRET_04 << 40) - seed;
+    this.secShift[4] = (SECRET_04 >>> 24) + (SECRET_05 << 40) + seed;
+    this.secShift[5] = (SECRET_05 >>> 24) + (SECRET_06 << 40) - seed;
+    this.secShift[6] = (SECRET_06 >>> 24) + (SECRET_07 << 40) + seed;
+    this.secShift[7] = (SECRET_07 >>> 24) + (SECRET_08 << 40) - seed;
+    this.secShift[8] = (SECRET_08 >>> 24) + (SECRET_09 << 40) + seed;
+    this.secShift[9] = (SECRET_09 >>> 24) + (SECRET_10 << 40) - seed;
+    this.secShift[10] = (SECRET_10 >>> 24) + (SECRET_11 << 40) + seed;
+    this.secShift[11] = (SECRET_11 >>> 24) + (SECRET_12 << 40) - seed;
+
+    if (is128) {
+      this.secShift[12] = (SECRET_12 >>> 56) + (SECRET_13 << 8) - seed;
+      this.secShift[13] = (SECRET_13 >>> 56) + (SECRET_14 << 8) + seed;
+      this.secShift[14] = (SECRET_14 >>> 56) + (SECRET_15 << 8) - seed;
+      this.secShift[15] = (SECRET_15 >>> 56) + (SECRET_16 << 8) + seed;
+    } else {
+      this.secShift[12] = (SECRET_12 >>> 24) + (SECRET_13 << 40) + seed;
+      this.secShift[13] = (SECRET_13 >>> 24) + (SECRET_14 << 40) - seed;
+      this.secShift[14] = (SECRET_14 >>> 56) + (SECRET_15 << 8) + seed;
+      this.secShift[15] = (SECRET_15 >>> 56) + (SECRET_16 << 8) - seed;
+    }
+
+    this.secShiftFinalA0 = secret[15] >>> 8 | secret[16] << 56;
+    this.secShiftFinalA1 = secret[16] >>> 8 | secret[17] << 56;
+    this.secShiftFinalA2 = secret[17] >>> 8 | secret[18] << 56;
+    this.secShiftFinalA3 = secret[18] >>> 8 | secret[19] << 56;
+    this.secShiftFinalA4 = secret[19] >>> 8 | secret[20] << 56;
+    this.secShiftFinalA5 = secret[20] >>> 8 | secret[21] << 56;
+    this.secShiftFinalA6 = secret[21] >>> 8 | secret[22] << 56;
+    this.secShiftFinalA7 = secret[22] >>> 8 | secret[23] << 56;
+
+    this.secShiftFinalB0 = secret[1] >>> 24 | secret[2] << 40;
+    this.secShiftFinalB1 = secret[2] >>> 24 | secret[3] << 40;
+    this.secShiftFinalB2 = secret[3] >>> 24 | secret[4] << 40;
+    this.secShiftFinalB3 = secret[4] >>> 24 | secret[5] << 40;
+    this.secShiftFinalB4 = secret[5] >>> 24 | secret[6] << 40;
+    this.secShiftFinalB5 = secret[6] >>> 24 | secret[7] << 40;
+    this.secShiftFinalB6 = secret[7] >>> 24 | secret[8] << 40;
+    this.secShiftFinalB7 = secret[8] >>> 24 | secret[9] << 40;
+
+    this.bitflip00 = ((SECRET_00 >>> 32) ^ (SECRET_00 & 0xFFFFFFFFL)) + seed;
   }
 
   protected long getSeed() {
-    return secret00 - SECRET_00;
+    return secret[0] - SECRET_00;
   }
 
   protected static long avalanche64(long h64) {
@@ -217,10 +175,6 @@ abstract class XXH3Base implements AbstractHasher64 {
     h64 ^= h64 >>> 37;
     h64 *= 0x165667919E3779F9L;
     return h64 ^ (h64 >>> 32);
-  }
-
-  protected static long mix2Accs(final long lh, final long rh, long sec0, long sec8) {
-    return mix(lh ^ sec0, rh ^ sec8);
   }
 
   protected static long contrib(long a, long b) {
@@ -314,13 +268,13 @@ abstract class XXH3Base implements AbstractHasher64 {
       byteCount += 8;
     }
 
-    protected void putBytesImpl(byte[] b, int off, final int len) {
+    protected void putBytesImpl(byte[] input, int off, int len) {
       int remaining = len;
       final int x = BULK_SIZE - offset;
       if (len > x) {
         int s = (int) ((byteCount - 1) >>> 6) & 12;
         if (offset > 0) {
-          System.arraycopy(b, off, buffer, offset, x);
+          System.arraycopy(input, off, buffer, offset, x);
           processBuffer(0, buffer, s);
           offset = 0;
           off += x;
@@ -330,18 +284,49 @@ abstract class XXH3Base implements AbstractHasher64 {
           do {
             s += 4;
             s &= 12;
-            processBuffer(off, b, s);
+            processBuffer(off, input, s);
             off += BULK_SIZE;
             remaining -= BULK_SIZE;
           } while (remaining > BULK_SIZE);
           if (remaining < 64) {
             int l = 64 - remaining;
-            System.arraycopy(b, off - l, buffer, BULK_SIZE - l, l);
+            System.arraycopy(input, off - l, buffer, BULK_SIZE - l, l);
           }
         }
       }
-      System.arraycopy(b, off, buffer, offset, remaining);
+      System.arraycopy(input, off, buffer, offset, remaining);
       offset += remaining;
+      byteCount += len;
+    }
+
+    protected <T> void putBytesImpl(T input, long off, long len, ByteAccess<T> access) {
+      long remaining = len;
+      final int x = BULK_SIZE - offset;
+      if (len > x) {
+        int s = (int) ((byteCount - 1) >>> 6) & 12;
+        if (offset > 0) {
+          access.copyToByteArray(input, off, buffer, offset, x);
+          processBuffer(0, buffer, s);
+          offset = 0;
+          off += x;
+          remaining -= x;
+        }
+        if (remaining > BULK_SIZE) {
+          do {
+            s += 4;
+            s &= 12;
+            processBuffer(off, input, s, access);
+            off += BULK_SIZE;
+            remaining -= BULK_SIZE;
+          } while (remaining > BULK_SIZE);
+          if (remaining < 64) {
+            int l = 64 - (int) remaining;
+            access.copyToByteArray(input, off - l, buffer, BULK_SIZE - l, l);
+          }
+        }
+      }
+      access.copyToByteArray(input, off, buffer, offset, (int) remaining);
+      offset += (int) remaining;
       byteCount += len;
     }
 
@@ -529,14 +514,14 @@ abstract class XXH3Base implements AbstractHasher64 {
     }
 
     private void mixAcc() {
-      acc0 = XXH3Base.mixAcc(acc0, secret16);
-      acc1 = XXH3Base.mixAcc(acc1, secret17);
-      acc2 = XXH3Base.mixAcc(acc2, secret18);
-      acc3 = XXH3Base.mixAcc(acc3, secret19);
-      acc4 = XXH3Base.mixAcc(acc4, secret20);
-      acc5 = XXH3Base.mixAcc(acc5, secret21);
-      acc6 = XXH3Base.mixAcc(acc6, secret22);
-      acc7 = XXH3Base.mixAcc(acc7, secret23);
+      acc0 = XXH3Base.mixAcc(acc0, secret[16]);
+      acc1 = XXH3Base.mixAcc(acc1, secret[17]);
+      acc2 = XXH3Base.mixAcc(acc2, secret[18]);
+      acc3 = XXH3Base.mixAcc(acc3, secret[19]);
+      acc4 = XXH3Base.mixAcc(acc4, secret[20]);
+      acc5 = XXH3Base.mixAcc(acc5, secret[21]);
+      acc6 = XXH3Base.mixAcc(acc6, secret[22]);
+      acc7 = XXH3Base.mixAcc(acc7, secret[23]);
     }
 
     private void processBuffer(int off, byte[] buffer, int s) {
@@ -550,6 +535,24 @@ abstract class XXH3Base implements AbstractHasher64 {
         long b5 = getLong(buffer, o + 8 * 5);
         long b6 = getLong(buffer, o + 8 * 6);
         long b7 = getLong(buffer, o + 8 * 7);
+        processBuffer(b0, b1, b2, b3, b4, b5, b6, b7, s + i);
+      }
+      if (s == 12) {
+        mixAcc();
+      }
+    }
+
+    private <T> void processBuffer(long off, T buffer, int s, ByteAccess<T> access) {
+      for (int i = 0; i < 4; ++i) {
+        long o = off + (i << 6);
+        long b0 = access.getLong(buffer, o + 8 * 0);
+        long b1 = access.getLong(buffer, o + 8 * 1);
+        long b2 = access.getLong(buffer, o + 8 * 2);
+        long b3 = access.getLong(buffer, o + 8 * 3);
+        long b4 = access.getLong(buffer, o + 8 * 4);
+        long b5 = access.getLong(buffer, o + 8 * 5);
+        long b6 = access.getLong(buffer, o + 8 * 6);
+        long b7 = access.getLong(buffer, o + 8 * 7);
         processBuffer(b0, b1, b2, b3, b4, b5, b6, b7, s + i);
       }
       if (s == 12) {

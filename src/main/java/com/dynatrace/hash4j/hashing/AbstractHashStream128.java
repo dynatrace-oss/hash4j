@@ -62,6 +62,12 @@ interface AbstractHashStream128 extends AbstractHashStream64, HashStream128 {
   }
 
   @Override
+  default <T> HashStream128 putBytes(T b, long off, long len, ByteAccess<T> access) {
+    AbstractHashStream64.super.putBytes(b, off, len, access);
+    return this;
+  }
+
+  @Override
   default HashStream128 putByteArray(byte[] x) {
     AbstractHashStream64.super.putByteArray(x);
     return this;

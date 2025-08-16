@@ -184,6 +184,80 @@ final class Murmur3_128 implements AbstractHasher128 {
   }
 
   @Override
+  public <T> HashValue128 hashBytesTo128Bits(T input, long off, long len, ByteAccess<T> access) {
+    long nblocks = len >>> 4;
+    long h1 = seed;
+    long h2 = seed;
+
+    for (long i = 0; i < nblocks; i++, off += 16) {
+      long k1 = access.getLong(input, off);
+      long k2 = access.getLong(input, off + 8);
+
+      h1 ^= mixK1(k1);
+      h1 = mixH1(h1, h2);
+      h2 ^= mixK2(k2);
+      h2 = mixH2(h1, h2);
+    }
+
+    long k1 = 0;
+    long k2 = 0;
+
+    switch ((int) (len & 15)) {
+      case 15:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 14) << 48;
+      // fallthrough
+      case 14:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 13) << 40;
+      // fallthrough
+      case 13:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 12) << 32;
+      // fallthrough
+      case 12:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 11) << 24;
+      // fallthrough
+      case 11:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 10) << 16;
+      // fallthrough
+      case 10:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 9) << 8;
+      // fallthrough
+      case 9:
+        k2 ^= access.getByteAsUnsignedLong(input, off + 8);
+        h2 ^= mixK2(k2);
+      // fallthrough
+      case 8:
+        k1 ^= (long) access.getByte(input, off + 7) << 56;
+      // fallthrough
+      case 7:
+        k1 ^= access.getByteAsUnsignedLong(input, off + 6) << 48;
+      // fallthrough
+      case 6:
+        k1 ^= access.getByteAsUnsignedLong(input, off + 5) << 40;
+      // fallthrough
+      case 5:
+        k1 ^= access.getByteAsUnsignedLong(input, off + 4) << 32;
+      // fallthrough
+      case 4:
+        k1 ^= access.getByteAsUnsignedLong(input, off + 3) << 24;
+      // fallthrough
+      case 3:
+        k1 ^= access.getByteAsUnsignedLong(input, off + 2) << 16;
+      // fallthrough
+      case 2:
+        k1 ^= access.getByteAsUnsignedLong(input, off + 1) << 8;
+      // fallthrough
+      case 1:
+        k1 ^= access.getByteAsUnsignedLong(input, off);
+        h1 ^= mixK1(k1);
+      // fallthrough
+      default:
+        // do nothing
+    }
+
+    return finalizeHash(h1, h2, len);
+  }
+
+  @Override
   public HashValue128 hashCharsTo128Bits(CharSequence s) {
     long h1 = seed;
     long h2 = seed;
@@ -478,22 +552,128 @@ final class Murmur3_128 implements AbstractHasher128 {
           buffer1 |= getLong(b, offLen - 8) >>> -(remainingBytes << 3);
         } else {
           if (3 < remainingBytes) {
-            buffer1 |= (((long) getInt(b, offLen - remainingBytes)) & 0xFFFFFFFFL);
+            buffer1 |= getInt(b, offLen - remainingBytes) & 0xFFFFFFFFL;
             if (4 < remainingBytes) {
-              buffer1 |= (b[offLen - (remainingBytes - 4)] & 0xFFL) << 32;
+              buffer1 |= (b[offLen - remainingBytes + 4] & 0xFFL) << 32;
               if (5 < remainingBytes) {
-                buffer1 |= (b[offLen - (remainingBytes - 5)] & 0xFFL) << 40;
+                buffer1 |= (b[offLen - remainingBytes + 5] & 0xFFL) << 40;
                 if (6 < remainingBytes) {
-                  buffer1 |= (b[offLen - (remainingBytes - 6)] & 0xFFL) << 48;
+                  buffer1 |= (b[offLen - remainingBytes + 6] & 0xFFL) << 48;
                 }
               }
             }
           } else {
-            buffer1 |= (b[offLen - remainingBytes] & 0xFFL);
+            buffer1 |= b[offLen - remainingBytes] & 0xFFL;
             if (1 < remainingBytes) {
-              buffer1 |= (b[offLen - (remainingBytes - 1)] & 0xFFL) << 8;
+              buffer1 |= (b[offLen - remainingBytes + 1] & 0xFFL) << 8;
               if (2 < remainingBytes) {
-                buffer1 |= (b[offLen - (remainingBytes - 2)] & 0xFFL) << 16;
+                buffer1 |= (b[offLen - remainingBytes + 2] & 0xFFL) << 16;
+              }
+            }
+          }
+        }
+      }
+      return this;
+    }
+
+    @Override
+    public <T> HashStream128 putBytes(T b, long off, final long len, ByteAccess<T> access) {
+
+      final int bufferOffset = (int) byteCount;
+      final int bitOffset = bufferOffset << 3;
+      final int regularBlockStartIdx = -bufferOffset & 0xF;
+      final long regularBlockEndIdx = len - ((len + bufferOffset) & 0xF);
+      byteCount += len;
+
+      if (regularBlockEndIdx < regularBlockStartIdx) {
+        int z = -bufferOffset & 0x7;
+        if (len < z) {
+          for (int x = 0; x < len; ++x) {
+            buffer1 |= access.getByteAsUnsignedLong(b, off + x) << ((x + bufferOffset) << 3);
+          }
+        } else {
+          if (0 < z) {
+            for (int x = 0; x < z; ++x) {
+              buffer1 |= access.getByteAsUnsignedLong(b, off + x) << ((x + bufferOffset) << 3);
+            }
+            buffer0 = buffer1;
+            buffer1 = 0;
+          }
+          for (int x = z; x < len; ++x) {
+            buffer1 |= access.getByteAsUnsignedLong(b, off + x) << ((x + bufferOffset) << 3);
+          }
+        }
+        return this;
+      }
+
+      if (regularBlockStartIdx > 0) {
+        if (regularBlockStartIdx >= 8) {
+          if (regularBlockStartIdx > 8) {
+            buffer0 = buffer1 | (access.getLong(b, off) << bitOffset);
+          }
+          buffer1 = access.getLong(b, off + regularBlockStartIdx - 8);
+        } else if (len >= 8) {
+          buffer1 |= access.getLong(b, off) << bitOffset;
+        } else {
+          if (regularBlockStartIdx >= 4) {
+            if (regularBlockStartIdx >= 5) {
+              if (regularBlockStartIdx >= 6) {
+                if (regularBlockStartIdx >= 7) {
+                  buffer1 |= access.getByteAsUnsignedLong(b, off + regularBlockStartIdx - 7) << 8;
+                }
+                buffer1 |= access.getByteAsUnsignedLong(b, off + regularBlockStartIdx - 6) << 16;
+              }
+              buffer1 |= access.getByteAsUnsignedLong(b, off + regularBlockStartIdx - 5) << 24;
+            }
+            buffer1 |= (((long) access.getInt(b, off + regularBlockStartIdx - 4)) << 32);
+          } else {
+            if (regularBlockStartIdx >= 2) {
+              if (regularBlockStartIdx >= 3) {
+                buffer1 |= access.getByteAsUnsignedLong(b, off + regularBlockStartIdx - 3) << 40;
+              }
+              buffer1 |= access.getByteAsUnsignedLong(b, off + regularBlockStartIdx - 2) << 48;
+            }
+            buffer1 |= ((long) access.getByte(b, off + regularBlockStartIdx - 1)) << 56;
+          }
+        }
+        processBuffer(buffer0, buffer1);
+        buffer1 = 0;
+      }
+
+      for (long i = regularBlockStartIdx; i < regularBlockEndIdx; i += 16) {
+        long b0 = access.getLong(b, off + i);
+        long b1 = access.getLong(b, off + i + 8);
+        processBuffer(b0, b1);
+      }
+
+      long remainingBytes = len - regularBlockEndIdx;
+      long offLen = off + len;
+      if (0 < remainingBytes) {
+        if (8 <= remainingBytes) {
+          if (8 < remainingBytes) {
+            buffer1 = access.getLong(b, offLen - 8) >>> -(remainingBytes << 3);
+          }
+          buffer0 = access.getLong(b, offLen - remainingBytes);
+        } else if (len >= 8) {
+          buffer1 |= access.getLong(b, offLen - 8) >>> -(remainingBytes << 3);
+        } else {
+          if (3 < remainingBytes) {
+            buffer1 |= access.getIntAsUnsignedLong(b, offLen - remainingBytes);
+            if (4 < remainingBytes) {
+              buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 4) << 32;
+              if (5 < remainingBytes) {
+                buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 5) << 40;
+                if (6 < remainingBytes) {
+                  buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 6) << 48;
+                }
+              }
+            }
+          } else {
+            buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes);
+            if (1 < remainingBytes) {
+              buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 1) << 8;
+              if (2 < remainingBytes) {
+                buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 2) << 16;
               }
             }
           }
