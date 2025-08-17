@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class Murmur3_32PerformanceTest extends AbstactHasher32PerformanceTest {
+public class Murmur3_32PerformanceTest extends AbstractHasher32PerformanceTest {
   private static final Hasher32 HASHER_INSTANCE = Hashing.murmur3_32();
 
   @Override
