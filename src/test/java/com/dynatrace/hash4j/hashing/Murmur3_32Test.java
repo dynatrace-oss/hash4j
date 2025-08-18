@@ -49,6 +49,21 @@ class Murmur3_32Test extends AbstractHasher32Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess) {
+    int seed = getInt(seedBytes, 0);
+    int hash0 = Hashing.murmur3_32().hashBytesToInt(o, off, len, byteAccess);
+    int hash1 = Hashing.murmur3_32(seed).hashBytesToInt(o, off, len, byteAccess);
+    setInt(hashBytes, 0, hash0);
+    setInt(hashBytes, 4, hash1);
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
     int seed = getInt(seedBytes, 0);
     int hash0 = Hashing.murmur3_32().hashCharsToInt(c);

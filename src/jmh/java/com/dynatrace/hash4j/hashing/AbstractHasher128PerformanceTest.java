@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import org.openjdk.jmh.infra.Blackhole;
 
-public abstract class AbstactHasher128PerformanceTest extends AbstractPerformanceTest {
+public abstract class AbstractHasher128PerformanceTest extends AbstractPerformanceTest {
 
   protected static final HashFunnel<CharSequence> CHARS_FUNNEL = (s, sink) -> sink.putChars(s);
   protected static final HashFunnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
@@ -30,6 +30,12 @@ public abstract class AbstactHasher128PerformanceTest extends AbstractPerformanc
   @Override
   protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
     blackhole.consume(getHasherInstance().hashBytesTo128Bits(b));
+  }
+
+  @Override
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    blackhole.consume(
+        getHasherInstance().hashBytesTo128Bits(b, 0, b.length, NativeByteArrayByteAccess.get()));
   }
 
   @Override

@@ -25,6 +25,11 @@ public abstract class AbstractZeroAllocationHashing128BitPerformanceTest
     extends AbstractPerformanceTest {
 
   @Override
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    blackhole.consume(createHashFunction().hash(b, ZeroAllocationHashingAccess.get(), 0, b.length));
+  }
+
+  @Override
   protected void hashBytesDirect(byte[] b, Blackhole blackhole) {
     blackhole.consume(createHashFunction().hashBytes(b));
   }

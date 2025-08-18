@@ -37,7 +37,7 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
   }
 
   @Test
-  void testHashBytesTo128Bits() {
+  void testHashCompatibility() {
 
     HashValue128 hash = new HashValue128(0x5cd2aeb8be6aa0bbL, 0x500e3ed0c42e364fL);
 
@@ -53,6 +53,12 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
     assertThat(hasher.hashBytesTo128Bits(b, 0, 0)).isEqualTo(hash);
     assertThat(hasher.hashBytesToLong(b, 0, 0)).isEqualTo(hash.getAsLong());
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo(hash.getAsInt());
+
+    assertThat(hasher.hashBytesTo128Bits(b, 0, 0, NativeByteArrayByteAccess.get())).isEqualTo(hash);
+    assertThat(hasher.hashBytesToLong(b, 0, 0, NativeByteArrayByteAccess.get()))
+        .isEqualTo(hash.getAsLong());
+    assertThat(hasher.hashBytesToInt(b, 0, 0, NativeByteArrayByteAccess.get()))
+        .isEqualTo(hash.getAsInt());
 
     assertThat(hasher.hashCharsTo128Bits(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash.getAsLong());

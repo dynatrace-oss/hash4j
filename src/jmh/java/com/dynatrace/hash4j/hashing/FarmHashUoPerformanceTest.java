@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class FarmHashUoPerformanceTest extends AbstactHasher64PerformanceTest {
+public class FarmHashUoPerformanceTest extends AbstractHasher64PerformanceTest {
   private static final Hasher64 HASHER_INSTANCE = Hashing.farmHashUo();
 
   @Override

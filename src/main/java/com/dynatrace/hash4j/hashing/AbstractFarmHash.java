@@ -73,33 +73,77 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
     }
   }
 
+  @Override
+  public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+    if (len <= 32) {
+      if (len <= 16) {
+        return finalizeHash(hashBytesToLongLength0to16(input, off, len, access));
+      } else {
+        return finalizeHash(hashBytesToLongLength17to32(input, off, len, access));
+      }
+    } else if (len <= 64) {
+      return finalizeHash(hashBytesToLongLength33To64(input, off, len, access));
+    } else {
+      return hashBytesToLongLength65Plus(input, off, len, access);
+    }
+  }
+
   protected abstract long hashBytesToLongLength65Plus(byte[] input, int off, int len);
+
+  protected abstract <T> long hashBytesToLongLength65Plus(
+      T input, long off, long len, ByteAccess<T> access);
 
   protected long finalizeHash(long hash) {
     return hash;
   }
 
-  private static long hashBytesToLongLength0to16(byte[] bytes, int offset, int length) {
-    if (length >= 8) {
-      long mul = K2 + (length << 1);
-      long a = getLong(bytes, offset) + K2;
-      long b = getLong(bytes, offset + length - 8);
+  private static long hashBytesToLongLength0to16(byte[] input, int off, int len) {
+    if (len >= 8) {
+      long mul = K2 + (len << 1);
+      long a = getLong(input, off) + K2;
+      long b = getLong(input, off + len - 8);
       long c = rotateRight(b, 37) * mul + a;
       long d = (rotateRight(a, 25) + b) * mul;
       return hashLength16(c, d, mul);
     }
-    if (length >= 4) {
-      long mul = K2 + (length << 1);
-      long a = getInt(bytes, offset) & 0xFFFFFFFFL;
-      return hashLength16(length + (a << 3), getInt(bytes, offset + length - 4) & 0xFFFFFFFFL, mul);
+    if (len >= 4) {
+      long mul = K2 + (len << 1);
+      long a = getInt(input, off) & 0xFFFFFFFFL;
+      return hashLength16(len + (a << 3), getInt(input, off + len - 4) & 0xFFFFFFFFL, mul);
     }
-    if (length > 0) {
-      byte a = bytes[offset];
-      byte b = bytes[offset + (length >> 1)];
-      byte c = bytes[offset + (length - 1)];
-      int y = (a & 0xFF) + ((b & 0xFF) << 8);
-      int z = length + ((c & 0xFF) << 2);
-      return shiftMix(y * K2 ^ z * K0) * K2;
+    if (len > 0) {
+      int a = input[off] & 0xFF;
+      int b = input[off + (len >> 1)] & 0xFF;
+      int c = input[off + (len - 1)] & 0xFF;
+      int y = a + (b << 8);
+      int z = len + (c << 2);
+      return shiftMix((y * K2) ^ (z * K0)) * K2;
+    }
+    return K2;
+  }
+
+  private static <T> long hashBytesToLongLength0to16(
+      T input, long off, long len, ByteAccess<T> access) {
+    if (len >= 8) {
+      long mul = K2 + (len << 1);
+      long a = access.getLong(input, off) + K2;
+      long b = access.getLong(input, off + len - 8);
+      long c = rotateRight(b, 37) * mul + a;
+      long d = (rotateRight(a, 25) + b) * mul;
+      return hashLength16(c, d, mul);
+    }
+    if (len >= 4) {
+      long mul = K2 + (len << 1);
+      long a = access.getIntAsUnsignedLong(input, off);
+      return hashLength16(len + (a << 3), access.getIntAsUnsignedLong(input, off + len - 4), mul);
+    }
+    if (len > 0) {
+      int a = access.getByteAsUnsignedInt(input, off);
+      int b = access.getByteAsUnsignedInt(input, off + (len >> 1));
+      int c = access.getByteAsUnsignedInt(input, off + (len - 1));
+      int y = a + (b << 8);
+      long z = len + (c << 2);
+      return shiftMix((y * K2) ^ (z * K0)) * K2;
     }
     return K2;
   }
@@ -148,12 +192,23 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
     return K2;
   }
 
-  private static long hashBytesToLongLength17to32(byte[] bytes, int offset, int length) {
-    long mul = K2 + (length << 1);
-    long a = getLong(bytes, offset) * K1;
-    long b = getLong(bytes, offset + 8);
-    long c = getLong(bytes, offset + length - 8) * mul;
-    long d = getLong(bytes, offset + length - 16) * K2;
+  private static long hashBytesToLongLength17to32(byte[] input, int off, int len) {
+    long mul = K2 + (len << 1);
+    long a = getLong(input, off) * K1;
+    long b = getLong(input, off + 8);
+    long c = getLong(input, off + len - 8) * mul;
+    long d = getLong(input, off + len - 16) * K2;
+    return hashLength16(
+        rotateRight(a + b, 43) + rotateRight(c, 30) + d, a + rotateRight(b + K2, 18) + c, mul);
+  }
+
+  private static <T> long hashBytesToLongLength17to32(
+      T input, long off, long len, ByteAccess<T> access) {
+    long mul = K2 + (len << 1);
+    long a = access.getLong(input, off) * K1;
+    long b = access.getLong(input, off + 8);
+    long c = access.getLong(input, off + len - 8) * mul;
+    long d = access.getLong(input, off + len - 16) * K2;
     return hashLength16(
         rotateRight(a + b, 43) + rotateRight(c, 30) + d, a + rotateRight(b + K2, 18) + c, mul);
   }
@@ -169,18 +224,35 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
         rotateRight(a + b, 43) + rotateRight(c, 30) + d, a + rotateRight(b + K2, 18) + c, mul);
   }
 
-  private static long hashBytesToLongLength33To64(byte[] bytes, int offset, int length) {
-    long mul = K2 + (length << 1);
-    long a = getLong(bytes, offset) * K2;
-    long b = getLong(bytes, offset + 8);
-    long c = getLong(bytes, offset + length - 8) * mul;
-    long d = getLong(bytes, offset + length - 16) * K2;
+  private static long hashBytesToLongLength33To64(byte[] input, int off, int len) {
+    long mul = K2 + (len << 1);
+    long a = getLong(input, off) * K2;
+    long b = getLong(input, off + 8);
+    long c = getLong(input, off + len - 8) * mul;
+    long d = getLong(input, off + len - 16) * K2;
     long y = rotateRight(a + b, 43) + rotateRight(c, 30) + d;
     long z = hashLength16(y, a + rotateRight(b + K2, 18) + c, mul);
-    long e = getLong(bytes, offset + 16) * mul;
-    long f = getLong(bytes, offset + 24);
-    long g = (y + getLong(bytes, offset + length - 32)) * mul;
-    long h = (z + getLong(bytes, offset + length - 24)) * mul;
+    long e = getLong(input, off + 16) * mul;
+    long f = getLong(input, off + 24);
+    long g = (y + getLong(input, off + len - 32)) * mul;
+    long h = (z + getLong(input, off + len - 24)) * mul;
+    return hashLength16(
+        rotateRight(e + f, 43) + rotateRight(g, 30) + h, e + rotateRight(f + a, 18) + g, mul);
+  }
+
+  private static <T> long hashBytesToLongLength33To64(
+      T input, long off, long len, ByteAccess<T> access) {
+    long mul = K2 + (len << 1);
+    long a = access.getLong(input, off) * K2;
+    long b = access.getLong(input, off + 8);
+    long c = access.getLong(input, off + len - 8) * mul;
+    long d = access.getLong(input, off + len - 16) * K2;
+    long y = rotateRight(a + b, 43) + rotateRight(c, 30) + d;
+    long z = hashLength16(y, a + rotateRight(b + K2, 18) + c, mul);
+    long e = access.getLong(input, off + 16) * mul;
+    long f = access.getLong(input, off + 24);
+    long g = (y + access.getLong(input, off + len - 32)) * mul;
+    long h = (z + access.getLong(input, off + len - 24)) * mul;
     return hashLength16(
         rotateRight(e + f, 43) + rotateRight(g, 30) + h, e + rotateRight(f + a, 18) + g, mul);
   }
@@ -397,6 +469,7 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
       }
 
       int remainingBytes = len - regularBlockEndIdx;
+      bufferCount = 8 + remainingBytes;
 
       if (regularBlockEndIdx > regularBlockStartIdx) {
 
@@ -412,10 +485,59 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
           processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
         }
 
-        System.arraycopy(b, off - 64 + len, buffer, 8 + remainingBytes, 64 - remainingBytes);
+        System.arraycopy(b, off - 64 + len, buffer, bufferCount, 64 - remainingBytes);
       }
       System.arraycopy(b, off + regularBlockEndIdx, buffer, 8, remainingBytes);
+      return this;
+    }
+
+    @Override
+    public final <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access) {
+
+      final int regularBlockStartIdx = (8 - bufferCount) & 0x3F;
+      final long regularBlockEndIdx = len - 64 + ((-len + regularBlockStartIdx) & 0x3F);
+
+      if (regularBlockEndIdx < regularBlockStartIdx) {
+        access.copyToByteArray(b, off, buffer, bufferCount, (int) len);
+        bufferCount += (int) len;
+        return this;
+      }
+
+      access.copyToByteArray(b, off, buffer, bufferCount, regularBlockStartIdx);
+
+      if (bufferCount > 8) {
+        long b0 = getLong(buffer, 8);
+        long b1 = getLong(buffer, 16);
+        long b2 = getLong(buffer, 24);
+        long b3 = getLong(buffer, 32);
+        long b4 = getLong(buffer, 40);
+        long b5 = getLong(buffer, 48);
+        long b6 = getLong(buffer, 56);
+        long b7 = getLong(buffer, 64);
+
+        processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+      }
+
+      int remainingBytes = (int) (len - regularBlockEndIdx);
       bufferCount = 8 + remainingBytes;
+
+      if (regularBlockEndIdx > regularBlockStartIdx) {
+
+        for (long i = off + regularBlockStartIdx; i < off + regularBlockEndIdx; i += 64) {
+          long b0 = access.getLong(b, i);
+          long b1 = access.getLong(b, i + 8);
+          long b2 = access.getLong(b, i + 16);
+          long b3 = access.getLong(b, i + 24);
+          long b4 = access.getLong(b, i + 32);
+          long b5 = access.getLong(b, i + 40);
+          long b6 = access.getLong(b, i + 48);
+          long b7 = access.getLong(b, i + 56);
+          processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
+        }
+
+        access.copyToByteArray(b, off - 64 + len, buffer, bufferCount, 64 - remainingBytes);
+      }
+      access.copyToByteArray(b, off + regularBlockEndIdx, buffer, 8, remainingBytes);
       return this;
     }
 
@@ -423,51 +545,54 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
     public final HashStream64 putChars(CharSequence s) {
       int idx = 0;
       if (s.length() >= ((74 - bufferCount) >> 1)) {
-        idx = ((73 - bufferCount) >>> 1);
-        copyCharsToByteArray(s, 0, buffer, bufferCount, idx);
-        processBuffer();
+        if (bufferCount > 9) {
+          idx = (73 - bufferCount) >>> 1; // 0 <= idx <= 31
+          copyCharsToByteArray(s, 0, buffer, bufferCount, idx);
+          processBuffer();
+          buffer[8] = buffer[72];
+        }
         int a = bufferCount & 1;
-        bufferCount = 8 - a;
-        idx -= a;
-        int lenMinus32 = s.length() - 32;
-        if (idx < lenMinus32) {
-          while (true) {
-
-            long b0 = getLong(s, idx);
-            long b1 = getLong(s, idx + 4);
-            long b2 = getLong(s, idx + 8);
-            long b3 = getLong(s, idx + 12);
-            long b4 = getLong(s, idx + 16);
-            long b5 = getLong(s, idx + 20);
-            long b6 = getLong(s, idx + 24);
-            long b7 = getLong(s, idx + 28);
+        int lim = s.length() - 32 + a;
+        if (idx < lim) {
+          long b0, b1, b2, b3, b4, b5, b6, b7;
+          long bm = (a != 0) ? (long) buffer[8] << 56 : 0;
+          do {
+            b0 = getLong(s, idx);
+            b1 = getLong(s, idx + 4);
+            b2 = getLong(s, idx + 8);
+            b3 = getLong(s, idx + 12);
+            b4 = getLong(s, idx + 16);
+            b5 = getLong(s, idx + 20);
+            b6 = getLong(s, idx + 24);
+            b7 = getLong(s, idx + 28);
 
             if (a != 0) {
-              b0 = (b0 >>> 8) | (b1 << 56);
-              b1 = (b1 >>> 8) | (b2 << 56);
-              b2 = (b2 >>> 8) | (b3 << 56);
-              b3 = (b3 >>> 8) | (b4 << 56);
-              b4 = (b4 >>> 8) | (b5 << 56);
-              b5 = (b5 >>> 8) | (b6 << 56);
-              b6 = (b6 >>> 8) | (b7 << 56);
-              b7 = (b7 >>> 8) | ((long) s.charAt(idx + 32) << 56);
+              long bmNew = b7;
+              b7 = (b7 << 8) | (b6 >>> 56);
+              b6 = (b6 << 8) | (b5 >>> 56);
+              b5 = (b5 << 8) | (b4 >>> 56);
+              b4 = (b4 << 8) | (b3 >>> 56);
+              b3 = (b3 << 8) | (b2 >>> 56);
+              b2 = (b2 << 8) | (b1 >>> 56);
+              b1 = (b1 << 8) | (b0 >>> 56);
+              b0 = (b0 << 8) | (bm >>> 56);
+              bm = bmNew;
             }
 
             processBuffer(b0, b1, b2, b3, b4, b5, b6, b7);
             idx += 32;
-            if (idx >= lenMinus32) {
-              setLong(buffer, 8, b0);
-              setLong(buffer, 16, b1);
-              setLong(buffer, 24, b2);
-              setLong(buffer, 32, b3);
-              setLong(buffer, 40, b4);
-              setLong(buffer, 48, b5);
-              setLong(buffer, 56, b6);
-              setLong(buffer, 64, b7);
-              break;
-            }
-          }
+          } while (idx < lim);
+          setLong(buffer, 8, b0);
+          setLong(buffer, 16, b1);
+          setLong(buffer, 24, b2);
+          setLong(buffer, 32, b3);
+          setLong(buffer, 40, b4);
+          setLong(buffer, 48, b5);
+          setLong(buffer, 56, b6);
+          setLong(buffer, 64, b7);
+          if (a != 0) buffer[8] = (byte) (bm >>> 56);
         }
+        bufferCount = 8 + a;
       }
       copyCharsToByteArray(s, idx, buffer, bufferCount, s.length() - idx);
       bufferCount += (s.length() - idx) << 1;

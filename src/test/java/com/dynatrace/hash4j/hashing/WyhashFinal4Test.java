@@ -64,6 +64,33 @@ class WyhashFinal4Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess) {
+    long seed0 = getLong(seedBytes, 0);
+    long seed1 = getLong(seedBytes, 8);
+    long rand = getLong(seedBytes, 16);
+
+    long hash0 = Hashing.wyhashFinal4().hashBytesToLong(o, off, len, byteAccess);
+    long hash1 = Hashing.wyhashFinal4(seed0).hashBytesToLong(o, off, len, byteAccess);
+    long hash2 = 0;
+    long hash3 = 0;
+    if ((rand & 0x3fL) == 0) {
+      hash2 = Hashing.wyhashFinal4(0L, seed1).hashBytesToLong(o, off, len, byteAccess);
+      hash3 = Hashing.wyhashFinal4(seed0, seed1).hashBytesToLong(o, off, len, byteAccess);
+    }
+
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
+    setLong(hashBytes, 16, hash2);
+    setLong(hashBytes, 24, hash3);
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
     long seed0 = getLong(seedBytes, 0);
     long seed1 = getLong(seedBytes, 8);

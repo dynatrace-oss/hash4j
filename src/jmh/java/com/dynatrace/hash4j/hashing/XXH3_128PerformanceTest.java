@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class XXH3_128PerformanceTest extends AbstactHasher128PerformanceTest {
+public class XXH3_128PerformanceTest extends AbstractHasher128PerformanceTest {
 
   private static final Hasher128 HASHER_INSTANCE = Hashing.xxh3_128();
 

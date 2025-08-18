@@ -175,7 +175,7 @@ class FarmHashUo extends AbstractFarmHash {
   }
 
   @Override
-  protected long hashBytesToLongLength65Plus(byte[] bytes, int offset, int length) {
+  protected long hashBytesToLongLength65Plus(byte[] input, int off, int len) {
     long x = startX;
     long y = startY;
     long z = startZ;
@@ -184,18 +184,18 @@ class FarmHashUo extends AbstractFarmHash {
     long w0 = 0;
     long w1 = 0;
     long u = seed0 - z;
-    int end = offset + ((length - 1) & 0xFFFFFFC0);
-    int last64offset = offset + length - 64;
+    int end = off + ((len - 1) & 0xFFFFFFC0);
+    int last64offset = off + len - 64;
 
     do {
-      long b0 = getLong(bytes, offset);
-      long b1 = getLong(bytes, offset + 8);
-      long b2 = getLong(bytes, offset + 16);
-      long b3 = getLong(bytes, offset + 24);
-      long b4 = getLong(bytes, offset + 32);
-      long b5 = getLong(bytes, offset + 40);
-      long b6 = getLong(bytes, offset + 48);
-      long b7 = getLong(bytes, offset + 56);
+      long b0 = getLong(input, off);
+      long b1 = getLong(input, off + 8);
+      long b2 = getLong(input, off + 16);
+      long b3 = getLong(input, off + 24);
+      long b4 = getLong(input, off + 32);
+      long b5 = getLong(input, off + 40);
+      long b6 = getLong(input, off + 48);
+      long b7 = getLong(input, off + 56);
 
       x += b0 + b1;
       y += b2;
@@ -242,18 +242,103 @@ class FarmHashUo extends AbstractFarmHash {
       u = z;
       z = t;
 
-    } while ((offset += 64) != end);
+    } while ((off += 64) != end);
 
-    long b0 = getLong(bytes, last64offset);
-    long b1 = getLong(bytes, last64offset + 8);
-    long b2 = getLong(bytes, last64offset + 16);
-    long b3 = getLong(bytes, last64offset + 24);
-    long b4 = getLong(bytes, last64offset + 32);
-    long b5 = getLong(bytes, last64offset + 40);
-    long b6 = getLong(bytes, last64offset + 48);
-    long b7 = getLong(bytes, last64offset + 56);
+    long b0 = getLong(input, last64offset);
+    long b1 = getLong(input, last64offset + 8);
+    long b2 = getLong(input, last64offset + 16);
+    long b3 = getLong(input, last64offset + 24);
+    long b4 = getLong(input, last64offset + 32);
+    long b5 = getLong(input, last64offset + 40);
+    long b6 = getLong(input, last64offset + 48);
+    long b7 = getLong(input, last64offset + 56);
 
-    w0 += (length - 1) & 63;
+    w0 += (len - 1) & 63;
+
+    return finalizeHash(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
+  }
+
+  @Override
+  protected <T> long hashBytesToLongLength65Plus(
+      T input, long off, long len, ByteAccess<T> access) {
+    long x = startX;
+    long y = startY;
+    long z = startZ;
+    long v0 = seed0;
+    long v1 = seed1;
+    long w0 = 0;
+    long w1 = 0;
+    long u = seed0 - z;
+    long end = off + ((len - 1) & 0xFFFFFFFFFFFFFFC0L);
+    long last64offset = off + len - 64;
+
+    do {
+      long b0 = access.getLong(input, off);
+      long b1 = access.getLong(input, off + 8);
+      long b2 = access.getLong(input, off + 16);
+      long b3 = access.getLong(input, off + 24);
+      long b4 = access.getLong(input, off + 32);
+      long b5 = access.getLong(input, off + 40);
+      long b6 = access.getLong(input, off + 48);
+      long b7 = access.getLong(input, off + 56);
+
+      x += b0 + b1;
+      y += b2;
+      z += b3;
+      v0 += b4;
+      v1 += b5 + b1;
+      w0 += b6;
+      w1 += b7;
+
+      x = rotateRight(x, 26);
+      x *= 9;
+      y = rotateRight(y, 29);
+      z *= mul;
+      v0 = rotateRight(v0, 33);
+      v1 = rotateRight(v1, 30);
+      w0 ^= x;
+      w0 *= 9;
+      z = rotateRight(z, 32);
+      z += w1;
+      w1 += z;
+      z *= 9;
+
+      long t = u;
+      u = y;
+      y = t;
+
+      z += b0 + b6;
+      v0 += b2;
+      v1 += b3;
+      w0 += b4;
+      w1 += b5 + b6;
+      x += b1;
+      y += b7;
+
+      y += v0;
+      v0 += x - y;
+      v1 += w0;
+      w0 += v1;
+      w1 += x - y;
+      x += w1;
+      w1 = rotateRight(w1, 34);
+
+      t = u;
+      u = z;
+      z = t;
+
+    } while ((off += 64) != end);
+
+    long b0 = access.getLong(input, last64offset);
+    long b1 = access.getLong(input, last64offset + 8);
+    long b2 = access.getLong(input, last64offset + 16);
+    long b3 = access.getLong(input, last64offset + 24);
+    long b4 = access.getLong(input, last64offset + 32);
+    long b5 = access.getLong(input, last64offset + 40);
+    long b6 = access.getLong(input, last64offset + 48);
+    long b7 = access.getLong(input, last64offset + 56);
+
+    w0 += (len - 1) & 63;
 
     return finalizeHash(u, x, y, z, v0, v1, w0, w1, b0, b1, b2, b3, b4, b5, b6, b7);
   }
@@ -602,7 +687,7 @@ class FarmHashUo extends AbstractFarmHash {
       long b6 = getLong(buffer, (bufferCount + 48) & 0x3f);
       long b7 = getLong(buffer, bufferCount - 8);
 
-      return FarmHashUo.this.finalizeHash(
+      return finalizeHash(
           u, x, y, z, v0, v1, w0 + bufferCount - 9, w1, b0, b1, b2, b3, b4, b5, b6, b7);
     }
   }

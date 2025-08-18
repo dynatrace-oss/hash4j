@@ -345,25 +345,31 @@ public abstract class AbstractPerformanceTest {
     TEST_OBJECTS4 = createTestObjects(NUM_OBJECTS, TestObject4::new, 0x49952ea071f1cc0aL);
   }
 
-  private void directBytesTest(byte[][] data, Blackhole blackhole) {
+  private void testHashBytesDirect(byte[][] data, Blackhole blackhole) {
     for (byte[] b : data) {
       hashBytesDirect(b, blackhole);
     }
   }
 
-  private void indirectBytesTest(byte[][] data, Blackhole blackhole) {
+  private void testHashBytesViaAccess(byte[][] data, Blackhole blackhole) {
+    for (byte[] b : data) {
+      hashBytesViaAccess(b, blackhole);
+    }
+  }
+
+  private void testHashBytesIndirect(byte[][] data, Blackhole blackhole) {
     for (byte[] b : data) {
       hashBytesIndirect(b, blackhole);
     }
   }
 
-  private void directCharsTest(String[] data, Blackhole blackhole) {
+  private void testHashCharsDirect(String[] data, Blackhole blackhole) {
     for (String s : data) {
       hashCharsDirect(s, blackhole);
     }
   }
 
-  private void indirectCharsTest(String[] data, Blackhole blackhole) {
+  private void testHashCharsIndirect(String[] data, Blackhole blackhole) {
     for (String s : data) {
       hashCharsIndirect(s, blackhole);
     }
@@ -378,325 +384,379 @@ public abstract class AbstractPerformanceTest {
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000001Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_1, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_1, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000004Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_4, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_4, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000016Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_16, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_16, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000064Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_64, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_64, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000256Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_256, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_256, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes001024Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_1024, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_1024, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes004096Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_4096, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_4096, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes016384Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_16384, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_16384, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes065536Direct(Blackhole blackhole) {
-    directBytesTest(BYTE_ARRAYS_65536, blackhole);
+    testHashBytesDirect(BYTE_ARRAYS_65536, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes000001ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_1, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes000004ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_4, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes000016ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_16, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes000064ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_64, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes000256ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_256, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes001024ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_1024, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes004096ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_4096, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes016384ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_16384, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytes065536ViaAccess(Blackhole blackhole) {
+    testHashBytesViaAccess(BYTE_ARRAYS_65536, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000001Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_1, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_1, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000004Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_4, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_4, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000016Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_16, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_16, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000064Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_64, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_64, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes000256Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_256, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_256, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes001024Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_1024, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_1024, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes004096Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_4096, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_4096, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes016384Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_16384, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_16384, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashBytes065536Indirect(Blackhole blackhole) {
-    indirectBytesTest(BYTE_ARRAYS_65536, blackhole);
+    testHashBytesIndirect(BYTE_ARRAYS_65536, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000001Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_1, blackhole);
+    testHashCharsIndirect(STRINGS_1, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000004Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_4, blackhole);
+    testHashCharsIndirect(STRINGS_4, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000016Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_16, blackhole);
+    testHashCharsIndirect(STRINGS_16, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000064Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_64, blackhole);
+    testHashCharsIndirect(STRINGS_64, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000256Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_256, blackhole);
+    testHashCharsIndirect(STRINGS_256, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars001024Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_1024, blackhole);
+    testHashCharsIndirect(STRINGS_1024, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars004096Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_4096, blackhole);
+    testHashCharsIndirect(STRINGS_4096, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars016384Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_16384, blackhole);
+    testHashCharsIndirect(STRINGS_16384, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars065536Indirect(Blackhole blackhole) {
-    indirectCharsTest(STRINGS_65536, blackhole);
+    testHashCharsIndirect(STRINGS_65536, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000001Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_1, blackhole);
+    testHashCharsDirect(STRINGS_1, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000004Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_4, blackhole);
+    testHashCharsDirect(STRINGS_4, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000016Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_16, blackhole);
+    testHashCharsDirect(STRINGS_16, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000064Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_64, blackhole);
+    testHashCharsDirect(STRINGS_64, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars000256Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_256, blackhole);
+    testHashCharsDirect(STRINGS_256, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars001024Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_1024, blackhole);
+    testHashCharsDirect(STRINGS_1024, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars004096Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_4096, blackhole);
+    testHashCharsDirect(STRINGS_4096, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars016384Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_16384, blackhole);
+    testHashCharsDirect(STRINGS_16384, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashChars065536Direct(Blackhole blackhole) {
-    directCharsTest(STRINGS_65536, blackhole);
+    testHashCharsDirect(STRINGS_65536, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000001Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_1, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_1, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000004Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_4, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_4, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000016Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_16, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_16, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000064Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_64, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_64, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000256Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_256, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_256, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars001024Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_1024, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_1024, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars004096Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_4096, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_4096, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars016384Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_16384, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_16384, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars065536Indirect(Blackhole blackhole) {
-    indirectCharsTest(GREEK_STRINGS_65536, blackhole);
+    testHashCharsIndirect(GREEK_STRINGS_65536, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000001Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_1, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_1, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000004Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_4, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_4, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000016Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_16, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_16, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000064Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_64, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_64, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars000256Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_256, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_256, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars001024Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_1024, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_1024, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars004096Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_4096, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_4096, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars016384Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_16384, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_16384, blackhole);
   }
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
   public void hashGreekChars065536Direct(Blackhole blackhole) {
-    directCharsTest(GREEK_STRINGS_65536, blackhole);
+    testHashCharsDirect(GREEK_STRINGS_65536, blackhole);
   }
 
   @Benchmark
@@ -726,6 +786,10 @@ public abstract class AbstractPerformanceTest {
   protected abstract void hashObject(TestObject testObject, Blackhole blackhole);
 
   protected abstract void hashBytesDirect(byte[] b, Blackhole blackhole);
+
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
 
   protected abstract void hashCharsDirect(String s, Blackhole blackhole);
 

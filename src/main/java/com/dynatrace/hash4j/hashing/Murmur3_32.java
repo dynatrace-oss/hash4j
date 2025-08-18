@@ -15,8 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 final class Murmur3_32 implements AbstractHasher32 {
@@ -60,13 +59,13 @@ final class Murmur3_32 implements AbstractHasher32 {
 
     switch (len & 3) {
       case 3:
-        k1 ^= (input[off + 2] & 0xFF) << 16;
+        k1 = (input[off + 2] & 0xFF) << 16;
       // fallthrough
       case 2:
         k1 ^= (input[off + 1] & 0xFF) << 8;
       // fallthrough
       case 1:
-        k1 ^= (input[off] & 0xFF);
+        k1 ^= input[off] & 0xFF;
         k1 = mixK1(k1);
         h1 ^= k1;
       // fallthrough
@@ -75,6 +74,39 @@ final class Murmur3_32 implements AbstractHasher32 {
     }
 
     h1 ^= len;
+    return fmix32(h1);
+  }
+
+  @Override
+  public <T> int hashBytesToInt(T input, long off, long len, ByteAccess<T> access) {
+    long nblocks = len >>> 2;
+    int h1 = seed;
+
+    for (int i = 0; i < nblocks; i++, off += 4) {
+      int k1 = access.getInt(input, off);
+      k1 = mixK1(k1);
+      h1 = mixH1(h1, k1);
+    }
+
+    int k1 = 0;
+
+    switch ((int) (len & 3)) {
+      case 3:
+        k1 = access.getByteAsUnsignedInt(input, off + 2) << 16;
+      // fallthrough
+      case 2:
+        k1 ^= access.getByteAsUnsignedInt(input, off + 1) << 8;
+      // fallthrough
+      case 1:
+        k1 ^= access.getByteAsUnsignedInt(input, off);
+        k1 = mixK1(k1);
+        h1 ^= k1;
+      // fallthrough
+      default:
+        // do nothing
+    }
+
+    h1 ^= (int) len;
     return fmix32(h1);
   }
 
@@ -261,26 +293,25 @@ final class Murmur3_32 implements AbstractHasher32 {
       final int regularBlockEndIdx = len - ((len + length) & 0x3);
       length += len;
       if (regularBlockEndIdx < regularBlockStartIdx) {
-        if (0 < len) {
-          buffer |= (b[off] & 0xFFL) << shift;
+        if (len != 0) {
+          buffer |= (b[off] & 0xFF) << shift;
           shift += 8;
-          if (1 < len) {
-            buffer |= (b[off + 1] & 0xFFL) << shift;
+          if (len != 1) {
+            buffer |= (b[off + 1] & 0xFF) << shift;
             shift += 8;
           }
         }
         return this;
       }
 
-      if (regularBlockStartIdx >= 1) {
-        if (regularBlockStartIdx >= 2) {
-          if (regularBlockStartIdx >= 3) {
-            buffer |= ((b[off + regularBlockStartIdx - 3] & 0xFFL) << 8);
-          }
-          buffer |= ((b[off + regularBlockStartIdx - 2] & 0xFFL) << 16);
+      if (regularBlockStartIdx != 0) {
+        int x = (int) buffer;
+        if (regularBlockStartIdx != 1) {
+          if (regularBlockStartIdx != 2) x |= (b[off + regularBlockStartIdx - 3] & 0xFF) << 8;
+          x |= (b[off + regularBlockStartIdx - 2] & 0xFF) << 16;
         }
-        buffer |= ((b[off + regularBlockStartIdx - 1] & 0xFFL) << 24);
-        processBuffer((int) buffer);
+        x |= b[off + regularBlockStartIdx - 1] << 24;
+        processBuffer(x);
         buffer = 0;
       }
 
@@ -291,14 +322,63 @@ final class Murmur3_32 implements AbstractHasher32 {
       int remainingBytes = len - regularBlockEndIdx;
       shift = remainingBytes << 3;
 
-      if (remainingBytes >= 1) {
-        if (remainingBytes >= 2) {
-          if (remainingBytes >= 3) {
-            buffer |= (b[off + regularBlockEndIdx + 2] & 0xFFL) << 16;
+      if (remainingBytes != 0) {
+        buffer = b[off + regularBlockEndIdx] & 0xFF;
+        if (remainingBytes != 1) {
+          buffer |= (b[off + regularBlockEndIdx + 1] & 0xFF) << 8;
+          if (remainingBytes != 2) {
+            buffer |= (b[off + regularBlockEndIdx + 2] & 0xFF) << 16;
           }
-          buffer |= (b[off + regularBlockEndIdx + 1] & 0xFFL) << 8;
         }
-        buffer |= (b[off + regularBlockEndIdx] & 0xFFL);
+      }
+      return this;
+    }
+
+    @Override
+    public <T> HashStream32 putBytes(T b, long off, long len, ByteAccess<T> access) {
+      final int regularBlockStartIdx = -length & 0x3;
+      final long regularBlockEndIdx = len - ((len + length) & 0x3);
+      length += (int) len;
+      if (regularBlockEndIdx < regularBlockStartIdx) {
+        if (len != 0) {
+          buffer |= access.getByteAsUnsignedInt(b, off) << shift;
+          shift += 8;
+          if (len != 1) {
+            buffer |= access.getByteAsUnsignedInt(b, off + 1) << shift;
+            shift += 8;
+          }
+        }
+        return this;
+      }
+
+      if (regularBlockStartIdx != 0) {
+        int x = (int) buffer;
+        if (regularBlockStartIdx != 1) {
+          if (regularBlockStartIdx != 2) {
+            x |= access.getByteAsUnsignedInt(b, off + regularBlockStartIdx - 3) << 8;
+          }
+          x |= access.getByteAsUnsignedInt(b, off + regularBlockStartIdx - 2) << 16;
+        }
+        x |= access.getByte(b, off + regularBlockStartIdx - 1) << 24;
+        processBuffer(x);
+        buffer = 0;
+      }
+
+      for (long i = regularBlockStartIdx; i < regularBlockEndIdx; i += 4) {
+        processBuffer(access.getInt(b, off + i));
+      }
+
+      int remainingBytes = (int) (len - regularBlockEndIdx);
+      shift = remainingBytes << 3;
+
+      if (remainingBytes != 0) {
+        buffer = access.getByteAsUnsignedInt(b, off + regularBlockEndIdx);
+        if (remainingBytes != 1) {
+          buffer |= access.getByteAsUnsignedInt(b, off + regularBlockEndIdx + 1) << 8;
+          if (remainingBytes != 2) {
+            buffer |= access.getByteAsUnsignedInt(b, off + regularBlockEndIdx + 2) << 16;
+          }
+        }
       }
       return this;
     }
@@ -330,26 +410,26 @@ final class Murmur3_32 implements AbstractHasher32 {
           shift = 0;
         }
         for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
-          processBuffer((s.charAt(i) & 0xFFFF) | (s.charAt(i + 1) << 16));
+          processBuffer(s.charAt(i) | (s.charAt(i + 1) << 16));
         }
         if (regularBlockEndIdx < len) {
-          buffer = s.charAt(regularBlockEndIdx) & 0xFFFFL;
+          buffer = s.charAt(regularBlockEndIdx);
           shift = 16;
         }
       } else {
         if (regularBlockStartIdx > 0) {
-          buffer |= (s.charAt(0) & 0xFFFFL) << 24;
+          buffer |= (long) s.charAt(0) << 24;
           processBuffer((int) buffer);
           buffer >>= 32;
           shift = 8;
         }
         for (int i = regularBlockStartIdx; i < regularBlockEndIdx; i += 2) {
-          buffer |= ((s.charAt(i) & 0xFFFFL) << 8) | ((s.charAt(i + 1) & 0xFFFFL) << 24);
+          buffer |= (s.charAt(i) << 8) | ((long) s.charAt(i + 1) << 24);
           processBuffer((int) buffer);
           buffer >>= 32;
         }
         if (regularBlockEndIdx < len) {
-          buffer |= (s.charAt(regularBlockEndIdx) & 0xFFFFL) << 8;
+          buffer |= s.charAt(regularBlockEndIdx) << 8;
           shift = 24;
         }
       }

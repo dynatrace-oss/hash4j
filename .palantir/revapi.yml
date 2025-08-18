@@ -214,6 +214,36 @@ acceptedBreaks:
       new: "method com.dynatrace.hash4j.hashing.HashStream64 com.dynatrace.hash4j.hashing.Hasher64::hashStreamFromState(byte[])"
       justification: "added methods for serializing and deserializing the state of\
         \ hash streams"
+  "0.25.0":
+    com.dynatrace.hash4j:hash4j:
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashSink com.dynatrace.hash4j.hashing.HashSink::putBytes(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods to put bytes with byte access"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashStream128 com.dynatrace.hash4j.hashing.HashStream128::putBytes(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods to put bytes with byte access"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashStream32 com.dynatrace.hash4j.hashing.HashStream32::putBytes(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods to put bytes with byte access"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashStream64 com.dynatrace.hash4j.hashing.HashStream64::putBytes(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods to put bytes with byte access"
+    - code: "java.method.addedToInterface"
+      new: "method <T> com.dynatrace.hash4j.hashing.HashValue128 com.dynatrace.hash4j.hashing.Hasher128::hashBytesTo128Bits(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods for hashing contiguous bytes from any object"
+    - code: "java.method.addedToInterface"
+      new: "method <T> int com.dynatrace.hash4j.hashing.Hasher32::hashBytesToInt(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods for hashing contiguous bytes from any object"
+    - code: "java.method.addedToInterface"
+      new: "method <T> long com.dynatrace.hash4j.hashing.Hasher64::hashBytesToLong(T,\
+        \ long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)"
+      justification: "added methods for hashing contiguous bytes from any object"
   "0.7.1":
     com.dynatrace.hash4j:hash4j:
     - code: "java.class.noLongerImplementsInterface"

@@ -49,6 +49,22 @@ class Komihash5_0Test extends AbstractHasher64Test {
   }
 
   @Override
+  protected void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess) {
+    long seed = getLong(seedBytes, 0);
+    long hash0 = Hashing.komihash5_0().hashBytesToLong(o, off, len, byteAccess);
+    long hash1 = Hashing.komihash5_0(seed).hashBytesToLong(o, off, len, byteAccess);
+
+    setLong(hashBytes, 0, hash0);
+    setLong(hashBytes, 8, hash1);
+  }
+
+  @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
 
     long seed = getLong(seedBytes, 0);

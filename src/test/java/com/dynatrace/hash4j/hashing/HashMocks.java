@@ -33,7 +33,7 @@ final class HashMocks {
     }
 
     @Override
-    public int hashBytesToInt(byte[] input, int off, int len) {
+    public <T> int hashBytesToInt(T input, long off, long len, ByteAccess<T> access) {
       return hash;
     }
 
@@ -112,7 +112,7 @@ final class HashMocks {
     }
 
     @Override
-    public long hashBytesToLong(byte[] input, int off, int len) {
+    public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
       return hash;
     }
 
@@ -191,7 +191,7 @@ final class HashMocks {
     }
 
     @Override
-    public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
+    public <T> HashValue128 hashBytesTo128Bits(T input, long off, long len, ByteAccess<T> access) {
       return hash;
     }
 
@@ -275,8 +275,8 @@ final class HashMocks {
     }
 
     @Override
-    public int hashBytesToInt(byte[] input, int off, int len) {
-      return referenceHasher.hashBytesToInt(input, off, len);
+    public <T> int hashBytesToInt(T input, long off, long len, ByteAccess<T> access) {
+      return referenceHasher.hashBytesToInt(input, off, len, access);
     }
 
     @Override
@@ -354,8 +354,8 @@ final class HashMocks {
     }
 
     @Override
-    public long hashBytesToLong(byte[] input, int off, int len) {
-      return referenceHasher.hashBytesToLong(input, off, len);
+    public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+      return referenceHasher.hashBytesToLong(input, off, len, access);
     }
 
     @Override
@@ -433,8 +433,8 @@ final class HashMocks {
     }
 
     @Override
-    public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-      return referenceHasher.hashBytesTo128Bits(input, off, len);
+    public <T> HashValue128 hashBytesTo128Bits(T input, long off, long len, ByteAccess<T> access) {
+      return referenceHasher.hashBytesTo128Bits(input, off, len, access);
     }
 
     @Override
@@ -574,8 +574,12 @@ final class HashMocks {
       }
 
       @Override
-      public int hashBytesToInt(byte[] input, int off, int len) {
-        return hashStream().putBytes(input, off, len).getAsInt();
+      public <T> int hashBytesToInt(T input, long off, long len, ByteAccess<T> access) {
+        var hs = hashStream();
+        for (long i = off; i < off + len; ++i) {
+          hs.putByte(access.getByte(input, i));
+        }
+        return hs.getAsInt();
       }
 
       @Override
@@ -651,8 +655,12 @@ final class HashMocks {
       }
 
       @Override
-      public long hashBytesToLong(byte[] input, int off, int len) {
-        return hashStream().putBytes(input, off, len).getAsLong();
+      public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+        var hs = hashStream();
+        for (long i = off; i < off + len; ++i) {
+          hs.putByte(access.getByte(input, i));
+        }
+        return hs.getAsLong();
       }
 
       @Override
@@ -732,8 +740,13 @@ final class HashMocks {
       }
 
       @Override
-      public HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-        return hashStream().putBytes(input, off, len).get();
+      public <T> HashValue128 hashBytesTo128Bits(
+          T input, long off, long len, ByteAccess<T> access) {
+        var hs = hashStream();
+        for (long i = off; i < off + len; ++i) {
+          hs.putByte(access.getByte(input, i));
+        }
+        return hs.get();
       }
 
       @Override

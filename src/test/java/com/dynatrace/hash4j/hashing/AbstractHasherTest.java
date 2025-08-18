@@ -17,7 +17,6 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.hashing.HashMocks.*;
 import static com.dynatrace.hash4j.hashing.HashTestUtils.*;
-import static com.dynatrace.hash4j.hashing.HashTestUtils.GeneratedBufferingCharSequence;
 import static com.dynatrace.hash4j.hashing.HashTestUtils.generateRandomBytes;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
@@ -35,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -45,7 +45,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -199,16 +198,24 @@ abstract class AbstractHasherTest {
         long hash32Reference = hasher32.hashToInt(data, BYTES_FUNNEL);
         long hash32 = hasher32.hashBytesToInt(data);
         long hash32WithOffset = hasher32.hashBytesToInt(dataWithOffset, offset, length);
+        long hash32WithOffsetAndAccess =
+            hasher32.hashBytesToInt(
+                dataWithOffset, offset, length, NativeByteArrayByteAccess.get());
         assertThat(hash32).isEqualTo(hash32Reference);
         assertThat(hash32WithOffset).isEqualTo(hash32Reference);
+        assertThat(hash32WithOffsetAndAccess).isEqualTo(hash32Reference);
       }
       if (hasher instanceof Hasher64) {
         Hasher64 hasher64 = (Hasher64) hasher;
         long hash64Reference = hasher64.hashToLong(data, BYTES_FUNNEL);
         long hash64 = hasher64.hashBytesToLong(data);
         long hash64WithOffset = hasher64.hashBytesToLong(dataWithOffset, offset, length);
+        long hash64WihtOffsetAndAccess =
+            hasher64.hashBytesToLong(
+                dataWithOffset, offset, length, NativeByteArrayByteAccess.get());
         assertThat(hash64).isEqualTo(hash64Reference);
         assertThat(hash64WithOffset).isEqualTo(hash64Reference);
+        assertThat(hash64WihtOffsetAndAccess).isEqualTo(hash64Reference);
       }
       if (hasher instanceof Hasher128) {
         Hasher128 hasher128 = (Hasher128) hasher;
@@ -216,8 +223,12 @@ abstract class AbstractHasherTest {
         HashValue128 hash128 = hasher128.hashBytesTo128Bits(data);
         HashValue128 hash128WithOffset =
             hasher128.hashBytesTo128Bits(dataWithOffset, offset, length);
+        HashValue128 hash128WithOffsetAndAccess =
+            hasher128.hashBytesTo128Bits(
+                dataWithOffset, offset, length, NativeByteArrayByteAccess.get());
         assertThat(hash128).isEqualTo(hash128Reference);
         assertThat(hash128WithOffset).isEqualTo(hash128Reference);
+        assertThat(hash128WithOffsetAndAccess).isEqualTo(hash128Reference);
       }
     }
   }
@@ -574,18 +585,24 @@ abstract class AbstractHasherTest {
     SplittableRandom random = new SplittableRandom(0x25a5bebe01a9ba17L);
     HashStream hashStreamPutByte = hasher.hashStream();
     HashStream hashStreamPutBytes = hasher.hashStream();
+    HashStream hashStreamPutBytesViaAccess = hasher.hashStream();
     for (int i = 0; i < numIterations; ++i) {
       hashStreamPutByte.reset();
       hashStreamPutBytes.reset();
+      hashStreamPutBytesViaAccess.reset();
       random.nextBytes(bytes);
       assertHashStream(hashStreamPutByte, hasher, bytes, 0, 0);
       assertHashStream(hashStreamPutBytes, hasher, bytes, 0, 0);
+      assertHashStream(hashStreamPutBytesViaAccess, hasher, bytes, 0, 0);
       for (int size = 1; size <= maxDataSize; ++size) {
         hashStreamPutByte.putByte(bytes[size - 1]);
-        hashStreamPutBytes.reset();
-        hashStreamPutBytes.putBytes(bytes, 0, size);
+        hashStreamPutBytes.reset().putBytes(bytes, 0, size);
+        hashStreamPutBytesViaAccess
+            .reset()
+            .putBytes(bytes, 0, size, NativeByteArrayByteAccess.get());
         assertHashStream(hashStreamPutByte, hasher, bytes, 0, size);
         assertHashStream(hashStreamPutBytes, hasher, bytes, 0, size);
+        assertHashStream(hashStreamPutBytesViaAccess, hasher, bytes, 0, size);
       }
     }
   }
@@ -690,6 +707,14 @@ abstract class AbstractHasherTest {
       byte[] seedBytes, byte[] hashBytes, byte[] dataBytes);
 
   protected abstract void calculateHashForChecksum(
+      byte[] seedBytes,
+      byte[] hashBytes,
+      Object o,
+      long off,
+      long len,
+      ByteAccess<Object> byteAccess);
+
+  protected abstract void calculateHashForChecksum(
       byte[] seedBytes, byte[] hashBytes, CharSequence charSequence);
 
   abstract int getSeedSizeForChecksum();
@@ -700,34 +725,29 @@ abstract class AbstractHasherTest {
 
   protected abstract void getHashBytes(List<HashStream> hashStreams, byte[] hashBytes);
 
-  private static final int ARRAY_MAX_SIZE =
-      Integer.MAX_VALUE - 8; // see https://www.baeldung.com/java-arrays-max-size
+  private static final int MAX_ARRAY_SIZE = 10_000_000;
 
-  private static boolean testLength(long len) {
-    return len <= 1_000_000L;
-  }
-
-  @ResourceLock(value = "memory-intensive")
   @Test
   void testCheckSumsHashBytes() throws NoSuchAlgorithmException {
 
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+
     byte[] seedBytes = new byte[getSeedSizeForChecksum()];
     byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    SplitMix64 pseudoRandomGenerator = new SplitMix64();
 
     for (ChecksumRecord checksumRecord : getChecksumRecords()) {
 
       long dataLength = checksumRecord.getDataSize();
 
-      if (dataLength > ARRAY_MAX_SIZE || !testLength(dataLength)) {
+      if (dataLength > MAX_ARRAY_SIZE) {
         continue;
       }
       int dataLengthInt = Math.toIntExact(checksumRecord.getDataSize());
       long numCycles = checksumRecord.getNumCycles();
 
-      SplitMix64 pseudoRandomGenerator = new SplitMix64();
       pseudoRandomGenerator.reset(checksumRecord.getSeed());
-
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
+      md.reset();
 
       byte[] dataBytes = new byte[dataLengthInt];
 
@@ -745,26 +765,62 @@ abstract class AbstractHasherTest {
   }
 
   @Test
-  void testCheckSumsHashChars() throws NoSuchAlgorithmException {
+  void testCheckSumsHashAccess() throws NoSuchAlgorithmException, DigestException {
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+    Object dummyObject = new Object();
     byte[] seedBytes = new byte[getSeedSizeForChecksum()];
     byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    byte[] checksumHashBytes = new byte[32];
 
-    GeneratedBufferingCharSequence charSequence = new GeneratedBufferingCharSequence();
+    RandomOnDemandByteAccess byteAccess = new RandomOnDemandByteAccess();
+    SplitMix64 pseudoRandomGenerator = new SplitMix64();
+
+    for (ChecksumRecord checksumRecord : getChecksumRecords()) {
+
+      long dataLength = checksumRecord.getDataSize();
+      int numCycles = checksumRecord.getNumCycles();
+
+      pseudoRandomGenerator.reset(checksumRecord.getSeed());
+
+      for (int cycle = 0; cycle < numCycles; ++cycle) {
+        generateRandomBytes(seedBytes, pseudoRandomGenerator);
+        byteAccess.reset(pseudoRandomGenerator);
+        calculateHashForChecksum(seedBytes, hashBytes, dummyObject, 0, dataLength, byteAccess);
+        md.update(hashBytes);
+      }
+      md.digest(checksumHashBytes, 0, checksumHashBytes.length);
+      String checksum = byteArrayToHexString(checksumHashBytes);
+      assertThat(checksum)
+          .describedAs(() -> checksumRecord.toString())
+          .isEqualTo(checksumRecord.getChecksum());
+    }
+  }
+
+  @Test
+  void testCheckSumsHashChars() throws NoSuchAlgorithmException, DigestException {
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+    byte[] seedBytes = new byte[getSeedSizeForChecksum()];
+    byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    byte[] checksumHashBytes = new byte[32];
+
+    RandomOnDemandCharSequence charSequence = new RandomOnDemandCharSequence();
     SplitMix64 pseudoRandomGenerator = new SplitMix64();
 
     for (ChecksumRecord checksumRecord : getChecksumRecords()) {
 
       long dataLength = checksumRecord.getDataSize();
 
-      if (dataLength % 2 != 0 || dataLength / 2 > Integer.MAX_VALUE || !testLength(dataLength)) {
+      if (dataLength % 2 != 0 || dataLength / 2 > Integer.MAX_VALUE) {
         continue;
       }
       int len = Math.toIntExact(checksumRecord.getDataSize() / 2);
       long numCycles = checksumRecord.getNumCycles();
 
       pseudoRandomGenerator.reset(checksumRecord.getSeed());
-
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
 
       for (long cycle = 0; cycle < numCycles; ++cycle) {
         generateRandomBytes(seedBytes, pseudoRandomGenerator);
@@ -773,7 +829,8 @@ abstract class AbstractHasherTest {
         calculateHashForChecksum(seedBytes, hashBytes, charSequence);
         md.update(hashBytes);
       }
-      String checksum = byteArrayToHexString(md.digest());
+      md.digest(checksumHashBytes, 0, checksumHashBytes.length);
+      String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
           .describedAs(() -> checksumRecord.toString())
           .isEqualTo(checksumRecord.getChecksum());
@@ -781,17 +838,19 @@ abstract class AbstractHasherTest {
   }
 
   @Test
-  void testCheckSumsPutBytes() throws NoSuchAlgorithmException {
+  void testCheckSumsPutBytes() throws NoSuchAlgorithmException, DigestException {
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
 
     SplittableRandom random = new SplittableRandom(0x07d1cadabc2405d3L);
 
     byte[] seedBytes = new byte[getSeedSizeForChecksum()];
     byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    byte[] checksumHashBytes = new byte[32];
 
     for (ChecksumRecord checksumRecord : getChecksumRecords()) {
 
       long dataLength = checksumRecord.getDataSize();
-      if (!testLength(dataLength)) continue;
 
       int maxIncrement = (int) Math.max(1, Math.min(1 << 16, dataLength / 4));
 
@@ -799,8 +858,6 @@ abstract class AbstractHasherTest {
 
       SplitMix64 pseudoRandomGenerator = new SplitMix64();
       pseudoRandomGenerator.reset(checksumRecord.getSeed());
-
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
 
       byte[] data = new byte[maxIncrement + 8];
 
@@ -826,7 +883,8 @@ abstract class AbstractHasherTest {
         getHashBytes(hashStreams, hashBytes);
         md.update(hashBytes);
       }
-      String checksum = byteArrayToHexString(md.digest());
+      md.digest(checksumHashBytes, 0, checksumHashBytes.length);
+      String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
           .describedAs(() -> checksumRecord.toString())
           .isEqualTo(checksumRecord.getChecksum());
@@ -834,17 +892,75 @@ abstract class AbstractHasherTest {
   }
 
   @Test
-  void testCheckSumsPutChars() throws NoSuchAlgorithmException {
+  void testCheckSumsPutBytesViaAccess() throws NoSuchAlgorithmException, DigestException {
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+    SplittableRandom random = new SplittableRandom(0x9d7295622633ef4bL);
+
+    byte[] seedBytes = new byte[getSeedSizeForChecksum()];
+    byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    byte[] checksumHashBytes = new byte[32];
+
+    for (ChecksumRecord checksumRecord : getChecksumRecords()) {
+
+      long dataLength = checksumRecord.getDataSize();
+
+      int maxIncrement = (int) Math.max(1, Math.min(1 << 16, dataLength / 4));
+
+      long numCycles = checksumRecord.getNumCycles();
+
+      SplitMix64 pseudoRandomGenerator = new SplitMix64();
+      pseudoRandomGenerator.reset(checksumRecord.getSeed());
+
+      byte[] data = new byte[maxIncrement + 8];
+
+      for (long cycle = 0; cycle < numCycles; ++cycle) {
+        generateRandomBytes(seedBytes, pseudoRandomGenerator);
+        List<HashStream> hashStreams = getHashStreams(seedBytes);
+
+        long remaining = dataLength;
+        int availableBytes = 0;
+        while (remaining > 0) {
+          int increment = (int) Math.min(remaining, random.nextLong(maxIncrement + 1));
+          while (availableBytes < increment) {
+            setLong(data, availableBytes, pseudoRandomGenerator.nextLong());
+            availableBytes += 8;
+          }
+          for (int i = 0; i < hashStreams.size(); ++i) {
+            hashStreams.get(i).putBytes(data, 0, increment, NativeByteArrayByteAccess.get());
+          }
+          setLong(data, 0, getLong(data, increment));
+          availableBytes -= increment;
+          remaining -= increment;
+        }
+        getHashBytes(hashStreams, hashBytes);
+        md.update(hashBytes);
+      }
+      md.digest(checksumHashBytes, 0, checksumHashBytes.length);
+      String checksum = byteArrayToHexString(checksumHashBytes);
+      assertThat(checksum)
+          .describedAs(() -> checksumRecord.toString())
+          .isEqualTo(checksumRecord.getChecksum());
+    }
+  }
+
+  @Test
+  void testCheckSumsPutChars() throws NoSuchAlgorithmException, DigestException {
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
 
     SplittableRandom random = new SplittableRandom(0xf234c9e987e251e8L);
 
     byte[] seedBytes = new byte[getSeedSizeForChecksum()];
     byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    byte[] checksumHashBytes = new byte[32];
 
     for (ChecksumRecord checksumRecord : getChecksumRecords()) {
 
       long dataLength = checksumRecord.getDataSize();
-      if (!testLength(dataLength)) continue;
+
+      if (dataLength > 2L * Integer.MAX_VALUE + 1) continue;
 
       int maxIncrement = (int) Math.max(1, Math.min(1 << 15, dataLength / 8));
 
@@ -852,8 +968,6 @@ abstract class AbstractHasherTest {
 
       SplitMix64 pseudoRandomGenerator = new SplitMix64();
       pseudoRandomGenerator.reset(checksumRecord.getSeed());
-
-      MessageDigest md = MessageDigest.getInstance("SHA-256");
 
       byte[] data = new byte[2 * maxIncrement + 8];
 
@@ -889,7 +1003,8 @@ abstract class AbstractHasherTest {
         getHashBytes(hashStreams, hashBytes);
         md.update(hashBytes);
       }
-      String checksum = byteArrayToHexString(md.digest());
+      md.digest(checksumHashBytes, 0, checksumHashBytes.length);
+      String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
           .describedAs(() -> checksumRecord.toString())
           .isEqualTo(checksumRecord.getChecksum());
@@ -1441,11 +1556,13 @@ abstract class AbstractHasherTest {
     for (int off = 0; off < 8; ++off) {
       HashStream hs1 = hasher.hashStream();
       HashStream hs2 = hasher.hashStream();
+      HashStream hs3 = hasher.hashStream();
       HashStream hsReference = createNonOptimizedHashStream(hasher);
       for (int cycleIdx = 0; cycleIdx < numCycles; ++cycleIdx) {
         for (int len = 0; len <= maxLen; ++len) {
           hs1.reset();
           hs2.reset();
+          hs3.reset();
           hsReference.reset();
           assertThat(hs1.getState()).isEqualTo(hsEmptyState);
           assertThat(hs2.getState()).isEqualTo(hsEmptyState);
@@ -1454,6 +1571,7 @@ abstract class AbstractHasherTest {
             byte b = (byte) random.nextInt();
             hs1.putByte(b);
             hs2.putByte(b);
+            hs3.putByte(b);
             hsReference.putByte(b);
           }
           byte[] bytes = new byte[8 * len];
@@ -1464,13 +1582,14 @@ abstract class AbstractHasherTest {
             hsReference.putLong(v);
           }
           hs2.putBytes(bytes);
+          hs3.putBytes(bytes, 0, bytes.length, NativeByteArrayByteAccess.get());
 
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
-          assertThat(defaultMethodWrapperEquals(hs1, hs2)).isTrue();
+          assertThat(defaultMethodWrapperEquals(hsReference, hs3)).isTrue();
           assertThat(hs1).hasSameHashCodeAs(hsReference);
           assertThat(hs2).hasSameHashCodeAs(hsReference);
-          assertThat(hs1).hasSameHashCodeAs(hs2);
+          assertThat(hs3).hasSameHashCodeAs(hsReference);
         }
       }
     }
@@ -1487,11 +1606,13 @@ abstract class AbstractHasherTest {
     for (int off = 0; off < 8; ++off) {
       HashStream hs1 = hasher.hashStream();
       HashStream hs2 = hasher.hashStream();
+      HashStream hs3 = hasher.hashStream();
       HashStream hsReference = createNonOptimizedHashStream(hasher);
       for (int cycleIdx = 0; cycleIdx < numCycles; ++cycleIdx) {
         for (int len = 0; len <= maxLen; ++len) {
           hs1.reset();
           hs2.reset();
+          hs3.reset();
           hsReference.reset();
           assertThat(hs1.getState()).isEqualTo(hsEmptyState);
           assertThat(hs2.getState()).isEqualTo(hsEmptyState);
@@ -1500,6 +1621,7 @@ abstract class AbstractHasherTest {
             byte b = (byte) random.nextInt();
             hs1.putByte(b);
             hs2.putByte(b);
+            hs3.putByte(b);
             hsReference.putByte(b);
           }
           byte[] bytes = new byte[4 * len];
@@ -1510,13 +1632,14 @@ abstract class AbstractHasherTest {
             hsReference.putInt(v);
           }
           hs2.putBytes(bytes);
+          hs3.putBytes(bytes, 0, bytes.length, NativeByteArrayByteAccess.get());
 
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
-          assertThat(defaultMethodWrapperEquals(hs1, hs2)).isTrue();
+          assertThat(defaultMethodWrapperEquals(hsReference, hs3)).isTrue();
           assertThat(hs1).hasSameHashCodeAs(hsReference);
           assertThat(hs2).hasSameHashCodeAs(hsReference);
-          assertThat(hs1).hasSameHashCodeAs(hs2);
+          assertThat(hs3).hasSameHashCodeAs(hsReference);
         }
       }
     }
@@ -1533,11 +1656,13 @@ abstract class AbstractHasherTest {
     for (int off = 0; off < 8; ++off) {
       HashStream hs1 = hasher.hashStream();
       HashStream hs2 = hasher.hashStream();
+      HashStream hs3 = hasher.hashStream();
       HashStream hsReference = createNonOptimizedHashStream(hasher);
       for (int cycleIdx = 0; cycleIdx < numCycles; ++cycleIdx) {
         for (int len = 0; len <= maxLen; ++len) {
           hs1.reset();
           hs2.reset();
+          hs3.reset();
           hsReference.reset();
           assertThat(hs1.getState()).isEqualTo(hsEmptyState);
           assertThat(hs2.getState()).isEqualTo(hsEmptyState);
@@ -1546,6 +1671,7 @@ abstract class AbstractHasherTest {
             byte b = (byte) random.nextInt();
             hs1.putByte(b);
             hs2.putByte(b);
+            hs3.putByte(b);
             hsReference.putByte(b);
           }
           byte[] bytes = new byte[2 * len];
@@ -1556,13 +1682,14 @@ abstract class AbstractHasherTest {
             hsReference.putShort(v);
           }
           hs2.putBytes(bytes);
+          hs3.putBytes(bytes, 0, bytes.length, NativeByteArrayByteAccess.get());
 
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
-          assertThat(defaultMethodWrapperEquals(hs1, hs2)).isTrue();
+          assertThat(defaultMethodWrapperEquals(hsReference, hs3)).isTrue();
           assertThat(hs1).hasSameHashCodeAs(hsReference);
           assertThat(hs2).hasSameHashCodeAs(hsReference);
-          assertThat(hs1).hasSameHashCodeAs(hs2);
+          assertThat(hs3).hasSameHashCodeAs(hsReference);
         }
       }
     }

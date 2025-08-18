@@ -42,12 +42,6 @@ import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
 
 final class XXH3_64 extends XXH3Base {
 
-  private final long secShift12;
-  private final long secShift13;
-  private final long secShift14;
-  private final long secShift15;
-
-  private final long bitflip00;
   private final long bitflip12;
   private final long bitflip34;
   private final long bitflip56;
@@ -55,14 +49,8 @@ final class XXH3_64 extends XXH3Base {
   private final long hash0;
 
   private XXH3_64(long seed) {
-    super(seed);
+    super(seed, false);
 
-    this.secShift12 = (SECRET_12 >>> 24) + (SECRET_13 << 40) + seed;
-    this.secShift13 = (SECRET_13 >>> 24) + (SECRET_14 << 40) - seed;
-    this.secShift14 = (SECRET_14 >>> 56) + (SECRET_15 << 8) + seed;
-    this.secShift15 = (SECRET_15 >>> 56) + (SECRET_16 << 8) - seed;
-
-    this.bitflip00 = ((SECRET_00 >>> 32) ^ (SECRET_00 & 0xFFFFFFFFL)) + seed;
     this.bitflip12 = (SECRET_01 ^ SECRET_02) - (seed ^ Long.reverseBytes(seed & 0xFFFFFFFFL));
     this.bitflip34 = (SECRET_03 ^ SECRET_04) + seed;
     this.bitflip56 = (SECRET_05 ^ SECRET_06) - seed;
@@ -107,9 +95,8 @@ final class XXH3_64 extends XXH3Base {
       long acc6Loc = acc6;
       long acc7Loc = acc7;
 
-      for (int off = 0, s = (((int) byteCount - 1) >>> 6) & 12;
-          off + 64 <= (((int) byteCount - 1) & BULK_SIZE_MASK);
-          off += 64, s += 1) {
+      int end = (((int) byteCount - 1) & BULK_SIZE_MASK) - 64;
+      for (int off = 0, s = (((int) byteCount - 1) >>> 6) & 12; off <= end; off += 64, s += 1) {
 
         long b0 = getLong(buffer, off + 8 * 0);
         long b1 = getLong(buffer, off + 8 * 1);
@@ -130,6 +117,7 @@ final class XXH3_64 extends XXH3Base {
         acc7Loc += b6 + contrib(b7, secret[s + 7]);
       }
 
+      long result = byteCount * INIT_ACC_1;
       {
         long b0 = getLong(buffer, (offset - (64 - 8 * 0)) & BULK_SIZE_MASK);
         long b1 = getLong(buffer, (offset - (64 - 8 * 1)) & BULK_SIZE_MASK);
@@ -140,18 +128,22 @@ final class XXH3_64 extends XXH3Base {
         long b6 = getLong(buffer, (offset - (64 - 8 * 6)) & BULK_SIZE_MASK);
         long b7 = getLong(buffer, (offset - (64 - 8 * 7)) & BULK_SIZE_MASK);
 
-        acc0Loc += b1 + contrib(b0, secShift16);
-        acc1Loc += b0 + contrib(b1, secShift17);
-        acc2Loc += b3 + contrib(b2, secShift18);
-        acc3Loc += b2 + contrib(b3, secShift19);
-        acc4Loc += b5 + contrib(b4, secShift20);
-        acc5Loc += b4 + contrib(b5, secShift21);
-        acc6Loc += b7 + contrib(b6, secShift22);
-        acc7Loc += b6 + contrib(b7, secShift23);
+        acc0Loc += b1 + contrib(b0, secShiftFinalA0);
+        acc1Loc += b0 + contrib(b1, secShiftFinalA1);
+        acc2Loc += b3 + contrib(b2, secShiftFinalA2);
+        acc3Loc += b2 + contrib(b3, secShiftFinalA3);
+        acc4Loc += b5 + contrib(b4, secShiftFinalA4);
+        acc5Loc += b4 + contrib(b5, secShiftFinalA5);
+        acc6Loc += b7 + contrib(b6, secShiftFinalA6);
+        acc7Loc += b6 + contrib(b7, secShiftFinalA7);
+
+        result += mix(acc0Loc ^ secShiftFinalB0, acc1Loc ^ secShiftFinalB1);
+        result += mix(acc2Loc ^ secShiftFinalB2, acc3Loc ^ secShiftFinalB3);
+        result += mix(acc4Loc ^ secShiftFinalB4, acc5Loc ^ secShiftFinalB5);
+        result += mix(acc6Loc ^ secShiftFinalB6, acc7Loc ^ secShiftFinalB7);
       }
 
-      return finalizeHash(
-          byteCount, acc0Loc, acc1Loc, acc2Loc, acc3Loc, acc4Loc, acc5Loc, acc6Loc, acc7Loc);
+      return avalanche3(result);
     }
 
     @Override
@@ -185,8 +177,14 @@ final class XXH3_64 extends XXH3Base {
     }
 
     @Override
-    public HashStream64 putBytes(byte[] b, int off, final int len) {
+    public HashStream64 putBytes(byte[] b, int off, int len) {
       putBytesImpl(b, off, len);
+      return this;
+    }
+
+    @Override
+    public <T> HashStream64 putBytes(T b, long off, long len, ByteAccess<T> access) {
+      putBytesImpl(b, off, len, access);
       return this;
     }
 
@@ -223,21 +221,28 @@ final class XXH3_64 extends XXH3Base {
   }
 
   private static long mix16B(
-      final byte[] input, final int offIn, final long sec0, final long sec1) {
+      final byte[] input, final int offIn, final long[] sec, final int offSec) {
     long lo = getLong(input, offIn);
     long hi = getLong(input, offIn + 8);
-    return mix2Accs(lo, hi, sec0, sec1);
+    return mix(lo ^ sec[offSec], hi ^ sec[offSec + 1]);
+  }
+
+  private static <T> long mix16B(
+      final T input, final long offIn, final long[] sec, final int offSec, ByteAccess<T> access) {
+    long lo = access.getLong(input, offIn);
+    long hi = access.getLong(input, offIn + 8);
+    return mix(lo ^ sec[offSec], hi ^ sec[offSec + 1]);
   }
 
   private static long mix16B(
-      final CharSequence input, final int offIn, final long sec0, final long sec1) {
+      final CharSequence input, final int offIn, final long[] sec, final int offSec) {
     long lo = getLong(input, offIn);
     long hi = getLong(input, offIn + 4);
-    return mix2Accs(lo, hi, sec0, sec1);
+    return mix(lo ^ sec[offSec], hi ^ sec[offSec + 1]);
   }
 
   @Override
-  public long hashBytesToLong(final byte[] input, final int off, final int length) {
+  public long hashBytesToLong(byte[] input, int off, int length) {
     if (length <= 16) {
       if (length > 8) {
         long lo = getLong(input, off) ^ bitflip34;
@@ -247,8 +252,8 @@ final class XXH3_64 extends XXH3Base {
       }
       if (length >= 4) {
         long input1 = getInt(input, off);
-        long input2 = getInt(input, off + length - 4);
-        long keyed = (input2 & 0xFFFFFFFFL) ^ (input1 << 32) ^ bitflip12;
+        long input2 = getInt(input, off + length - 4) & 0xFFFFFFFFL;
+        long keyed = input2 ^ (input1 << 32) ^ bitflip12;
         return rrmxmx(keyed, length);
       }
       if (length != 0) {
@@ -266,53 +271,35 @@ final class XXH3_64 extends XXH3Base {
       if (length > 32) {
         if (length > 64) {
           if (length > 96) {
-            acc += mix16B(input, off + 48, secret12, secret13);
-            acc += mix16B(input, off + length - 64, secret14, secret15);
+            acc += mix16B(input, off + 48, secret, 12);
+            acc += mix16B(input, off + length - 64, secret, 14);
           }
-          acc += mix16B(input, off + 32, secret08, secret09);
-          acc += mix16B(input, off + length - 48, secret10, secret11);
+          acc += mix16B(input, off + 32, secret, 8);
+          acc += mix16B(input, off + length - 48, secret, 10);
         }
-        acc += mix16B(input, off + 16, secret04, secret05);
-        acc += mix16B(input, off + length - 32, secret06, secret07);
+        acc += mix16B(input, off + 16, secret, 4);
+        acc += mix16B(input, off + length - 32, secret, 6);
       }
-      acc += mix16B(input, off, secret00, secret01);
-      acc += mix16B(input, off + length - 16, secret02, secret03);
+      acc += mix16B(input, off, secret, 0);
+      acc += mix16B(input, off + length - 16, secret, 2);
 
       return avalanche3(acc);
     }
     if (length <= 240) {
       long acc = length * INIT_ACC_1;
-      acc += mix16B(input, off + 16 * 0, secret00, secret01);
-      acc += mix16B(input, off + 16 * 1, secret02, secret03);
-      acc += mix16B(input, off + 16 * 2, secret04, secret05);
-      acc += mix16B(input, off + 16 * 3, secret06, secret07);
-      acc += mix16B(input, off + 16 * 4, secret08, secret09);
-      acc += mix16B(input, off + 16 * 5, secret10, secret11);
-      acc += mix16B(input, off + 16 * 6, secret12, secret13);
-      acc += mix16B(input, off + 16 * 7, secret14, secret15);
+      final int nbRounds = length >>> 4;
+      int i = 0;
+      for (; i < 8; ++i) {
+        acc += mix16B(input, off + (i << 4), secret, i << 1);
+      }
 
       acc = avalanche3(acc);
 
-      if (length >= 144) {
-        acc += mix16B(input, off + 128, secShift00, secShift01);
-        if (length >= 160) {
-          acc += mix16B(input, off + 144, secShift02, secShift03);
-          if (length >= 176) {
-            acc += mix16B(input, off + 160, secShift04, secShift05);
-            if (length >= 192) {
-              acc += mix16B(input, off + 176, secShift06, secShift07);
-              if (length >= 208) {
-                acc += mix16B(input, off + 192, secShift08, secShift09);
-                if (length >= 224) {
-                  acc += mix16B(input, off + 208, secShift10, secShift11);
-                  if (length >= 240) acc += mix16B(input, off + 224, secShift12, secShift13);
-                }
-              }
-            }
-          }
-        }
+      for (; i < nbRounds; ++i) {
+        acc += mix16B(input, off + (i << 4), secShift, (i << 1) - 16);
       }
-      acc += mix16B(input, off + length - 16, secShift14, secShift15);
+
+      acc += mix16B(input, off + length - 16, secShift, 14);
       return avalanche3(acc);
     }
 
@@ -350,14 +337,14 @@ final class XXH3_64 extends XXH3Base {
         acc7 += b6 + contrib(b7, secret[s + 7]);
       }
 
-      acc0 = mixAcc(acc0, secret16);
-      acc1 = mixAcc(acc1, secret17);
-      acc2 = mixAcc(acc2, secret18);
-      acc3 = mixAcc(acc3, secret19);
-      acc4 = mixAcc(acc4, secret20);
-      acc5 = mixAcc(acc5, secret21);
-      acc6 = mixAcc(acc6, secret22);
-      acc7 = mixAcc(acc7, secret23);
+      acc0 = mixAcc(acc0, secret[16]);
+      acc1 = mixAcc(acc1, secret[17]);
+      acc2 = mixAcc(acc2, secret[18]);
+      acc3 = mixAcc(acc3, secret[19]);
+      acc4 = mixAcc(acc4, secret[20]);
+      acc5 = mixAcc(acc5, secret[21]);
+      acc6 = mixAcc(acc6, secret[22]);
+      acc7 = mixAcc(acc7, secret[23]);
     }
 
     final int nbStripes = ((length - 1) - (nbBlocks << BLOCK_LEN_EXP)) >>> 6;
@@ -384,6 +371,7 @@ final class XXH3_64 extends XXH3Base {
       acc7 += b6 + contrib(b7, secret[s + 7]);
     }
 
+    long result = length * INIT_ACC_1;
     {
       int offStripe = off + length - 64;
 
@@ -396,38 +384,183 @@ final class XXH3_64 extends XXH3Base {
       long b6 = getLong(input, offStripe + 8 * 6);
       long b7 = getLong(input, offStripe + 8 * 7);
 
-      acc0 += b1 + contrib(b0, secShift16);
-      acc1 += b0 + contrib(b1, secShift17);
-      acc2 += b3 + contrib(b2, secShift18);
-      acc3 += b2 + contrib(b3, secShift19);
-      acc4 += b5 + contrib(b4, secShift20);
-      acc5 += b4 + contrib(b5, secShift21);
-      acc6 += b7 + contrib(b6, secShift22);
-      acc7 += b6 + contrib(b7, secShift23);
+      acc0 += b1 + contrib(b0, secShiftFinalA0);
+      acc1 += b0 + contrib(b1, secShiftFinalA1);
+      acc2 += b3 + contrib(b2, secShiftFinalA2);
+      acc3 += b2 + contrib(b3, secShiftFinalA3);
+      acc4 += b5 + contrib(b4, secShiftFinalA4);
+      acc5 += b4 + contrib(b5, secShiftFinalA5);
+      acc6 += b7 + contrib(b6, secShiftFinalA6);
+      acc7 += b6 + contrib(b7, secShiftFinalA7);
+
+      result += mix(acc0 ^ secShiftFinalB0, acc1 ^ secShiftFinalB1);
+      result += mix(acc2 ^ secShiftFinalB2, acc3 ^ secShiftFinalB3);
+      result += mix(acc4 ^ secShiftFinalB4, acc5 ^ secShiftFinalB5);
+      result += mix(acc6 ^ secShiftFinalB6, acc7 ^ secShiftFinalB7);
     }
 
-    return finalizeHash(length, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
+    return avalanche3(result);
   }
 
-  private long finalizeHash(
-      long length,
-      long acc0,
-      long acc1,
-      long acc2,
-      long acc3,
-      long acc4,
-      long acc5,
-      long acc6,
-      long acc7) {
+  @Override
+  public <T> long hashBytesToLong(T input, long off, long length, ByteAccess<T> access) {
+    if (length <= 16) {
+      if (length > 8) {
+        long lo = access.getLong(input, off) ^ bitflip34;
+        long hi = access.getLong(input, off + length - 8) ^ bitflip56;
+        long acc = length + Long.reverseBytes(lo) + hi + mix(lo, hi);
+        return avalanche3(acc);
+      }
+      if (length >= 4) {
+        long input1 = access.getInt(input, off);
+        long input2 = access.getIntAsUnsignedLong(input, off + length - 4);
+        long keyed = input2 ^ (input1 << 32) ^ bitflip12;
+        return rrmxmx(keyed, length);
+      }
+      if (length != 0) {
+        int c1 = access.getByteAsUnsignedInt(input, off);
+        int c2 = access.getByte(input, off + (length >> 1));
+        int c3 = access.getByteAsUnsignedInt(input, off + length - 1);
+        long combined = ((c1 << 16) | (c2 << 24) | c3 | (length << 8)) & 0xFFFFFFFFL;
+        return avalanche64(combined ^ bitflip00);
+      }
+      return hash0;
+    }
+    if (length <= 128) {
+      long acc = length * INIT_ACC_1;
 
-    long result64 =
-        length * INIT_ACC_1
-            + mix2Accs(acc0, acc1, secShiftFinal0, secShiftFinal1)
-            + mix2Accs(acc2, acc3, secShiftFinal2, secShiftFinal3)
-            + mix2Accs(acc4, acc5, secShiftFinal4, secShiftFinal5)
-            + mix2Accs(acc6, acc7, secShiftFinal6, secShiftFinal7);
+      if (length > 32) {
+        if (length > 64) {
+          if (length > 96) {
+            acc += mix16B(input, off + 48, secret, 12, access);
+            acc += mix16B(input, off + length - 64, secret, 14, access);
+          }
+          acc += mix16B(input, off + 32, secret, 8, access);
+          acc += mix16B(input, off + length - 48, secret, 10, access);
+        }
+        acc += mix16B(input, off + 16, secret, 4, access);
+        acc += mix16B(input, off + length - 32, secret, 6, access);
+      }
+      acc += mix16B(input, off, secret, 0, access);
+      acc += mix16B(input, off + length - 16, secret, 2, access);
 
-    return avalanche3(result64);
+      return avalanche3(acc);
+    }
+    if (length <= 240) {
+      long acc = length * INIT_ACC_1;
+      final int nbRounds = (int) length >>> 4;
+      int i = 0;
+      for (; i < 8; ++i) {
+        acc += mix16B(input, off + (i << 4), secret, i << 1, access);
+      }
+
+      acc = avalanche3(acc);
+
+      for (; i < nbRounds; ++i) {
+        acc += mix16B(input, off + (i << 4), secShift, (i << 1) - 16, access);
+      }
+
+      acc += mix16B(input, off + length - 16, secShift, 14, access);
+      return avalanche3(acc);
+    }
+
+    long acc0 = INIT_ACC_0;
+    long acc1 = INIT_ACC_1;
+    long acc2 = INIT_ACC_2;
+    long acc3 = INIT_ACC_3;
+    long acc4 = INIT_ACC_4;
+    long acc5 = INIT_ACC_5;
+    long acc6 = INIT_ACC_6;
+    long acc7 = INIT_ACC_7;
+
+    final long nbBlocks = (length - 1) >>> BLOCK_LEN_EXP;
+    for (long n = 0; n < nbBlocks; n++) {
+      final long offBlock = off + (n << BLOCK_LEN_EXP);
+      for (int s = 0; s < 16; s += 1) {
+        long offStripe = offBlock + (s << 6);
+
+        long b0 = access.getLong(input, offStripe + 8 * 0);
+        long b1 = access.getLong(input, offStripe + 8 * 1);
+        long b2 = access.getLong(input, offStripe + 8 * 2);
+        long b3 = access.getLong(input, offStripe + 8 * 3);
+        long b4 = access.getLong(input, offStripe + 8 * 4);
+        long b5 = access.getLong(input, offStripe + 8 * 5);
+        long b6 = access.getLong(input, offStripe + 8 * 6);
+        long b7 = access.getLong(input, offStripe + 8 * 7);
+
+        acc0 += b1 + contrib(b0, secret[s + 0]);
+        acc1 += b0 + contrib(b1, secret[s + 1]);
+        acc2 += b3 + contrib(b2, secret[s + 2]);
+        acc3 += b2 + contrib(b3, secret[s + 3]);
+        acc4 += b5 + contrib(b4, secret[s + 4]);
+        acc5 += b4 + contrib(b5, secret[s + 5]);
+        acc6 += b7 + contrib(b6, secret[s + 6]);
+        acc7 += b6 + contrib(b7, secret[s + 7]);
+      }
+
+      acc0 = mixAcc(acc0, secret[16]);
+      acc1 = mixAcc(acc1, secret[17]);
+      acc2 = mixAcc(acc2, secret[18]);
+      acc3 = mixAcc(acc3, secret[19]);
+      acc4 = mixAcc(acc4, secret[20]);
+      acc5 = mixAcc(acc5, secret[21]);
+      acc6 = mixAcc(acc6, secret[22]);
+      acc7 = mixAcc(acc7, secret[23]);
+    }
+
+    final long nbStripes = ((length - 1) - (nbBlocks << BLOCK_LEN_EXP)) >>> 6;
+    final long offBlock = off + (nbBlocks << BLOCK_LEN_EXP);
+    for (int s = 0; s < nbStripes; s++) {
+      long offStripe = offBlock + (s << 6);
+
+      long b0 = access.getLong(input, offStripe + 8 * 0);
+      long b1 = access.getLong(input, offStripe + 8 * 1);
+      long b2 = access.getLong(input, offStripe + 8 * 2);
+      long b3 = access.getLong(input, offStripe + 8 * 3);
+      long b4 = access.getLong(input, offStripe + 8 * 4);
+      long b5 = access.getLong(input, offStripe + 8 * 5);
+      long b6 = access.getLong(input, offStripe + 8 * 6);
+      long b7 = access.getLong(input, offStripe + 8 * 7);
+
+      acc0 += b1 + contrib(b0, secret[s + 0]);
+      acc1 += b0 + contrib(b1, secret[s + 1]);
+      acc2 += b3 + contrib(b2, secret[s + 2]);
+      acc3 += b2 + contrib(b3, secret[s + 3]);
+      acc4 += b5 + contrib(b4, secret[s + 4]);
+      acc5 += b4 + contrib(b5, secret[s + 5]);
+      acc6 += b7 + contrib(b6, secret[s + 6]);
+      acc7 += b6 + contrib(b7, secret[s + 7]);
+    }
+
+    long result = length * INIT_ACC_1;
+    {
+      long offStripe = off + length - 64;
+
+      long b0 = access.getLong(input, offStripe + 8 * 0);
+      long b1 = access.getLong(input, offStripe + 8 * 1);
+      long b2 = access.getLong(input, offStripe + 8 * 2);
+      long b3 = access.getLong(input, offStripe + 8 * 3);
+      long b4 = access.getLong(input, offStripe + 8 * 4);
+      long b5 = access.getLong(input, offStripe + 8 * 5);
+      long b6 = access.getLong(input, offStripe + 8 * 6);
+      long b7 = access.getLong(input, offStripe + 8 * 7);
+
+      acc0 += b1 + contrib(b0, secShiftFinalA0);
+      acc1 += b0 + contrib(b1, secShiftFinalA1);
+      acc2 += b3 + contrib(b2, secShiftFinalA2);
+      acc3 += b2 + contrib(b3, secShiftFinalA3);
+      acc4 += b5 + contrib(b4, secShiftFinalA4);
+      acc5 += b4 + contrib(b5, secShiftFinalA5);
+      acc6 += b7 + contrib(b6, secShiftFinalA6);
+      acc7 += b6 + contrib(b7, secShiftFinalA7);
+
+      result += mix(acc0 ^ secShiftFinalB0, acc1 ^ secShiftFinalB1);
+      result += mix(acc2 ^ secShiftFinalB2, acc3 ^ secShiftFinalB3);
+      result += mix(acc4 ^ secShiftFinalB4, acc5 ^ secShiftFinalB5);
+      result += mix(acc6 ^ secShiftFinalB6, acc7 ^ secShiftFinalB7);
+    }
+
+    return avalanche3(result);
   }
 
   @Override
@@ -450,8 +583,7 @@ final class XXH3_64 extends XXH3Base {
       }
       if (len != 0) {
         long c = charSequence.charAt(0);
-        long combined = (c << 16) | (c >>> 8) | 512L;
-        return avalanche64(combined ^ bitflip00);
+        return avalanche64((c << 16) ^ (c >>> 8) ^ 0x200L ^ bitflip00);
       }
       return hash0;
     }
@@ -461,53 +593,37 @@ final class XXH3_64 extends XXH3Base {
       if (len > 16) {
         if (len > 32) {
           if (len > 48) {
-            acc += mix16B(charSequence, 24, secret12, secret13);
-            acc += mix16B(charSequence, len - 32, secret14, secret15);
+            acc += mix16B(charSequence, 24, secret, 12);
+            acc += mix16B(charSequence, len - 32, secret, 14);
           }
-          acc += mix16B(charSequence, 16, secret08, secret09);
-          acc += mix16B(charSequence, len - 24, secret10, secret11);
+          acc += mix16B(charSequence, 16, secret, 8);
+          acc += mix16B(charSequence, len - 24, secret, 10);
         }
-        acc += mix16B(charSequence, 8, secret04, secret05);
-        acc += mix16B(charSequence, len - 16, secret06, secret07);
+        acc += mix16B(charSequence, 8, secret, 4);
+        acc += mix16B(charSequence, len - 16, secret, 6);
       }
-      acc += mix16B(charSequence, 0, secret00, secret01);
-      acc += mix16B(charSequence, len - 8, secret02, secret03);
+      acc += mix16B(charSequence, 0, secret, 0);
+      acc += mix16B(charSequence, len - 8, secret, 2);
 
       return avalanche3(acc);
     }
+
     if (len <= 120) {
       long acc = len * (INIT_ACC_1 << 1);
-      acc += mix16B(charSequence, 0, secret00, secret01);
-      acc += mix16B(charSequence, 8, secret02, secret03);
-      acc += mix16B(charSequence, 16, secret04, secret05);
-      acc += mix16B(charSequence, 24, secret06, secret07);
-      acc += mix16B(charSequence, 32, secret08, secret09);
-      acc += mix16B(charSequence, 40, secret10, secret11);
-      acc += mix16B(charSequence, 48, secret12, secret13);
-      acc += mix16B(charSequence, 56, secret14, secret15);
+      final int nbRounds = len >>> 3;
+      int i = 0;
+      for (; i < 8; ++i) {
+        acc += mix16B(charSequence, i << 3, secret, i << 1);
+      }
 
       acc = avalanche3(acc);
 
-      if (len >= 72) {
-        acc += mix16B(charSequence, 64, secShift00, secShift01);
-        if (len >= 80) {
-          acc += mix16B(charSequence, 72, secShift02, secShift03);
-          if (len >= 88) {
-            acc += mix16B(charSequence, 80, secShift04, secShift05);
-            if (len >= 96) {
-              acc += mix16B(charSequence, 88, secShift06, secShift07);
-              if (len >= 104) {
-                acc += mix16B(charSequence, 96, secShift08, secShift09);
-                if (len >= 112) {
-                  acc += mix16B(charSequence, 104, secShift10, secShift11);
-                  if (len >= 120) acc += mix16B(charSequence, 112, secShift12, secShift13);
-                }
-              }
-            }
-          }
-        }
+      for (; i < nbRounds; ++i) {
+        acc += mix16B(charSequence, i << 3, secShift, (i - 8) << 1);
       }
-      acc += mix16B(charSequence, len - 8, secShift14, secShift15);
+
+      acc += mix16B(charSequence, len - 8, secShift, 14);
+
       return avalanche3(acc);
     }
 
@@ -545,14 +661,14 @@ final class XXH3_64 extends XXH3Base {
         acc7 += b6 + contrib(b7, secret[s + 7]);
       }
 
-      acc0 = mixAcc(acc0, secret16);
-      acc1 = mixAcc(acc1, secret17);
-      acc2 = mixAcc(acc2, secret18);
-      acc3 = mixAcc(acc3, secret19);
-      acc4 = mixAcc(acc4, secret20);
-      acc5 = mixAcc(acc5, secret21);
-      acc6 = mixAcc(acc6, secret22);
-      acc7 = mixAcc(acc7, secret23);
+      acc0 = mixAcc(acc0, secret[16]);
+      acc1 = mixAcc(acc1, secret[17]);
+      acc2 = mixAcc(acc2, secret[18]);
+      acc3 = mixAcc(acc3, secret[19]);
+      acc4 = mixAcc(acc4, secret[20]);
+      acc5 = mixAcc(acc5, secret[21]);
+      acc6 = mixAcc(acc6, secret[22]);
+      acc7 = mixAcc(acc7, secret[23]);
     }
 
     final int nbStripes = ((len - 1) - (nbBlocks << (BLOCK_LEN_EXP - 1))) >>> 5;
@@ -579,6 +695,7 @@ final class XXH3_64 extends XXH3Base {
       acc7 += b6 + contrib(b7, secret[s + 7]);
     }
 
+    long result = len * (INIT_ACC_1 << 1);
     {
       int offStripe = len - 32;
 
@@ -591,17 +708,22 @@ final class XXH3_64 extends XXH3Base {
       long b6 = getLong(charSequence, offStripe + 4 * 6);
       long b7 = getLong(charSequence, offStripe + 4 * 7);
 
-      acc0 += b1 + contrib(b0, secShift16);
-      acc1 += b0 + contrib(b1, secShift17);
-      acc2 += b3 + contrib(b2, secShift18);
-      acc3 += b2 + contrib(b3, secShift19);
-      acc4 += b5 + contrib(b4, secShift20);
-      acc5 += b4 + contrib(b5, secShift21);
-      acc6 += b7 + contrib(b6, secShift22);
-      acc7 += b6 + contrib(b7, secShift23);
+      acc0 += b1 + contrib(b0, secShiftFinalA0);
+      acc1 += b0 + contrib(b1, secShiftFinalA1);
+      acc2 += b3 + contrib(b2, secShiftFinalA2);
+      acc3 += b2 + contrib(b3, secShiftFinalA3);
+      acc4 += b5 + contrib(b4, secShiftFinalA4);
+      acc5 += b4 + contrib(b5, secShiftFinalA5);
+      acc6 += b7 + contrib(b6, secShiftFinalA6);
+      acc7 += b6 + contrib(b7, secShiftFinalA7);
+
+      result += mix(acc0 ^ secShiftFinalB0, acc1 ^ secShiftFinalB1);
+      result += mix(acc2 ^ secShiftFinalB2, acc3 ^ secShiftFinalB3);
+      result += mix(acc4 ^ secShiftFinalB4, acc5 ^ secShiftFinalB5);
+      result += mix(acc6 ^ secShiftFinalB6, acc7 ^ secShiftFinalB7);
     }
 
-    return finalizeHash((long) len << 1, acc0, acc1, acc2, acc3, acc4, acc5, acc6, acc7);
+    return avalanche3(result);
   }
 
   @Override
@@ -630,8 +752,8 @@ final class XXH3_64 extends XXH3Base {
   @Override
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
     long acc = 0xd53368a48e1afca8L;
-    acc += mix2Accs(v1, v2, secret00, secret01);
-    acc += mix2Accs(v2, v3, secret02, secret03);
+    acc += mix(v1 ^ secret[0], v2 ^ secret[1]);
+    acc += mix(v2 ^ secret[2], v3 ^ secret[3]);
     return avalanche3(acc);
   }
 
