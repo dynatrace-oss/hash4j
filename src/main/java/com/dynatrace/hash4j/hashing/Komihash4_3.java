@@ -94,19 +94,15 @@ final class Komihash4_3 extends AbstractKomihash {
         long tmp7 = see4 ^ getLong(input, off + 48);
         long tmp8 = see8 ^ getLong(input, off + 56);
 
-        see1 = tmp1 * tmp2;
         see5 += unsignedMultiplyHigh(tmp1, tmp2);
-        see2 = tmp3 * tmp4;
         see6 += unsignedMultiplyHigh(tmp3, tmp4);
-        see3 = tmp5 * tmp6;
         see7 += unsignedMultiplyHigh(tmp5, tmp6);
-        see4 = tmp7 * tmp8;
         see8 += unsignedMultiplyHigh(tmp7, tmp8);
 
-        see2 ^= see5;
-        see3 ^= see6;
-        see4 ^= see7;
-        see1 ^= see8;
+        see1 = see8 ^ (tmp1 * tmp2);
+        see2 = see5 ^ (tmp3 * tmp4);
+        see3 = see6 ^ (tmp5 * tmp6);
+        see4 = see7 ^ (tmp7 * tmp8);
 
         off += 64;
         len -= 64;
@@ -159,8 +155,10 @@ final class Komihash4_3 extends AbstractKomihash {
       r2h ^= (fb & 0xFFFFFFFFL) | (((long) y << 32) >>> -ml8);
     } else if (len > 0) {
       int fb = input[off] & 0xFF;
-      if (len > 1) fb |= (input[off + 1] & 0xFF) << 8;
-      if (len > 2) fb |= (input[off + 2] & 0xFF) << 16;
+      if (len != 1) {
+        fb |= (input[off + 1] & 0xFF) << 8;
+        if (len != 2) fb |= (input[off + 2] & 0xFF) << 16;
+      }
       r2h ^= 1L << ml8 << (fb >>> (ml8 - 1));
       r2h ^= fb;
     } else if (nonZeroLength) {
@@ -197,19 +195,15 @@ final class Komihash4_3 extends AbstractKomihash {
         long tmp7 = see4 ^ access.getLong(input, off + 48);
         long tmp8 = see8 ^ access.getLong(input, off + 56);
 
-        see1 = tmp1 * tmp2;
         see5 += unsignedMultiplyHigh(tmp1, tmp2);
-        see2 = tmp3 * tmp4;
         see6 += unsignedMultiplyHigh(tmp3, tmp4);
-        see3 = tmp5 * tmp6;
         see7 += unsignedMultiplyHigh(tmp5, tmp6);
-        see4 = tmp7 * tmp8;
         see8 += unsignedMultiplyHigh(tmp7, tmp8);
 
-        see2 ^= see5;
-        see3 ^= see6;
-        see4 ^= see7;
-        see1 ^= see8;
+        see1 = see8 ^ (tmp1 * tmp2);
+        see2 = see5 ^ (tmp3 * tmp4);
+        see3 = see6 ^ (tmp5 * tmp6);
+        see4 = see7 ^ (tmp7 * tmp8);
 
         off += 64;
         len -= 64;
@@ -262,8 +256,10 @@ final class Komihash4_3 extends AbstractKomihash {
       r2h ^= (fb & 0xFFFFFFFFL) | (((long) y << 32) >>> -ml8);
     } else if (len > 0) {
       int fb = access.getByteAsUnsignedInt(input, off);
-      if (len > 1) fb |= access.getByteAsUnsignedInt(input, off + 1) << 8;
-      if (len > 2) fb |= access.getByteAsUnsignedInt(input, off + 2) << 16;
+      if (len != 1) {
+        fb |= access.getByteAsUnsignedInt(input, off + 1) << 8;
+        if (len != 2) fb |= access.getByteAsUnsignedInt(input, off + 2) << 16;
+      }
       r2h ^= 1L << ml8 << (fb >>> (ml8 - 1));
       r2h ^= fb;
     } else if (nonZeroLength) {
@@ -308,10 +304,10 @@ final class Komihash4_3 extends AbstractKomihash {
         see7 += unsignedMultiplyHigh(tmp5, tmp6);
         see8 += unsignedMultiplyHigh(tmp7, tmp8);
 
+        see1 = see8 ^ (tmp1 * tmp2);
         see2 = see5 ^ (tmp3 * tmp4);
         see3 = see6 ^ (tmp5 * tmp6);
         see4 = see7 ^ (tmp7 * tmp8);
-        see1 = see8 ^ (tmp1 * tmp2);
 
         off += 32;
         len -= 32;
@@ -529,13 +525,9 @@ final class Komihash4_3 extends AbstractKomihash {
     }
   }
 
-  private long finish12Bytes(long a, long b) {
-    return finish(this.seed5 ^ b, this.seed1 ^ a, this.seed5);
-  }
-
   @Override
   public long hashIntToLong(int v) {
-    return finish(seed5, seed1 ^ (v & 0xFFFFFFFFL) ^ (1L << 32 << (v >>> 31)), seed5);
+    return finish(seed1 ^ (v & 0xFFFFFFFFL) ^ (1L << 32 << (v >>> 31)), seed5, seed5);
   }
 
   @Override
@@ -551,7 +543,7 @@ final class Komihash4_3 extends AbstractKomihash {
 
   @Override
   public long hashLongToLong(long v) {
-    return finish(seed5 ^ (1L << (v >>> 63)), seed1 ^ v, seed5);
+    return finish(seed1 ^ v, seed5 ^ (1L << (v >>> 63)), seed5);
   }
 
   @Override
@@ -559,7 +551,7 @@ final class Komihash4_3 extends AbstractKomihash {
     long tmp1 = this.seed1 ^ v1;
     long tmp2 = this.seed5 ^ v2;
     long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
-    return finish(see5, (tmp1 * tmp2) ^ (see5 ^ (1L << (v2 >>> 63))), see5);
+    return finish((tmp1 * tmp2) ^ (see5 ^ (1L << (v2 >>> 63))), see5, see5);
   }
 
   @Override
@@ -567,12 +559,12 @@ final class Komihash4_3 extends AbstractKomihash {
     long tmp1 = this.seed1 ^ v1;
     long tmp2 = this.seed5 ^ v2;
     long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
-    return finish(see5 ^ (1L << (v3 >>> 63)), (tmp1 * tmp2) ^ (see5 ^ v3), see5);
+    return finish((tmp1 * tmp2) ^ (see5 ^ v3), see5 ^ (1L << (v3 >>> 63)), see5);
   }
 
   @Override
   public long hashLongIntToLong(long v1, int v2) {
-    return finish12Bytes(v1, (v2 & 0xFFFFFFFFL) ^ (1L << 32 << (v2 >>> 31)));
+    return finish12Bytes(v1, (1L << 32 << (v2 >>> 31)) ^ (v2 & 0xFFFFFFFFL));
   }
 
   @Override

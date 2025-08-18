@@ -629,13 +629,9 @@ final class Komihash5_0 extends AbstractKomihash {
     }
   }
 
-  private long finish12Bytes(long a, long b) {
-    return finish(this.seed5 ^ b, this.seed1 ^ a, this.seed5);
-  }
-
   @Override
   public long hashIntToLong(int v) {
-    return finish(seed5, seed1 ^ (1L << 32) ^ (v & 0xFFFFFFFFL), seed5);
+    return finish(seed1 ^ (1L << 32) ^ (v & 0xFFFFFFFFL), seed5, seed5);
   }
 
   @Override
@@ -650,7 +646,7 @@ final class Komihash5_0 extends AbstractKomihash {
 
   @Override
   public long hashLongToLong(long v) {
-    return finish(seed5 ^ 1L, seed1 ^ v, seed5);
+    return finish(seed1 ^ v, seed5 ^ 1L, seed5);
   }
 
   @Override
@@ -658,7 +654,7 @@ final class Komihash5_0 extends AbstractKomihash {
     long tmp1 = this.seed1 ^ v1;
     long tmp2 = this.seed5 ^ v2;
     long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
-    return finish(see5, (tmp1 * tmp2) ^ (see5 ^ 1L), see5);
+    return finish((tmp1 * tmp2) ^ (see5 ^ 1L), see5, see5);
   }
 
   @Override
@@ -666,7 +662,7 @@ final class Komihash5_0 extends AbstractKomihash {
     long tmp1 = this.seed1 ^ v1;
     long tmp2 = this.seed5 ^ v2;
     long see5 = unsignedMultiplyHigh(tmp1, tmp2) + this.seed5;
-    return finish(see5 ^ 1L, (tmp1 * tmp2) ^ (see5 ^ v3), see5);
+    return finish((tmp1 * tmp2) ^ (see5 ^ v3), see5 ^ 1L, see5);
   }
 
   @Override

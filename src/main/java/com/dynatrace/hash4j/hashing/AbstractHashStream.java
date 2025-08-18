@@ -103,11 +103,11 @@ interface AbstractHashStream extends HashStream {
       off += 4;
       len -= 4;
     }
-    if (len > 0) {
+    if (len != 0) {
       putByte(access.getByte(b, off));
-      if (len > 1) {
+      if (len != 1) {
         putByte(access.getByte(b, off + 1));
-        if (len > 2) putByte(access.getByte(b, off + 2));
+        if (len != 2) putByte(access.getByte(b, off + 2));
       }
     }
     return this;

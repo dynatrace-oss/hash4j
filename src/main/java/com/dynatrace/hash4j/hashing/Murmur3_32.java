@@ -293,10 +293,10 @@ final class Murmur3_32 implements AbstractHasher32 {
       final int regularBlockEndIdx = len - ((len + length) & 0x3);
       length += len;
       if (regularBlockEndIdx < regularBlockStartIdx) {
-        if (0 < len) {
+        if (len != 0) {
           buffer |= (b[off] & 0xFF) << shift;
           shift += 8;
-          if (1 < len) {
+          if (len != 1) {
             buffer |= (b[off + 1] & 0xFF) << shift;
             shift += 8;
           }
@@ -304,14 +304,14 @@ final class Murmur3_32 implements AbstractHasher32 {
         return this;
       }
 
-      if (regularBlockStartIdx >= 1) {
-        if (regularBlockStartIdx >= 2) {
-          if (regularBlockStartIdx >= 3) {
-            buffer |= (b[off + regularBlockStartIdx - 3] & 0xFF) << 8;
-          }
-          buffer |= (b[off + regularBlockStartIdx - 2] & 0xFF) << 16;
+      if (regularBlockStartIdx != 0) {
+        int x = (int) buffer;
+        if (regularBlockStartIdx != 1) {
+          if (regularBlockStartIdx != 2) x |= (b[off + regularBlockStartIdx - 3] & 0xFF) << 8;
+          x |= (b[off + regularBlockStartIdx - 2] & 0xFF) << 16;
         }
-        processBuffer((int) buffer | (b[off + regularBlockStartIdx - 1] << 24));
+        x |= b[off + regularBlockStartIdx - 1] << 24;
+        processBuffer(x);
         buffer = 0;
       }
 
@@ -322,14 +322,14 @@ final class Murmur3_32 implements AbstractHasher32 {
       int remainingBytes = len - regularBlockEndIdx;
       shift = remainingBytes << 3;
 
-      if (remainingBytes >= 1) {
-        if (remainingBytes >= 2) {
-          if (remainingBytes >= 3) {
+      if (remainingBytes != 0) {
+        buffer = b[off + regularBlockEndIdx] & 0xFF;
+        if (remainingBytes != 1) {
+          buffer |= (b[off + regularBlockEndIdx + 1] & 0xFF) << 8;
+          if (remainingBytes != 2) {
             buffer |= (b[off + regularBlockEndIdx + 2] & 0xFF) << 16;
           }
-          buffer |= (b[off + regularBlockEndIdx + 1] & 0xFF) << 8;
         }
-        buffer |= b[off + regularBlockEndIdx] & 0xFF;
       }
       return this;
     }
@@ -340,10 +340,10 @@ final class Murmur3_32 implements AbstractHasher32 {
       final long regularBlockEndIdx = len - ((len + length) & 0x3);
       length += (int) len;
       if (regularBlockEndIdx < regularBlockStartIdx) {
-        if (0 < len) {
+        if (len != 0) {
           buffer |= access.getByteAsUnsignedInt(b, off) << shift;
           shift += 8;
-          if (1 < len) {
+          if (len != 1) {
             buffer |= access.getByteAsUnsignedInt(b, off + 1) << shift;
             shift += 8;
           }
@@ -351,14 +351,16 @@ final class Murmur3_32 implements AbstractHasher32 {
         return this;
       }
 
-      if (regularBlockStartIdx >= 1) {
-        if (regularBlockStartIdx >= 2) {
-          if (regularBlockStartIdx >= 3) {
-            buffer |= access.getByteAsUnsignedInt(b, off + regularBlockStartIdx - 3) << 8;
+      if (regularBlockStartIdx != 0) {
+        int x = (int) buffer;
+        if (regularBlockStartIdx != 1) {
+          if (regularBlockStartIdx != 2) {
+            x |= access.getByteAsUnsignedInt(b, off + regularBlockStartIdx - 3) << 8;
           }
-          buffer |= access.getByteAsUnsignedInt(b, off + regularBlockStartIdx - 2) << 16;
+          x |= access.getByteAsUnsignedInt(b, off + regularBlockStartIdx - 2) << 16;
         }
-        processBuffer((int) buffer | (access.getByte(b, off + regularBlockStartIdx - 1) << 24));
+        x |= access.getByte(b, off + regularBlockStartIdx - 1) << 24;
+        processBuffer(x);
         buffer = 0;
       }
 
@@ -369,14 +371,14 @@ final class Murmur3_32 implements AbstractHasher32 {
       int remainingBytes = (int) (len - regularBlockEndIdx);
       shift = remainingBytes << 3;
 
-      if (remainingBytes >= 1) {
-        if (remainingBytes >= 2) {
-          if (remainingBytes >= 3) {
+      if (remainingBytes != 0) {
+        buffer = access.getByteAsUnsignedInt(b, off + regularBlockEndIdx);
+        if (remainingBytes != 1) {
+          buffer |= access.getByteAsUnsignedInt(b, off + regularBlockEndIdx + 1) << 8;
+          if (remainingBytes != 2) {
             buffer |= access.getByteAsUnsignedInt(b, off + regularBlockEndIdx + 2) << 16;
           }
-          buffer |= access.getByteAsUnsignedInt(b, off + regularBlockEndIdx + 1) << 8;
         }
-        buffer |= access.getByteAsUnsignedInt(b, off + regularBlockEndIdx);
       }
       return this;
     }

@@ -396,4 +396,8 @@ abstract class AbstractKomihash implements AbstractHasher64 {
 
     return see1;
   }
+
+  protected long finish12Bytes(long a, long b) {
+    return finish(this.seed1 ^ a, this.seed5 ^ b, this.seed5);
+  }
 }

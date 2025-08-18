@@ -220,13 +220,14 @@ final class XXH3_64 extends XXH3Base {
     return h64 ^ (h64 >>> 28);
   }
 
-  private long mix16B(final byte[] input, final int offIn, final long[] sec, final int offSec) {
+  private static long mix16B(
+      final byte[] input, final int offIn, final long[] sec, final int offSec) {
     long lo = getLong(input, offIn);
     long hi = getLong(input, offIn + 8);
     return mix(lo ^ sec[offSec], hi ^ sec[offSec + 1]);
   }
 
-  private <T> long mix16B(
+  private static <T> long mix16B(
       final T input, final long offIn, final long[] sec, final int offSec, ByteAccess<T> access) {
     long lo = access.getLong(input, offIn);
     long hi = access.getLong(input, offIn + 8);

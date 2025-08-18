@@ -134,8 +134,12 @@ public interface ByteAccess<T> {
       off += 4;
       idx += 4;
     }
-    if (len >= 1) array[off + 0] = getByte(data, idx + 0);
-    if (len >= 2) array[off + 1] = getByte(data, idx + 1);
-    if (len >= 3) array[off + 2] = getByte(data, idx + 2);
+    if (len != 0) {
+      array[off] = getByte(data, idx);
+      if (len != 1) {
+        array[off + 1] = getByte(data, idx + 1);
+        if (len != 2) array[off + 2] = getByte(data, idx + 2);
+      }
+    }
   }
 }

@@ -542,31 +542,31 @@ final class Murmur3_128 implements AbstractHasher128 {
 
       int remainingBytes = len - regularBlockEndIdx;
       int offLen = off + len;
-      if (0 < remainingBytes) {
-        if (8 <= remainingBytes) {
-          if (8 < remainingBytes) {
+      if (remainingBytes > 0) {
+        if (remainingBytes >= 8) {
+          if (remainingBytes > 8) {
             buffer1 = getLong(b, offLen - 8) >>> -(remainingBytes << 3);
           }
           buffer0 = getLong(b, offLen - remainingBytes);
         } else if (len >= 8) {
           buffer1 |= getLong(b, offLen - 8) >>> -(remainingBytes << 3);
         } else {
-          if (3 < remainingBytes) {
+          if (remainingBytes > 3) {
             buffer1 |= getInt(b, offLen - remainingBytes) & 0xFFFFFFFFL;
-            if (4 < remainingBytes) {
+            if (remainingBytes > 4) {
               buffer1 |= (b[offLen - remainingBytes + 4] & 0xFFL) << 32;
-              if (5 < remainingBytes) {
+              if (remainingBytes > 5) {
                 buffer1 |= (b[offLen - remainingBytes + 5] & 0xFFL) << 40;
-                if (6 < remainingBytes) {
+                if (remainingBytes > 6) {
                   buffer1 |= (b[offLen - remainingBytes + 6] & 0xFFL) << 48;
                 }
               }
             }
           } else {
             buffer1 |= b[offLen - remainingBytes] & 0xFFL;
-            if (1 < remainingBytes) {
+            if (remainingBytes > 1) {
               buffer1 |= (b[offLen - remainingBytes + 1] & 0xFFL) << 8;
-              if (2 < remainingBytes) {
+              if (remainingBytes > 2) {
                 buffer1 |= (b[offLen - remainingBytes + 2] & 0xFFL) << 16;
               }
             }
@@ -648,31 +648,31 @@ final class Murmur3_128 implements AbstractHasher128 {
 
       long remainingBytes = len - regularBlockEndIdx;
       long offLen = off + len;
-      if (0 < remainingBytes) {
-        if (8 <= remainingBytes) {
-          if (8 < remainingBytes) {
+      if (remainingBytes > 0) {
+        if (remainingBytes >= 8) {
+          if (remainingBytes > 8) {
             buffer1 = access.getLong(b, offLen - 8) >>> -(remainingBytes << 3);
           }
           buffer0 = access.getLong(b, offLen - remainingBytes);
         } else if (len >= 8) {
           buffer1 |= access.getLong(b, offLen - 8) >>> -(remainingBytes << 3);
         } else {
-          if (3 < remainingBytes) {
+          if (remainingBytes > 3) {
             buffer1 |= access.getIntAsUnsignedLong(b, offLen - remainingBytes);
-            if (4 < remainingBytes) {
+            if (remainingBytes > 4) {
               buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 4) << 32;
-              if (5 < remainingBytes) {
+              if (remainingBytes > 5) {
                 buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 5) << 40;
-                if (6 < remainingBytes) {
+                if (remainingBytes > 6) {
                   buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 6) << 48;
                 }
               }
             }
           } else {
             buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes);
-            if (1 < remainingBytes) {
+            if (remainingBytes > 1) {
               buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 1) << 8;
-              if (2 < remainingBytes) {
+              if (remainingBytes > 2) {
                 buffer1 |= access.getByteAsUnsignedLong(b, offLen - remainingBytes + 2) << 16;
               }
             }

@@ -49,7 +49,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-// @Execution(value = ExecutionMode.CONCURRENT)
 @TestInstance(PER_CLASS)
 abstract class AbstractHasherTest {
 
@@ -597,10 +596,10 @@ abstract class AbstractHasherTest {
       assertHashStream(hashStreamPutBytesViaAccess, hasher, bytes, 0, 0);
       for (int size = 1; size <= maxDataSize; ++size) {
         hashStreamPutByte.putByte(bytes[size - 1]);
-        hashStreamPutBytes.reset();
-        hashStreamPutBytes.putBytes(bytes, 0, size);
-        hashStreamPutBytesViaAccess.reset();
-        hashStreamPutBytesViaAccess.putBytes(bytes, 0, size, NativeByteArrayByteAccess.get());
+        hashStreamPutBytes.reset().putBytes(bytes, 0, size);
+        hashStreamPutBytesViaAccess
+            .reset()
+            .putBytes(bytes, 0, size, NativeByteArrayByteAccess.get());
         assertHashStream(hashStreamPutByte, hasher, bytes, 0, size);
         assertHashStream(hashStreamPutBytes, hasher, bytes, 0, size);
         assertHashStream(hashStreamPutBytesViaAccess, hasher, bytes, 0, size);
