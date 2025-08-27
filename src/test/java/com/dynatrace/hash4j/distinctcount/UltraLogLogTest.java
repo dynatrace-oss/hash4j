@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -605,7 +605,7 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
       return numTerms;
     }
     if (z >= 1.) {
-      assertThat(Double.POSITIVE_INFINITY).isEqualTo(expectedResult);
+      assertThat(expectedResult).isEqualTo(Double.POSITIVE_INFINITY);
       return numTerms;
     }
 
@@ -740,11 +740,11 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
 
   @Test
   void testOptimalFGRAEstimatorRegisterContributions() {
-    assertThat(OptimalFGRAEstimator.REGISTER_CONTRIBUTIONS)
-        .isEqualTo(
-            IntStream.range(0, 236)
-                .mapToDouble(r -> calculateOptimalFGRARegisterContribution(r))
-                .toArray());
+    double[] expectedContributions =
+        IntStream.range(0, 236)
+            .mapToDouble(r -> calculateOptimalFGRARegisterContribution(r))
+            .toArray();
+    assertThat(OptimalFGRAEstimator.REGISTER_CONTRIBUTIONS).isEqualTo(expectedContributions);
   }
 
   private static strictfp double calculateEstimationFactor(int p) {
@@ -756,11 +756,9 @@ class UltraLogLogTest extends DistinctCounterTest<UltraLogLog, UltraLogLog.Estim
 
   @Test
   void testOptimalFGRAEstimatorEstimationFactors() {
-    assertThat(OptimalFGRAEstimator.ESTIMATION_FACTORS)
-        .isEqualTo(
-            IntStream.range(MIN_P, MAX_P + 1)
-                .mapToDouble(p -> calculateEstimationFactor(p))
-                .toArray());
+    double[] expectedEstimationFactors =
+        IntStream.range(MIN_P, MAX_P + 1).mapToDouble(p -> calculateEstimationFactor(p)).toArray();
+    assertThat(OptimalFGRAEstimator.ESTIMATION_FACTORS).isEqualTo(expectedEstimationFactors);
   }
 
   // this function maps a register value from the corresponding value as defined in the paper

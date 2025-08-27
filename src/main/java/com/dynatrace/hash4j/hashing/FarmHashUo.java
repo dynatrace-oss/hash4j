@@ -242,7 +242,8 @@ class FarmHashUo extends AbstractFarmHash {
       u = z;
       z = t;
 
-    } while ((off += 64) != end);
+      off += 64;
+    } while (off != end);
 
     long b0 = getLong(input, last64offset);
     long b1 = getLong(input, last64offset + 8);

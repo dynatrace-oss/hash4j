@@ -74,7 +74,7 @@ class ConsistentJumpBackAnchorBucketSetHasher implements ConsistentBucketSetHash
    * be zero. The data-locality is improved by replacing integer arrays a and k by a combined long
    * array.
    */
-  private long ka[];
+  private long[] ka;
 
   private final PseudoRandomGenerator pseudoRandomGenerator;
 
