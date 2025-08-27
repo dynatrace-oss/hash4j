@@ -554,7 +554,14 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
         int a = bufferCount & 1;
         int lim = s.length() - 32 + a;
         if (idx < lim) {
-          long b0, b1, b2, b3, b4, b5, b6, b7;
+          long b0;
+          long b1;
+          long b2;
+          long b3;
+          long b4;
+          long b5;
+          long b6;
+          long b7;
           long bm = (a != 0) ? (long) buffer[8] << 56 : 0;
           do {
             b0 = getLong(s, idx);
