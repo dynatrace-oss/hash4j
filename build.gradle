@@ -259,7 +259,6 @@ sonarqube {
 	properties {
 		property "sonar.projectKey", "dynatrace-oss_hash4j"
 		property "sonar.organization", "dynatrace-oss"
-		property "sonar.host.url", "https://sonarcloud.io"
 	}
 }
 
