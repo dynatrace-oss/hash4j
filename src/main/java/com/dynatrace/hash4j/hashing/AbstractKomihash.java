@@ -265,7 +265,14 @@ abstract class AbstractKomihash implements AbstractHasher64 {
           }
         }
         if (remainingChars >= 32) {
-          long b0, b1, b2, b3, b4, b5, b6, b7;
+          long b0;
+          long b1;
+          long b2;
+          long b3;
+          long b4;
+          long b5;
+          long b6;
+          long b7;
           init = true;
           if (offset == 0) {
             do {
