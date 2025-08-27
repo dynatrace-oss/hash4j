@@ -115,7 +115,7 @@ public abstract class AbstractConsistentBucketSetHasherTest {
   void testUniformity(HasherInitializer x) {
     ConsistentBucketSetHasher hasher = create();
     x.init(hasher);
-    assertThat(hasher.getBuckets().length).isPositive();
+    assertThat(hasher.getBuckets()).isNotEmpty();
 
     Map<Integer, Long> counts = new HashMap<>();
     for (int bucketId : hasher.getBuckets()) {

@@ -759,7 +759,7 @@ abstract class AbstractHasherTest {
       }
       String checksum = byteArrayToHexString(md.digest());
       assertThat(checksum)
-          .describedAs(() -> checksumRecord.toString())
+          .describedAs(checksumRecord::toString)
           .isEqualTo(checksumRecord.getChecksum());
     }
   }
@@ -793,7 +793,7 @@ abstract class AbstractHasherTest {
       md.digest(checksumHashBytes, 0, checksumHashBytes.length);
       String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
-          .describedAs(() -> checksumRecord.toString())
+          .describedAs(checksumRecord::toString)
           .isEqualTo(checksumRecord.getChecksum());
     }
   }
@@ -832,7 +832,7 @@ abstract class AbstractHasherTest {
       md.digest(checksumHashBytes, 0, checksumHashBytes.length);
       String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
-          .describedAs(() -> checksumRecord.toString())
+          .describedAs(checksumRecord::toString)
           .isEqualTo(checksumRecord.getChecksum());
     }
   }
@@ -886,7 +886,7 @@ abstract class AbstractHasherTest {
       md.digest(checksumHashBytes, 0, checksumHashBytes.length);
       String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
-          .describedAs(() -> checksumRecord.toString())
+          .describedAs(checksumRecord::toString)
           .isEqualTo(checksumRecord.getChecksum());
     }
   }
@@ -940,7 +940,7 @@ abstract class AbstractHasherTest {
       md.digest(checksumHashBytes, 0, checksumHashBytes.length);
       String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
-          .describedAs(() -> checksumRecord.toString())
+          .describedAs(checksumRecord::toString)
           .isEqualTo(checksumRecord.getChecksum());
     }
   }
@@ -1006,7 +1006,7 @@ abstract class AbstractHasherTest {
       md.digest(checksumHashBytes, 0, checksumHashBytes.length);
       String checksum = byteArrayToHexString(checksumHashBytes);
       assertThat(checksum)
-          .describedAs(() -> checksumRecord.toString())
+          .describedAs(checksumRecord::toString)
           .isEqualTo(checksumRecord.getChecksum());
     }
   }

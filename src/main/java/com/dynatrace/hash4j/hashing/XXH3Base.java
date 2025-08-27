@@ -77,8 +77,8 @@ abstract class XXH3Base implements AbstractHasher64 {
   protected static final long INIT_ACC_6 = 0x27D4EB2F165667C5L;
   protected static final long INIT_ACC_7 = 0x000000009E3779B1L;
 
-  protected final long secret[];
-  protected final long secShift[];
+  protected final long[] secret;
+  protected final long[] secShift;
 
   protected final long secShiftFinalA0;
   protected final long secShiftFinalA1;
