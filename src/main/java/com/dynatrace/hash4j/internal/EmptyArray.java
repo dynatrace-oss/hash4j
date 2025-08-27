@@ -21,26 +21,26 @@ public final class EmptyArray {
   private EmptyArray() {}
 
   /** An empty byte array. */
-  public static byte[] EMPTY_BYTE_ARRAY = {};
+  public static final byte[] EMPTY_BYTE_ARRAY = {};
 
   /** An empty short array. */
-  public static short[] EMPTY_SHORT_ARRAY = {};
+  public static final short[] EMPTY_SHORT_ARRAY = {};
 
   /** An empty int array. */
-  public static int[] EMPTY_INT_ARRAY = {};
+  public static final int[] EMPTY_INT_ARRAY = {};
 
   /** An empty long array. */
-  public static long[] EMPTY_LONG_ARRAY = {};
+  public static final long[] EMPTY_LONG_ARRAY = {};
 
   /** An empty boolean array. */
-  public static boolean[] EMPTY_BOOLEAN_ARRAY = {};
+  public static final boolean[] EMPTY_BOOLEAN_ARRAY = {};
 
   /** An empty float array. */
-  public static float[] EMPTY_FLOAT_ARRAY = {};
+  public static final float[] EMPTY_FLOAT_ARRAY = {};
 
   /** An empty double array. */
-  public static double[] EMPTY_DOUBLE_ARRAY = {};
+  public static final double[] EMPTY_DOUBLE_ARRAY = {};
 
   /** An empty char array. */
-  public static char[] EMPTY_CHAR_ARRAY = {};
+  public static final char[] EMPTY_CHAR_ARRAY = {};
 }

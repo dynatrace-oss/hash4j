@@ -618,7 +618,20 @@ final class Rapidhash3 implements AbstractHasher64 {
         }
         if (offset == 0) {
           if (remainingChars > 56) {
-            long b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13;
+            long b0;
+            long b1;
+            long b2;
+            long b3;
+            long b4;
+            long b5;
+            long b6;
+            long b7;
+            long b8;
+            long b9;
+            long b10;
+            long b11;
+            long b12;
+            long b13;
             do {
               b0 = getLong(s, off);
               b1 = getLong(s, off + 4);
@@ -644,7 +657,20 @@ final class Rapidhash3 implements AbstractHasher64 {
         } else {
           long z = buffer[(off == 0) ? 0 : 112] & 0xFFL;
           if (remainingChars >= 56) {
-            long b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13;
+            long b0;
+            long b1;
+            long b2;
+            long b3;
+            long b4;
+            long b5;
+            long b6;
+            long b7;
+            long b8;
+            long b9;
+            long b10;
+            long b11;
+            long b12;
+            long b13;
             do {
               b0 = getLong(s, off);
               b1 = getLong(s, off + 4);
