@@ -31,6 +31,9 @@ public final class ConsistentHashing {
    *
    * <p>The average computation time depends logarithmically on the number of buckets.
    *
+   * <p>Due to its better performance {@link #jumpBackHash(PseudoRandomGeneratorProvider)} should be
+   * preferred.
+   *
    * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
    * @return a {@link ConsistentBucketHasher}
    */
@@ -49,6 +52,9 @@ public final class ConsistentHashing {
    *
    * <p>The computation time is constant independent of the number of buckets. This method is faster
    * than {@link #jumpHash(PseudoRandomGeneratorProvider)} for large number of buckets.
+   *
+   * <p>Due to its superior performance, {@link #jumpBackHash(PseudoRandomGeneratorProvider)} should
+   * be preferred.
    *
    * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
    * @return a {@link ConsistentBucketHasher}
