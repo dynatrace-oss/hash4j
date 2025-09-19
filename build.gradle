@@ -33,20 +33,20 @@ repositories {
 }
 
 dependencies {
-	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-api", version: "5.13.4"
-	testRuntimeOnly group: "org.junit.jupiter", name: "junit-jupiter-engine", version: "5.13.4"
-	testImplementation group: "org.junit.jupiter", name: "junit-jupiter-params", version: "5.13.4"
-	testRuntimeOnly group: 'org.junit.platform', name: 'junit-platform-launcher', version: "1.13.4"
-	testImplementation group: "org.assertj", name: "assertj-core", version: "3.27.5"
-	testImplementation group: "org.hipparchus", name: "hipparchus-stat", version: "4.0.2"
-	testImplementation group: "org.hipparchus", name: "hipparchus-optim", version: "4.0.2"
-	testImplementation group: "com.google.guava", name: "guava", version: "33.5.0-jre"
-	testImplementation group: "commons-codec", name: "commons-codec", version: "1.19.0"
-	testImplementation group: "net.openhft", name: "zero-allocation-hashing", version: "0.16"
-	testImplementation group: "com.appmattus.crypto", name: "cryptohash", version: "1.0.2"
-	testImplementation group: "org.greenrobot", name: "essentials", version: "3.1.0"
-	testImplementation group: "com.sangupta", name: "murmur", version: "1.0.0"
-	errorprone group:"com.google.errorprone",name:"error_prone_core", version: "2.41.0"
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.4")
+	testImplementation("org.junit.jupiter:junit-jupiter-params:5.13.4")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4")
+	testImplementation("org.assertj:assertj-core:3.27.5")
+	testImplementation("org.hipparchus:hipparchus-stat:4.0.2")
+	testImplementation("org.hipparchus:hipparchus-optim:4.0.2")
+	testImplementation("com.google.guava:guava:33.5.0-jre")
+	testImplementation("commons-codec:commons-codec:1.19.0")
+	testImplementation("net.openhft:zero-allocation-hashing:0.16")
+	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
+	testImplementation("org.greenrobot:essentials:3.1.0")
+	testImplementation("com.sangupta:murmur:1.0.0")
+	errorprone("com.google.errorprone:error_prone_core:2.41.0")
 }
 
 java {
