@@ -27,11 +27,6 @@ plugins {
 	id "org.revapi.revapi-gradle-plugin" version "1.8.0" // TODO incompatibility with gradle 9
 }
 
-repositories {
-	mavenCentral()
-	gradlePluginPortal()
-}
-
 dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.4")
@@ -46,6 +41,7 @@ dependencies {
 	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
 	testImplementation("org.greenrobot:essentials:3.1.0")
 	testImplementation("com.sangupta:murmur:1.0.0")
+	testImplementation("com.github.gbessonov:jHash:main-SNAPSHOT")
 	errorprone("com.google.errorprone:error_prone_core:2.42.0")
 }
 
