@@ -15,6 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -551,6 +553,10 @@ final class HashMocks {
 
     public byte[] getData() {
       return Arrays.copyOf(data, size);
+    }
+
+    public void assertData(byte[] expected, int len) {
+      assertThat(Arrays.equals(data, 0, size, expected, 0, len)).isTrue();
     }
 
     @Override
