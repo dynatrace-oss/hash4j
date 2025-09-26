@@ -131,24 +131,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putChars(char[] x, int off, int len) {
-    int end = len + off;
-    while (off <= end - 4) {
-      long b0 = (long) x[off + 0] << (16 * 0);
-      long b1 = (long) x[off + 1] << (16 * 1);
-      long b2 = (long) x[off + 2] << (16 * 2);
-      long b3 = (long) x[off + 3] << (16 * 3);
-      putLong(b0 | b1 | b2 | b3);
-      off += 4;
-    }
-    if (off <= end - 2) {
-      int b0 = x[off + 0] << (16 * 0);
-      int b1 = x[off + 1] << (16 * 1);
-      putInt(b0 | b1);
-      off += 2;
-    }
-    if (off < end) {
-      putChar(x[off]);
-    }
+    HashUtilSpecific.putChars(this, x, off, len);
     return this;
   }
 
@@ -201,24 +184,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putShorts(short[] x, int off, int len) {
-    int end = off + len;
-    while (off <= end - 4) {
-      long b0 = (x[off + 0] & 0xFFFFL) << (16 * 0);
-      long b1 = (x[off + 1] & 0xFFFFL) << (16 * 1);
-      long b2 = (x[off + 2] & 0xFFFFL) << (16 * 2);
-      long b3 = (x[off + 3] & 0xFFFFL) << (16 * 3);
-      putLong(b0 | b1 | b2 | b3);
-      off += 4;
-    }
-    if (off <= end - 2) {
-      int b0 = (x[off + 0] & 0xFFFF) << (16 * 0);
-      int b1 = (x[off + 1] & 0xFFFF) << (16 * 1);
-      putInt(b0 | b1);
-      off += 2;
-    }
-    if (off < end) {
-      putShort(x[off]);
-    }
+    HashUtilSpecific.putShorts(this, x, off, len);
     return this;
   }
 
@@ -243,16 +209,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putInts(int[] x, int off, int len) {
-    int end = off + len;
-    while (off <= end - 2) {
-      long b0 = x[off + 0] & 0xFFFFFFFFL;
-      long b1 = (long) x[off + 1] << 32;
-      putLong(b0 | b1);
-      off += 2;
-    }
-    if (off < end) {
-      putInt(x[off]);
-    }
+    HashUtilSpecific.putInts(this, x, off, len);
     return this;
   }
 
@@ -275,9 +232,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putLongs(long[] x, int off, int len) {
-    for (int i = 0; i < len; ++i) {
-      putLong(x[off + i]);
-    }
+    HashUtilSpecific.putLongs(this, x, off, len);
     return this;
   }
 
@@ -294,16 +249,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putFloats(float[] x, int off, int len) {
-    int end = off + len;
-    while (off <= end - 2) {
-      long b0 = Float.floatToRawIntBits(x[off + 0]) & 0xFFFFFFFFL;
-      long b1 = (long) Float.floatToRawIntBits(x[off + 1]) << 32;
-      putLong(b0 | b1);
-      off += 2;
-    }
-    if (off < end) {
-      putFloat(x[off]);
-    }
+    HashUtilSpecific.putFloats(this, x, off, len);
     return this;
   }
 
@@ -330,9 +276,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putDoubles(double[] x, int off, int len) {
-    for (int i = 0; i < len; ++i) {
-      putDouble(x[off + i]);
-    }
+    HashUtilSpecific.putDoubles(this, x, off, len);
     return this;
   }
 
