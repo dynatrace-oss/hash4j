@@ -179,45 +179,121 @@ class AbstractHashSinkPutUnorderedIterableTest {
     int maxSize = 11;
     for (int size = 0; size <= maxSize; ++size) {
 
-      List<Long> sortedValues = LongStream.range(0, size).boxed().collect(Collectors.toList());
+      long[] sortedValues = LongStream.range(0, size).toArray();
 
       PermutationIterator permutationIterator = new PermutationIterator(size);
-      ByteBuffer byteBuffer = ByteBuffer.allocate(sortedValues.size() * 8 + 4);
+      ByteBuffer byteBuffer = ByteBuffer.allocate(sortedValues.length * 8 + 4);
       for (Long value : sortedValues) {
         byteBuffer.putLong(Long.reverseBytes(value));
       }
-      byteBuffer.putInt(Integer.reverseBytes(sortedValues.size()));
+      byteBuffer.putInt(Integer.reverseBytes(sortedValues.length));
       byte[] expected = byteBuffer.array();
 
-      while (permutationIterator.hasNext()) {
-        int[] values = permutationIterator.next();
-        TestHashStream sinkRandomAccessList = new TestHashStream();
-        TestHashStream sinkCollection = new TestHashStream();
-        TestHashStream sinkIterable = new TestHashStream();
-        List<Long> longList = asLongRandomAccessList(values);
-        sinkRandomAccessList.putUnorderedIterable(longList, v -> v);
-        sinkCollection.putUnorderedIterable(asCollection(longList), v -> v);
-        sinkIterable.putUnorderedIterable(asIterable(longList), v -> v);
+      TestHashStream sinkRandomAccessList = new TestHashStream();
+      TestHashStream sinkCollection = new TestHashStream();
+      TestHashStream sinkIterable = new TestHashStream();
 
-        assertThat(sinkRandomAccessList.getData()).isEqualTo(expected);
-        assertThat(sinkCollection.getData()).isEqualTo(expected);
-        assertThat(sinkIterable.getData()).isEqualTo(expected);
+      AsLongIterable longIterable = new AsLongIterable();
+      AsLongCollection longCollection = new AsLongCollection();
+      AsLongList longList = new AsLongList();
+
+      while (permutationIterator.hasNext()) {
+
+        int[] values = permutationIterator.next();
+
+        longIterable.setArray(values);
+        longCollection.setArray(values);
+        longList.setArray(values);
+
+        sinkRandomAccessList.reset();
+        sinkCollection.reset();
+        sinkIterable.reset();
+
+        sinkRandomAccessList.putUnorderedIterable(longList, Long::longValue);
+        sinkCollection.putUnorderedIterable(longCollection, Long::longValue);
+        sinkIterable.putUnorderedIterable(longIterable, Long::longValue);
+
+        sinkIterable.assertData(expected, expected.length);
+        sinkCollection.assertData(expected, expected.length);
+        sinkRandomAccessList.assertData(expected, expected.length);
       }
     }
   }
 
-  private static List<Long> asLongRandomAccessList(int[] array) {
-    return new AbstractList<>() {
-      @Override
-      public Long get(int index) {
-        return (long) array[index];
-      }
+  private static class AsLongIterable implements Iterable<Long> {
 
-      @Override
-      public int size() {
-        return array.length;
-      }
-    };
+    private int[] array;
+
+    void setArray(int[] array) {
+      this.array = array;
+    }
+
+    @Override
+    public Iterator<Long> iterator() {
+      return new Iterator<>() {
+        private int idx = 0;
+
+        @Override
+        public boolean hasNext() {
+          return idx != array.length;
+        }
+
+        @Override
+        public Long next() {
+          return Long.valueOf(array[idx++]);
+        }
+      };
+    }
+  }
+
+  private static class AsLongCollection extends AbstractCollection<Long> {
+
+    private int[] array;
+
+    void setArray(int[] array) {
+      this.array = array;
+    }
+
+    @Override
+    public Iterator<Long> iterator() {
+      return new Iterator<>() {
+        private int idx = 0;
+
+        @Override
+        public boolean hasNext() {
+          return idx != array.length;
+        }
+
+        @Override
+        public Long next() {
+          return Long.valueOf(array[idx++]);
+        }
+      };
+    }
+
+    @Override
+    public int size() {
+      return array.length;
+    }
+  }
+
+  private static class AsLongList extends AbstractList<Long> {
+
+    private int[] array;
+
+    void setArray(int[] array) {
+      this.array = array;
+    }
+
+    @Override
+    public Long get(int index) {
+      return (long) array[index];
+    }
+
+    @Override
+    public int size() {
+      return array.length;
+    }
   }
 
   private static class PermutationIterator implements Iterator<int[]> {
