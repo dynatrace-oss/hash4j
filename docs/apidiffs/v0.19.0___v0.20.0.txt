@@ -1,0 +1,22 @@
+Comparing source compatibility of hash4j-0.20.0.jar against hash4j-0.19.0.jar
+***  MODIFIED CLASS: PUBLIC (<- PACKAGE_PROTECTED) FINAL (<- NON_FINAL) com.dynatrace.hash4j.distinctcount.DistinctCountUtil  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) int deduplicateTokens(int[], int, int)
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) boolean isEmpty()
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.UltraLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) boolean isEmpty()
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher128 xxh3_128()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher128 xxh3_128(long)
+***! MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.random.PseudoRandomGenerator  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	***! MODIFIED METHOD: PUBLIC ABSTRACT com.dynatrace.hash4j.random.PseudoRandomGenerator (<-void) reset(long)
+***  MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.random.PseudoRandomGenerator create(long)

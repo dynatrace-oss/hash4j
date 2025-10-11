@@ -1,0 +1,19 @@
+Comparing source compatibility of hash4j-0.13.0.jar against hash4j-0.12.0.jar
+***  MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.similarity.ElementHashProvider  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.ElementHashProvider ofCollection(java.util.Collection<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
++++  NEW ENUM: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.SimHashVersion  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: java.lang.constant.Constable
+	+++  NEW INTERFACE: java.lang.Comparable
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.Enum
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.SimHashVersion V1
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.SimHashVersion DEFAULT
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimHashVersion valueOf(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimHashVersion[] values()
+***  MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.similarity.SimilarityHashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy simHash(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy simHash(int, com.dynatrace.hash4j.similarity.SimHashVersion)

@@ -1,0 +1,21 @@
+Comparing source compatibility of hash4j-0.22.0.jar against hash4j-0.21.0.jar
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.consistent.ConsistentBucketSetHasher  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int addBucket()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getBucket(long)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int[] getBuckets()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getNumBuckets()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] getState()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) boolean removeBucket(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.consistent.ConsistentBucketSetHasher setState(byte[])
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.consistent.ConsistentHashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.consistent.ConsistentBucketSetHasher jumpBackAnchorHash(com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider)
+---! REMOVED CLASS: PUBLIC(-) FINAL(-) com.dynatrace.hash4j.util.Preconditions  (not serializable)
+	---  CLASS FILE FORMAT VERSION: n.a. <- 55.0
+	---! REMOVED SUPERCLASS: java.lang.Object
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) void checkArgument(boolean)
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) void checkArgument(boolean, java.lang.String)
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) void checkArgument(boolean, java.lang.String, long)
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) void checkState(boolean)

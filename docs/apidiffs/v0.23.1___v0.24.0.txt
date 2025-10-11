@@ -1,0 +1,31 @@
+Comparing source compatibility of hash4j-0.24.0.jar against hash4j-0.23.1.jar
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher64
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 hashStreamFromState(byte[])
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 hashStreamFromState(byte[])
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 hashStreamFromState(byte[])
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] getState()
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 setState(byte[])
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] getState()
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 setState(byte[])
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] getState()
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 setState(byte[])

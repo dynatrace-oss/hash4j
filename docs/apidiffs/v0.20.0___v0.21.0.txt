@@ -1,0 +1,14 @@
+Comparing source compatibility of hash4j-0.21.0.jar against hash4j-0.20.0.jar
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashIntIntIntToInt(int, int, int)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashIntLongToInt(int, long)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashLongIntToInt(long, int)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashLongLongLongToInt(long, long, long)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashLongLongToInt(long, long)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashIntIntIntToLong(int, int, int)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashIntLongToLong(int, long)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashLongIntToLong(long, int)

@@ -1,0 +1,2 @@
+Comparing source compatibility of hash4j-0.27.0-SNAPSHOT.jar against hash4j-0.26.0.jar
+No changes.

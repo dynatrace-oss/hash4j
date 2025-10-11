@@ -1,0 +1,52 @@
+Comparing source compatibility of hash4j-0.26.0.jar against hash4j-0.25.0.jar
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.ByteAccess  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) void copyToByteArray(java.lang.Object, long, byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) byte getByte(java.lang.Object, long)
+	+++  NEW METHOD: PUBLIC(+) int getByteAsUnsignedInt(java.lang.Object, long)
+	+++  NEW METHOD: PUBLIC(+) long getByteAsUnsignedLong(java.lang.Object, long)
+	+++  NEW METHOD: PUBLIC(+) int getInt(java.lang.Object, long)
+	+++  NEW METHOD: PUBLIC(+) long getIntAsUnsignedLong(java.lang.Object, long)
+	+++  NEW METHOD: PUBLIC(+) long getLong(java.lang.Object, long)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher64
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 hashBytesTo128Bits(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashBytesToInt(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashBytesToLong(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashSink  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putBytes(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBytes(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBytes(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBytes(java.lang.Object, long, long, com.dynatrace.hash4j.hashing.ByteAccess<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object

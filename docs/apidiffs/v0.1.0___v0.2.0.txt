@@ -1,0 +1,23 @@
+Comparing source compatibility of hash4j-0.2.0.jar against hash4j-0.1.0.jar
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher64
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 hashBytesTo128Bits(byte[])
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 hashBytesTo128Bits(byte[], int, int)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashBytesToInt(byte[])
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int hashBytesToInt(byte[], int, int)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashBytesToLong(byte[])
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashBytesToLong(byte[], int, int)
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher32 murmur3_32()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher32 murmur3_32(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 wyhashFinal3()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 wyhashFinal3(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 wyhashFinal3(long, long)
