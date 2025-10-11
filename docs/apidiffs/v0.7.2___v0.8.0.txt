@@ -1,0 +1,6 @@
+Comparing source compatibility of hash4j-0.8.0.jar against hash4j-0.7.2.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 wyhashFinal4()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 wyhashFinal4(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 wyhashFinal4(long, long)

@@ -1,0 +1,408 @@
+Comparing source compatibility of hash4j-0.7.0.jar against hash4j-0.6.2.jar
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog add(long)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog add(com.dynatrace.hash4j.distinctcount.HyperLogLog)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog copy()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog create(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog create(com.dynatrace.hash4j.distinctcount.UltraLogLog)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog downsize(int)
+	+++  NEW METHOD: PUBLIC(+) double getDistinctCountEstimate()
+	+++  NEW METHOD: PUBLIC(+) int getP()
+	+++  NEW METHOD: PUBLIC(+) byte[] getState()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog merge(com.dynatrace.hash4j.distinctcount.HyperLogLog, com.dynatrace.hash4j.distinctcount.HyperLogLog)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog reset()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog wrap(byte[])
++++  NEW CLASS: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.AbstractHashStream128  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream128
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++  NEW SUPERCLASS: com.dynatrace.hash4j.hashing.AbstractHashStream64
+	+++  NEW CONSTRUCTOR: PUBLIC(+) AbstractHashStream128()
+	+++  NEW METHOD: PUBLIC(+) long getAsLong()
+	+++  NEW METHOD: PUBLIC(+) int getHashBitSize()
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 put(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putBoolean(boolean)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putBooleanArray(boolean[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putBooleans(boolean[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putBooleans(boolean[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putByteArray(byte[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putBytes(byte[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putBytes(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putChar(char)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putCharArray(char[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putChars(char[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putChars(char[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putChars(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putDouble(double)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putDoubleArray(double[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putDoubles(double[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putDoubles(double[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putFloat(float)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putFloatArray(float[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putFloats(float[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putFloats(float[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putInt(int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putIntArray(int[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putInts(int[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putInts(int[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putLong(long)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putLongArray(long[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putLongs(long[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putLongs(long[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putNullable(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putOptional(java.util.Optional<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putOptionalDouble(java.util.OptionalDouble)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putOptionalInt(java.util.OptionalInt)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putOptionalLong(java.util.OptionalLong)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putOrderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putShort(short)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putShortArray(short[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putShorts(short[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putShorts(short[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putString(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putUnorderedIterable(java.lang.Iterable<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream128 putUUID(java.util.UUID)
++++  NEW CLASS: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.AbstractHashStream32  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++  NEW SUPERCLASS: com.dynatrace.hash4j.hashing.AbstractHashStream
+	+++  NEW CONSTRUCTOR: PUBLIC(+) AbstractHashStream32()
+	+++  NEW METHOD: PUBLIC(+) int getHashBitSize()
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 put(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putBoolean(boolean)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putBooleanArray(boolean[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putBooleans(boolean[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putBooleans(boolean[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putByteArray(byte[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putBytes(byte[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putBytes(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putChar(char)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putCharArray(char[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putChars(char[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putChars(char[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putChars(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putDouble(double)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putDoubleArray(double[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putDoubles(double[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putDoubles(double[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putFloat(float)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putFloatArray(float[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putFloats(float[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putFloats(float[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putInt(int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putIntArray(int[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putInts(int[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putInts(int[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putLong(long)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putLongArray(long[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putLongs(long[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putLongs(long[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putNullable(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putOptional(java.util.Optional<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putOptionalDouble(java.util.OptionalDouble)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putOptionalInt(java.util.OptionalInt)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putOptionalLong(java.util.OptionalLong)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putOrderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putShort(short)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putShortArray(short[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putShorts(short[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putShorts(short[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putString(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putUnorderedIterable(java.lang.Iterable<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream32 putUUID(java.util.UUID)
++++  NEW CLASS: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.AbstractHashStream64  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++  NEW SUPERCLASS: com.dynatrace.hash4j.hashing.AbstractHashStream32
+	+++  NEW CONSTRUCTOR: PUBLIC(+) AbstractHashStream64()
+	+++  NEW METHOD: PUBLIC(+) int getAsInt()
+	+++  NEW METHOD: PUBLIC(+) int getHashBitSize()
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 put(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putBoolean(boolean)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putBooleanArray(boolean[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putBooleans(boolean[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putBooleans(boolean[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putByteArray(byte[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putBytes(byte[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putBytes(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putChar(char)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putCharArray(char[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putChars(char[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putChars(char[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putChars(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putDouble(double)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putDoubleArray(double[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putDoubles(double[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putDoubles(double[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putFloat(float)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putFloatArray(float[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putFloats(float[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putFloats(float[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putInt(int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putIntArray(int[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putInts(int[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putInts(int[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putLong(long)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putLongArray(long[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putLongs(long[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putLongs(long[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putNullable(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putOptional(java.util.Optional<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putOptionalDouble(java.util.OptionalDouble)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putOptionalInt(java.util.OptionalInt)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putOptionalLong(java.util.OptionalLong)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putOrderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putShort(short)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putShortArray(short[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putShorts(short[])
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putShorts(short[], int, int)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putString(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putUnorderedIterable(java.lang.Iterable<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 putUUID(java.util.UUID)
+***! MODIFIED INTERFACE: PACKAGE_PROTECTED (<- PUBLIC) ABSTRACT com.dynatrace.hash4j.hashing.Hasher  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int getHashBitSize()
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher64
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 hashStream()
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 hashStream()
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.Hasher
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 hashStream()
+***! MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashSink  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) com.dynatrace.hash4j.hashing.HashSink putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, java.util.function.Supplier<? extends com.dynatrace.hash4j.hashing.Hasher64>)
+		GENERIC TEMPLATES: --- T:java.lang.Object
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+***! MODIFIED INTERFACE: PACKAGE_PROTECTED (<- PUBLIC) ABSTRACT com.dynatrace.hash4j.hashing.HashStream  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) com.dynatrace.hash4j.hashing.HashValue128 get()
+	---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) int getAsInt()
+	---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) long getAsLong()
+	---! REMOVED METHOD: PUBLIC(-) ABSTRACT(-) com.dynatrace.hash4j.hashing.HashStream putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, java.util.function.Supplier<? extends com.dynatrace.hash4j.hashing.Hasher64>)
+		GENERIC TEMPLATES: --- T:java.lang.Object
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream reset()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 get()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 put(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBoolean(boolean)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBooleanArray(boolean[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBooleans(boolean[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBooleans(boolean[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putByte(byte)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putByteArray(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBytes(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putBytes(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putChar(char)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putCharArray(char[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putChars(char[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putChars(char[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putChars(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putDouble(double)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putDoubleArray(double[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putDoubles(double[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putDoubles(double[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putFloat(float)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putFloatArray(float[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putFloats(float[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putFloats(float[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putInt(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putIntArray(int[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putInts(int[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putInts(int[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putLong(long)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putLongArray(long[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putLongs(long[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putLongs(long[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putNullable(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putOptional(java.util.Optional<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putOptionalDouble(java.util.OptionalDouble)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putOptionalInt(java.util.OptionalInt)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putOptionalLong(java.util.OptionalLong)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putOrderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putShort(short)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putShortArray(short[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putShorts(short[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putShorts(short[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putString(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putUnorderedIterable(java.lang.Iterable<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putUUID(java.util.UUID)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 reset()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getAsInt()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 put(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBoolean(boolean)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBooleanArray(boolean[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBooleans(boolean[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBooleans(boolean[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putByte(byte)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putByteArray(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBytes(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putBytes(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putChar(char)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putCharArray(char[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putChars(char[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putChars(char[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putChars(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putDouble(double)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putDoubleArray(double[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putDoubles(double[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putDoubles(double[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putFloat(float)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putFloatArray(float[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putFloats(float[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putFloats(float[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putInt(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putIntArray(int[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putInts(int[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putInts(int[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putLong(long)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putLongArray(long[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putLongs(long[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putLongs(long[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putNullable(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putOptional(java.util.Optional<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putOptionalDouble(java.util.OptionalDouble)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putOptionalInt(java.util.OptionalInt)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putOptionalLong(java.util.OptionalLong)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putShort(short)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putShortArray(short[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putShorts(short[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putShorts(short[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putString(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putUnorderedIterable(java.lang.Iterable<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putUUID(java.util.UUID)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 reset()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++! NEW INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long getAsLong()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 put(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBoolean(boolean)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBooleanArray(boolean[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBooleans(boolean[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBooleans(boolean[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putByte(byte)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putByteArray(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBytes(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putBytes(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putChar(char)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putCharArray(char[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putChars(char[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putChars(char[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putChars(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putDouble(double)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putDoubleArray(double[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putDoubles(double[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putDoubles(double[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putFloat(float)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putFloatArray(float[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putFloats(float[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putFloats(float[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putInt(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putIntArray(int[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putInts(int[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putInts(int[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putLong(long)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putLongArray(long[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putLongs(long[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putLongs(long[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putNullable(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putOptional(java.util.Optional<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putOptionalDouble(java.util.OptionalDouble)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putOptionalInt(java.util.OptionalInt)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putOptionalLong(java.util.OptionalLong)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putOrderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putShort(short)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putShortArray(short[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putShorts(short[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putShorts(short[], int, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putString(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putUnorderedIterable(java.lang.Iterable<T>, java.util.function.ToLongFunction<? super T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.Hasher64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putUUID(java.util.UUID)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 reset()
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT STATIC com.dynatrace.hash4j.util.PackedArray$PackedArrayHandler  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.util.PackedArray$PackedArrayReadIterator readIterator(byte[], int)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long update(byte[], int, long, java.util.function.LongBinaryOperator)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) STATIC(+) com.dynatrace.hash4j.util.PackedArray$PackedArrayReadIterator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) boolean hasNext()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long next()

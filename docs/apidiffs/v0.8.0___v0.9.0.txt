@@ -1,0 +1,40 @@
+Comparing source compatibility of hash4j-0.9.0.jar against hash4j-0.8.0.jar
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.consistent.ConsistentBucketHasher  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getBucket(long, int)
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.consistent.ConsistentHashing  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.consistent.ConsistentBucketHasher jumpHash(com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider)
+***! MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	---! REMOVED FIELD: PUBLIC(-) STATIC(-) FINAL(-) com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator SMALL_RANGE_CORRECTED_RAW_ESTIMATOR
+	***  MODIFIED FIELD: PUBLIC (<- PACKAGE_PROTECTED) STATIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator CORRECTED_RAW_ESTIMATOR
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.file.FileHasher128  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 hashFileTo128Bits(java.io.File)
+		+++  NEW EXCEPTION: java.io.IOException
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 hashFileTo128Bits(java.nio.file.Path)
+		+++  NEW EXCEPTION: java.io.IOException
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 hashInputStreamTo128Bits(java.io.InputStream, long)
+		+++  NEW EXCEPTION: java.io.IOException
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.file.FileHashing  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.file.FileHasher128 imohash1_0_2()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.file.FileHasher128 imohash1_0_2(int, long)
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.HashValue128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) byte[] toByteArray()
+	+++  NEW METHOD: PUBLIC(+) java.lang.String toString()
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.hashing.HashValues  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) byte[] toByteArray(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) byte[] toByteArray(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) byte[] toByteArray(com.dynatrace.hash4j.hashing.HashValue128)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) java.lang.String toHexString(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) java.lang.String toHexString(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) java.lang.String toHexString(com.dynatrace.hash4j.hashing.HashValue128)

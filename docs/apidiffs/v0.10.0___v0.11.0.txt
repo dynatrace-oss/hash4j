@@ -1,0 +1,14 @@
+Comparing source compatibility of hash4j-0.11.0.jar against hash4j-0.10.0.jar
+***! MODIFIED CLASS: PACKAGE_PROTECTED (<- PUBLIC) ABSTRACT com.dynatrace.hash4j.hashing.AbstractHashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	***! MODIFIED CONSTRUCTOR: PACKAGE_PROTECTED (<- PUBLIC) AbstractHashStream128()
+***! MODIFIED CLASS: PACKAGE_PROTECTED (<- PUBLIC) ABSTRACT com.dynatrace.hash4j.hashing.AbstractHashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	***! MODIFIED CONSTRUCTOR: PACKAGE_PROTECTED (<- PUBLIC) AbstractHashStream32()
+***! MODIFIED CLASS: PACKAGE_PROTECTED (<- PUBLIC) ABSTRACT com.dynatrace.hash4j.hashing.AbstractHashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	***! MODIFIED CONSTRUCTOR: PACKAGE_PROTECTED (<- PUBLIC) AbstractHashStream64()
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 komihash5_0()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 komihash5_0(long)

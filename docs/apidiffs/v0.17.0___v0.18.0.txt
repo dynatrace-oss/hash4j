@@ -1,0 +1,33 @@
+Comparing source compatibility of hash4j-0.18.0.jar against hash4j-0.17.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 xxh3_64()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 xxh3_64(long)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 copy()
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 copy()
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 copy()
++++  NEW CLASS: PUBLIC(+) com.dynatrace.hash4j.hashing.XXH3_64  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.Hasher64
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.Hasher32
+	+++  NEW INTERFACE: com.dynatrace.hash4j.hashing.Hasher
+	+++  NEW SUPERCLASS: com.dynatrace.hash4j.hashing.AbstractHasher64
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 create()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 create(long)
+	+++  NEW METHOD: PUBLIC(+) long hashBytesToLong(byte[], int, int)
+	+++  NEW METHOD: PUBLIC(+) long hashCharsToLong(java.lang.CharSequence)
+	+++  NEW METHOD: PUBLIC(+) long hashLongLongLongToLong(long, long, long)
+	+++  NEW METHOD: PUBLIC(+) long hashLongLongToLong(long, long)
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.hashing.HashStream64 hashStream()

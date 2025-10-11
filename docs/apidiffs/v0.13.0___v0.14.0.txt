@@ -1,0 +1,4 @@
+Comparing source compatibility of hash4j-0.14.0.jar against hash4j-0.13.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.consistent.ConsistentHashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.consistent.ConsistentBucketHasher improvedConsistentWeightedSampling(com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider)

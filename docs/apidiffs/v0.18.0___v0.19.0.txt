@@ -1,0 +1,34 @@
+Comparing source compatibility of hash4j-0.19.0.jar against hash4j-0.18.0.jar
+***! MODIFIED CLASS: PACKAGE_PROTECTED (<- PUBLIC) com.dynatrace.hash4j.consistent.ConsistentJumpBackBucketHasher  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashSink  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.HashStream64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashValue128 resetAndHashTo128Bits(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.HashStream64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) int resetAndHashToInt(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putUnorderedIterable(java.lang.Iterable<T>, com.dynatrace.hash4j.hashing.HashFunnel<? super T>, com.dynatrace.hash4j.hashing.HashStream64)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long resetAndHashToLong(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T>)
+		GENERIC TEMPLATES: +++ T:java.lang.Object
+***! MODIFIED CLASS: PACKAGE_PROTECTED (<- PUBLIC) com.dynatrace.hash4j.hashing.XXH3_64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0

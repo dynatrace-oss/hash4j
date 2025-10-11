@@ -1,0 +1,13 @@
+Comparing source compatibility of hash4j-0.10.0.jar against hash4j-0.9.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog addToken(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) int computeToken(long)
+***! MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.UltraLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	---! REMOVED FIELD: PUBLIC(-) STATIC(-) FINAL(-) com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator OPTIMAL_FGRA_ESTIMATOR
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.UltraLogLog addToken(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) int computeToken(long)

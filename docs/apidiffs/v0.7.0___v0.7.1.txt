@@ -1,0 +1,25 @@
+Comparing source compatibility of hash4j-0.7.1.jar against hash4j-0.7.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog add(long, com.dynatrace.hash4j.distinctcount.StateChangeObserver)
+	+++  NEW METHOD: PUBLIC(+) double getStateChangeProbability()
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.MartingaleEstimator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: com.dynatrace.hash4j.distinctcount.StateChangeObserver
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW CONSTRUCTOR: PUBLIC(+) MartingaleEstimator(double, double)
+	+++  NEW CONSTRUCTOR: PUBLIC(+) MartingaleEstimator()
+	+++  NEW METHOD: PUBLIC(+) double getDistinctCountEstimate()
+	+++  NEW METHOD: PUBLIC(+) void stateChanged(double)
+	+++  NEW METHOD: PUBLIC(+) java.lang.String toString()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.distinctcount.StateChangeObserver  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) void stateChanged(double)
+	+++  NEW ANNOTATION: java.lang.FunctionalInterface
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.UltraLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.UltraLogLog add(long, com.dynatrace.hash4j.distinctcount.StateChangeObserver)
+	+++  NEW METHOD: PUBLIC(+) double getStateChangeProbability()

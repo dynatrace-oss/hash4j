@@ -1,0 +1,29 @@
+Comparing source compatibility of hash4j-0.7.2.jar against hash4j-0.7.1.jar
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) STATIC(+) com.dynatrace.hash4j.distinctcount.DistinctCounter$Estimator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	GENERIC TEMPLATES: +++ T:java.lang.Object
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) double estimate(java.lang.Object)
+	+++  NEW ANNOTATION: java.lang.FunctionalInterface
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator MAXIMUM_LIKELIHOOD_ESTIMATOR
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator DEFAULT_ESTIMATOR
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator SMALL_RANGE_CORRECTED_RAW_ESTIMATOR
+	+++  NEW METHOD: PUBLIC(+) double getDistinctCountEstimate(com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) STATIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog$Estimator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter$Estimator
+	+++  NEW SUPERCLASS: java.lang.Object
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.UltraLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator MAXIMUM_LIKELIHOOD_ESTIMATOR
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator DEFAULT_ESTIMATOR
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator SMALL_RANGE_CORRECTED_4_GRA_ESTIMATOR
+	+++  NEW METHOD: PUBLIC(+) double getDistinctCountEstimate(com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) STATIC(+) com.dynatrace.hash4j.distinctcount.UltraLogLog$Estimator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter$Estimator
+	+++  NEW SUPERCLASS: java.lang.Object

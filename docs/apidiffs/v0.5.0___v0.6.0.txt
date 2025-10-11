@@ -1,0 +1,95 @@
+Comparing source compatibility of hash4j-0.6.0.jar against hash4j-0.5.0.jar
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.random.PermutationGenerator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW CONSTRUCTOR: PUBLIC(+) PermutationGenerator(int)
+	+++  NEW METHOD: PUBLIC(+) boolean hasNext()
+	+++  NEW METHOD: PUBLIC(+) int next(com.dynatrace.hash4j.random.PseudoRandomGenerator)
+	+++  NEW METHOD: PUBLIC(+) void reset()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.random.PseudoRandomGenerator  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int nextInt()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long nextLong()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) void reset(long)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int uniformInt(int)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.random.PseudoRandomGenerator create()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider splitMix64_V1()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.ElementHashProvider  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long getElementHash(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getNumberOfElements()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.ElementHashProvider ofFunction(java.util.function.IntToLongFunction, int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.ElementHashProvider ofValues(long[])
++++  NEW ENUM: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.MinHashVersion  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: java.lang.constant.Constable
+	+++  NEW INTERFACE: java.lang.Comparable
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.Enum
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.MinHashVersion V1
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.MinHashVersion DEFAULT
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.MinHashVersion valueOf(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.MinHashVersion[] values()
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.SimilarityHasher  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] compute(com.dynatrace.hash4j.similarity.ElementHashProvider)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.SimilarityHashing  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy minHash(int, int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy minHash(int, int, com.dynatrace.hash4j.similarity.MinHashVersion)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy superMinHash(int, int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy superMinHash(int, int, com.dynatrace.hash4j.similarity.SuperMinHashVersion)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.SimilarityHasher createHasher()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long getComponent(byte[], int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getComponentSizeInBits()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) double getFractionOfEqualComponents(byte[], byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getNumberOfComponents()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getNumberOfEqualComponents(byte[], byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getSignatureSizeInBytes()
++++  NEW ENUM: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.SuperMinHashVersion  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: java.lang.constant.Constable
+	+++  NEW INTERFACE: java.lang.Comparable
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.Enum
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.SuperMinHashVersion V1
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.SuperMinHashVersion DEFAULT
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SuperMinHashVersion valueOf(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SuperMinHashVersion[] values()
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.util.PackedArray  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.util.PackedArray$PackedArrayHandler getHandler(int)
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) STATIC(+) com.dynatrace.hash4j.util.PackedArray$IndexedLongValueProvider  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long getValue(int)
+	+++  NEW ANNOTATION: java.lang.FunctionalInterface
++++  NEW INTERFACE: PUBLIC(+) ABSTRACT(+) STATIC(+) com.dynatrace.hash4j.util.PackedArray$PackedArrayHandler  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) void clear(byte[])
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] create(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) byte[] create(com.dynatrace.hash4j.util.PackedArray$IndexedLongValueProvider, int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long get(byte[], int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int getBitSize()
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int numBytes(int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) int numEqualComponents(byte[], byte[], int)
+	+++  NEW METHOD: PUBLIC(+) ABSTRACT(+) long set(byte[], int, long)
++++  NEW CLASS: PUBLIC(+) FINAL(+) com.dynatrace.hash4j.util.Preconditions  (not serializable)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW SUPERCLASS: java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) void checkArgument(boolean)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) void checkArgument(boolean, java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) void checkArgument(boolean, java.lang.String, long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) void checkState(boolean)

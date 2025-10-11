@@ -1,0 +1,2 @@
+Comparing source compatibility of hash4j-0.2.1.jar against hash4j-0.2.0.jar
+No changes.

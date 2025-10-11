@@ -1,0 +1,36 @@
+Comparing source compatibility of hash4j-0.12.0.jar against hash4j-0.11.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.HyperLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.HyperLogLog addToken(int, com.dynatrace.hash4j.distinctcount.StateChangeObserver)
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.MartingaleEstimator  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) void reset()
+	+++  NEW METHOD: PUBLIC(+) void set(double, double)
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.distinctcount.UltraLogLog  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.distinctcount.DistinctCounter
+	+++  NEW METHOD: PUBLIC(+) com.dynatrace.hash4j.distinctcount.UltraLogLog addToken(int, com.dynatrace.hash4j.distinctcount.StateChangeObserver)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.Hasher64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashLongLongLongToLong(long, long, long)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long hashLongLongToLong(long, long)
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 farmHashNa()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 farmHashNa(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 farmHashNa(long, long)
++++  NEW ENUM: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.similarity.FastSimHashVersion  (compatible)
+	+++  CLASS FILE FORMAT VERSION: 55.0 <- n.a.
+	+++  NEW INTERFACE: java.lang.constant.Constable
+	+++  NEW INTERFACE: java.lang.Comparable
+	+++  NEW INTERFACE: java.io.Serializable
+	+++  NEW SUPERCLASS: java.lang.Enum
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.FastSimHashVersion V1
+	+++  NEW FIELD: PUBLIC(+) STATIC(+) FINAL(+) com.dynatrace.hash4j.similarity.FastSimHashVersion DEFAULT
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.FastSimHashVersion valueOf(java.lang.String)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.FastSimHashVersion[] values()
+***  MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.similarity.SimilarityHashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy fastSimHash(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.similarity.SimilarityHashPolicy fastSimHash(int, com.dynatrace.hash4j.similarity.FastSimHashVersion)

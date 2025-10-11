@@ -24,13 +24,27 @@ plugins {
 	id "maven-publish"
 	id "signing"
 	id "net.ltgt.errorprone" version "4.3.0"
-	id "org.revapi.revapi-gradle-plugin" version "1.8.0" // incompatible with gradle 9
+	id "me.champeau.gradle.japicmp" version "0.4.5"
 }
 
 repositories {
 	mavenCentral()
 	gradlePluginPortal()
 }
+
+ext {
+	latestReleasedVersion = {
+		def tempConfig = configurations.create("tempConfig_4e0253959df7d471")
+		dependencies.add(tempConfig.getName(), "com.dynatrace.hash4j:hash4j:+")
+		def moduleVersion = tempConfig.resolvedConfiguration.firstLevelModuleDependencies[0].moduleVersion
+		configurations.remove(tempConfig)
+		return moduleVersion
+	}.call()
+	archivesBaseName = "hash4j"
+}
+
+group = "com.dynatrace.hash4j"
+version = "0.27.0-SNAPSHOT"
 
 dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4") // upgrade to version 6 requires Java 17
@@ -79,6 +93,39 @@ configurations {
 }
 
 
+File findArtifact(String version) {
+	def existingGroup = project.group
+	try {
+		project.group = "tempGroup_ae16825cf1d0af8d"
+		def depModule = "$existingGroup:$archivesBaseName:$version@jar"
+		def depJar = "${archivesBaseName}-${version}.jar"
+		def configuration = project.configurations.detachedConfiguration(
+				project.dependencies.create(depModule)
+				)
+		return project.files(configuration.files).filter { it.name == depJar }.singleFile
+	} finally {
+		project.group = existingGroup
+	}
+}
+
+
+tasks.register("jApiCmp", me.champeau.gradle.japicmp.JapicmpTask) {
+	dependsOn "jar"
+
+	def baselineVersion = project.hasProperty("apiCheckBaseVersion")?apiCheckBaseVersion:latestReleasedVersion
+	def baselineArtifact = findArtifact(baselineVersion)
+	oldClasspath = files(baselineArtifact)
+
+	def newVersion = project.hasProperty("apiCheckNewVersion")?apiCheckNewVersion:version
+	def newArtifact = project.hasProperty("apiCheckNewVersion")?findArtifact(newVersion):file(tasks.named("jar").get().archiveFile.get().asFile)
+	newClasspath = files(newArtifact)
+
+	onlyModified = true
+	packageExcludes.addAll("*.internal", "*.internal.*")
+
+
+	txtOutputFile = file("$rootDir/docs/apidiffs/v${baselineVersion}___v${newVersion}.txt")
+}
 
 jar {
 	dependsOn "compileJava21Java"
@@ -113,7 +160,7 @@ tasks.register("java21Test", Test) {
 }
 
 tasks.check {
-	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21"
+	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21", "jApiCmp"
 }
 
 tasks.withType(Test).configureEach {
@@ -127,9 +174,6 @@ tasks.withType(JavaCompile).configureEach {
 	options.errorprone.disableWarningsInGeneratedCode = false
 	// options.errorprone.enabled = false
 }
-
-group = "com.dynatrace.hash4j"
-version = "0.26.0"
 
 
 static def readJavaLicense(licenseName) {
@@ -277,7 +321,7 @@ jmh {
 	if (project.hasProperty("benchmarkIncludes")) {
 		includes = [benchmarkIncludes.trim()]
 	}
-	jvmArgs = ['-Xmx8g']
+	jvmArgs = ["-Xmx8g"]
 }
 
 tasks.register("evaluateBenchmarks", Exec) {
@@ -341,8 +385,8 @@ tasks.register("checkStatusForBenchmarks") {
 	outputs.upToDateWhen { false }
 	doLast {
 		def status_text = "git status --porcelain".execute().text
-		if(status_text?.trim() && !(project.hasProperty('benchmarkIgnoreGitChanges') && benchmarkIgnoreGitChanges.trim().equals("true"))) {
-			throw new GradleException('There are uncommitted changes:\n' + status_text)
+		if(status_text?.trim() && !(project.hasProperty("benchmarkIgnoreGitChanges") && benchmarkIgnoreGitChanges.trim().equals("true"))) {
+			throw new GradleException("There are uncommitted changes:\n" + status_text)
 		}
 	}
 }
@@ -352,10 +396,10 @@ tasks.register("copyBenchmarkReport", Copy) {
 	def revision = proc.text.trim()
 	from("build/results/jmh/") {
 		include "results.*"
-		if (project.hasProperty('benchmarkPrefix') && !benchmarkPrefix.trim().isEmpty()) {
-			rename 'results', benchmarkPrefix.trim() + '-' + new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision
+		if (project.hasProperty("benchmarkPrefix") && !benchmarkPrefix.trim().isEmpty()) {
+			rename "results", benchmarkPrefix.trim() + "-" + new Date().format("yyyy-MM-dd-HH-mm-ss") + " " + revision
 		} else {
-			rename 'results', new Date().format('yyyy-MM-dd-HH-mm-ss') + ' ' + revision
+			rename "results", new Date().format("yyyy-MM-dd-HH-mm-ss") + " " + revision
 		}
 	}
 	into "benchmark-results"
@@ -374,7 +418,7 @@ tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
 javadoc {
 	failOnError = true
-	title = "hash4j " + project.version + " API"
+	title = archivesBaseName + " " + project.version + " API"
 }
 
 jacoco {
