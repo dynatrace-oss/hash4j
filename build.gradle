@@ -65,7 +65,7 @@ dependencies {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 	withSourcesJar()
 	withJavadocJar()
@@ -84,12 +84,23 @@ sourceSets {
 		compileClasspath += sourceSets.test.output + sourceSets.java21.output + sourceSets.main.output
 		runtimeClasspath += sourceSets.test.output
 	}
+	java25 {
+		java.srcDir "src/main/java25"
+		compileClasspath += sourceSets.java21.output + sourceSets.main.output
+	}
+	java25Test {
+		java.srcDir "src/test/java25"
+		compileClasspath += sourceSets.java21Test.output + sourceSets.test.output + sourceSets.java25.output + sourceSets.java21.output + sourceSets.main.output
+		runtimeClasspath += sourceSets.java21Test.output + sourceSets.test.output
+	}
 }
 
 
 configurations {
 	java21TestImplementation.extendsFrom testImplementation
 	java21TestRuntimeOnly.extendsFrom testRuntimeOnly
+	java25TestImplementation.extendsFrom java21TestImplementation
+	java25TestRuntimeOnly.extendsFrom java21TestRuntimeOnly
 }
 
 
@@ -132,6 +143,9 @@ jar {
 	into("META-INF/versions/21") {
 		from sourceSets.java21.output
 	}
+	into("META-INF/versions/25") {
+		from sourceSets.java25.output
+	}
 	manifest {
 		attributes "Multi-Release": "true"
 	}
@@ -141,6 +155,8 @@ tasks.compileJava.options.release.set(11)
 tasks.compileTestJava.options.release.set(11)
 tasks.compileJava21Java.options.release.set(21)
 tasks.compileJava21TestJava.options.release.set(21)
+tasks.compileJava25Java.options.release.set(25)
+tasks.compileJava25TestJava.options.release.set(25)
 
 tasks.test {
 	javaLauncher = javaToolchains.launcherFor {
@@ -155,12 +171,22 @@ tasks.register("java21Test", Test) {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
 	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
-	classpath = files(jar) + sourceSets.java21Test.runtimeClasspath
+	classpath = sourceSets.java21Test.runtimeClasspath + files(jar)
 	finalizedBy "jacocoTestReportJava21"
 }
 
+tasks.register("java25Test", Test) {
+	group = LifecycleBasePlugin.VERIFICATION_GROUP
+	javaLauncher = javaToolchains.launcherFor {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+	testClassesDirs = sourceSets.java25Test.output + sourceSets.java21Test.output + sourceSets.test.output
+	classpath = sourceSets.java25Test.runtimeClasspath + sourceSets.java21Test.runtimeClasspath + files(jar)
+	finalizedBy "jacocoTestReportJava25"
+}
+
 tasks.check {
-	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21", "jApiCmp"
+	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21", "java25Test", "jacocoTestCoverageVerificationJava25", "jApiCmp"
 }
 
 tasks.withType(Test).configureEach {
@@ -438,6 +464,15 @@ tasks.register("jacocoTestReportJava21", JacocoReport) {
 	reports.xml.outputLocation = layout.buildDirectory.file("reports/jacoco/java21Test/jacocoTestReport.xml")
 }
 
+tasks.register("jacocoTestReportJava25", JacocoReport) {
+	dependsOn java25Test
+	executionData java25Test
+	sourceSets sourceSets.java25
+	reports.html.outputLocation = layout.buildDirectory.dir("reports/jacoco/java25Test/html")
+	reports.csv.outputLocation = layout.buildDirectory.file("reports/jacoco/java25Test/jacocoTestReport.csv")
+	reports.xml.outputLocation = layout.buildDirectory.file("reports/jacoco/java25Test/jacocoTestReport.xml")
+}
+
 tasks.withType(JacocoReport).configureEach {
 	reports {
 		xml.required = true // needed for sonarqube
@@ -449,6 +484,12 @@ tasks.register("jacocoTestCoverageVerificationJava21", JacocoCoverageVerificatio
 	dependsOn jacocoTestReportJava21
 	executionData jacocoTestReportJava21.executionData
 	sourceSets sourceSets.java21
+}
+
+tasks.register("jacocoTestCoverageVerificationJava25", JacocoCoverageVerification) {
+	dependsOn jacocoTestReportJava25
+	executionData jacocoTestReportJava25.executionData
+	sourceSets sourceSets.java25
 }
 
 tasks.withType(JacocoCoverageVerification).configureEach {
