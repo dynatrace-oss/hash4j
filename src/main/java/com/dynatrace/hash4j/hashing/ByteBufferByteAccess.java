@@ -28,7 +28,7 @@ final class ByteBufferByteAccess {
     } else if (ByteOrder.BIG_ENDIAN.equals(byteOrder)) {
       return ByteBufferByteAccessBigEndian.get();
     } else {
-      throw new IllegalArgumentException(); // TODO
+      throw new IllegalArgumentException("Unexpected argument!");
     }
   }
 

@@ -20,10 +20,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
 
-public class UnsignedMultiplyUtilReferenceTest {
+class UnsignedMultiplyUtilReferenceTest {
 
   @Test
-  public void testAgainstJava() {
+  void testAgainstJava() {
 
     SplittableRandom random = new SplittableRandom(0x75ec0a7f2d98ba4fL);
     int numIterations = 50;

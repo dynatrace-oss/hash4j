@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import java.lang.foreign.MemorySegment;
 import org.junit.jupiter.api.Test;
 
-public class ByteAccessForMemorySegmentTest {
+class ByteAccessForMemorySegmentTest {
 
   @Test
   void testFactoryMethodForMemorySegment() {

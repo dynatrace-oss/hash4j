@@ -21,7 +21,7 @@ import java.lang.foreign.MemorySegment;
 import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
 
-public class FFMUtilTest {
+class FFMUtilTest {
 
   @Test
   void testMemorySegmentByteAccessAgainstNativeByteArrayAccess() {

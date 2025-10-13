@@ -18,7 +18,7 @@ package com.dynatrace.hash4j.random;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public abstract class AbstractPseudoRandomGeneratorProviderTest {
+abstract class AbstractPseudoRandomGeneratorProviderTest {
 
   protected abstract PseudoRandomGeneratorProvider getPseudoRandomGeneratorProvider();
 

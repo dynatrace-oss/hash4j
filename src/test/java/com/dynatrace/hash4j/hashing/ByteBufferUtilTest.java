@@ -22,7 +22,7 @@ import java.nio.ByteOrder;
 import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
 
-public class ByteBufferUtilTest {
+class ByteBufferUtilTest {
 
   @Test
   void testByteBufferByteAccessAgainstNativeByteArrayAccess() {
