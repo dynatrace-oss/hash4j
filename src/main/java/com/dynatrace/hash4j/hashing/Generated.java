@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.similarity;
+package com.dynatrace.hash4j.hashing;
 
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+import java.lang.annotation.RetentionPolicy;
 
-class SuperMinHashPolicy_v1aTest extends AbstractSuperMinHashPolicyTest {
-
-  @Override
-  protected SimilarityHashPolicy getSimilarityHashPolicy(
-      int numberOfComponents, int bitsPerComponent) {
-    return new SuperMinHashPolicy_v1a(
-        numberOfComponents, bitsPerComponent, PseudoRandomGeneratorProvider.splitMix64_V1());
-  }
+/** Annotation to exclude from code coverage computation. */
+@java.lang.annotation.Retention(RetentionPolicy.RUNTIME)
+@interface Generated {
+  /**
+   * Returns the reason for the exclusion.
+   *
+   * @return the reason for the exclusion.
+   */
+  String reason();
 }

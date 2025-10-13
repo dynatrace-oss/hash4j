@@ -35,7 +35,7 @@ public abstract class AbstractHasher128PerformanceTest extends AbstractPerforman
   @Override
   protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
     blackhole.consume(
-        getHasherInstance().hashBytesTo128Bits(b, 0, b.length, NativeByteArrayByteAccess.get()));
+        getHasherInstance().hashBytesTo128Bits(b, 0, b.length, ByteArrayByteAccess.get()));
   }
 
   @Override

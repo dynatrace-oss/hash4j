@@ -22,7 +22,7 @@ import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream128;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 
-public class AbstractHashStream128Test extends AbstractHashStreamTest {
+class AbstractHashStream128Test extends AbstractHashStreamTest {
 
   @Override
   protected void assertBytes(Consumer<HashStream> c, String hexString) {

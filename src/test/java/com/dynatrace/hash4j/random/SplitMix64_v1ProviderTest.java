@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.random;
 
-public class SplitMix64_v1ProviderTest extends AbstractPseudoRandomGeneratorProviderTest {
+class SplitMix64_v1ProviderTest extends AbstractPseudoRandomGeneratorProviderTest {
   @Override
   protected PseudoRandomGeneratorProvider getPseudoRandomGeneratorProvider() {
     return PseudoRandomGeneratorProvider.splitMix64_V1();

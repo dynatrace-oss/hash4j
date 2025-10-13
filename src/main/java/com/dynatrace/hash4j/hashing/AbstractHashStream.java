@@ -88,7 +88,7 @@ interface AbstractHashStream extends HashStream {
 
   @Override
   default HashStream putBytes(byte[] b, int off, int len) {
-    return putBytes(b, off, len, NativeByteArrayByteAccess.get());
+    return putBytes(b, off, len, ByteArrayByteAccess.get());
   }
 
   @Override

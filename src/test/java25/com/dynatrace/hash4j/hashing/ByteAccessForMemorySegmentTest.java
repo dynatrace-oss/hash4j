@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.internal;
+package com.dynatrace.hash4j.hashing;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import java.util.SplittableRandom;
+import java.lang.foreign.MemorySegment;
 import org.junit.jupiter.api.Test;
 
-class UnsignedMultiplyUtilReferenceTest {
+class ByteAccessForMemorySegmentTest {
 
   @Test
-  void testAgainstJava() {
-
-    SplittableRandom random = new SplittableRandom(0x75ec0a7f2d98ba4fL);
-    int numIterations = 50;
-    for (int i = 0; i < numIterations; ++i) {
-      long a = random.nextLong();
-      long b = random.nextLong();
-      assertThat(UnsignedMultiplyUtil.unsignedMultiplyHigh(a, b))
-          .isEqualTo(Math.unsignedMultiplyHigh(a, b));
-    }
+  void testFactoryMethodForMemorySegment() {
+    assertThatIllegalArgumentException().isThrownBy(() -> ByteAccess.forMemorySegment(null));
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> ByteAccess.forMemorySegment(Object.class));
+    assertThat(ByteAccess.forMemorySegment(MemorySegment.class)).isInstanceOf(ByteAccess.class);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dynatrace.hash4j.similarity;
+package com.dynatrace.hash4j.hashing;
 
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+final class FFMUtil {
 
-class SuperMinHashPolicy_v1aTest extends AbstractSuperMinHashPolicyTest {
+  private FFMUtil() {}
 
-  @Override
-  protected SimilarityHashPolicy getSimilarityHashPolicy(
-      int numberOfComponents, int bitsPerComponent) {
-    return new SuperMinHashPolicy_v1a(
-        numberOfComponents, bitsPerComponent, PseudoRandomGeneratorProvider.splitMix64_V1());
+  @SuppressWarnings("DoNotCallSuggester")
+  static <T> ByteAccess<T> getByteAccessForMemorySegment(Class<T> clazz) {
+    throw new UnsupportedOperationException(
+        "This function must not be called in Java versions smaller than 25.");
   }
 }

@@ -54,10 +54,10 @@ abstract class AbstractHasher128Test extends AbstractHasherTest {
     assertThat(hasher.hashBytesToLong(b, 0, 0)).isEqualTo(hash.getAsLong());
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo(hash.getAsInt());
 
-    assertThat(hasher.hashBytesTo128Bits(b, 0, 0, NativeByteArrayByteAccess.get())).isEqualTo(hash);
-    assertThat(hasher.hashBytesToLong(b, 0, 0, NativeByteArrayByteAccess.get()))
+    assertThat(hasher.hashBytesTo128Bits(b, 0, 0, ByteArrayByteAccess.get())).isEqualTo(hash);
+    assertThat(hasher.hashBytesToLong(b, 0, 0, ByteArrayByteAccess.get()))
         .isEqualTo(hash.getAsLong());
-    assertThat(hasher.hashBytesToInt(b, 0, 0, NativeByteArrayByteAccess.get()))
+    assertThat(hasher.hashBytesToInt(b, 0, 0, ByteArrayByteAccess.get()))
         .isEqualTo(hash.getAsInt());
 
     assertThat(hasher.hashCharsTo128Bits(s)).isEqualTo(hash);

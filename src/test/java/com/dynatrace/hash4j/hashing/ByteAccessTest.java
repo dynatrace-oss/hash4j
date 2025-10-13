@@ -15,12 +15,14 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import java.nio.ByteOrder;
 import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
 
-public class ByteAccessTest {
+class ByteAccessTest {
 
   @Test
   void testGet() {
@@ -85,5 +87,13 @@ public class ByteAccessTest {
         }
       }
     }
+  }
+
+  @Test
+  void testFactoryMethodArguments() {
+    assertThat(ByteAccess.forByteArray()).isInstanceOf(ByteAccess.class);
+    assertThatIllegalArgumentException().isThrownBy(() -> ByteAccess.forByteBuffer(null));
+    assertThat(ByteAccess.forByteBuffer(ByteOrder.BIG_ENDIAN)).isInstanceOf(ByteAccess.class);
+    assertThat(ByteAccess.forByteBuffer(ByteOrder.LITTLE_ENDIAN)).isInstanceOf(ByteAccess.class);
   }
 }
