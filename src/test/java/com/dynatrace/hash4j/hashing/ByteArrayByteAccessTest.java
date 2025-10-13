@@ -19,7 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-class NativeByteArrayByteAccessTest {
+class ByteArrayByteAccessTest {
 
   @Test
   void test() {

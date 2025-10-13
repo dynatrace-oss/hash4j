@@ -28,13 +28,28 @@ class ByteBufferUtilTest {
   void testByteBufferByteAccessAgainstNativeByteArrayAccess() {
 
     SplittableRandom random = new SplittableRandom(0xa2f244e9e199555cL);
+
     int size = 100;
     byte[] array = new byte[size];
     random.nextBytes(array);
-    ByteBuffer bbBig = ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN);
+
+    int offset = 37;
+    byte[] arrayWithOffset = new byte[size + offset];
+    System.arraycopy(array, 0, arrayWithOffset, offset, size);
+
+    ByteBuffer bbBig =
+        ByteBuffer.wrap(arrayWithOffset, offset, size).slice().order(ByteOrder.BIG_ENDIAN);
     ByteBuffer bbBigReadOnly = bbBig.asReadOnlyBuffer().order(ByteOrder.BIG_ENDIAN);
-    ByteBuffer bbLittle = ByteBuffer.wrap(array).order(ByteOrder.LITTLE_ENDIAN);
+    ByteBuffer bbLittle =
+        ByteBuffer.wrap(arrayWithOffset, offset, size).slice().order(ByteOrder.LITTLE_ENDIAN);
     ByteBuffer bbLittleReadOnly = bbLittle.asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
+
+    assertThat(bbBig.hasArray()).isTrue();
+    assertThat(bbBig.arrayOffset()).isEqualTo(offset);
+    assertThat(bbBigReadOnly.hasArray()).isFalse();
+    assertThat(bbLittle.hasArray()).isTrue();
+    assertThat(bbLittle.arrayOffset()).isEqualTo(offset);
+    assertThat(bbLittleReadOnly.hasArray()).isFalse();
 
     ByteAccess<ByteBuffer> bbBigByteAccess = ByteAccess.forByteBuffer(ByteOrder.BIG_ENDIAN);
     ByteAccess<ByteBuffer> bbLittleByteAccess = ByteAccess.forByteBuffer(ByteOrder.LITTLE_ENDIAN);
