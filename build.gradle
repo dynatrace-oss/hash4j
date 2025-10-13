@@ -24,7 +24,7 @@ plugins {
 	id "maven-publish"
 	id "signing"
 	id "net.ltgt.errorprone" version "4.3.0"
-	id "me.champeau.gradle.japicmp" version "0.4.5"
+	id "me.champeau.gradle.japicmp" version "0.4.6"
 }
 
 repositories {

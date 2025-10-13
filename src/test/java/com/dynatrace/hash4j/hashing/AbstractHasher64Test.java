@@ -50,9 +50,8 @@ abstract class AbstractHasher64Test extends AbstractHasherTest {
     assertThat(hasher.hashBytesToLong(b, 0, 0)).isEqualTo(hash);
     assertThat(hasher.hashBytesToInt(b, 0, 0)).isEqualTo((int) hash);
 
-    assertThat(hasher.hashBytesToLong(b, 0, 0, NativeByteArrayByteAccess.get())).isEqualTo(hash);
-    assertThat(hasher.hashBytesToInt(b, 0, 0, NativeByteArrayByteAccess.get()))
-        .isEqualTo((int) hash);
+    assertThat(hasher.hashBytesToLong(b, 0, 0, ByteArrayByteAccess.get())).isEqualTo(hash);
+    assertThat(hasher.hashBytesToInt(b, 0, 0, ByteArrayByteAccess.get())).isEqualTo((int) hash);
 
     assertThat(hasher.hashCharsToLong(s)).isEqualTo(hash);
     assertThat(hasher.hashCharsToInt(s)).isEqualTo((int) hash);

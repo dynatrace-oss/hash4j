@@ -16,6 +16,8 @@
 package com.dynatrace.hash4j.hashing;
 
 import com.dynatrace.hash4j.internal.ByteArrayUtil;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * Strategy to access contiguous bytes of a data object.
@@ -141,5 +143,48 @@ public interface ByteAccess<T> {
         if (len != 2) array[off + 2] = getByte(data, idx + 2);
       }
     }
+  }
+
+  /**
+   * Returns a {@link ByteAccess} instance for native {@code byte[]} arrays.
+   *
+   * @return a {@link ByteAccess} instance
+   */
+  static ByteAccess<byte[]> forByteArray() {
+    return ByteArrayByteAccess.get();
+  }
+
+  /**
+   * Returns a {@link ByteAccess} instance for a {@code java.lang.foreign.MemorySegment} for Java
+   * versions 25 and beyond.
+   *
+   * <p>Passing the class as argument is a workaround to make the interface compatible with older
+   * Java versions not supporting {@code java.lang.foreign.MemorySegment}. The argument might get
+   * dropped in future releases support only Java version 25 and beyond.
+   *
+   * @param clazz must be MemorySegment.class
+   * @param <T> the type, must be {@code MemorySegment}
+   * @return a {@link ByteAccess} instance
+   * @throws UnsupportedOperationException if this function is called by Java versions smaller than
+   *     25.
+   * @throws IllegalArgumentException if {@code clazz} is not {@code
+   *     java.lang.foreign.MemorySegment.class}.
+   */
+  @Generated(reason = "FFMUtil.getByteAccessForMemorySegment might throw exceptions")
+  static <T> ByteAccess<T> forMemorySegment(Class<T> clazz) {
+    return FFMUtil.getByteAccessForMemorySegment(clazz);
+  }
+
+  /**
+   * Returns a {@link ByteAccess} instance for byte buffers with specified byte order.
+   *
+   * @param byteOrder the byte order, must be either {@link ByteOrder#BIG_ENDIAN} or {@link
+   *     ByteOrder#LITTLE_ENDIAN}
+   * @return a {@link ByteAccess} instance
+   * @throws IllegalArgumentException if {@code byteOrder} is neither {@link ByteOrder#BIG_ENDIAN}
+   *     nor {@link ByteOrder#LITTLE_ENDIAN}
+   */
+  static ByteAccess<ByteBuffer> forByteBuffer(ByteOrder byteOrder) {
+    return ByteBufferByteAccess.get(byteOrder);
   }
 }

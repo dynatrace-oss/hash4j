@@ -18,18 +18,18 @@ package com.dynatrace.hash4j.hashing;
 import com.dynatrace.hash4j.internal.ByteArrayUtil;
 
 /** An {@link ByteAccess} for a native {@code byte[]} array. */
-final class NativeByteArrayByteAccess implements ByteAccess<byte[]> {
+final class ByteArrayByteAccess implements ByteAccess<byte[]> {
 
-  private NativeByteArrayByteAccess() {}
+  private ByteArrayByteAccess() {}
 
-  private static final NativeByteArrayByteAccess INSTANCE = new NativeByteArrayByteAccess();
+  private static final ByteArrayByteAccess INSTANCE = new ByteArrayByteAccess();
 
   /**
-   * Returns a {@link NativeByteArrayByteAccess} instance.
+   * Returns a {@link ByteArrayByteAccess} instance.
    *
-   * @return a {@link NativeByteArrayByteAccess} instance
+   * @return a {@link ByteArrayByteAccess} instance
    */
-  public static NativeByteArrayByteAccess get() {
+  public static ByteArrayByteAccess get() {
     return INSTANCE;
   }
 

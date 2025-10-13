@@ -29,7 +29,7 @@ interface AbstractHasher64 extends AbstractHasher32, Hasher64 {
 
   @Override
   default long hashBytesToLong(byte[] input, int off, int len) {
-    return hashBytesToLong(input, off, len, NativeByteArrayByteAccess.get());
+    return hashBytesToLong(input, off, len, ByteArrayByteAccess.get());
   }
 
   @Override

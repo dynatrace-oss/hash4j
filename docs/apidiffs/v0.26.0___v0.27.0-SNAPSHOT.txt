@@ -1,2 +1,10 @@
 Comparing source compatibility of hash4j-0.27.0-SNAPSHOT.jar against hash4j-0.26.0.jar
-No changes.
+***  MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.ByteAccess  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	GENERIC TEMPLATES: === T:java.lang.Object
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.ByteAccess forByteArray()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.ByteAccess<java.nio.ByteBuffer> forByteBuffer(java.nio.ByteOrder)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.ByteAccess<T> forMemorySegment(java.lang.Class<T>)
+		+++  NEW ANNOTATION: com.dynatrace.hash4j.hashing.Generated
+			+++  NEW ELEMENT: reason=FFMUtil.getByteAccessForMemorySegment might throw exceptions (+)
+		GENERIC TEMPLATES: +++ T:java.lang.Object

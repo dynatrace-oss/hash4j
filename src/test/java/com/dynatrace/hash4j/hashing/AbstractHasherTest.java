@@ -199,8 +199,7 @@ abstract class AbstractHasherTest {
         long hash32 = hasher32.hashBytesToInt(data);
         long hash32WithOffset = hasher32.hashBytesToInt(dataWithOffset, offset, length);
         long hash32WithOffsetAndAccess =
-            hasher32.hashBytesToInt(
-                dataWithOffset, offset, length, NativeByteArrayByteAccess.get());
+            hasher32.hashBytesToInt(dataWithOffset, offset, length, ByteArrayByteAccess.get());
         assertThat(hash32).isEqualTo(hash32Reference);
         assertThat(hash32WithOffset).isEqualTo(hash32Reference);
         assertThat(hash32WithOffsetAndAccess).isEqualTo(hash32Reference);
@@ -211,8 +210,7 @@ abstract class AbstractHasherTest {
         long hash64 = hasher64.hashBytesToLong(data);
         long hash64WithOffset = hasher64.hashBytesToLong(dataWithOffset, offset, length);
         long hash64WihtOffsetAndAccess =
-            hasher64.hashBytesToLong(
-                dataWithOffset, offset, length, NativeByteArrayByteAccess.get());
+            hasher64.hashBytesToLong(dataWithOffset, offset, length, ByteArrayByteAccess.get());
         assertThat(hash64).isEqualTo(hash64Reference);
         assertThat(hash64WithOffset).isEqualTo(hash64Reference);
         assertThat(hash64WihtOffsetAndAccess).isEqualTo(hash64Reference);
@@ -224,8 +222,7 @@ abstract class AbstractHasherTest {
         HashValue128 hash128WithOffset =
             hasher128.hashBytesTo128Bits(dataWithOffset, offset, length);
         HashValue128 hash128WithOffsetAndAccess =
-            hasher128.hashBytesTo128Bits(
-                dataWithOffset, offset, length, NativeByteArrayByteAccess.get());
+            hasher128.hashBytesTo128Bits(dataWithOffset, offset, length, ByteArrayByteAccess.get());
         assertThat(hash128).isEqualTo(hash128Reference);
         assertThat(hash128WithOffset).isEqualTo(hash128Reference);
         assertThat(hash128WithOffsetAndAccess).isEqualTo(hash128Reference);
@@ -597,9 +594,7 @@ abstract class AbstractHasherTest {
       for (int size = 1; size <= maxDataSize; ++size) {
         hashStreamPutByte.putByte(bytes[size - 1]);
         hashStreamPutBytes.reset().putBytes(bytes, 0, size);
-        hashStreamPutBytesViaAccess
-            .reset()
-            .putBytes(bytes, 0, size, NativeByteArrayByteAccess.get());
+        hashStreamPutBytesViaAccess.reset().putBytes(bytes, 0, size, ByteArrayByteAccess.get());
         assertHashStream(hashStreamPutByte, hasher, bytes, 0, size);
         assertHashStream(hashStreamPutBytes, hasher, bytes, 0, size);
         assertHashStream(hashStreamPutBytesViaAccess, hasher, bytes, 0, size);
@@ -928,7 +923,7 @@ abstract class AbstractHasherTest {
             availableBytes += 8;
           }
           for (int i = 0; i < hashStreams.size(); ++i) {
-            hashStreams.get(i).putBytes(data, 0, increment, NativeByteArrayByteAccess.get());
+            hashStreams.get(i).putBytes(data, 0, increment, ByteArrayByteAccess.get());
           }
           setLong(data, 0, getLong(data, increment));
           availableBytes -= increment;
@@ -1582,7 +1577,7 @@ abstract class AbstractHasherTest {
             hsReference.putLong(v);
           }
           hs2.putBytes(bytes);
-          hs3.putBytes(bytes, 0, bytes.length, NativeByteArrayByteAccess.get());
+          hs3.putBytes(bytes, 0, bytes.length, ByteArrayByteAccess.get());
 
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
@@ -1632,7 +1627,7 @@ abstract class AbstractHasherTest {
             hsReference.putInt(v);
           }
           hs2.putBytes(bytes);
-          hs3.putBytes(bytes, 0, bytes.length, NativeByteArrayByteAccess.get());
+          hs3.putBytes(bytes, 0, bytes.length, ByteArrayByteAccess.get());
 
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();
@@ -1682,7 +1677,7 @@ abstract class AbstractHasherTest {
             hsReference.putShort(v);
           }
           hs2.putBytes(bytes);
-          hs3.putBytes(bytes, 0, bytes.length, NativeByteArrayByteAccess.get());
+          hs3.putBytes(bytes, 0, bytes.length, ByteArrayByteAccess.get());
 
           assertThat(defaultMethodWrapperEquals(hsReference, hs1)).isTrue();
           assertThat(defaultMethodWrapperEquals(hsReference, hs2)).isTrue();

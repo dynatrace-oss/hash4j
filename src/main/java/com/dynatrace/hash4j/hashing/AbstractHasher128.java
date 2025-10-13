@@ -29,7 +29,7 @@ interface AbstractHasher128 extends AbstractHasher64, Hasher128 {
 
   @Override
   default HashValue128 hashBytesTo128Bits(byte[] input, int off, int len) {
-    return hashBytesTo128Bits(input, off, len, NativeByteArrayByteAccess.get());
+    return hashBytesTo128Bits(input, off, len, ByteArrayByteAccess.get());
   }
 
   @Override
