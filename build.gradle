@@ -47,10 +47,10 @@ group = "com.dynatrace.hash4j"
 version = "0.27.0-SNAPSHOT"
 
 dependencies {
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.4") // upgrade to version 6 requires Java 17
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.4") // upgrade to version 6 requires Java 17
-	testImplementation("org.junit.jupiter:junit-jupiter-params:5.13.4") // upgrade to version 6 requires Java 17
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.4") // upgrade to version 6 requires Java 17
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.0") // upgrade to version 6 requires Java 17
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.0") // upgrade to version 6 requires Java 17
+	testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.0") // upgrade to version 6 requires Java 17
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.0") // upgrade to version 6 requires Java 17
 	testImplementation("org.assertj:assertj-core:3.27.6")
 	testImplementation("org.hipparchus:hipparchus-stat:4.0.2")
 	testImplementation("org.hipparchus:hipparchus-optim:4.0.2")
@@ -240,9 +240,9 @@ static def readPythonLicense(licenseName) {
 
 apply plugin: "groovy"
 spotless {
-	def googleJavaFormatVersion = "1.28.0"
+	def googleJavaFormatVersion = "1.29.0"
 	def eclipseCdtVersion = "11.6"
-	def blackVersion = "25.1.0"
+	def blackVersion = "25.9.0"
 	def greclipseVersion = "4.32"
 	def specialLicenseHeaders = [
 		new Tuple3("javaImohash", "MIT_IMOHASH", [
