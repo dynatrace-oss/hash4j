@@ -1,4 +1,4 @@
-Comparing source compatibility of hash4j-0.27.0-SNAPSHOT.jar against hash4j-0.26.0.jar
+Comparing source compatibility of hash4j-0.27.0.jar against hash4j-0.26.0.jar
 ***  MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.ByteAccess  (not serializable)
 	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
 	GENERIC TEMPLATES: === T:java.lang.Object
