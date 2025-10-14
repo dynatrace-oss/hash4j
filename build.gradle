@@ -44,7 +44,7 @@ ext {
 }
 
 group = "com.dynatrace.hash4j"
-version = "0.27.0"
+version = "0.28.0-SNAPSHOT"
 
 dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.0") // upgrade to version 6 requires Java 17
