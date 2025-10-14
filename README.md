@@ -51,8 +51,8 @@ class TestClass {
 }
 
 TestClass obj = new TestClass(); // create an instance of some test class
-    
-Hasher64 hasher = Hashing.komihash5_0(); // create a hasher instance
+
+var hasher = Hashing.komihash5_0(); // create a hasher instance (can be static)
 
 // variant 1: hash object by passing data into a hash stream
 long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong(); // gives 0x90553fd9c675dfb2L
@@ -60,6 +60,15 @@ long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).g
 // variant 2: hash object by defining a funnel
 HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putString(o.c);
 long hash2 = hasher.hashToLong(obj, funnel); // gives 0x90553fd9c675dfb2L
+
+// create a hash stream instance (can be static or thread-local)
+var hashStream = Hashing.komihash5_0().hashStream();
+
+// variant 3: allocation-free by reusing a pre-allocated hash stream instance
+long hash3 = hashStream.reset().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong(); // gives 0x90553fd9c675dfb2L
+
+// variant 4: allocation-free and using a funnel
+long hash4 = hashStream.resetAndHashToLong(obj, funnel); // gives 0x90553fd9c675dfb2L
 ```
 More examples can be found in [HashingDemo.java](src/test/java/com/dynatrace/hash4j/hashing/HashingDemo.java).
 
