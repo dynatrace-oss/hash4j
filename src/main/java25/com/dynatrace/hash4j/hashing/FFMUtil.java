@@ -27,7 +27,11 @@ final class FFMUtil {
     if (!MemorySegment.class.equals(clazz))
       throw new IllegalArgumentException(
           "The argument must be java.lang.foreign.MemorySegment.class!");
-    return (ByteAccess<T>) MEMORY_SEGMENT_BYTE_ACCESS_INSTANCE;
+
+    @SuppressWarnings("unchecked")
+    ByteAccess<T> ret = (ByteAccess<T>) MEMORY_SEGMENT_BYTE_ACCESS_INSTANCE;
+
+    return ret;
   }
 
   private static final MemorySegmentByteAccess MEMORY_SEGMENT_BYTE_ACCESS_INSTANCE =

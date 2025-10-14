@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class HashingDemo {
 
   @Test
-  void demoObjectInTwoDifferentWays() {
+  void demoHashObject() {
 
     class TestClass {
       int a = 42;
@@ -31,10 +31,9 @@ class HashingDemo {
       String c = "Hello world!";
     }
 
-    TestClass obj = new TestClass();
+    TestClass obj = new TestClass(); // create an instance of some test class
 
-    // create a hasher instance
-    Hasher64 hasher = Hashing.komihash5_0();
+    var hasher = Hashing.komihash5_0(); // create a hasher instance (can be static)
 
     // variant 1: hash object by passing data into a hash stream
     long hash1 = hasher.hashStream().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong();
@@ -43,8 +42,21 @@ class HashingDemo {
     HashFunnel<TestClass> funnel = (o, sink) -> sink.putInt(o.a).putLong(o.b).putString(o.c);
     long hash2 = hasher.hashToLong(obj, funnel);
 
-    // both variants lead to same hash value
-    assertThat(hash1).isEqualTo(hash2).isEqualTo(0x90553fd9c675dfb2L);
+    // create a hash stream instance (can be static or thread-local)
+    var hashStream = Hashing.komihash5_0().hashStream();
+
+    // variant 3: allocation-free by reusing a pre-allocated hash stream instance
+    long hash3 = hashStream.reset().putInt(obj.a).putLong(obj.b).putString(obj.c).getAsLong();
+
+    // variant 4: allocation-free and using a funnel
+    long hash4 = hashStream.resetAndHashToLong(obj, funnel);
+
+    // all variants lead to same hash value
+    assertThat(hash1)
+        .isEqualTo(hash2)
+        .isEqualTo(hash3)
+        .isEqualTo(hash4)
+        .isEqualTo(0x90553fd9c675dfb2L);
   }
 
   // Some class with two string fields.
