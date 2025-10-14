@@ -160,7 +160,7 @@ public interface ByteAccess<T> {
    *
    * <p>Passing the class as argument is a workaround to make the interface compatible with older
    * Java versions not supporting {@code java.lang.foreign.MemorySegment}. The argument might get
-   * dropped in future releases support only Java version 25 and beyond.
+   * dropped in future releases that only support Java version 25 and beyond.
    *
    * @param clazz must be MemorySegment.class
    * @param <T> the type, must be {@code MemorySegment}
