@@ -135,7 +135,7 @@ tasks.register("jApiCmp", me.champeau.gradle.japicmp.JapicmpTask) {
 	packageExcludes.addAll("*.internal", "*.internal.*")
 
 
-	txtOutputFile = file("$rootDir/docs/apidiffs/v${baselineVersion}___v${newVersion}.txt")
+	txtOutputFile = file("$rootDir/doc/apidiffs/v${baselineVersion}___v${newVersion}.txt")
 }
 
 jar {
