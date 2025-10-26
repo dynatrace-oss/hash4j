@@ -576,8 +576,8 @@ final class XXH3_64 extends XXH3Base {
         return avalanche3(acc);
       }
       if (len >= 2) {
-        long input1 = getInt(charSequence, 0);
-        long input2 = getInt(charSequence, len - 2);
+        long input1 = getIntAsUnsignedLong(charSequence, 0);
+        long input2 = getIntAsUnsignedLong(charSequence, len - 2);
         long keyed = (input2 & 0xFFFFFFFFL) ^ (input1 << 32) ^ bitflip12;
         return rrmxmx(keyed, len << 1);
       }

@@ -21,23 +21,14 @@ hash4j is a Java library by Dynatrace that includes various non-cryptographic ha
 
 ## Hash algorithms
 hash4j currently implements the following hash algorithms:
-* [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp)
-  * 32-bit
-  * 128-bit
-* [Wyhash](https://github.com/wangyi-fudan/wyhash)
-  * [final version 3](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash)
-  * [final version 4](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash_final4)
-* [Komihash](https://github.com/avaneev/komihash)
-  * version [4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [4.7](https://github.com/avaneev/komihash/releases/tag/4.7))
-  * version [5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [5.10](https://github.com/avaneev/komihash/releases/tag/5.10), and  [5.27](https://github.com/avaneev/komihash/releases/tag/5.27))
-* [FarmHash](https://github.com/google/farmhash)
-  * farmhashna
-  * farmhashuo
+* [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp): 32-bit and 128-bit
+* [Wyhash](https://github.com/wangyi-fudan/wyhash): [final version 3](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash) and [final version 4](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash_final4)
+* [Komihash](https://github.com/avaneev/komihash): version [4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [4.7](https://github.com/avaneev/komihash/releases/tag/4.7)) and version [5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [5.10](https://github.com/avaneev/komihash/releases/tag/5.10) and  [5.27](https://github.com/avaneev/komihash/releases/tag/5.27))
+* [FarmHash](https://github.com/google/farmhash): farmhashna and farmhashuo
 * [PolymurHash 2.0](https://github.com/orlp/polymur-hash)
-* [XXH3](https://github.com/Cyan4973/xxHash)
-  * 64-bit
-  * 128-bit
+* [XXH3](https://github.com/Cyan4973/xxHash): 64-bit and 128-bit
 * [Rapidhash v3](https://github.com/Nicoshev/rapidhash/tree/rapidhash_v3)
+* [ChibiHash v2](https://github.com/N-R-K/ChibiHash/tree/v2)
 
 All hash functions are thoroughly tested against the native reference implementations and also other libraries like [Guava Hashing](https://javadoc.io/doc/com.google.guava/guava/latest/com/google/common/hash/package-summary.html), [Zero-Allocation Hashing](https://github.com/OpenHFT/Zero-Allocation-Hashing), [Apache Commons Codec](https://commons.apache.org/proper/commons-codec/apidocs/index.html), or [crypto](https://github.com/appmattus/crypto) (see [CrossCheckTest.java](src/test/java/com/dynatrace/hash4j/hashing/CrossCheckTest.java)).
  

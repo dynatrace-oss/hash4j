@@ -91,6 +91,9 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
    * on an Intel x86 architecture. Furthermore, it is compatible with Komihash versions 4.5 and 4.7.
    *
+   * <p>This function is superseded by {@link #komihash5_0} and should only be used if compatibility
+   * is needed.
+   *
    * @return a hasher instance
    */
   public static Hasher64 komihash4_3() {
@@ -107,6 +110,9 @@ public final class Hashing {
    * on an Intel x86 architecture. Furthermore, it is compatible with Komihash versions 4.5 and 4.7.
    *
    * <p>This implementation is also compatible with Komihash versions 4.5 and 4.7.
+   *
+   * <p>This function is superseded by {@link #komihash5_0} and should only be used if compatibility
+   * is needed.
    *
    * @param seed a 64-bit seed
    * @return a hasher instance
@@ -194,7 +200,8 @@ public final class Hashing {
    * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
    *
-   * <p>This implementation is also compatible with Komihash versions 4.5 and 4.7.
+   * <p>This function is superseded by {@link #wyhashFinal4} and should only be used if
+   * compatibility is needed.
    *
    * @return a hasher instance
    */
@@ -211,6 +218,9 @@ public final class Hashing {
    * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
    *
+   * <p>This function is superseded by {@link #wyhashFinal4} and should only be used if
+   * compatibility is needed.
+   *
    * @param seed a 64-bit seed
    * @return a hasher instance
    */
@@ -226,6 +236,9 @@ public final class Hashing {
    * and {@code make_secret} defined in <a
    * href="https://github.com/wangyi-fudan/wyhash/blob/991aa3dab624e50b066f7a02ccc9f6935cc740ec/wyhash.h">wyhash.h</a>
    * on an Intel x86 architecture.
+   *
+   * <p>This function is superseded by {@link #wyhashFinal4} and should only be used if
+   * compatibility is needed.
    *
    * @param seed a 64-bit seed
    * @param seedForSecret a 64-bit seed for secret generation
@@ -436,7 +449,7 @@ public final class Hashing {
   }
 
   /**
-   * Returns a {@link Hasher64} implementing the 64-bit RapidHash v3 algorithm using a seed value of
+   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 algorithm using a seed value of
    * zero and the default secret.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code rapidhash}
@@ -451,7 +464,7 @@ public final class Hashing {
   }
 
   /**
-   * Returns a {@link Hasher64} implementing the 64-bit RapidHash v3 algorithm using the given seed
+   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 algorithm using the given seed
    * value and the default secret.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
@@ -464,5 +477,21 @@ public final class Hashing {
    */
   public static Hasher64 rapidhash3(long seed) {
     return Rapidhash3.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit ChibiHash v2 algorithm using the given seed
+   * value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * chibihash64} defined in <a
+   * href="https://github.com/N-R-K/ChibiHash/blob/0ae6a3cc36f40ba1073d29c91496caa6510dc2ef/chibihash64.h#L27">chibihash64.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 chibiHash2(long seed) {
+    return ChibiHash2.create(seed);
   }
 }

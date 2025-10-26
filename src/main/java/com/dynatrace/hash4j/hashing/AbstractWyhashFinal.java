@@ -129,10 +129,11 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
 
     if (len <= 8) {
       if (len >= 2) {
-        long a = ((long) getInt(input, 0) << 32) | (getInt(input, (len >>> 2) << 1) & 0xFFFFFFFFL);
+        long a =
+            (getIntAsUnsignedLong(input, 0) << 32) | getIntAsUnsignedLong(input, (len >>> 2) << 1);
         long b =
-            ((long) getInt(input, len - 2) << 32)
-                | (getInt(input, (len - 2) - ((len >>> 2) << 1)) & 0xFFFFFFFFL);
+            (getIntAsUnsignedLong(input, len - 2) << 32)
+                | getIntAsUnsignedLong(input, (len - 2) - ((len >>> 2) << 1));
         return finish(a, b, seed, len << 1);
       } else if (len > 0) {
         int ch = input.charAt(0);

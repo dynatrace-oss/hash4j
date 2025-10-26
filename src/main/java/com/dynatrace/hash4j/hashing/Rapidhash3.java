@@ -248,8 +248,8 @@ final class Rapidhash3 implements AbstractHasher64 {
           a = getLong(input, 0);
           b = getLong(input, len - 4);
         } else {
-          b = getInt(input, 0) & 0xFFFFFFFFL;
-          a = getInt(input, len - 2) & 0xFFFFFFFFL;
+          b = getIntAsUnsignedLong(input, 0);
+          a = getIntAsUnsignedLong(input, len - 2);
         }
         return finish(a ^ (len << 1), b, seed ^ (len << 1), len << 1);
       } else if (len > 0) {

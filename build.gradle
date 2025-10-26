@@ -256,6 +256,9 @@ spotless {
 		new Tuple3("javaRapidhash", "MIT_RAPIDHASH" , [
 			"src/main/java/com/dynatrace/hash4j/hashing/Rapidhash3.java"
 		]),
+		new Tuple3("javaChibiHash", "UNLICENSE_CHIBIHASH" , [
+			"src/main/java/com/dynatrace/hash4j/hashing/ChibiHash2.java"
+		]),
 		new Tuple3("javaFarmHash", "MIT_APACHE_2_0_FARMHASH",[
 			"src/main/java/com/dynatrace/hash4j/hashing/FarmHashNa.java",
 			"src/main/java/com/dynatrace/hash4j/hashing/FarmHashUo.java"
