@@ -176,7 +176,7 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
     }
     if (len >= 2) {
       long mul = K2 + (len << 2);
-      long a = getInt(input, 0) & 0xFFFFFFFFL;
+      long a = getIntAsUnsignedLong(input, 0);
       long b = a;
       if (len >= 3) {
         b >>>= 16;

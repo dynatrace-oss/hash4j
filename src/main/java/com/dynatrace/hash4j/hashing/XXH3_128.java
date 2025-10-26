@@ -698,8 +698,8 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
         return new HashValue128(high, low);
       }
       if (len >= 2) {
-        long lo = getInt(charSequence, 0) & 0xFFFFFFFFL;
-        long hi = getInt(charSequence, len - 2);
+        long lo = getIntAsUnsignedLong(charSequence, 0);
+        long hi = getIntAsUnsignedLong(charSequence, len - 2);
         long keyed = lo ^ (hi << 32) ^ bitflip23;
         long pl = INIT_ACC_1 + (len << 3);
         long low = keyed * pl;

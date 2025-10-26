@@ -136,6 +136,18 @@ public final class ByteArrayUtil {
   }
 
   /**
+   * Reads two characters from a {@link CharSequence} with given offset and returns them as {@code
+   * long}.
+   *
+   * @param charSequence a char sequence
+   * @param off an offset
+   * @return the value
+   */
+  public static long getIntAsUnsignedLong(CharSequence charSequence, int off) {
+    return (long) charSequence.charAt(off) | ((long) charSequence.charAt(off + 1) << 16);
+  }
+
+  /**
    * Writes a {@code char} to a byte array with given offset.
    *
    * @param b a byte array

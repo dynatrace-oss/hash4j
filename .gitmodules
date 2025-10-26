@@ -43,3 +43,6 @@
 [submodule "reference-implementations/rapidhash_3/rapidhash"]
 	path = reference-implementations/rapidhash_3/rapidhash
 	url = https://github.com/Nicoshev/rapidhash.git
+[submodule "reference-implementations/chibihash_2/ChibiHash"]
+	path = reference-implementations/chibihash_2/ChibiHash
+	url = https://github.com/N-R-K/ChibiHash.git

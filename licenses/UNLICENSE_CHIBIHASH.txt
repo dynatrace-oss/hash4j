@@ -1,0 +1,2 @@
+This file includes a Java port of the ChibiHash algorithm originally released
+into the public domain at https://github.com/N-R-K/ChibiHash.
