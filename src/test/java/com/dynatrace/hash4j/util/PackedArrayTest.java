@@ -15,12 +15,17 @@
  */
 package com.dynatrace.hash4j.util;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import com.dynatrace.hash4j.testutils.TestUtils;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayHandler;
 import com.dynatrace.hash4j.util.PackedArray.PackedArrayReadIterator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

@@ -15,7 +15,10 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.getUnexpectedStateLengthException;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.unsignedLongToDouble;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 import static java.util.Objects.requireNonNull;

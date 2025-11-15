@@ -17,7 +17,9 @@ package com.dynatrace.hash4j.internal;
 
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.internal.Preconditions.checkState;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import org.junit.jupiter.api.Test;
 

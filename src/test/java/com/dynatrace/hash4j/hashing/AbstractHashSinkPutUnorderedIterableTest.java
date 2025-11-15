@@ -21,7 +21,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.RandomAccess;
+import java.util.Set;
+import java.util.SplittableRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;

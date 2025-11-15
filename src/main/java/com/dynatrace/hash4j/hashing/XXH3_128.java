@@ -38,7 +38,10 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.hashing.HashUtil.mix;
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getIntAsUnsignedLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 final class XXH3_128 extends XXH3Base implements AbstractHasher128 {

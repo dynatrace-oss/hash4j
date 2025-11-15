@@ -15,7 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 
 final class Murmur3_32 implements AbstractHasher32 {

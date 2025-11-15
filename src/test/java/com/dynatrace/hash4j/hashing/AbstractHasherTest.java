@@ -15,14 +15,25 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.hashing.HashMocks.*;
-import static com.dynatrace.hash4j.hashing.HashTestUtils.*;
+import static com.dynatrace.hash4j.hashing.HashMocks.TestHashStream;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher32UsingDefaultImplementations;
+import static com.dynatrace.hash4j.hashing.HashMocks.createHasher64UsingDefaultImplementations;
+import static com.dynatrace.hash4j.hashing.HashMocks.defaultMethodWrapperEquals;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.RandomOnDemandByteAccess;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.RandomOnDemandCharSequence;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.asCharSequence;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.assertHashStreamEquals;
 import static com.dynatrace.hash4j.hashing.HashTestUtils.generateRandomBytes;
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.hashing.HashTestUtils.getHashAsByteArray;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static com.dynatrace.hash4j.testutils.TestUtils.hexStringToByteArray;
 import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 import com.dynatrace.hash4j.hashing.HashTestUtils.ChecksumRecord;
@@ -37,7 +48,16 @@ import java.nio.charset.StandardCharsets;
 import java.security.DigestException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.Scanner;
+import java.util.SplittableRandom;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;

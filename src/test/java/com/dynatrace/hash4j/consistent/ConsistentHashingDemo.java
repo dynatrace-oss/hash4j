@@ -16,7 +16,9 @@
 package com.dynatrace.hash4j.consistent;
 
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;

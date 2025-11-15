@@ -17,7 +17,13 @@ package com.dynatrace.hash4j.hashing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 
 class HashingDemo {

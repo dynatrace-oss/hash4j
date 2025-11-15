@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,8 @@
  */
 package com.dynatrace.hash4j.similarity;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 
 import java.util.Collections;
 import org.junit.jupiter.api.Test;

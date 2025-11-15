@@ -15,11 +15,20 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.distinctcount.UltraLogLog.*;
-import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.*;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.MAXIMUM_LIKELIHOOD_ESTIMATOR;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.MAX_P;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.MIN_P;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OPTIMAL_FGRA_ESTIMATOR;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.ETA_0;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.ETA_1;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.ETA_2;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.ETA_3;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.OptimalFGRAEstimator.TAU;
+import static com.dynatrace.hash4j.distinctcount.UltraLogLog.getScaledRegisterChangeProbability;
 import static com.dynatrace.hash4j.testutils.TestUtils.compareWithMaxRelativeError;
 import static java.lang.Math.sqrt;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.distinctcount.TestUtils.HashGenerator;
 import java.util.ArrayList;
@@ -29,7 +38,11 @@ import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 import org.hipparchus.optim.MaxEval;
 import org.hipparchus.optim.nonlinear.scalar.GoalType;
-import org.hipparchus.optim.univariate.*;
+import org.hipparchus.optim.univariate.BrentOptimizer;
+import org.hipparchus.optim.univariate.SearchInterval;
+import org.hipparchus.optim.univariate.UnivariateObjectiveFunction;
+import org.hipparchus.optim.univariate.UnivariateOptimizer;
+import org.hipparchus.optim.univariate.UnivariatePointValuePair;
 import org.hipparchus.special.Gamma;
 import org.junit.jupiter.api.Test;
 

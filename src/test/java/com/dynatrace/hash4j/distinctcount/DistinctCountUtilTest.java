@@ -15,8 +15,14 @@
  */
 package com.dynatrace.hash4j.distinctcount;
 
-import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.*;
-import static org.assertj.core.api.Assertions.*;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.TokenIterable;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.TokenIterator;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.checkPrecisionParameter;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.isUnsignedPowerOfTwo;
+import static com.dynatrace.hash4j.distinctcount.DistinctCountUtil.solveMaximumLikelihoodEquation;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.data.Percentage.withPercentage;
 
 import com.dynatrace.hash4j.random.PseudoRandomGenerator;
