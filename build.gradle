@@ -309,6 +309,7 @@ spotless {
 		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
 		formatAnnotations()
+		forbidWildcardImports()
 		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
 		targetExclude specialLicenseHeaders.collect {it.get(2)}.flatten()
 	}

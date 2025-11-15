@@ -16,11 +16,18 @@
 package com.dynatrace.hash4j.file;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIOException;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.dynatrace.hash4j.hashing.HashValue128;
 import com.dynatrace.hash4j.testutils.TestUtils;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;

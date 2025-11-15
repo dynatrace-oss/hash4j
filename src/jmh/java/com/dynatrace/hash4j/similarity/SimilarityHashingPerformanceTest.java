@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package com.dynatrace.hash4j.similarity;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.util.SplittableRandom;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
 public class SimilarityHashingPerformanceTest {

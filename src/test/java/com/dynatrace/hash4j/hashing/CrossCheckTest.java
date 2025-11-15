@@ -15,7 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.testutils.TestUtils.*;
+import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToLong;
+import static com.dynatrace.hash4j.testutils.TestUtils.tupleToByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.appmattus.crypto.Algorithm;

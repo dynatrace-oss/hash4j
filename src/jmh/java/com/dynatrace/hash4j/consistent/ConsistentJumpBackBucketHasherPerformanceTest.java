@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2024 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,13 @@ package com.dynatrace.hash4j.consistent;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
 import java.util.SplittableRandom;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.infra.Blackhole;
 
 public class ConsistentJumpBackBucketHasherPerformanceTest {

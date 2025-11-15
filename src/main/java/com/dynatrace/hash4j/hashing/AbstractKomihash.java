@@ -42,7 +42,12 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.copyCharsToByteArray;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setChar;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setShort;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 abstract class AbstractKomihash implements AbstractHasher64 {

@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import static java.lang.foreign.ValueLayout.*;
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT_UNALIGNED;
+import static java.lang.foreign.ValueLayout.JAVA_LONG_UNALIGNED;
 
 import java.lang.foreign.MemorySegment;
 

@@ -15,7 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.ToLongFunction;
 
 /** A sink that accepts various data types contributing to the hash computation. */

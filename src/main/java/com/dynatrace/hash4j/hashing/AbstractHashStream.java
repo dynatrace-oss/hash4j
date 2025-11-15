@@ -16,11 +16,21 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ArraySizeUtil.increaseArraySize;
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.RandomAccess;
+import java.util.UUID;
 import java.util.function.ToLongFunction;
 
 interface AbstractHashStream extends HashStream {

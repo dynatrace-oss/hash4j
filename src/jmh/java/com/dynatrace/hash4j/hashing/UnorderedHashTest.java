@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2024 Dynatrace LLC
+ * Copyright 2022-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class UnorderedHashTest {
 
   private static final HashFunnel<Long> LONG_FUNNEL = (l, h) -> h.putLong(l);
 
-  private static final long long2Hash(long x) {
+  private static long long2Hash(long x) {
     return Hashing.murmur3_128().hashToLong(x, LONG_FUNNEL);
   }
 

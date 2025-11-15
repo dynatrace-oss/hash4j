@@ -15,7 +15,12 @@
  */
 package com.dynatrace.hash4j.util;
 
-import static com.dynatrace.hash4j.internal.ByteArrayUtil.*;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.getShort;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setInt;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
+import static com.dynatrace.hash4j.internal.ByteArrayUtil.setShort;
 import static com.dynatrace.hash4j.internal.EmptyArray.EMPTY_BYTE_ARRAY;
 import static java.util.Objects.requireNonNull;
 

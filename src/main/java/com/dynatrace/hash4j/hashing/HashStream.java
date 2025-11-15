@@ -15,7 +15,11 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-import java.util.*;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.UUID;
 import java.util.function.ToLongFunction;
 
 interface HashStream extends HashSink {
