@@ -1,5 +1,5 @@
 #
-# Copyright 2022 Dynatrace LLC
+# Copyright 2022-2025 Dynatrace LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -142,18 +142,20 @@ def make_chart(df, output_path, name, scoreUnit, mode, show_confidence_interval)
         df_plot["primaryMetric.score"][algorithm].plot(
             ax=ax,
             marker="o",
-            **{
-                "yerr": [
-                    df_plot["primaryMetric.score"][algorithm]
-                    - df_plot["primaryMetric.scoreConfidence.lower"][algorithm],
-                    df_plot["primaryMetric.scoreConfidence.upper"][algorithm]
-                    - df_plot["primaryMetric.score"][algorithm],
-                ],
-                "linewidth": 0.5,
-                "capsize": 4,
-            }
-            if show_confidence_interval
-            else {},
+            **(
+                {
+                    "yerr": [
+                        df_plot["primaryMetric.score"][algorithm]
+                        - df_plot["primaryMetric.scoreConfidence.lower"][algorithm],
+                        df_plot["primaryMetric.scoreConfidence.upper"][algorithm]
+                        - df_plot["primaryMetric.score"][algorithm],
+                    ],
+                    "linewidth": 0.5,
+                    "capsize": 4,
+                }
+                if show_confidence_interval
+                else {}
+            ),
             **get_plot_linestyles(algorithm),
         )
 
