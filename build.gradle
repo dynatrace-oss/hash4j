@@ -242,7 +242,7 @@ apply plugin: "groovy"
 spotless {
 	def googleJavaFormatVersion = "1.29.0"
 	def eclipseCdtVersion = "11.6"
-	def blackVersion = "25.9.0"
+	def blackVersion = "25.11.0"
 	def greclipseVersion = "4.32"
 	def specialLicenseHeaders = [
 		new Tuple3("javaImohash", "MIT_IMOHASH", [
