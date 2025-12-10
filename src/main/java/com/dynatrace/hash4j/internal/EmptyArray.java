@@ -15,7 +15,11 @@
  */
 package com.dynatrace.hash4j.internal;
 
-/** Utility class defining empty arrays. */
+/**
+ * Utility class defining empty arrays.
+ *
+ * <p>As an internal package it is not intended for general use.
+ */
 public final class EmptyArray {
 
   private EmptyArray() {}

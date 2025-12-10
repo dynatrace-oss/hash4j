@@ -17,7 +17,11 @@ package com.dynatrace.hash4j.internal;
 
 import java.util.Locale;
 
-/** Utility class for preconditions. */
+/**
+ * Utility class for preconditions.
+ *
+ * <p>As an internal package it is not intended for general use.
+ */
 public final class Preconditions {
 
   private Preconditions() {}

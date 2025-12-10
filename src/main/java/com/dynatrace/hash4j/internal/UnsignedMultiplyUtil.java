@@ -15,7 +15,11 @@
  */
 package com.dynatrace.hash4j.internal;
 
-/** Utility class for the unsigned multiplication of {@code long} values. */
+/**
+ * Utility class for the unsigned multiplication of {@code long} values.
+ *
+ * <p>As an internal package it is not intended for general use.
+ */
 public final class UnsignedMultiplyUtil {
 
   private UnsignedMultiplyUtil() {}

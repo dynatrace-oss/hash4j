@@ -15,7 +15,11 @@
  */
 package com.dynatrace.hash4j.internal;
 
-/** Utility class for resizing arrays. */
+/**
+ * Utility class for resizing arrays.
+ *
+ * <p>As an internal package it is not intended for general use.
+ */
 public final class ArraySizeUtil {
 
   // maximum array length that can be allocated on VMs

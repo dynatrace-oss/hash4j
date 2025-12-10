@@ -19,7 +19,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
 import java.nio.ByteOrder;
 
-/** Utility class for byte arrays. */
+/**
+ * Utility class for byte arrays.
+ *
+ * <p>As an internal package it is not intended for general use.
+ */
 public final class ByteArrayUtil {
 
   private static final VarHandle LONG_HANDLE =
