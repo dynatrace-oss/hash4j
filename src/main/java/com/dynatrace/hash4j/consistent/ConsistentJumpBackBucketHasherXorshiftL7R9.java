@@ -1,5 +1,5 @@
 /*
- * Copyright 2024-2025 Dynatrace LLC
+ * Copyright 2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,16 @@
 package com.dynatrace.hash4j.consistent;
 
 import static com.dynatrace.hash4j.consistent.ConsistentHashingUtil.checkNumberOfBuckets;
-import static java.util.Objects.requireNonNull;
 
-import com.dynatrace.hash4j.random.PseudoRandomGenerator;
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+class ConsistentJumpBackBucketHasherXorshiftL7R9 implements ConsistentBucketHasher {
 
-class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
+  private ConsistentJumpBackBucketHasherXorshiftL7R9() {}
 
-  private final PseudoRandomGenerator pseudoRandomGenerator;
+  private static final ConsistentBucketHasher INSTANCE =
+      new ConsistentJumpBackBucketHasherXorshiftL7R9();
 
-  ConsistentJumpBackBucketHasher(PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
-    requireNonNull(pseudoRandomGeneratorProvider);
-    this.pseudoRandomGenerator = pseudoRandomGeneratorProvider.create();
+  static ConsistentBucketHasher get() {
+    return INSTANCE;
   }
 
   @Override
@@ -36,15 +34,9 @@ class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
       checkNumberOfBuckets(numBuckets);
       return 0;
     }
-    pseudoRandomGenerator.reset(hash);
-    return getBucket(numBuckets, pseudoRandomGenerator);
-  }
-
-  // numBuckets must be at least 2!
-  static final int getBucket(int numBuckets, PseudoRandomGenerator pseudoRandomGenerator) {
-    long r0 = pseudoRandomGenerator.nextLong();
+    long r0 = hash; // use key as 64-bit random value
     int xMasked =
-        ((int) (r0 ^ (r0 >>> 32))) & (0xFFFFFFFF >>> Integer.numberOfLeadingZeros(numBuckets - 1));
+        (int) (r0 ^ (r0 >>> 32)) & (0xFFFFFFFF >>> Integer.numberOfLeadingZeros(numBuckets - 1));
     while (true) {
       if (xMasked == 0) return 0;
       int bucketRangeMin = 1 << ~Integer.numberOfLeadingZeros(xMasked);
@@ -53,17 +45,27 @@ class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
       if (bucketIdx < numBuckets) return bucketIdx;
       int bucketRangeMax = (bucketRangeMin << 1) - 1;
       while (true) {
-        // the maximum number of inner loop terations is limited by the maximum number of steps a
-        // single bit remains constant in the sequence of random values.
-        long r1 = pseudoRandomGenerator.nextLong();
-        bucketIdx = (int) r1 & bucketRangeMax;
+        // due to the nature of xorshift random generators, a single bit cannot remain constant for
+        // more than 64 (=state size) cycles, which causes the inner loop to stop eventually
+        hash = nextXorShift(hash);
+        bucketIdx = (int) hash & bucketRangeMax;
         if (bucketIdx < bucketRangeMin) break;
         if (bucketIdx < numBuckets) return bucketIdx;
-        bucketIdx = (int) (r1 >>> 32) & bucketRangeMax;
+        bucketIdx = (int) (hash >>> 32) & bucketRangeMax;
         if (bucketIdx < bucketRangeMin) break;
         if (bucketIdx < numBuckets) return bucketIdx;
       }
       xMasked ^= bucketRangeMin;
     }
+  }
+
+  // simple xor-shift (see
+  // https://en.wikipedia.org/w/index.php?title=Xorshift&oldid=1242199929#Example_implementation
+  // and http://isaku-wada.my.coocan.jp/rand/rand.html)
+  // visible for testing
+  static final long nextXorShift(long hash) {
+    hash ^= hash << 7;
+    hash ^= hash >>> 9;
+    return hash;
   }
 }

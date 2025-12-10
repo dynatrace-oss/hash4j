@@ -26,14 +26,14 @@ import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ImprovedConsistentWeightedSamplingTest extends AbstractConsistentBucketHasherTest {
 
   @Override
-  protected ConsistentBucketHasher getConsistentBucketHasher(
-      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
-    return ConsistentHashing.improvedConsistentWeightedSampling(pseudoRandomGeneratorProvider);
+  protected ConsistentBucketHasher getConsistentBucketHasher() {
+    return ConsistentHashing.improvedConsistentWeightedSampling(
+        PseudoRandomGeneratorProvider.splitMix64_V1());
   }
 
   @Override
@@ -42,27 +42,29 @@ class ImprovedConsistentWeightedSamplingTest extends AbstractConsistentBucketHas
   }
 
   @ParameterizedTest
-  @ValueSource(
-      doubles = {
-        Double.NEGATIVE_INFINITY,
-        -Double.MAX_VALUE,
-        -2,
-        -1,
-        0.,
-        1.,
-        2,
-        Double.MAX_VALUE,
-        Double.POSITIVE_INFINITY,
-        Double.NaN
-      })
+  @MethodSource("getProblematicDoubleValues")
   void testInvalidPseudoRandomGeneratorNextExponential(double randomValue) {
     PseudoRandomGeneratorProviderForTesting pseudoRandomGeneratorProvider =
         new PseudoRandomGeneratorProviderForTesting();
 
     ConsistentBucketHasher consistentBucketHasher =
-        getConsistentBucketHasher(pseudoRandomGeneratorProvider);
+        ConsistentHashing.improvedConsistentWeightedSampling(pseudoRandomGeneratorProvider);
 
     pseudoRandomGeneratorProvider.setExponentialValue(randomValue);
+    assertThatNoException()
+        .isThrownBy(() -> consistentBucketHasher.getBucket(0x82739fa8da9a7728L, 10));
+  }
+
+  @ParameterizedTest
+  @MethodSource("getProblematicDoubleValues")
+  void testInvalidPseudoRandomGeneratorNextDouble(double randomValue) {
+    PseudoRandomGeneratorProviderForTesting pseudoRandomGeneratorProvider =
+        new PseudoRandomGeneratorProviderForTesting();
+
+    ConsistentBucketHasher consistentBucketHasher =
+        ConsistentHashing.jumpHash(pseudoRandomGeneratorProvider);
+
+    pseudoRandomGeneratorProvider.setDoubleValue(randomValue);
     assertThatNoException()
         .isThrownBy(() -> consistentBucketHasher.getBucket(0x82739fa8da9a7728L, 10));
   }
@@ -93,8 +95,7 @@ class ImprovedConsistentWeightedSamplingTest extends AbstractConsistentBucketHas
     int numIterations = 1_000_000;
     SplittableRandom random = new SplittableRandom(0x1a6a56ea93bea9deL);
     PseudoRandomGenerator referencePrg = PseudoRandomGeneratorProvider.splitMix64_V1().create();
-    ConsistentBucketHasher hasher =
-        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
+    ConsistentBucketHasher hasher = getConsistentBucketHasher();
     for (int i = 0; i < numIterations; ++i) {
       int numBuckets = Math.max(1, random.nextInt() >>> 1 >>> random.nextInt());
       long hash = random.nextLong();
@@ -110,7 +111,7 @@ class ImprovedConsistentWeightedSamplingTest extends AbstractConsistentBucketHas
     long hash = 0;
 
     PseudoRandomGeneratorProviderForTesting prg = new PseudoRandomGeneratorProviderForTesting();
-    ConsistentBucketHasher hasher = getConsistentBucketHasher(prg);
+    ConsistentBucketHasher hasher = ConsistentHashing.improvedConsistentWeightedSampling(prg);
 
     for (int numBuckets = 1; numBuckets > 0; numBuckets <<= 1) {
       for (double b = 0.; b <= Math.nextUp(0.); b = Math.nextUp(b)) {
