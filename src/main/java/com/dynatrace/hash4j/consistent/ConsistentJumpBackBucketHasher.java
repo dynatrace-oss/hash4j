@@ -53,7 +53,7 @@ class ConsistentJumpBackBucketHasher implements ConsistentBucketHasher {
       if (bucketIdx < numBuckets) return bucketIdx;
       int bucketRangeMax = (bucketRangeMin << 1) - 1;
       while (true) {
-        // the maximum number of inner loop terations is limited by the maximum number of steps a
+        // the maximum number of inner loop iterations is limited by the maximum number of steps a
         // single bit remains constant in the sequence of random values.
         long r1 = pseudoRandomGenerator.nextLong();
         bucketIdx = (int) r1 & bucketRangeMax;
