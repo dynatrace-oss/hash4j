@@ -16,34 +16,31 @@
 package com.dynatrace.hash4j.consistent;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
-import com.dynatrace.hash4j.random.PseudoRandomGeneratorProviderForTesting;
 import java.util.Arrays;
 import java.util.SplittableRandom;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+import org.hipparchus.distribution.continuous.UniformRealDistribution;
 import org.hipparchus.stat.inference.AlternativeHypothesis;
 import org.hipparchus.stat.inference.BinomialTest;
-import org.hipparchus.stat.inference.ChiSquareTest;
+import org.hipparchus.stat.inference.GTest;
+import org.hipparchus.stat.inference.KolmogorovSmirnovTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 abstract class AbstractConsistentBucketHasherTest {
 
-  protected abstract ConsistentBucketHasher getConsistentBucketHasher(
-      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider);
+  protected abstract ConsistentBucketHasher getConsistentBucketHasher();
 
   @Test
   void testIllegalNumBuckets() {
-    ConsistentBucketHasher consistentBucketHasher =
-        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
+    ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
     assertThatIllegalArgumentException().isThrownBy(() -> consistentBucketHasher.getBucket(0L, 0));
     assertThatIllegalArgumentException().isThrownBy(() -> consistentBucketHasher.getBucket(0L, -1));
   }
@@ -53,66 +50,123 @@ abstract class AbstractConsistentBucketHasherTest {
     assertThatNullPointerException().isThrownBy(() -> ConsistentHashing.jumpHash(null));
   }
 
-  @ParameterizedTest
-  @MethodSource("getNumBuckets")
-  void testUniformDistribution(int numBuckets) {
-    double alpha = 0.0001;
-    int numCycles = 500000;
-    long seed =
-        Hashing.komihash5_0()
-            .hashStream()
-            .putLong(0x1c1e29a7c6f82fa8L)
-            .putInt(numBuckets)
-            .getAsLong();
-    long[] counts = new long[numBuckets];
-    double[] expected = new double[numBuckets];
-    Arrays.fill(expected, 1.0);
-    ConsistentBucketHasher consistentBucketHasher =
-        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
+  private static int UNIFORMITY_TEST_NUM_CYCLES = 1_000_000;
+  private static double UNIFORMITY_TEST_OVERALL_ALPHA = 0.01;
+  private static double UNIFORMITY_TEST_SMALL_TEST_SPECIFIC_ALPHA =
+      calculateTestSpecificAlpha(getUniformityTestSmallNumBuckets());
+  private static double UNIFORMITY_TEST_LARGE_TEST_SPECIFIC_ALPHA =
+      calculateTestSpecificAlpha(getUniformityTestLargeNumBuckets());
 
-    SplittableRandom random = new SplittableRandom(seed);
-    for (int i = 0; i < numCycles; ++i) {
-      int bucketIdx = consistentBucketHasher.getBucket(random.nextLong(), numBuckets);
-      counts[bucketIdx] += 1;
-    }
-
-    if (numBuckets >= 2) {
-      double pValue = new ChiSquareTest().chiSquareTest(expected, counts);
-      assertThat(pValue).isGreaterThan(alpha);
-    }
-  }
-
-  private void testRedistribution(int numBuckets, int numCycles, long seed) {
-    ConsistentBucketHasher consistentBucketHasher =
-        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
-
-    SplittableRandom random = new SplittableRandom(seed);
-    for (int i = 0; i < numCycles; ++i) {
-      long hash = random.nextLong();
-      int oldBucketIdx = consistentBucketHasher.getBucket(hash, numBuckets);
-      int newBucketIdx = consistentBucketHasher.getBucket(hash, numBuckets + 1);
-      if (oldBucketIdx != newBucketIdx) {
-        assertThat(newBucketIdx).isEqualTo(numBuckets);
-      }
-    }
-  }
-
-  private static IntStream getNumBuckets() {
+  static IntStream getUniformityTestSmallNumBuckets() {
     int maxNumBuckets = 200;
     return IntStream.range(1, maxNumBuckets + 1);
   }
 
+  static IntStream getUniformityTestLargeNumBuckets() {
+    return IntStream.of(
+        Integer.MAX_VALUE,
+        Integer.MAX_VALUE - 1,
+        0x40000001, // 2^30 + 1
+        0x40000000, // 2^30
+        0x3FFFFFFF, // 2^30 - 1
+        0x30000000, // 3*2^28
+        0x20000001, // 2^29 + 1
+        0x20000000, // 2^29
+        0x1FFFFFFF, // 2^29 - 1
+        0x18000000, // 3*2^27
+        0x10000001, // 2^28 + 1
+        0x10000000, // 2^28
+        0x0FFFFFFF); // 2^28 - 1
+  }
+
+  static DoubleStream getProblematicDoubleValues() {
+    return DoubleStream.of(
+        Double.NEGATIVE_INFINITY,
+        -Double.MAX_VALUE,
+        -2,
+        -1,
+        -0.0,
+        0.,
+        1.,
+        2,
+        Double.MAX_VALUE,
+        Double.POSITIVE_INFINITY,
+        Double.NaN);
+  }
+
+  private static double calculateTestSpecificAlpha(IntStream numBucketsStream) {
+    double alpha = UNIFORMITY_TEST_OVERALL_ALPHA;
+    return -Math.expm1(Math.log1p(-alpha) / numBucketsStream.count());
+  }
+
+  private static long calculateSeed(int numBuckets, long seed) {
+    return Hashing.komihash5_0().hashStream().putLong(seed).putInt(numBuckets).getAsLong();
+  }
+
   @ParameterizedTest
-  @MethodSource("getNumBuckets")
-  void testRedistribution(int numBuckets) {
-    int numCycles = 10000;
-    long seed =
-        Hashing.komihash5_0()
-            .hashStream()
-            .putLong(0x3df6dcebff42e20dL)
-            .putInt(numBuckets)
-            .getAsLong();
-    testRedistribution(numBuckets, numCycles, seed);
+  @MethodSource("getUniformityTestSmallNumBuckets")
+  void testUniformityWithSmallNumBuckets(int numBuckets) {
+
+    SplittableRandom randomGenerator =
+        new SplittableRandom(calculateSeed(numBuckets, 0xf36595ba806ec2a8L));
+
+    long[] counts = new long[numBuckets];
+    double[] expected = new double[numBuckets];
+    Arrays.fill(expected, 1.0);
+    ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
+    for (int i = 0; i < UNIFORMITY_TEST_NUM_CYCLES; ++i) {
+      long hashedKey = randomGenerator.nextLong();
+      int bucketIdx = consistentBucketHasher.getBucket(hashedKey, numBuckets);
+      counts[bucketIdx] += 1;
+    }
+
+    if (numBuckets >= 2) {
+      double pValue = new GTest().gTest(expected, counts);
+      assertThat(pValue).isGreaterThan(UNIFORMITY_TEST_SMALL_TEST_SPECIFIC_ALPHA);
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("getUniformityTestLargeNumBuckets")
+  void testUniformityWithLargeNumBuckets(int numBuckets) {
+
+    SplittableRandom randomGenerator =
+        new SplittableRandom(calculateSeed(numBuckets, 0x50693f91d55e8dddL));
+
+    double[] bucketIndices = new double[UNIFORMITY_TEST_NUM_CYCLES];
+    ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
+    for (int i = 0; i < UNIFORMITY_TEST_NUM_CYCLES; ++i) {
+      long hashedKey = randomGenerator.nextLong();
+      bucketIndices[i] = consistentBucketHasher.getBucket(hashedKey, numBuckets);
+    }
+
+    double pValue =
+        new KolmogorovSmirnovTest()
+            .kolmogorovSmirnovTest(new UniformRealDistribution(0., numBuckets), bucketIndices);
+    assertThat(pValue).isGreaterThan(UNIFORMITY_TEST_LARGE_TEST_SPECIFIC_ALPHA);
+  }
+
+  private static int MONOTONICITY_TEST_NUM_CYCLES = 10_000;
+  private static int MONOTONICITY_TEST_MAX_NUM_BUCKETS = 10_000;
+
+  @Test
+  void testMonotonicity() {
+
+    SplittableRandom randomGenerator = new SplittableRandom(0xaf30ba3b59d243bbL);
+    ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
+
+    for (int i = 0; i < MONOTONICITY_TEST_NUM_CYCLES; ++i) {
+      long hashedKey = randomGenerator.nextLong();
+      assertThat(consistentBucketHasher.getBucket(hashedKey, 1)).isZero();
+      int oldBucketIdx = 0;
+      for (int numBuckets = 1; numBuckets < MONOTONICITY_TEST_MAX_NUM_BUCKETS; ++numBuckets) {
+        int newBucketIdx = consistentBucketHasher.getBucket(hashedKey, numBuckets);
+        if (oldBucketIdx != newBucketIdx) {
+          assertThat(newBucketIdx).isEqualTo(numBuckets - 1);
+          oldBucketIdx = newBucketIdx;
+        }
+      }
+    }
   }
 
   @Test
@@ -128,8 +182,7 @@ abstract class AbstractConsistentBucketHasherTest {
     int numEven = 0;
     int numLower = 0;
 
-    ConsistentBucketHasher consistentBucketHasher =
-        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
+    ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
 
     for (int i = 0; i < numTrials; ++i) {
       int bucket = consistentBucketHasher.getBucket(random.nextLong(), numBuckets);
@@ -164,8 +217,7 @@ abstract class AbstractConsistentBucketHasherTest {
   void testCheckSum() {
     int numIterations = 1_000_000;
     SplittableRandom random = new SplittableRandom(0x0a55871a9d9103b7L);
-    ConsistentBucketHasher hasher =
-        getConsistentBucketHasher(PseudoRandomGeneratorProvider.splitMix64_V1());
+    ConsistentBucketHasher hasher = getConsistentBucketHasher();
     HashStream64 checkSumHashStream = Hashing.komihash5_0().hashStream();
     for (int i = 0; i < numIterations; ++i) {
       int numBuckets = Math.max(1, random.nextInt() >>> 1 >>> random.nextInt());
@@ -174,31 +226,5 @@ abstract class AbstractConsistentBucketHasherTest {
       checkSumHashStream.putInt(bucketIdx);
     }
     assertThat(checkSumHashStream.getAsLong()).isEqualTo(getCheckSum());
-  }
-
-  @ParameterizedTest
-  @ValueSource(
-      doubles = {
-        Double.NEGATIVE_INFINITY,
-        -Double.MAX_VALUE,
-        -2,
-        -1,
-        0.,
-        1.,
-        2,
-        Double.MAX_VALUE,
-        Double.POSITIVE_INFINITY,
-        Double.NaN
-      })
-  void testInvalidPseudoRandomGeneratorNextDouble(double randomValue) {
-    PseudoRandomGeneratorProviderForTesting pseudoRandomGeneratorProvider =
-        new PseudoRandomGeneratorProviderForTesting();
-
-    ConsistentBucketHasher consistentBucketHasher =
-        getConsistentBucketHasher(pseudoRandomGeneratorProvider);
-
-    pseudoRandomGeneratorProvider.setDoubleValue(randomValue);
-    assertThatNoException()
-        .isThrownBy(() -> consistentBucketHasher.getBucket(0x82739fa8da9a7728L, 10));
   }
 }

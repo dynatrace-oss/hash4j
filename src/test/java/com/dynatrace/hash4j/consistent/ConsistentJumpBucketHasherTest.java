@@ -15,18 +15,36 @@
  */
 package com.dynatrace.hash4j.consistent;
 
+import static org.assertj.core.api.Assertions.assertThatNoException;
+
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
+import com.dynatrace.hash4j.random.PseudoRandomGeneratorProviderForTesting;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ConsistentJumpBucketHasherTest extends AbstractConsistentBucketHasherTest {
 
   @Override
-  protected ConsistentBucketHasher getConsistentBucketHasher(
-      PseudoRandomGeneratorProvider pseudoRandomGeneratorProvider) {
-    return ConsistentHashing.jumpHash(pseudoRandomGeneratorProvider);
+  protected ConsistentBucketHasher getConsistentBucketHasher() {
+    return ConsistentHashing.jumpHash(PseudoRandomGeneratorProvider.splitMix64_V1());
   }
 
   @Override
   protected long getCheckSum() {
     return 0xfd5390c955b998f7L;
+  }
+
+  @ParameterizedTest
+  @MethodSource("getProblematicDoubleValues")
+  void testInvalidPseudoRandomGeneratorNextDouble(double randomValue) {
+    PseudoRandomGeneratorProviderForTesting pseudoRandomGeneratorProvider =
+        new PseudoRandomGeneratorProviderForTesting();
+
+    ConsistentBucketHasher consistentBucketHasher =
+        ConsistentHashing.jumpHash(pseudoRandomGeneratorProvider);
+
+    pseudoRandomGeneratorProvider.setDoubleValue(randomValue);
+    assertThatNoException()
+        .isThrownBy(() -> consistentBucketHasher.getBucket(0x82739fa8da9a7728L, 10));
   }
 }

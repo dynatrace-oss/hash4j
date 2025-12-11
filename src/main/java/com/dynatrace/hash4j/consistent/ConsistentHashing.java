@@ -82,6 +82,24 @@ public final class ConsistentHashing {
   }
 
   /**
+   * Returns a {@link ConsistentBucketHasher}.
+   *
+   * <p>The returned {@link ConsistentBucketHasher} is immutable and thread-safe.
+   *
+   * <p>This is a very fast implementation of JumpBackHash using a built-in 64-bit xorshift random
+   * generator. The hash of the key is used as first 64-bit random value. Further random values are
+   * generated using the transformation {@code hash ^= hash << 7; hash ^= hash >> 9;}. This xorshift
+   * random generator variant is given on <a
+   * href="https://en.wikipedia.org/w/index.php?title=Xorshift&oldid=1242199929#Example_implementation">Wikipedia</a>
+   * and was suggested by <a href="http://isaku-wada.my.coocan.jp/rand/rand.html">Isaku Wada</a>.
+   *
+   * @return a {@link ConsistentBucketHasher}
+   */
+  public static ConsistentBucketHasher jumpBackHashXorshiftL7R9() {
+    return ConsistentJumpBackBucketHasherXorshiftL7R9.get();
+  }
+
+  /**
    * Returns a {@link ConsistentBucketSetHasher}.
    *
    * <p>This implementation combines ideas from multiple papers:

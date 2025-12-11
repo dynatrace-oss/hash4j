@@ -27,6 +27,9 @@ public interface ConsistentBucketHasher {
    *
    * <p>This function is not thread-safe!
    *
+   * <p>This function relies on a high-quality 64-bit hash value of the key. Low-quality hashes may
+   * distribute the keys non-uniformly over the buckets.
+   *
    * @param hash a 64-bit hash value of the key
    * @param numBuckets the number of buckets, must be positive
    * @return the bucket index
