@@ -15,15 +15,14 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-class ConsistentJumpBackBucketHasherXorshiftL7R9 extends AbstractConsistentJumpBackBucketHasher {
+class ConsistentJumpBackBucketHasherSplitMix64 extends AbstractConsistentJumpBackBucketHasher {
 
-  private static final PseudoRandomAlgorithm64 ALGORITHM =
-      PseudoRandomAlgorithm64.getXorshiftL7R9();
+  private static final PseudoRandomAlgorithm64 ALGORITHM = PseudoRandomAlgorithm64.getSplitMix64();
 
-  private static final ConsistentJumpBackBucketHasherXorshiftL7R9 INSTANCE =
-      new ConsistentJumpBackBucketHasherXorshiftL7R9();
+  private static final ConsistentJumpBackBucketHasherSplitMix64 INSTANCE =
+      new ConsistentJumpBackBucketHasherSplitMix64();
 
-  static ConsistentJumpBackBucketHasherXorshiftL7R9 get() {
+  static ConsistentJumpBackBucketHasherSplitMix64 get() {
     return INSTANCE;
   }
 

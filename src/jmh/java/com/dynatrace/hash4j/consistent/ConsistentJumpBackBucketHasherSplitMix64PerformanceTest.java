@@ -15,11 +15,11 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-public class ConsistentJumpBackBucketHasherXorshiftL7R9PerformanceTest
+public class ConsistentJumpBackBucketHasherSplitMix64PerformanceTest
     extends AbstractConsistentJumpBackBucketHasherPerformanceTest {
 
   @Override
   protected ConsistentBucketHasher getConsistentBucketHasher() {
-    return ConsistentHashing.jumpBackHashXorshiftL7R9();
+    return ConsistentHashing.jumpBackHashSplitMix64();
   }
 }

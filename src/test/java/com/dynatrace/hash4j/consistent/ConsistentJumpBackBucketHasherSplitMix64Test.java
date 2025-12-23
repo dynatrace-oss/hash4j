@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Dynatrace LLC
+ * Copyright 2023-2025 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,17 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-public class ConsistentJumpBackBucketHasherXorshiftL7R9PerformanceTest
-    extends AbstractConsistentJumpBackBucketHasherPerformanceTest {
+class ConsistentJumpBackBucketHasherSplitMix64Test extends ConsistentJumpBackBucketHasherTest {
+
+  static final long CHECKSUM = 0x23d7a0d288cd67e7L;
 
   @Override
   protected ConsistentBucketHasher getConsistentBucketHasher() {
-    return ConsistentHashing.jumpBackHashXorshiftL7R9();
+    return ConsistentHashing.jumpBackHashSplitMix64();
+  }
+
+  @Override
+  protected long getCheckSum() {
+    return CHECKSUM;
   }
 }

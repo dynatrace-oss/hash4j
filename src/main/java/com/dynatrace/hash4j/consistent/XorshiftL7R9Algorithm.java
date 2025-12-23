@@ -15,30 +15,30 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-class ConsistentJumpBackBucketHasherXorshiftL7R9 extends AbstractConsistentJumpBackBucketHasher {
+final class XorshiftL7R9Algorithm implements PseudoRandomAlgorithm64 {
 
-  private static final PseudoRandomAlgorithm64 ALGORITHM =
-      PseudoRandomAlgorithm64.getXorshiftL7R9();
+  private XorshiftL7R9Algorithm() {}
 
-  private static final ConsistentJumpBackBucketHasherXorshiftL7R9 INSTANCE =
-      new ConsistentJumpBackBucketHasherXorshiftL7R9();
+  private static final XorshiftL7R9Algorithm INSTANCE = new XorshiftL7R9Algorithm();
 
-  static ConsistentJumpBackBucketHasherXorshiftL7R9 get() {
+  public static XorshiftL7R9Algorithm get() {
     return INSTANCE;
   }
 
   @Override
-  protected long initState(long seed) {
-    return ALGORITHM.initState(seed);
+  public long nextLong(long state) {
+    return state;
   }
 
   @Override
-  protected long nextLong(long state) {
-    return ALGORITHM.nextLong(state);
+  public long initState(long seed) {
+    return seed;
   }
 
   @Override
-  protected long updateState(long state) {
-    return ALGORITHM.updateState(state);
+  public long updateState(long state) {
+    state ^= state << 7;
+    state ^= state >>> 9;
+    return state;
   }
 }
