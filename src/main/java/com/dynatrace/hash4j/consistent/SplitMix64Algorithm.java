@@ -15,30 +15,31 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-class ConsistentJumpBackBucketHasherXorshiftL7R9 extends AbstractConsistentJumpBackBucketHasher {
+final class SplitMix64Algorithm implements PseudoRandomAlgorithm64 {
 
-  private static final PseudoRandomAlgorithm64 ALGORITHM =
-      PseudoRandomAlgorithm64.getXorshiftL7R9();
+  private SplitMix64Algorithm() {}
 
-  private static final ConsistentJumpBackBucketHasherXorshiftL7R9 INSTANCE =
-      new ConsistentJumpBackBucketHasherXorshiftL7R9();
+  private static final SplitMix64Algorithm INSTANCE = new SplitMix64Algorithm();
 
-  static ConsistentJumpBackBucketHasherXorshiftL7R9 get() {
+  static SplitMix64Algorithm get() {
     return INSTANCE;
   }
 
   @Override
-  protected long initState(long seed) {
-    return ALGORITHM.initState(seed);
+  public long nextLong(long state) {
+    long z = state;
+    z = (z ^ (z >>> 30)) * 0xbf58476d1ce4e5b9L;
+    z = (z ^ (z >>> 27)) * 0x94d049bb133111ebL;
+    return z ^ (z >>> 31);
   }
 
   @Override
-  protected long nextLong(long state) {
-    return ALGORITHM.nextLong(state);
+  public long initState(long seed) {
+    return updateState(seed);
   }
 
   @Override
-  protected long updateState(long state) {
-    return ALGORITHM.updateState(state);
+  public long updateState(long state) {
+    return state + 0x9e3779b97f4a7c15L;
   }
 }

@@ -73,6 +73,10 @@ public final class ConsistentHashing {
    * Keys Uniformly to Buckets." Software: Practice and Experience 55.3 (2025)., <a
    * href="https://doi.org/10.1002/spe.3385">10.1002/spe.3385.</a>
    *
+   * <p>If the {@link PseudoRandomGeneratorProvider} given as argument uses the SplitMix64
+   * algorithm, prefer using {@link #jumpBackHashSplitMix64()} instead, which returns an optimized
+   * implementation.
+   *
    * @param pseudoRandomGeneratorProvider a {@link PseudoRandomGeneratorProvider}
    * @return a {@link ConsistentBucketHasher}
    */
@@ -82,14 +86,29 @@ public final class ConsistentHashing {
   }
 
   /**
+   * Returns a {@link ConsistentBucketHasher} based on the JumpBackHash algorithm using the
+   * SplitMix64 pseudo-random number generation algorithm. Its behavior is equivalent to the one
+   * obtained via {@link #jumpBackHash(PseudoRandomGeneratorProvider)} with a {@link
+   * PseudoRandomGeneratorProvider} instance obtained by {@link
+   * PseudoRandomGeneratorProvider#splitMix64_V1()}. In contrast, this method returns an instance
+   * that is immutable, thread-safe, and slightly faster.
+   *
+   * @return a {@link ConsistentBucketHasher}
+   */
+  public static ConsistentBucketHasher jumpBackHashSplitMix64() {
+    return ConsistentJumpBackBucketHasherSplitMix64.get();
+  }
+
+  /**
    * Returns a {@link ConsistentBucketHasher}.
    *
    * <p>The returned {@link ConsistentBucketHasher} is immutable and thread-safe.
    *
-   * <p>This is a very fast implementation of JumpBackHash using a built-in 64-bit xorshift random
-   * generator. The hash of the key is used as first 64-bit random value. Further random values are
-   * generated using the transformation {@code hash ^= hash << 7; hash ^= hash >> 9;}. This xorshift
-   * random generator variant is given on <a
+   * <p>This is a very fast implementation of JumpBackHash using the {@link
+   * PseudoRandomAlgorithm64#getXorshiftL7R9()} pseudo-random number generation algorithm. The hash
+   * of the key is used as first 64-bit random value. Further random values are generated using the
+   * transformation {@code hash ^= hash << 7; hash ^= hash >> 9;}. This xorshift random generator
+   * variant is given on <a
    * href="https://en.wikipedia.org/w/index.php?title=Xorshift&oldid=1242199929#Example_implementation">Wikipedia</a>
    * and was suggested by <a href="http://isaku-wada.my.coocan.jp/rand/rand.html">Isaku Wada</a>.
    *

@@ -26,6 +26,6 @@ class ConsistentJumpBackBucketHasherTest extends AbstractConsistentBucketHasherT
 
   @Override
   protected long getCheckSum() {
-    return 0x23d7a0d288cd67e7L;
+    return ConsistentJumpBackBucketHasherSplitMix64Test.CHECKSUM;
   }
 }

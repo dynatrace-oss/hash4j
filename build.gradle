@@ -292,6 +292,7 @@ spotless {
 		greclipse(greclipseVersion)
 		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE"), "(package|import|public|class|module|plugins)"
 		target("**/build.gradle")
+		targetExclude("benchmark-results/**") // spotlessGroovy task complains about undefined dependency on benchmark-results
 	}
 	python {
 		target "python/**/*.py"

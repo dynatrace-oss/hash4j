@@ -16,40 +16,12 @@
 package com.dynatrace.hash4j.consistent;
 
 import com.dynatrace.hash4j.random.PseudoRandomGeneratorProvider;
-import java.util.SplittableRandom;
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.Param;
-import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
-import org.openjdk.jmh.annotations.State;
-import org.openjdk.jmh.infra.Blackhole;
 
-public class ConsistentJumpBackBucketHasherPerformanceTest {
+public class ConsistentJumpBackBucketHasherPerformanceTest
+    extends AbstractConsistentJumpBackBucketHasherPerformanceTest {
 
-  private static final ConsistentBucketHasher CONSISTENT_BUCKET_HASHER =
-      ConsistentHashing.jumpBackHash(PseudoRandomGeneratorProvider.splitMix64_V1());
-
-  @State(Scope.Thread)
-  public static class TestState {
-
-    @Param({"1", "10", "100", "1000", "10000", "100000", "1000000"})
-    int numBuckets;
-
-    SplittableRandom random;
-
-    @Setup
-    public void init() {
-      random = new SplittableRandom(0x87c5950e6677341eL);
-    }
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void getBucket(TestState testState, Blackhole blackhole) {
-    int bucket =
-        CONSISTENT_BUCKET_HASHER.getBucket(testState.random.nextLong(), testState.numBuckets);
-    blackhole.consume(bucket);
+  @Override
+  protected ConsistentBucketHasher getConsistentBucketHasher() {
+    return ConsistentHashing.jumpBackHash(PseudoRandomGeneratorProvider.splitMix64_V1());
   }
 }
