@@ -1,0 +1,5 @@
+Comparing source compatibility of hash4j-0.29.0.jar against hash4j-0.28.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.consistent.ConsistentHashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.consistent.ConsistentBucketHasher jumpBackHashSplitMix64()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.consistent.ConsistentBucketHasher jumpBackHashXorshiftL7R9()
