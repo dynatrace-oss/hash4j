@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.dynatrace.hash4j.random;
+
+import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
 abstract class AbstractPseudoRandomGenerator implements PseudoRandomGenerator {
 
@@ -39,6 +41,33 @@ abstract class AbstractPseudoRandomGenerator implements PseudoRandomGenerator {
       }
     }
     return (int) (m >>> 32);
+  }
+
+  // compare algorithm 5 with L=64 in Lemire, Daniel. "Fast random integer generation in an
+  // interval."
+  // ACM Transactions on Modeling and Computer Simulation (TOMACS) 29.1 (2019): 1-12.
+  // modified to work with signed long arithmetic
+  @Override
+  public long uniformLong(long exclusiveUpperBound) {
+    long x = nextLong();
+    long l = x * exclusiveUpperBound + Long.MIN_VALUE;
+    // adding Long.MIN_VALUE for unsigned comparison below
+
+    if (l < exclusiveUpperBound + Long.MIN_VALUE) {
+      // unsigned comparison requires adding Long.MIN_VALUE on both sides
+
+      long t = Long.remainderUnsigned(-exclusiveUpperBound, exclusiveUpperBound) + Long.MIN_VALUE;
+      // adding Long.MIN_VALUE for unsigned comparison below
+
+      while (l < t) {
+        // unsigned comparison requires adding Long.MIN_VALUE on both sides (already done before)
+        x = nextLong();
+
+        l = x * exclusiveUpperBound + Long.MIN_VALUE;
+        // adding Long.MIN_VALUE for unsigned comparison
+      }
+    }
+    return unsignedMultiplyHigh(x, exclusiveUpperBound);
   }
 
   @Override

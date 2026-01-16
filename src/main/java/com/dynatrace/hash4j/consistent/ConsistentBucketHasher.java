@@ -25,7 +25,7 @@ public interface ConsistentBucketHasher {
    * <p>The returned bucket index is uniformly distributed. If {@code numBuckets} is changed,
    * remapping to other bucket indices is minimized.
    *
-   * <p>This function is not thread-safe!
+   * <p>This function is not necessarily thread-safe!
    *
    * <p>This function relies on a high-quality 64-bit hash value of the key. Low-quality hashes may
    * distribute the keys non-uniformly over the buckets.

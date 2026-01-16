@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,26 @@ public interface PseudoRandomGenerator {
   int nextInt();
 
   /**
-   * Returns a random uniformly distributed 32-bit {code int} value greater than or equal to 0 and
+   * Returns a random uniformly distributed 32-bit {@code int} value greater than or equal to 0 and
    * less than the given upper bound.
    *
    * <p>The behavior is undefined, if the given upper bound is non-positive.
    *
-   * @param exclusiveBound the (exclusive) upper bound (must be positve)
+   * @param exclusiveBound the (exclusive) upper bound (must be positive)
    * @return a random value
    */
   int uniformInt(int exclusiveBound);
+
+  /**
+   * Returns a random uniformly distributed 64-bit {@code long} value greater than or equal to 0 and
+   * less than the given upper bound.
+   *
+   * <p>The behavior is undefined, if the given upper bound is non-positive.
+   *
+   * @param exclusiveBound the (exclusive) upper bound (must be positive)
+   * @return a random value
+   */
+  long uniformLong(long exclusiveBound);
 
   /**
    * Resets the pseudo-random generator using the given 64-bit seed value.
