@@ -38,7 +38,7 @@ public interface PseudoRandomGenerator {
    *
    * <p>The behavior is undefined, if the given upper bound is non-positive.
    *
-   * @param exclusiveBound the (exclusive) upper bound (must be positve)
+   * @param exclusiveBound the (exclusive) upper bound (must be positive)
    * @return a random value
    */
   int uniformInt(int exclusiveBound);
@@ -49,7 +49,7 @@ public interface PseudoRandomGenerator {
    *
    * <p>The behavior is undefined, if the given upper bound is non-positive.
    *
-   * @param exclusiveBound the (exclusive) upper bound (must be positve)
+   * @param exclusiveBound the (exclusive) upper bound (must be positive)
    * @return a random value
    */
   long uniformLong(long exclusiveBound);
