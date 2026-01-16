@@ -33,7 +33,7 @@ public interface PseudoRandomGenerator {
   int nextInt();
 
   /**
-   * Returns a random uniformly distributed 32-bit {code int} value greater than or equal to 0 and
+   * Returns a random uniformly distributed 32-bit {@code int} value greater than or equal to 0 and
    * less than the given upper bound.
    *
    * <p>The behavior is undefined, if the given upper bound is non-positive.
@@ -44,7 +44,7 @@ public interface PseudoRandomGenerator {
   int uniformInt(int exclusiveBound);
 
   /**
-   * Returns a random uniformly distributed 64-bit {code long} value greater than or equal to 0 and
+   * Returns a random uniformly distributed 64-bit {@code long} value greater than or equal to 0 and
    * less than the given upper bound.
    *
    * <p>The behavior is undefined, if the given upper bound is non-positive.
