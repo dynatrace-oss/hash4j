@@ -111,7 +111,7 @@ abstract class AbstractPseudoRandomGeneratorTest {
     if (numBuckets > 1) {
       double[] expectedDouble1 = LongStream.of(expected1).mapToDouble(x -> x).toArray();
       assertThat(new ChiSquareTest().chiSquareTest(expectedDouble1, counts1)).isGreaterThan(0.01);
-      double[] expectedDouble2 = LongStream.of(expected1).mapToDouble(x -> x).toArray();
+      double[] expectedDouble2 = LongStream.of(expected2).mapToDouble(x -> x).toArray();
       assertThat(new ChiSquareTest().chiSquareTest(expectedDouble2, counts2)).isGreaterThan(0.01);
     }
     assertThat(
