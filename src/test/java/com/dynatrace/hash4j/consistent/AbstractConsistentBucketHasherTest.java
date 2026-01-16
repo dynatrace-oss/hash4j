@@ -66,9 +66,19 @@ abstract class AbstractConsistentBucketHasherTest {
     return IntStream.of(
         Integer.MAX_VALUE,
         Integer.MAX_VALUE - 1,
+        0x7FFF0000,
+        0x7FF00000,
+        0x7F000000,
+        0x70000000,
+        0x60000000, // 3^29
+        0x58000000,
+        0x50000000,
+        0x48111111,
         0x40000001, // 2^30 + 1
         0x40000000, // 2^30
         0x3FFFFFFF, // 2^30 - 1
+        0x3D111111,
+        0x38000000,
         0x30000000, // 3*2^28
         0x20000001, // 2^29 + 1
         0x20000000, // 2^29
@@ -77,6 +87,10 @@ abstract class AbstractConsistentBucketHasherTest {
         0x10000001, // 2^28 + 1
         0x10000000, // 2^28
         0x0FFFFFFF); // 2^28 - 1
+  }
+
+  static IntStream getMonotonicityTestLargeNumBuckets() {
+    return getUniformityTestLargeNumBuckets();
   }
 
   static DoubleStream getProblematicDoubleValues() {
@@ -150,7 +164,7 @@ abstract class AbstractConsistentBucketHasherTest {
   private static int MONOTONICITY_TEST_MAX_NUM_BUCKETS = 10_000;
 
   @Test
-  void testMonotonicity() {
+  void testMonotonicityWithSmallNumBuckets() {
 
     SplittableRandom randomGenerator = new SplittableRandom(0xaf30ba3b59d243bbL);
     ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
@@ -166,6 +180,26 @@ abstract class AbstractConsistentBucketHasherTest {
           oldBucketIdx = newBucketIdx;
         }
       }
+    }
+  }
+
+  @Test
+  void testMonotonicityWithLargeNumBuckets() {
+
+    SplittableRandom randomGenerator = new SplittableRandom(0x2a5dc14b80d2fb2eL);
+    ConsistentBucketHasher consistentBucketHasher = getConsistentBucketHasher();
+
+    for (int i = 0; i < MONOTONICITY_TEST_NUM_CYCLES; ++i) {
+      getMonotonicityTestLargeNumBuckets()
+          .forEach(
+              numBuckets -> {
+                long hashedKey = randomGenerator.nextLong();
+                int bucketIndex = consistentBucketHasher.getBucket(hashedKey, numBuckets);
+                int bucketIndexA = consistentBucketHasher.getBucket(hashedKey, bucketIndex + 1);
+                int bucketIndexB = consistentBucketHasher.getBucket(hashedKey, bucketIndex);
+                assertThat(bucketIndexA).isEqualTo(bucketIndex).isNotNegative();
+                assertThat(bucketIndexB).isLessThan(bucketIndex).isNotNegative();
+              });
     }
   }
 
