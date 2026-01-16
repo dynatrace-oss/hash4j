@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,6 @@ class SplitMix64_v1Test extends AbstractPseudoRandomGeneratorTest {
 
   @Override
   protected long getExpectedStabilityCheckSum() {
-    return 0x8d81600546698168L;
+    return 0xca493b7be7aad8a8L;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,6 +122,11 @@ class DistinctElementHashProviderTest {
           @Override
           public int uniformInt(int exclusiveBound) {
             return prg.uniformInt(exclusiveBound);
+          }
+
+          @Override
+          public long uniformLong(long exclusiveBound) {
+            return prg.uniformLong(exclusiveBound);
           }
 
           @Override

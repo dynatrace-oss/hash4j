@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Dynatrace LLC
+ * Copyright 2023-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ public class PseudoRandomGeneratorProviderForTesting implements PseudoRandomGene
   private int intValue;
 
   private int uniformIntValue;
+
+  private long uniformLongValue;
 
   private double doubleValue;
 
@@ -48,6 +50,14 @@ public class PseudoRandomGeneratorProviderForTesting implements PseudoRandomGene
 
   public void setUniformIntValue(int uniformIntValue) {
     this.uniformIntValue = uniformIntValue;
+  }
+
+  public long getUniformLongValue() {
+    return uniformLongValue;
+  }
+
+  public void setUniformLongValue(long uniformLongValue) {
+    this.uniformLongValue = uniformLongValue;
   }
 
   public double getDoubleValue() {
@@ -82,6 +92,11 @@ public class PseudoRandomGeneratorProviderForTesting implements PseudoRandomGene
       @Override
       public int uniformInt(int exclusiveBound) {
         return uniformIntValue;
+      }
+
+      @Override
+      public long uniformLong(long exclusiveBound) {
+        return uniformLongValue;
       }
 
       @Override
