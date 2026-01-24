@@ -51,7 +51,7 @@ dependencies {
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.2") // upgrade to version 6 requires Java 17
 	testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.2") // upgrade to version 6 requires Java 17
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.2") // upgrade to version 6 requires Java 17
-	testImplementation("org.assertj:assertj-core:3.27.6")
+	testImplementation("org.assertj:assertj-core:3.27.7")
 	testImplementation("org.hipparchus:hipparchus-stat:4.0.2")
 	testImplementation("org.hipparchus:hipparchus-optim:4.0.2")
 	testImplementation("com.google.guava:guava:33.5.0-jre")
