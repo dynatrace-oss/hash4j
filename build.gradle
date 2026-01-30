@@ -55,7 +55,7 @@ dependencies {
 	testImplementation("org.hipparchus:hipparchus-stat:4.0.2")
 	testImplementation("org.hipparchus:hipparchus-optim:4.0.2")
 	testImplementation("com.google.guava:guava:33.5.0-jre")
-	testImplementation("commons-codec:commons-codec:1.20.0")
+	testImplementation("commons-codec:commons-codec:1.21.0")
 	testImplementation("net.openhft:zero-allocation-hashing:2026.0")
 	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
 	testImplementation("org.greenrobot:essentials:3.1.0")
