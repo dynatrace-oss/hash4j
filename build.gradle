@@ -53,7 +53,7 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.2") // upgrade to version 6 requires Java 17
 	testImplementation("org.assertj:assertj-core:3.27.7")
 	testImplementation("org.hipparchus:hipparchus-stat:4.0.2")
-	testImplementation("org.hipparchus:hipparchus-optim:4.0.2")
+	testImplementation("org.hipparchus:hipparchus-optim:4.0.3")
 	testImplementation("com.google.guava:guava:33.5.0-jre")
 	testImplementation("commons-codec:commons-codec:1.21.0")
 	testImplementation("net.openhft:zero-allocation-hashing:2026.0")
