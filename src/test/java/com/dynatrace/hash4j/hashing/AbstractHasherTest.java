@@ -42,7 +42,7 @@ import com.dynatrace.hash4j.internal.ByteArrayUtil;
 import com.dynatrace.hash4j.testutils.TestUtils;
 import com.google.common.base.Splitter;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestException;
@@ -93,7 +93,7 @@ abstract class AbstractHasherTest {
     }
     List<ChecksumRecord> checksumRecords = new ArrayList<>();
 
-    try (Scanner scanner = new Scanner(file, StandardCharsets.UTF_8.name())) {
+    try (Scanner scanner = new Scanner(file, StandardCharsets.UTF_8)) {
       while (scanner.hasNextLine()) {
         List<String> s = Splitter.on(',').splitToList(scanner.nextLine());
 
@@ -104,7 +104,7 @@ abstract class AbstractHasherTest {
         checksumRecords.add(new ChecksumRecord(dataSize, numCycles, seed, checksumString));
       }
 
-    } catch (FileNotFoundException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
     return checksumRecords;

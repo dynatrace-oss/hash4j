@@ -60,7 +60,7 @@ dependencies {
 	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
 	testImplementation("org.greenrobot:essentials:3.1.0")
 	testImplementation("com.sangupta:murmur:1.0.0")
-	errorprone("com.google.errorprone:error_prone_core:2.46.0")
+	errorprone("com.google.errorprone:error_prone_core:2.47.0")
 }
 
 java {
@@ -192,7 +192,11 @@ tasks.check {
 tasks.withType(Test).configureEach {
 	useJUnitPlatform()
 	maxHeapSize = "8g"
-	maxParallelForks =  Runtime.runtime.availableProcessors()
+	if (System.getenv("GITHUB_ACTIONS") == "true") {
+		maxParallelForks = 2
+	} else {
+		maxParallelForks = Runtime.runtime.availableProcessors()
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {
