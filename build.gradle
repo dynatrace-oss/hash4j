@@ -193,7 +193,7 @@ tasks.withType(Test).configureEach {
 	useJUnitPlatform()
 	maxHeapSize = "8g"
 	if (System.getenv("GITHUB_ACTIONS") == "true") {
-		maxParallelForks = 2
+		maxParallelForks = 4
 	} else {
 		maxParallelForks = Runtime.runtime.availableProcessors()
 	}
