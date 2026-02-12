@@ -139,7 +139,7 @@ tasks.register("jApiCmp", me.champeau.gradle.japicmp.JapicmpTask) {
 }
 
 jar {
-	dependsOn "compileJava21Java"
+	dependsOn "compileJava21Java", "compileJava25Java"
 	into("META-INF/versions/21") {
 		from sourceSets.java21.output
 	}
