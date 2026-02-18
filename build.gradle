@@ -206,8 +206,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 
-static def readJavaLicense(licenseName) {
-	File licenseFile = new File("licenses/" + licenseName + ".txt")
+def readJavaLicense(licenseName) {
+	File licenseFile = new File(rootDir, "licenses/" + licenseName + ".txt")
 	def line
 	def s = "/*\n"
 	licenseFile.withReader { reader ->
@@ -224,8 +224,8 @@ static def readJavaLicense(licenseName) {
 	return s
 }
 
-static def readPythonLicense(licenseName) {
-	File licenseFile = new File("licenses/" + licenseName + ".txt")
+def readPythonLicense(licenseName) {
+	File licenseFile = new File(rootDir, "licenses/" + licenseName + ".txt")
 	def line
 	def s = "#\n"
 	licenseFile.withReader { reader ->

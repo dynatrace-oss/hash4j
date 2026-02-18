@@ -1,5 +1,5 @@
 /** Hash4j */
-module hash4j {
+module com.dynatrace.hash4j {
   exports com.dynatrace.hash4j.consistent;
   exports com.dynatrace.hash4j.distinctcount;
   exports com.dynatrace.hash4j.file;
