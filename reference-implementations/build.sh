@@ -17,6 +17,10 @@ chibihash_2/chibihash_2_checksum_config.cpp \
 murmur3_32/murmur3_32_checksum_config.cpp \
 murmur3_128/murmur3_128_checksum_config.cpp \
 murmur3_128/smhasher/src/MurmurHash3.cpp \
+metrohash_64/metrohash_64_checksum_config.cpp \
+metrohash_64/MetroHash/src/metrohash64.cpp \
+metrohash_128/metrohash_128_checksum_config.cpp \
+metrohash_128/MetroHash/src/metrohash128.cpp \
 xxh3/xxh3_checksum_config.cpp \
 xxh3_128/xxh3_128_checksum_config.cpp \
 xxh3/xxHash/xxhash.c \
