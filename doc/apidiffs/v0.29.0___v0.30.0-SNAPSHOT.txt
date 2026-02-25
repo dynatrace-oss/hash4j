@@ -1,4 +1,10 @@
 Comparing source compatibility of hash4j-0.30.0-SNAPSHOT.jar against hash4j-0.29.0.jar
+***  MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher128 metroHash128()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher128 metroHash128(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 metroHash64()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 metroHash64(long)
 **** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.random.PseudoRandomGenerator  (not serializable)
 	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
 	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long uniformLong(long)

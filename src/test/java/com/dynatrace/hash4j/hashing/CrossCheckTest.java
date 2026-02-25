@@ -297,6 +297,22 @@ class CrossCheckTest {
   }
 
   @Test
+  void testMetroHash64ZeroAllocationHashing() {
+    SplittableRandom random = new SplittableRandom(0x3a7c1e9d5b2f4e8aL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(LongHashFunction.metro().hashBytes(b))
+            .isEqualTo(Hashing.metroHash64().hashBytesToLong(b));
+        assertThat(LongHashFunction.metro(seed).hashBytes(b))
+            .isEqualTo(Hashing.metroHash64(seed).hashBytesToLong(b));
+      }
+    }
+  }
+
+  @Test
   void testXXH3_64ZeroAllocationHashing() {
     SplittableRandom random = new SplittableRandom(0x97c4eb4e39a52615L);
     for (int len = 0; len < MAX_LENGTH; ++len) {
