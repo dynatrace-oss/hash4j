@@ -494,4 +494,66 @@ public final class Hashing {
   public static Hasher64 chibiHash2(long seed) {
     return ChibiHash2.create(seed);
   }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit MetroHash algorithm using a seed value of
+   * zero.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MetroHash64::Hash} defined in <a
+   * href="https://github.com/jandrewrogers/MetroHash/blob/master/src/metrohash64.cpp">metrohash64.cpp</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 metroHash64() {
+    return MetroHash64.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit MetroHash algorithm using the given seed
+   * value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MetroHash64::Hash} defined in <a
+   * href="https://github.com/jandrewrogers/MetroHash/blob/master/src/metrohash64.cpp">metrohash64.cpp</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 metroHash64(long seed) {
+    return MetroHash64.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher128} implementing the 128-bit MetroHash algorithm using a seed value of
+   * zero.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MetroHash128::Hash} defined in <a
+   * href="https://github.com/jandrewrogers/MetroHash/blob/master/src/metrohash128.cpp">metrohash128.cpp</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher128 metroHash128() {
+    return MetroHash128.create();
+  }
+
+  /**
+   * Returns a {@link Hasher128} implementing the 128-bit MetroHash algorithm using the given seed
+   * value.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * MetroHash128::Hash} defined in <a
+   * href="https://github.com/jandrewrogers/MetroHash/blob/master/src/metrohash128.cpp">metrohash128.cpp</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher128 metroHash128(long seed) {
+    return MetroHash128.create(seed);
+  }
 }

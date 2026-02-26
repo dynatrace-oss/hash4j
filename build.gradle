@@ -286,6 +286,10 @@ spotless {
 		]),
 		new Tuple3("javaConsistentJumpBackAnchorBucketSetHasher", "MIT_ANCHOR_HASH",[
 			"src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBackAnchorBucketSetHasher.java"
+		]),
+		new Tuple3("javaMetroHash", "APACHE_2_0_METROHASH",[
+			"src/main/java/com/dynatrace/hash4j/hashing/MetroHash64.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/MetroHash128.java"
 		])
 	]
 

@@ -33,6 +33,8 @@
 #include "murmur3_32/murmur3_32_checksum_config.hpp"
 #include "farmhash_na/farmhash_na_checksum_config.hpp"
 #include "farmhash_uo/farmhash_uo_checksum_config.hpp"
+#include "metrohash_64/metrohash_64_checksum_config.hpp"
+#include "metrohash_128/metrohash_128_checksum_config.hpp"
 #include "xxh3/xxh3_checksum_config.hpp"
 #include "xxh3_128/xxh3_128_checksum_config.hpp"
 
@@ -148,6 +150,8 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<PolymurHash_2_0_ChecksumConfig>();
 	computeAndPrintChecksum<FarmHashNaChecksumConfig>();
 	computeAndPrintChecksum<FarmHashUoChecksumConfig>();
+	computeAndPrintChecksum<MetroHash_64_ChecksumConfig>();
+	computeAndPrintChecksum<MetroHash_128_ChecksumConfig>();
 	computeAndPrintChecksum<XXH3ChecksumConfig>();
 	computeAndPrintChecksum<XXH3_128_ChecksumConfig>();
 

@@ -46,3 +46,9 @@
 [submodule "reference-implementations/chibihash_2/ChibiHash"]
 	path = reference-implementations/chibihash_2/ChibiHash
 	url = https://github.com/N-R-K/ChibiHash.git
+[submodule "reference-implementations/metrohash_64/MetroHash"]
+	path = reference-implementations/metrohash_64/MetroHash
+	url = https://github.com/jandrewrogers/MetroHash.git
+[submodule "reference-implementations/metrohash_128/MetroHash"]
+	path = reference-implementations/metrohash_128/MetroHash
+	url = https://github.com/jandrewrogers/MetroHash.git
