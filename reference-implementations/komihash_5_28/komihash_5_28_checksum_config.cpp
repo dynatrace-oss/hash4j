@@ -13,31 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef KOMIHASH_5_27_CHECKSUM_CONFIG_HPP
-#define KOMIHASH_5_27_CHECKSUM_CONFIG_HPP
+#include "komihash_5_28_checksum_config.hpp"
+#include "komihash/komihash.h"
+#include <cstring>
 
-#include <string>
-#include <cstdint>
+void Komihash5_28ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
-class Komihash5_27ChecksumConfig {
+	uint64_t seed;
+	memcpy(&seed, seedBytes, 8);
 
-public:
+	uint64_t hash0 = komihash(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size, 0);
+	uint64_t hash1 = komihash(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
+			seed);
 
-	uint64_t getSeedSize() const {
-		return 8;
-	}
-
-	uint64_t getHashSize() const {
-		return 16;
-	}
-
-	std::string getName() const {
-		return "Komihash 5.27";
-	}
-
-	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const;
-
-};
-
-#endif // KOMIHASH_5_27_CHECKSUM_CONFIG_HPP
+	memcpy(hashBytes, &hash0, 8);
+	memcpy(hashBytes + 8, &hash1, 8);
+}

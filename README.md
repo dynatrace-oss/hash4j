@@ -23,7 +23,7 @@ hash4j is a Java library by Dynatrace that includes various non-cryptographic ha
 hash4j currently implements the following hash algorithms:
 * [Murmur3](https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp): 32-bit and 128-bit
 * [Wyhash](https://github.com/wangyi-fudan/wyhash): [final version 3](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash) and [final version 4](https://github.com/wangyi-fudan/wyhash/releases/tag/wyhash_final4)
-* [Komihash](https://github.com/avaneev/komihash): version [4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [4.7](https://github.com/avaneev/komihash/releases/tag/4.7)) and version [5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [5.10](https://github.com/avaneev/komihash/releases/tag/5.10) and  [5.27](https://github.com/avaneev/komihash/releases/tag/5.27))
+* [Komihash](https://github.com/avaneev/komihash): version [4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [4.7](https://github.com/avaneev/komihash/releases/tag/4.7)) and version [5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [5.10](https://github.com/avaneev/komihash/releases/tag/5.10) and  [5.28](https://github.com/avaneev/komihash/releases/tag/5.28))
 * [FarmHash](https://github.com/google/farmhash): farmhashna and farmhashuo
 * [PolymurHash 2.0](https://github.com/orlp/polymur-hash)
 * [XXH3](https://github.com/Cyan4973/xxHash): 64-bit and 128-bit
