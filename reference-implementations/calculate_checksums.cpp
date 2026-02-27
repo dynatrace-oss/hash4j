@@ -29,14 +29,16 @@
 #include "wyhash_final_3/wyhash_final_3_checksum_config.hpp"
 #include "wyhash_final_4/wyhash_final_4_checksum_config.hpp"
 #include "rapidhash_3/rapidhash_3_checksum_config.hpp"
-#include "murmur3_128/murmur3_128_checksum_config.hpp"
-#include "murmur3_32/murmur3_32_checksum_config.hpp"
-#include "farmhash_na/farmhash_na_checksum_config.hpp"
-#include "farmhash_uo/farmhash_uo_checksum_config.hpp"
-#include "metrohash_64/metrohash_64_checksum_config.hpp"
-#include "metrohash_128/metrohash_128_checksum_config.hpp"
-#include "xxh3/xxh3_checksum_config.hpp"
-#include "xxh3_128/xxh3_128_checksum_config.hpp"
+#include "murmur3/murmur3_128_checksum_config.hpp"
+#include "murmur3/murmur3_32_checksum_config.hpp"
+#include "farmhash/farmhash_na_checksum_config.hpp"
+#include "farmhash/farmhash_uo_checksum_config.hpp"
+#include "metrohash/metrohash_64_checksum_config.hpp"
+#include "metrohash/metrohash_128_checksum_config.hpp"
+#include "xxhash/xxh3_checksum_config.hpp"
+#include "xxhash/xxh3_128_checksum_config.hpp"
+#include "xxhash/xxh_32_checksum_config.hpp"
+#include "xxhash/xxh_64_checksum_config.hpp"
 
 using namespace std;
 
@@ -154,6 +156,8 @@ int main(int argc, char *argv[]) {
 	computeAndPrintChecksum<MetroHash_128_ChecksumConfig>();
 	computeAndPrintChecksum<XXH3ChecksumConfig>();
 	computeAndPrintChecksum<XXH3_128_ChecksumConfig>();
+	computeAndPrintChecksum<XXH_32_ChecksumConfig>();
+	computeAndPrintChecksum<XXH_64_ChecksumConfig>();
 
 	return 0;
 }

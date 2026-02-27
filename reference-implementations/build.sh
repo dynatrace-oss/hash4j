@@ -1,6 +1,6 @@
-g++ -c farmhash_uo/farmhash/src/farmhash.cc farmhash_uo/farmhash_uo_checksum_config.cpp
+g++ -c farmhash/farmhash/src/farmhash.cc farmhash/farmhash_uo_checksum_config.cpp
 ar rvs farmuo.a farmhash.o farmhash_uo_checksum_config.o
-g++ -c farmhash_na/farmhash/src/farmhash.cc farmhash_na/farmhash_na_checksum_config.cpp
+g++ -c farmhash/farmhash/src/farmhash.cc farmhash/farmhash_na_checksum_config.cpp
 ar rvs farmna.a farmhash.o farmhash_na_checksum_config.o
 g++ \
 calculate_checksums.cpp \
@@ -14,16 +14,18 @@ komihash_5_0/komihash_5_0_checksum_config.cpp \
 komihash_5_10/komihash_5_10_checksum_config.cpp \
 komihash_5_28/komihash_5_28_checksum_config.cpp \
 chibihash_2/chibihash_2_checksum_config.cpp \
-murmur3_32/murmur3_32_checksum_config.cpp \
-murmur3_128/murmur3_128_checksum_config.cpp \
-murmur3_128/smhasher/src/MurmurHash3.cpp \
-metrohash_64/metrohash_64_checksum_config.cpp \
-metrohash_64/MetroHash/src/metrohash64.cpp \
-metrohash_128/metrohash_128_checksum_config.cpp \
-metrohash_128/MetroHash/src/metrohash128.cpp \
-xxh3/xxh3_checksum_config.cpp \
-xxh3_128/xxh3_128_checksum_config.cpp \
-xxh3/xxHash/xxhash.c \
+murmur3/murmur3_32_checksum_config.cpp \
+murmur3/murmur3_128_checksum_config.cpp \
+murmur3/smhasher/src/MurmurHash3.cpp \
+metrohash/metrohash_64_checksum_config.cpp \
+metrohash/MetroHash/src/metrohash64.cpp \
+metrohash/metrohash_128_checksum_config.cpp \
+metrohash/MetroHash/src/metrohash128.cpp \
+xxhash/xxh3_checksum_config.cpp \
+xxhash/xxh3_128_checksum_config.cpp \
+xxhash/xxh_32_checksum_config.cpp \
+xxhash/xxh_64_checksum_config.cpp \
+xxhash/xxHash/xxhash.c \
 farmna.a \
 farmuo.a \
 -O2 -lssl -lcrypto -o calculate_checksums
