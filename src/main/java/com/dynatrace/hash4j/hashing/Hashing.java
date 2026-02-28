@@ -467,6 +467,13 @@ public final class Hashing {
    * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 algorithm using the given seed
    * value and the default secret.
    *
+   * <p>Important: This algorithm is not necessarily compatible with other Rapidhash v3
+   * implementations, because there was a "re-release" of Rapidhash v3 (see <a
+   * href="https://github.com/dynatrace-oss/hash4j/issues/555">here</a> for more details), which
+   * redefined the computation of hash values for input byte lengths 5, 6, and 7. Therefore, using
+   * this method is not recommended. This method will likely be renamed or removed in a future
+   * release.
+   *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * rapidhash_withSeed} defined in <a
    * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L492">rapidhash.h</a>
