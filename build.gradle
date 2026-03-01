@@ -60,6 +60,7 @@ dependencies {
 	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
 	testImplementation("org.greenrobot:essentials:3.1.0")
 	testImplementation("com.sangupta:murmur:1.0.0")
+	testImplementation("org.lz4:lz4-java:1.8.0")
 	errorprone("com.google.errorprone:error_prone_core:2.48.0")
 }
 
@@ -279,10 +280,14 @@ spotless {
 		new Tuple3("javaConsistentJumpHash", "APACHE_2_0_GUAVA",[
 			"src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBucketHasher.java"
 		]),
-		new Tuple3("javaXXH", "APACHE_2_0_XXH",[
+		new Tuple3("javaXXH3", "APACHE_2_0_XXH3",[
 			"src/main/java/com/dynatrace/hash4j/hashing/XXH3_64.java",
 			"src/main/java/com/dynatrace/hash4j/hashing/XXH3_128.java",
 			"src/main/java/com/dynatrace/hash4j/hashing/XXH3Base.java"
+		]),
+		new Tuple3("javaXXH", "APACHE_2_0_XXH",[
+			"src/main/java/com/dynatrace/hash4j/hashing/XXH32.java",
+			"src/main/java/com/dynatrace/hash4j/hashing/XXH64.java"
 		]),
 		new Tuple3("javaConsistentJumpBackAnchorBucketSetHasher", "MIT_ANCHOR_HASH",[
 			"src/main/java/com/dynatrace/hash4j/consistent/ConsistentJumpBackAnchorBucketSetHasher.java"

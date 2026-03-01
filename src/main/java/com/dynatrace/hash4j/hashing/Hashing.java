@@ -449,6 +449,60 @@ public final class Hashing {
   }
 
   /**
+   * Returns a {@link Hasher32} implementing the 32-bit XXH32 algorithm using a seed value of zero.
+   *
+   * <p>This implementation is compatible with the C reference implementation of {@code XXH32}
+   * defined in <a href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an
+   * Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher32 xxh32() {
+    return XXH32.create();
+  }
+
+  /**
+   * Returns a {@link Hasher32} implementing the 32-bit XXH32 algorithm using the given seed value.
+   *
+   * <p>This implementation is compatible with the C reference implementation of {@code XXH32}
+   * defined in <a href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an
+   * Intel x86 architecture.
+   *
+   * @param seed a 32-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher32 xxh32(int seed) {
+    return XXH32.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit XXH64 algorithm using a seed value of zero.
+   *
+   * <p>This implementation is compatible with the C reference implementation of {@code XXH64}
+   * defined in <a href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an
+   * Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 xxh64() {
+    return XXH64.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit XXH64 algorithm using the given seed value.
+   *
+   * <p>This implementation is compatible with the C reference implementation of {@code XXH64}
+   * defined in <a href="https://github.com/Cyan4973/xxHash/blob/v0.8.3/xxhash.h">xxhash.h</a> on an
+   * Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 xxh64(long seed) {
+    return XXH64.create(seed);
+  }
+
+  /**
    * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 algorithm using a seed value of
    * zero and the default secret.
    *
