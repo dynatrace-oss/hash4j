@@ -7,20 +7,14 @@
 [submodule "reference-implementations/wyhash_final_3/wyhash"]
 	path = reference-implementations/wyhash_final_3/wyhash
 	url = https://github.com/wangyi-fudan/wyhash.git
-[submodule "reference-implementations/murmur3_128/smhasher"]
-	path = reference-implementations/murmur3_128/smhasher
+[submodule "reference-implementations/murmur3/smhasher"]
+	path = reference-implementations/murmur3/smhasher
 	url = https://github.com/aappleby/smhasher
-[submodule "reference-implementations/murmur3_32/smhasher"]
-	path = reference-implementations/murmur3_32/smhasher
-	url = https://github.com/aappleby/smhasher
-[submodule "reference-implementations/xxh3/xxHash"]
-	path = reference-implementations/xxh3/xxHash
+[submodule "reference-implementations/xxhash/xxHash"]
+	path = reference-implementations/xxhash/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
-[submodule "reference-implementations/farmhash_uo/farmhash"]
-	path = reference-implementations/farmhash_uo/farmhash
-	url = https://github.com/google/farmhash.git
-[submodule "reference-implementations/farmhash_na/farmhash"]
-	path = reference-implementations/farmhash_na/farmhash
+[submodule "reference-implementations/farmhash/farmhash"]
+	path = reference-implementations/farmhash/farmhash
 	url = https://github.com/google/farmhash.git
 [submodule "reference-implementations/wyhash_final_4/wyhash"]
 	path = reference-implementations/wyhash_final_4/wyhash
@@ -34,11 +28,8 @@
 [submodule "reference-implementations/komihash_5_10/komihash"]
 	path = reference-implementations/komihash_5_10/komihash
 	url = https://github.com/avaneev/komihash.git
-[submodule "reference-implementations/xxh3_128/xxHash"]
-	path = reference-implementations/xxh3_128/xxHash
-	url = https://github.com/Cyan4973/xxHash.git
-[submodule "reference-implementations/komihash_5_27/komihash"]
-	path = reference-implementations/komihash_5_27/komihash
+[submodule "reference-implementations/komihash_5_28/komihash"]
+	path = reference-implementations/komihash_5_28/komihash
 	url = https://github.com/avaneev/komihash.git
 [submodule "reference-implementations/rapidhash_3/rapidhash"]
 	path = reference-implementations/rapidhash_3/rapidhash
@@ -46,9 +37,6 @@
 [submodule "reference-implementations/chibihash_2/ChibiHash"]
 	path = reference-implementations/chibihash_2/ChibiHash
 	url = https://github.com/N-R-K/ChibiHash.git
-[submodule "reference-implementations/metrohash_64/MetroHash"]
-	path = reference-implementations/metrohash_64/MetroHash
-	url = https://github.com/jandrewrogers/MetroHash.git
-[submodule "reference-implementations/metrohash_128/MetroHash"]
-	path = reference-implementations/metrohash_128/MetroHash
+[submodule "reference-implementations/metrohash/MetroHash"]
+	path = reference-implementations/metrohash/MetroHash
 	url = https://github.com/jandrewrogers/MetroHash.git

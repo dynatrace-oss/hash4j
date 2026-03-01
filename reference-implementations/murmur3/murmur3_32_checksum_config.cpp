@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "komihash_5_27_checksum_config.hpp"
-#include "komihash/komihash.h"
+#include "murmur3_32_checksum_config.hpp"
+#include "smhasher/src/MurmurHash3.h"
 #include <cstring>
 
-void Komihash5_27ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+void Murmur3_32_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
-	uint64_t seed;
-	memcpy(&seed, seedBytes, 8);
+	uint32_t seed;
+	memcpy(&seed, seedBytes, 4);
+	MurmurHash3_x86_32(dataBytes, size, 0, hashBytes);
+	MurmurHash3_x86_32(dataBytes, size, seed, hashBytes + 4);
 
-	uint64_t hash0 = komihash(
-			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size, 0);
-	uint64_t hash1 = komihash(
-			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
-			seed);
-
-	memcpy(hashBytes, &hash0, 8);
-	memcpy(hashBytes + 8, &hash1, 8);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "murmur3_128_checksum_config.hpp"
-#include "smhasher/src/MurmurHash3.h"
+#include "komihash_5_28_checksum_config.hpp"
+#include "komihash/komihash.h"
 #include <cstring>
 
-void Murmur3_128_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+void Komihash5_28ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
-	uint32_t seed;
-	memcpy(&seed, seedBytes, 4);
-	MurmurHash3_x64_128(dataBytes, size, 0, hashBytes);
-	MurmurHash3_x64_128(dataBytes, size, seed, hashBytes + 16);
+	uint64_t seed;
+	memcpy(&seed, seedBytes, 8);
+
+	uint64_t hash0 = komihash(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size, 0);
+	uint64_t hash1 = komihash(
+			reinterpret_cast<char*>(const_cast<uint8_t*>(dataBytes)), size,
+			seed);
+
+	memcpy(hashBytes, &hash0, 8);
+	memcpy(hashBytes + 8, &hash1, 8);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2025-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef XXH3_CHECKSUM_CONFIG_HPP
-#define XXH3_CHECKSUM_CONFIG_HPP
+#ifndef XXH_32_CHECKSUM_CONFIG_HPP
+#define XXH_32_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class XXH3ChecksumConfig {
+class XXH_32_ChecksumConfig {
 
 public:
 
 	uint64_t getSeedSize() const {
-		return 8;
+		return 4;
 	}
 
 	uint64_t getHashSize() const {
-		return 16;
+		return 8;
 	}
 
 	std::string getName() const {
-		return "XXH3";
+		return "XXH32";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif // XXH3_CHECKSUM_CONFIG_HPP
+#endif // XXH_32_CHECKSUM_CONFIG_HPP

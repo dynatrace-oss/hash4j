@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2023 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "murmur3_32_checksum_config.hpp"
-#include "smhasher/src/MurmurHash3.h"
-#include <cstring>
+#ifndef FARMHASH_UO_CHECKSUM_CONFIG_HPP
+#define FARMHASH_UO_CHECKSUM_CONFIG_HPP
 
-void Murmur3_32_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
-		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
+#include <string>
+#include <cstdint>
 
-	uint32_t seed;
-	memcpy(&seed, seedBytes, 4);
-	MurmurHash3_x86_32(dataBytes, size, 0, hashBytes);
-	MurmurHash3_x86_32(dataBytes, size, seed, hashBytes + 4);
+class FarmHashUoChecksumConfig {
 
-}
+public:
+
+	uint64_t getSeedSize() const {
+		return 24;
+	}
+
+	uint64_t getHashSize() const {
+		return 24;
+	}
+
+	std::string getName() const {
+		return "FarmHash UO";
+	}
+
+	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
+			const uint8_t *dataBytes, uint64_t size) const;
+
+};
+
+#endif // FARMHASH_UO_CHECKSUM_CONFIG_HPP

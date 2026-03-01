@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef KOMIHASH_5_27_CHECKSUM_CONFIG_HPP
-#define KOMIHASH_5_27_CHECKSUM_CONFIG_HPP
+#ifndef FARMHASH_NA_CHECKSUM_CONFIG_HPP
+#define FARMHASH_NA_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class Komihash5_27ChecksumConfig {
+class FarmHashNaChecksumConfig {
 
 public:
 
 	uint64_t getSeedSize() const {
-		return 8;
+		return 24;
 	}
 
 	uint64_t getHashSize() const {
-		return 16;
+		return 24;
 	}
 
 	std::string getName() const {
-		return "Komihash 5.27";
+		return "FarmHash NA";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif // KOMIHASH_5_27_CHECKSUM_CONFIG_HPP
+#endif // FARMHASH_NA_CHECKSUM_CONFIG_HPP

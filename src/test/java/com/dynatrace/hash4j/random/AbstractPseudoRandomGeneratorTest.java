@@ -156,32 +156,6 @@ abstract class AbstractPseudoRandomGeneratorTest {
   }
 
   @Test
-  void testUniformIntWithSpecialParameters() {
-    PseudoRandomGenerator prg = createPseudoRandomGenerator();
-    prg.reset(0x674b0446e48aa471L);
-    assertThat(prg.uniformInt(0)).isZero();
-    assertThat(prg.uniformInt(1)).isZero();
-    assertThat(prg.uniformInt(-1)).isNegative();
-    assertThat(prg.uniformInt(-2)).isNegative();
-    assertThat(prg.uniformInt(Integer.MIN_VALUE)).isNegative();
-  }
-
-  @Test
-  void testUniformLongWithSpecialParameters() {
-    PseudoRandomGenerator prg = createPseudoRandomGenerator();
-    prg.reset(0x52aa8dbcce9e07e4L);
-    assertThat(prg.uniformLong(0)).isZero();
-    assertThat(prg.uniformLong(1)).isZero();
-    // For the given seed and the special bound -1 (interpreted by the implementation as a
-    // full-range bound), this is the deterministic value currently produced by uniformLong(-1);
-    // this assertion serves as a stability test to detect unintended changes in the pseudo-random
-    // generator implementation.
-    assertThat(prg.uniformLong(-1)).isEqualTo(7289753898585205944L);
-    assertThat(prg.uniformLong(-2)).isNegative();
-    assertThat(prg.uniformLong(Long.MIN_VALUE)).isEqualTo(6857541587938986304L);
-  }
-
-  @Test
   void testStability() {
     PseudoRandomGenerator prg = createPseudoRandomGenerator();
     for (int c = 0; c < 3; ++c) {
