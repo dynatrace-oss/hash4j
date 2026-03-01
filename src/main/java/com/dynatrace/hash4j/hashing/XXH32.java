@@ -109,7 +109,7 @@ final class XXH32 implements AbstractHasher32 {
 
   private static int finalize(int hash, byte[] buf, int off, int len) {
     int end = off + len;
-    switch ((len >> 2) & 3) {
+    switch ((len >>> 2) & 3) {
       case 3:
         hash += getInt(buf, off) * PRIME32_3;
         hash = Integer.rotateLeft(hash, 17) * PRIME32_4;
