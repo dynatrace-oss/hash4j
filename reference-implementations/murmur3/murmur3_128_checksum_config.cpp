@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,31 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef XXH3_128_CHECKSUM_CONFIG_HPP
-#define XXH3_128_CHECKSUM_CONFIG_HPP
+#include "murmur3_128_checksum_config.hpp"
+#include "smhasher/src/MurmurHash3.h"
+#include <cstring>
 
-#include <string>
-#include <cstdint>
+void Murmur3_128_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
-class XXH3_128_ChecksumConfig {
-
-public:
-
-	uint64_t getSeedSize() const {
-		return 8;
-	}
-
-	uint64_t getHashSize() const {
-		return 32;
-	}
-
-	std::string getName() const {
-		return "XXH3_128";
-	}
-
-	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
-			const uint8_t *dataBytes, uint64_t size) const;
-
-};
-
-#endif // XXH3_128_CHECKSUM_CONFIG_HPP
+	uint32_t seed;
+	memcpy(&seed, seedBytes, 4);
+	MurmurHash3_x64_128(dataBytes, size, 0, hashBytes);
+	MurmurHash3_x64_128(dataBytes, size, seed, hashBytes + 16);
+}

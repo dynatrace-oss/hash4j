@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef FARMHASH_UO_CHECKSUM_CONFIG_HPP
-#define FARMHASH_UO_CHECKSUM_CONFIG_HPP
+#ifndef FARMHASH_NA_CHECKSUM_CONFIG_HPP
+#define FARMHASH_NA_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class FarmHashUoChecksumConfig {
+class FarmHashNaChecksumConfig {
 
 public:
 
@@ -32,7 +32,7 @@ public:
 	}
 
 	std::string getName() const {
-		return "FarmHash UO";
+		return "FarmHash NA";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif // FARMHASH_UO_CHECKSUM_CONFIG_HPP
+#endif // FARMHASH_NA_CHECKSUM_CONFIG_HPP
