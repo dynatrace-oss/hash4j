@@ -199,7 +199,7 @@ class CrossCheckTest {
             new org.apache.commons.codec.digest.XXHash32(seed);
         xxHash32.update(b, 0, b.length);
         xxHash32WithSeed.update(b, 0, b.length);
-        assertThat((int) xxHash32.getValue()).isEqualTo(Hashing.xxh32(0).hashBytesToInt(b));
+        assertThat((int) xxHash32.getValue()).isEqualTo(Hashing.xxh32().hashBytesToInt(b));
         assertThat((int) xxHash32WithSeed.getValue())
             .isEqualTo(Hashing.xxh32(seed).hashBytesToInt(b));
       }

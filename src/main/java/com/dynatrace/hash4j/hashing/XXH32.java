@@ -302,7 +302,8 @@ final class XXH32 implements AbstractHasher32 {
 
     private final byte[] buffer = new byte[16 + 8];
     private int offset = 0;
-    private int totalLen = 0;
+    private int totalLen =
+        0; // overflow is not an issue as only the lower 32 bits are used in the final hash value
     private boolean largeLenFlag = false;
 
     private int acc0 = seed0;
@@ -585,7 +586,7 @@ final class XXH32 implements AbstractHasher32 {
         h = acc2 + PRIME32_5;
       }
 
-      h += totalLen;
+      h += totalLen; // only the lower 32 bits of totalLen are relevant for the final hash value
 
       return XXH32.finalizeToInt(h, buffer, 0, offset);
     }
