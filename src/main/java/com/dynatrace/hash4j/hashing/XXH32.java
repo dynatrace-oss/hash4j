@@ -107,7 +107,7 @@ final class XXH32 implements AbstractHasher32 {
     return hash;
   }
 
-  private static int finalize(int hash, byte[] buf, int off, int len) {
+  private static int finalizeToInt(int hash, byte[] buf, int off, int len) {
     int end = off + len;
     switch ((len >>> 2) & 3) {
       case 3:
@@ -141,7 +141,8 @@ final class XXH32 implements AbstractHasher32 {
     return avalanche(hash);
   }
 
-  private static <T> int finalize(int hash, T input, long off, long len, ByteAccess<T> access) {
+  private static <T> int finalizeToInt(
+      int hash, T input, long off, long len, ByteAccess<T> access) {
     long end = off + len;
     switch (((int) len >>> 2) & 3) {
       case 3:
@@ -210,7 +211,7 @@ final class XXH32 implements AbstractHasher32 {
 
     h += len;
 
-    return finalize(h, input, off, len & 15);
+    return finalizeToInt(h, input, off, len & 15);
   }
 
   @Override
@@ -243,7 +244,7 @@ final class XXH32 implements AbstractHasher32 {
 
     h += (int) len;
 
-    return finalize(h, input, off, len & 15, access);
+    return finalizeToInt(h, input, off, len & 15, access);
   }
 
   @Override
@@ -586,7 +587,7 @@ final class XXH32 implements AbstractHasher32 {
 
       h += totalLen;
 
-      return XXH32.finalize(h, buffer, 0, offset);
+      return XXH32.finalizeToInt(h, buffer, 0, offset);
     }
   }
 

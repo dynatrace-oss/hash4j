@@ -88,14 +88,15 @@ class MetroHash128 implements AbstractHasher128 {
     return new HashValue128(v1, v0);
   }
 
-    private static long finalize64(long v0, long v1) {
-        v0 += Long.rotateRight((v0 * K0) + v1, 13);
-        v1 += Long.rotateRight((v1 * K1) + v0, 37);
-        v0 += Long.rotateRight((v0 * K2) + v1, 13);
-        return v0;
-    }
+  private static long finalize64(long v0, long v1) {
+    v0 += Long.rotateRight((v0 * K0) + v1, 13);
+    v1 += Long.rotateRight((v1 * K1) + v0, 37);
+    v0 += Long.rotateRight((v0 * K2) + v1, 13);
+    return v0;
+  }
 
-  private static HashValue128 finalize(long v0, long v1, byte[] input, int off, int remaining) {
+  private static HashValue128 finalizeTo128Bits(
+      long v0, long v1, byte[] input, int off, int remaining) {
     if (remaining >= 16) {
       v0 += getLong(input, off) * K2;
       v0 = Long.rotateRight(v0, 33) * K3;
@@ -140,52 +141,52 @@ class MetroHash128 implements AbstractHasher128 {
     return finalize128(v0, v1);
   }
 
-    private static long finalizeAsLong(long v0, long v1, byte[] input, int off, int remaining) {
-        if (remaining >= 16) {
-            v0 += getLong(input, off) * K2;
-            v0 = Long.rotateRight(v0, 33) * K3;
-            v1 += getLong(input, off + 8) * K2;
-            v1 = Long.rotateRight(v1, 33) * K3;
-            v0 ^= Long.rotateRight((v0 * K2) + v1, 45) * K1;
-            v1 ^= Long.rotateRight((v1 * K3) + v0, 45) * K0;
-            off += 16;
-            remaining -= 16;
-        }
-
-        if (remaining >= 8) {
-            v0 += getLong(input, off) * K2;
-            v0 = Long.rotateRight(v0, 33) * K3;
-            v0 ^= Long.rotateRight((v0 * K2) + v1, 27) * K1;
-            off += 8;
-            remaining -= 8;
-        }
-
-        if (remaining >= 4) {
-            v1 += (getInt(input, off) & 0xFFFFFFFFL) * K2;
-            v1 = Long.rotateRight(v1, 33) * K3;
-            v1 ^= Long.rotateRight((v1 * K3) + v0, 46) * K0;
-            off += 4;
-            remaining -= 4;
-        }
-
-        if (remaining >= 2) {
-            v0 += (getShort(input, off) & 0xFFFFL) * K2;
-            v0 = Long.rotateRight(v0, 33) * K3;
-            v0 ^= Long.rotateRight((v0 * K2) + v1, 22) * K1;
-            off += 2;
-            remaining -= 2;
-        }
-
-        if (remaining >= 1) {
-            v1 += (input[off] & 0xFFL) * K2;
-            v1 = Long.rotateRight(v1, 33) * K3;
-            v1 ^= Long.rotateRight((v1 * K3) + v0, 58) * K0;
-        }
-
-        return finalize64(v0, v1);
+  private static long finalizeAsLong(long v0, long v1, byte[] input, int off, int remaining) {
+    if (remaining >= 16) {
+      v0 += getLong(input, off) * K2;
+      v0 = Long.rotateRight(v0, 33) * K3;
+      v1 += getLong(input, off + 8) * K2;
+      v1 = Long.rotateRight(v1, 33) * K3;
+      v0 ^= Long.rotateRight((v0 * K2) + v1, 45) * K1;
+      v1 ^= Long.rotateRight((v1 * K3) + v0, 45) * K0;
+      off += 16;
+      remaining -= 16;
     }
 
-  private static <T> HashValue128 finalize(
+    if (remaining >= 8) {
+      v0 += getLong(input, off) * K2;
+      v0 = Long.rotateRight(v0, 33) * K3;
+      v0 ^= Long.rotateRight((v0 * K2) + v1, 27) * K1;
+      off += 8;
+      remaining -= 8;
+    }
+
+    if (remaining >= 4) {
+      v1 += (getInt(input, off) & 0xFFFFFFFFL) * K2;
+      v1 = Long.rotateRight(v1, 33) * K3;
+      v1 ^= Long.rotateRight((v1 * K3) + v0, 46) * K0;
+      off += 4;
+      remaining -= 4;
+    }
+
+    if (remaining >= 2) {
+      v0 += (getShort(input, off) & 0xFFFFL) * K2;
+      v0 = Long.rotateRight(v0, 33) * K3;
+      v0 ^= Long.rotateRight((v0 * K2) + v1, 22) * K1;
+      off += 2;
+      remaining -= 2;
+    }
+
+    if (remaining >= 1) {
+      v1 += (input[off] & 0xFFL) * K2;
+      v1 = Long.rotateRight(v1, 33) * K3;
+      v1 ^= Long.rotateRight((v1 * K3) + v0, 58) * K0;
+    }
+
+    return finalize64(v0, v1);
+  }
+
+  private static <T> HashValue128 finalizeTo128Bits(
       long v0, long v1, T input, long off, long remaining, ByteAccess<T> access) {
 
     if (remaining >= 16) {
@@ -264,7 +265,7 @@ class MetroHash128 implements AbstractHasher128 {
       v1 ^= Long.rotateRight(((v1 + v3) * K1) + v2, 21) * K0;
     }
 
-    return finalize(v0, v1, input, off, remaining);
+    return finalizeTo128Bits(v0, v1, input, off, remaining);
   }
 
   @Override
@@ -296,7 +297,7 @@ class MetroHash128 implements AbstractHasher128 {
       v1 ^= Long.rotateRight(((v1 + v3) * K1) + v2, 21) * K0;
     }
 
-    return finalize(v0, v1, input, off, remaining, access);
+    return finalizeTo128Bits(v0, v1, input, off, remaining, access);
   }
 
   @Override
@@ -644,25 +645,25 @@ class MetroHash128 implements AbstractHasher128 {
         sv1 ^= Long.rotateRight(((sv1 + sv3) * K1) + sv2, 21) * K0;
       }
 
-      return MetroHash128.finalize(sv0, sv1, buffer, 0, offset);
+      return MetroHash128.finalizeTo128Bits(sv0, sv1, buffer, 0, offset);
     }
 
-      @Override
-      public long getAsLong() {
-          long sv0 = v0;
-          long sv1 = v1;
-          long sv2 = v2;
-          long sv3 = v3;
+    @Override
+    public long getAsLong() {
+      long sv0 = v0;
+      long sv1 = v1;
+      long sv2 = v2;
+      long sv3 = v3;
 
-          if (bulkProcessed) {
-              sv2 ^= Long.rotateRight(((sv0 + sv3) * K0) + sv1, 21) * K1;
-              sv3 ^= Long.rotateRight(((sv1 + sv2) * K1) + sv0, 21) * K0;
-              sv0 ^= Long.rotateRight(((sv0 + sv2) * K0) + sv3, 21) * K1;
-              sv1 ^= Long.rotateRight(((sv1 + sv3) * K1) + sv2, 21) * K0;
-          }
-
-          return MetroHash128.finalizeAsLong(sv0, sv1, buffer, 0, offset);
+      if (bulkProcessed) {
+        sv2 ^= Long.rotateRight(((sv0 + sv3) * K0) + sv1, 21) * K1;
+        sv3 ^= Long.rotateRight(((sv1 + sv2) * K1) + sv0, 21) * K0;
+        sv0 ^= Long.rotateRight(((sv0 + sv2) * K0) + sv3, 21) * K1;
+        sv1 ^= Long.rotateRight(((sv1 + sv3) * K1) + sv2, 21) * K0;
       }
+
+      return MetroHash128.finalizeAsLong(sv0, sv1, buffer, 0, offset);
+    }
   }
 
   @Override
@@ -731,7 +732,7 @@ class MetroHash128 implements AbstractHasher128 {
     b = Long.rotateRight(b, 33) * K3;
     a ^= Long.rotateRight((a * K2) + b, 45) * K1;
     b ^= Long.rotateRight((b * K3) + a, 45) * K0;
-      return finalize64(a, b);
+    return finalize64(a, b);
   }
 
   @Override

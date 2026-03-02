@@ -116,7 +116,7 @@ final class XXH64 implements AbstractHasher64 {
     return hash;
   }
 
-  private static long finalize(long hash, byte[] buf, int off, int len) {
+  private static long finalizeToLong(long hash, byte[] buf, int off, int len) {
     int end = off + len;
     switch ((len >>> 3) & 3) {
       case 3:
@@ -154,7 +154,8 @@ final class XXH64 implements AbstractHasher64 {
     return avalanche(hash);
   }
 
-  private static <T> long finalize(long hash, T input, long off, long len, ByteAccess<T> access) {
+  private static <T> long finalizeToLong(
+      long hash, T input, long off, long len, ByteAccess<T> access) {
     long end = off + len;
     switch (((int) len >>> 3) & 3) {
       case 3:
@@ -231,7 +232,7 @@ final class XXH64 implements AbstractHasher64 {
 
     h += len;
 
-    return finalize(h, input, off, len & 31);
+    return finalizeToLong(h, input, off, len & 31);
   }
 
   @Override
@@ -268,7 +269,7 @@ final class XXH64 implements AbstractHasher64 {
 
     h += len;
 
-    return finalize(h, input, off, len & 31, access);
+    return finalizeToLong(h, input, off, len & 31, access);
   }
 
   @Override
@@ -626,7 +627,7 @@ final class XXH64 implements AbstractHasher64 {
 
       h += totalLen;
 
-      return XXH64.finalize(h, buffer, 0, offset);
+      return XXH64.finalizeToLong(h, buffer, 0, offset);
     }
   }
 

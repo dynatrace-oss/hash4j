@@ -74,7 +74,7 @@ class MetroHash64 implements AbstractHasher64 {
     return new HashStreamImpl();
   }
 
-  private static long finalize(long h, byte[] input, int off, int remaining) {
+  private static long finalizeToLong(long h, byte[] input, int off, int remaining) {
     if (remaining >= 16) {
       long v0 = h + (getLong(input, off) * K2);
       v0 = Long.rotateRight(v0, 29) * K3;
@@ -120,7 +120,7 @@ class MetroHash64 implements AbstractHasher64 {
     return h;
   }
 
-  private static <T> long finalize(
+  private static <T> long finalizeToLong(
       long h, T input, long off, long remaining, ByteAccess<T> access) {
     if (remaining >= 16) {
       long v0 = h + (access.getLong(input, off) * K2);
@@ -201,7 +201,7 @@ class MetroHash64 implements AbstractHasher64 {
       h += v0 ^ v1;
     }
 
-    return finalize(h, input, off, remaining);
+    return finalizeToLong(h, input, off, remaining);
   }
 
   @Override
@@ -235,7 +235,7 @@ class MetroHash64 implements AbstractHasher64 {
       h += v0 ^ v1;
     }
 
-    return finalize(h, input, off, remaining, access);
+    return finalizeToLong(h, input, off, remaining, access);
   }
 
   @Override
@@ -590,7 +590,7 @@ class MetroHash64 implements AbstractHasher64 {
         h += sv0 ^ sv1;
       }
 
-      return MetroHash64.finalize(h, buffer, 0, offset);
+      return MetroHash64.finalizeToLong(h, buffer, 0, offset);
     }
   }
 
