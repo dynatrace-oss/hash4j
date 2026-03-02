@@ -26,7 +26,50 @@ final class HashMocks {
 
   private static final byte[] EMPTY_BYTE_ARRAY = {};
 
-  private static final class FixedHasher32 implements AbstractHasher32 {
+  private interface AbstractMockHasher32 extends AbstractHasher32 {
+
+    @Override
+    default int hashIntToInt(int v) {
+      return hashStream().putInt(v).getAsInt();
+    }
+
+    @Override
+    default int hashIntIntToInt(int v1, int v2) {
+      return hashStream().putInt(v1).putInt(v2).getAsInt();
+    }
+
+    @Override
+    default int hashIntIntIntToInt(int v1, int v2, int v3) {
+      return hashStream().putInt(v1).putInt(v2).putInt(v3).getAsInt();
+    }
+
+    @Override
+    default int hashIntLongToInt(int v1, long v2) {
+      return hashStream().putInt(v1).putLong(v2).getAsInt();
+    }
+
+    @Override
+    default int hashLongToInt(long v) {
+      return hashStream().putLong(v).getAsInt();
+    }
+
+    @Override
+    default int hashLongLongToInt(long v1, long v2) {
+      return hashStream().putLong(v1).putLong(v2).getAsInt();
+    }
+
+    @Override
+    default int hashLongLongLongToInt(long v1, long v2, long v3) {
+      return hashStream().putLong(v1).putLong(v2).putLong(v3).getAsInt();
+    }
+
+    @Override
+    default int hashLongIntToInt(long v1, int v2) {
+      return hashStream().putLong(v1).putInt(v2).getAsInt();
+    }
+  }
+
+  private static final class FixedHasher32 implements AbstractMockHasher32 {
 
     private final int hash;
 
@@ -105,7 +148,30 @@ final class HashMocks {
     return new FixedHasher32(hash);
   }
 
-  private static final class FixedHasher64 implements AbstractHasher64 {
+  private interface AbstractMockHasher64 extends AbstractHasher64 {
+
+    @Override
+    default long hashLongToLong(long v) {
+      return hashStream().putLong(v).getAsLong();
+    }
+
+    @Override
+    default long hashLongLongToLong(long v1, long v2) {
+      return hashStream().putLong(v1).putLong(v2).getAsLong();
+    }
+
+    @Override
+    default long hashLongLongLongToLong(long v1, long v2, long v3) {
+      return hashStream().putLong(v1).putLong(v2).putLong(v3).getAsLong();
+    }
+
+    @Override
+    default long hashLongIntToLong(long v1, int v2) {
+      return hashStream().putLong(v1).putInt(v2).getAsLong();
+    }
+  }
+
+  private static final class FixedHasher64 implements AbstractMockHasher64 {
 
     private final long hash;
 
@@ -207,6 +273,26 @@ final class HashMocks {
       return new FixedHasher128.HashStreamImpl(this);
     }
 
+    @Override
+    public long hashLongToLong(long v) {
+      return hash.getAsLong();
+    }
+
+    @Override
+    public long hashLongLongToLong(long v1, long v2) {
+      return hash.getAsLong();
+    }
+
+    @Override
+    public long hashLongLongLongToLong(long v1, long v2, long v3) {
+      return hash.getAsLong();
+    }
+
+    @Override
+    public long hashLongIntToLong(long v1, int v2) {
+      return hash.getAsLong();
+    }
+
     private static final class HashStreamImpl implements AbstractHashStream128 {
 
       private final FixedHasher128 hasher;
@@ -263,7 +349,7 @@ final class HashMocks {
     return new FixedHasher128(hash);
   }
 
-  private static class DefaultMethodWrapperHasher32 implements AbstractHasher32 {
+  private static class DefaultMethodWrapperHasher32 implements AbstractMockHasher32 {
 
     private final Hasher32 referenceHasher;
 
@@ -342,7 +428,7 @@ final class HashMocks {
     return new DefaultMethodWrapperHasher32(referenceHasher);
   }
 
-  private static class DefaultMethodWrapperHasher64 implements AbstractHasher64 {
+  private static class DefaultMethodWrapperHasher64 implements AbstractMockHasher64 {
 
     private final Hasher64 referenceHasher;
 
@@ -421,7 +507,9 @@ final class HashMocks {
     return new DefaultMethodWrapperHasher64(referenceHasher);
   }
 
-  private static class DefaultMethodWrapperHasher128 implements AbstractHasher128 {
+  private interface AbstractMockHasher128 extends AbstractHasher128, AbstractMockHasher64 {}
+
+  private static class DefaultMethodWrapperHasher128 implements AbstractMockHasher128 {
 
     private final Hasher128 referenceHasher;
 
@@ -572,7 +660,7 @@ final class HashMocks {
     }
   }
 
-  private enum TestHasher32 implements AbstractHasher32 {
+  private enum TestHasher32 implements AbstractMockHasher32 {
     INSTANCE {
       @Override
       public HashStream32 hashStream() {
@@ -653,7 +741,7 @@ final class HashMocks {
     }
   }
 
-  private enum TestHasher64 implements AbstractHasher64 {
+  private enum TestHasher64 implements AbstractMockHasher64 {
     INSTANCE {
       @Override
       public HashStream64 hashStream() {
@@ -738,7 +826,7 @@ final class HashMocks {
     }
   }
 
-  private enum TestHasher128 implements AbstractHasher128 {
+  private enum TestHasher128 implements AbstractMockHasher128 {
     INSTANCE {
       @Override
       public HashStream128 hashStream() {

@@ -15,7 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToInt;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToLong;
+import static com.dynatrace.hash4j.testutils.TestUtils.reverseByteArray;
 import static com.dynatrace.hash4j.testutils.TestUtils.tupleToByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,9 +26,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.SplittableRandom;
+import net.jpountz.xxhash.XXHash32;
+import net.jpountz.xxhash.XXHash64;
+import net.jpountz.xxhash.XXHashFactory;
 import net.openhft.hashing.LongHashFunction;
 import net.openhft.hashing.LongTupleHashFunction;
-import org.apache.commons.codec.digest.MurmurHash3;
 import org.greenrobot.essentials.hash.Murmur3A;
 import org.greenrobot.essentials.hash.Murmur3F;
 import org.junit.jupiter.api.Test;
@@ -132,9 +136,9 @@ class CrossCheckTest {
       for (int i = 0; i < NUM_ITERATIONS; ++i) {
         int seed = random.nextInt();
         random.nextBytes(b);
-        assertThat(MurmurHash3.hash32x86(b, 0, b.length, 0))
+        assertThat(org.apache.commons.codec.digest.MurmurHash3.hash32x86(b, 0, b.length, 0))
             .isEqualTo(Hashing.murmur3_32().hashBytesToInt(b));
-        assertThat(MurmurHash3.hash32x86(b, 0, b.length, seed))
+        assertThat(org.apache.commons.codec.digest.MurmurHash3.hash32x86(b, 0, b.length, seed))
             .isEqualTo(Hashing.murmur3_32(seed).hashBytesToInt(b));
       }
     }
@@ -169,10 +173,35 @@ class CrossCheckTest {
       for (int i = 0; i < NUM_ITERATIONS; ++i) {
         int seed = random.nextInt();
         random.nextBytes(b);
-        assertThat(tupleToByteArray(MurmurHash3.hash128x64(b, 0, b.length, 0)))
+        assertThat(
+                tupleToByteArray(
+                    org.apache.commons.codec.digest.MurmurHash3.hash128x64(b, 0, b.length, 0)))
             .isEqualTo(Hashing.murmur3_128().hashBytesTo128Bits(b).toByteArray());
-        assertThat(tupleToByteArray(MurmurHash3.hash128x64(b, 0, b.length, seed)))
+        assertThat(
+                tupleToByteArray(
+                    org.apache.commons.codec.digest.MurmurHash3.hash128x64(b, 0, b.length, seed)))
             .isEqualTo(Hashing.murmur3_128(seed).hashBytesTo128Bits(b).toByteArray());
+      }
+    }
+  }
+
+  @Test
+  void testXXH32ApacheCommonsCodec() {
+    SplittableRandom random = new SplittableRandom(0x29CF83086B0FB18FL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        int seed = random.nextInt();
+        random.nextBytes(b);
+        org.apache.commons.codec.digest.XXHash32 xxHash32 =
+            new org.apache.commons.codec.digest.XXHash32();
+        org.apache.commons.codec.digest.XXHash32 xxHash32WithSeed =
+            new org.apache.commons.codec.digest.XXHash32(seed);
+        xxHash32.update(b, 0, b.length);
+        xxHash32WithSeed.update(b, 0, b.length);
+        assertThat((int) xxHash32.getValue()).isEqualTo(Hashing.xxh32(0).hashBytesToInt(b));
+        assertThat((int) xxHash32WithSeed.getValue())
+            .isEqualTo(Hashing.xxh32(seed).hashBytesToInt(b));
       }
     }
   }
@@ -313,6 +342,22 @@ class CrossCheckTest {
   }
 
   @Test
+  void testXXH64ZeroAllocationHashing() {
+    SplittableRandom random = new SplittableRandom(0x4b2e8a6f1c3d7e5aL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(LongHashFunction.xx().hashBytes(b))
+            .isEqualTo(Hashing.xxh64().hashBytesToLong(b));
+        assertThat(LongHashFunction.xx(seed).hashBytes(b))
+            .isEqualTo(Hashing.xxh64(seed).hashBytesToLong(b));
+      }
+    }
+  }
+
+  @Test
   void testXXH3_64ZeroAllocationHashing() {
     SplittableRandom random = new SplittableRandom(0x97c4eb4e39a52615L);
     for (int len = 0; len < MAX_LENGTH; ++len) {
@@ -345,6 +390,70 @@ class CrossCheckTest {
   }
 
   @Test
+  void testXXH32Crypto() {
+    SplittableRandom random = new SplittableRandom(0x8e2f5a1b7c3d9e4fL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        int seed = random.nextInt();
+        random.nextBytes(b);
+        assertThat(Integer.reverseBytes(byteArrayToInt(new Algorithm.XXHash32().hash(b))))
+            .isEqualTo(Hashing.xxh32().hashBytesToInt(b));
+        assertThat(Integer.reverseBytes(byteArrayToInt(new Algorithm.XXHash32(seed).hash(b))))
+            .isEqualTo(Hashing.xxh32(seed).hashBytesToInt(b));
+      }
+    }
+  }
+
+  @Test
+  void testXXH32Lz4Java() {
+    XXHash32 xxHash32 = XXHashFactory.safeInstance().hash32();
+    SplittableRandom random = new SplittableRandom(0x6c4d2e8f1a3b5e7dL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        int seed = random.nextInt();
+        random.nextBytes(b);
+        assertThat(xxHash32.hash(b, 0, b.length, 0)).isEqualTo(Hashing.xxh32().hashBytesToInt(b));
+        assertThat(xxHash32.hash(b, 0, b.length, seed))
+            .isEqualTo(Hashing.xxh32(seed).hashBytesToInt(b));
+      }
+    }
+  }
+
+  @Test
+  void testXXH64Crypto() {
+    SplittableRandom random = new SplittableRandom(0xa7b3c9d1e5f24680L);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(Long.reverseBytes(byteArrayToLong(new Algorithm.XXHash64().hash(b))))
+            .isEqualTo(Hashing.xxh64().hashBytesToLong(b));
+        assertThat(Long.reverseBytes(byteArrayToLong(new Algorithm.XXHash64(seed).hash(b))))
+            .isEqualTo(Hashing.xxh64(seed).hashBytesToLong(b));
+      }
+    }
+  }
+
+  @Test
+  void testXXH64Lz4Java() {
+    XXHash64 xxHash64 = XXHashFactory.safeInstance().hash64();
+    SplittableRandom random = new SplittableRandom(0x3b7e9d2c4a1f8e5bL);
+    for (int len = 0; len < MAX_LENGTH; ++len) {
+      byte[] b = new byte[len];
+      for (int i = 0; i < NUM_ITERATIONS; ++i) {
+        long seed = random.nextLong();
+        random.nextBytes(b);
+        assertThat(xxHash64.hash(b, 0, b.length, 0L)).isEqualTo(Hashing.xxh64().hashBytesToLong(b));
+        assertThat(xxHash64.hash(b, 0, b.length, seed))
+            .isEqualTo(Hashing.xxh64(seed).hashBytesToLong(b));
+      }
+    }
+  }
+
+  @Test
   void testXXH3_64Crypto() {
     SplittableRandom random = new SplittableRandom(0xd51892c0663e06e1L);
     for (int len = 0; len < MAX_LENGTH; ++len) {
@@ -358,14 +467,6 @@ class CrossCheckTest {
             .isEqualTo(Hashing.xxh3_64(seed).hashBytesToLong(b));
       }
     }
-  }
-
-  private static byte[] reverseByteArray(byte[] b) {
-    byte[] result = new byte[b.length];
-    for (int i = 0; i < b.length; ++i) {
-      result[i] = b[b.length - 1 - i];
-    }
-    return result;
   }
 
   @Test

@@ -55,12 +55,10 @@ class MetroHash64 implements AbstractHasher64 {
 
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0);
 
-  private final long seed;
   private final long vseed;
 
-  private MetroHash64(long seed) {
-    this.seed = seed;
-    this.vseed = (seed + K2) * K0;
+  private MetroHash64(long vseed) {
+    this.vseed = vseed;
   }
 
   static Hasher64 create() {
@@ -68,7 +66,7 @@ class MetroHash64 implements AbstractHasher64 {
   }
 
   static Hasher64 create(long seed) {
-    return new MetroHash64(seed);
+    return new MetroHash64((seed + K2) * K0);
   }
 
   @Override
@@ -76,37 +74,7 @@ class MetroHash64 implements AbstractHasher64 {
     return new HashStreamImpl();
   }
 
-  @Override
-  public long hashBytesToLong(byte[] input, int off, int len) {
-    long h = vseed;
-    int remaining = len;
-
-    if (remaining >= 32) {
-      long v0 = h;
-      long v1 = h;
-      long v2 = h;
-      long v3 = h;
-
-      while (remaining >= 32) {
-        v0 += getLong(input, off) * K0;
-        v0 = Long.rotateRight(v0, 29) + v2;
-        v1 += getLong(input, off + 8) * K1;
-        v1 = Long.rotateRight(v1, 29) + v3;
-        v2 += getLong(input, off + 16) * K2;
-        v2 = Long.rotateRight(v2, 29) + v0;
-        v3 += getLong(input, off + 24) * K3;
-        v3 = Long.rotateRight(v3, 29) + v1;
-        off += 32;
-        remaining -= 32;
-      }
-
-      v2 ^= Long.rotateRight(((v0 + v3) * K0) + v1, 37) * K1;
-      v3 ^= Long.rotateRight(((v1 + v2) * K1) + v0, 37) * K0;
-      v0 ^= Long.rotateRight(((v0 + v2) * K0) + v3, 37) * K1;
-      v1 ^= Long.rotateRight(((v1 + v3) * K1) + v2, 37) * K0;
-      h += v0 ^ v1;
-    }
-
+  private static long finalize(long h, byte[] input, int off, int remaining) {
     if (remaining >= 16) {
       long v0 = h + (getLong(input, off) * K2);
       v0 = Long.rotateRight(v0, 29) * K3;
@@ -152,37 +120,8 @@ class MetroHash64 implements AbstractHasher64 {
     return h;
   }
 
-  @Override
-  public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
-    long h = vseed;
-    long remaining = len;
-
-    if (remaining >= 32) {
-      long v0 = h;
-      long v1 = h;
-      long v2 = h;
-      long v3 = h;
-
-      while (remaining >= 32) {
-        v0 += access.getLong(input, off) * K0;
-        v0 = Long.rotateRight(v0, 29) + v2;
-        v1 += access.getLong(input, off + 8) * K1;
-        v1 = Long.rotateRight(v1, 29) + v3;
-        v2 += access.getLong(input, off + 16) * K2;
-        v2 = Long.rotateRight(v2, 29) + v0;
-        v3 += access.getLong(input, off + 24) * K3;
-        v3 = Long.rotateRight(v3, 29) + v1;
-        off += 32;
-        remaining -= 32;
-      }
-
-      v2 ^= Long.rotateRight(((v0 + v3) * K0) + v1, 37) * K1;
-      v3 ^= Long.rotateRight(((v1 + v2) * K1) + v0, 37) * K0;
-      v0 ^= Long.rotateRight(((v0 + v2) * K0) + v3, 37) * K1;
-      v1 ^= Long.rotateRight(((v1 + v3) * K1) + v2, 37) * K0;
-      h += v0 ^ v1;
-    }
-
+  private static <T> long finalize(
+      long h, T input, long off, long remaining, ByteAccess<T> access) {
     if (remaining >= 16) {
       long v0 = h + (access.getLong(input, off) * K2);
       v0 = Long.rotateRight(v0, 29) * K3;
@@ -232,6 +171,74 @@ class MetroHash64 implements AbstractHasher64 {
   }
 
   @Override
+  public long hashBytesToLong(byte[] input, int off, int len) {
+    long h = vseed;
+    int remaining = len;
+
+    if (remaining >= 32) {
+      long v0 = h;
+      long v1 = h;
+      long v2 = h;
+      long v3 = h;
+
+      do {
+        v0 += getLong(input, off) * K0;
+        v0 = Long.rotateRight(v0, 29) + v2;
+        v1 += getLong(input, off + 8) * K1;
+        v1 = Long.rotateRight(v1, 29) + v3;
+        v2 += getLong(input, off + 16) * K2;
+        v2 = Long.rotateRight(v2, 29) + v0;
+        v3 += getLong(input, off + 24) * K3;
+        v3 = Long.rotateRight(v3, 29) + v1;
+        off += 32;
+        remaining -= 32;
+      } while (remaining >= 32);
+
+      v2 ^= Long.rotateRight(((v0 + v3) * K0) + v1, 37) * K1;
+      v3 ^= Long.rotateRight(((v1 + v2) * K1) + v0, 37) * K0;
+      v0 ^= Long.rotateRight(((v0 + v2) * K0) + v3, 37) * K1;
+      v1 ^= Long.rotateRight(((v1 + v3) * K1) + v2, 37) * K0;
+      h += v0 ^ v1;
+    }
+
+    return finalize(h, input, off, remaining);
+  }
+
+  @Override
+  public <T> long hashBytesToLong(T input, long off, long len, ByteAccess<T> access) {
+    long h = vseed;
+    long remaining = len;
+
+    if (remaining >= 32) {
+      long v0 = h;
+      long v1 = h;
+      long v2 = h;
+      long v3 = h;
+
+      do {
+        v0 += access.getLong(input, off) * K0;
+        v0 = Long.rotateRight(v0, 29) + v2;
+        v1 += access.getLong(input, off + 8) * K1;
+        v1 = Long.rotateRight(v1, 29) + v3;
+        v2 += access.getLong(input, off + 16) * K2;
+        v2 = Long.rotateRight(v2, 29) + v0;
+        v3 += access.getLong(input, off + 24) * K3;
+        v3 = Long.rotateRight(v3, 29) + v1;
+        off += 32;
+        remaining -= 32;
+      } while (remaining >= 32);
+
+      v2 ^= Long.rotateRight(((v0 + v3) * K0) + v1, 37) * K1;
+      v3 ^= Long.rotateRight(((v1 + v2) * K1) + v0, 37) * K0;
+      v0 ^= Long.rotateRight(((v0 + v2) * K0) + v3, 37) * K1;
+      v1 ^= Long.rotateRight(((v1 + v3) * K1) + v2, 37) * K0;
+      h += v0 ^ v1;
+    }
+
+    return finalize(h, input, off, remaining, access);
+  }
+
+  @Override
   public long hashCharsToLong(CharSequence input) {
     long h = vseed;
     int len = input.length();
@@ -244,7 +251,7 @@ class MetroHash64 implements AbstractHasher64 {
       long v2 = h;
       long v3 = h;
 
-      while (remaining >= 16) {
+      do {
         v0 += getLong(input, off) * K0;
         v0 = Long.rotateRight(v0, 29) + v2;
         v1 += getLong(input, off + 4) * K1;
@@ -255,7 +262,7 @@ class MetroHash64 implements AbstractHasher64 {
         v3 = Long.rotateRight(v3, 29) + v1;
         off += 16;
         remaining -= 16;
-      }
+      } while (remaining >= 16);
 
       v2 ^= Long.rotateRight(((v0 + v3) * K0) + v1, 37) * K1;
       v3 ^= Long.rotateRight(((v1 + v2) * K1) + v0, 37) * K0;
@@ -350,13 +357,10 @@ class MetroHash64 implements AbstractHasher64 {
 
       if (bulkProcessed) {
         setLong(state, off, v0);
-        off += 8;
-        setLong(state, off, v1);
-        off += 8;
-        setLong(state, off, v2);
-        off += 8;
-        setLong(state, off, v3);
-        off += 8;
+        setLong(state, off + 8, v1);
+        setLong(state, off + 16, v2);
+        setLong(state, off + 24, v3);
+        off += 32;
       }
 
       System.arraycopy(buffer, 0, state, off, offset);
@@ -380,13 +384,10 @@ class MetroHash64 implements AbstractHasher64 {
 
       if (bulkProcessed) {
         v0 = getLong(state, off);
-        off += 8;
-        v1 = getLong(state, off);
-        off += 8;
-        v2 = getLong(state, off);
-        off += 8;
-        v3 = getLong(state, off);
-        off += 8;
+        v1 = getLong(state, off + 8);
+        v2 = getLong(state, off + 16);
+        v3 = getLong(state, off + 24);
+        off += 32;
       } else {
         v0 = vseed;
         v1 = vseed;
@@ -589,52 +590,7 @@ class MetroHash64 implements AbstractHasher64 {
         h += sv0 ^ sv1;
       }
 
-      int off = 0;
-      int remaining = offset;
-
-      if (remaining >= 16) {
-        sv1 = h + (getLong(buffer, off) * K2);
-        sv1 = Long.rotateRight(sv1, 29) * K3;
-        sv2 = h + (getLong(buffer, off + 8) * K2);
-        sv2 = Long.rotateRight(sv2, 29) * K3;
-        sv1 ^= Long.rotateRight(sv1 * K0, 21) + sv2;
-        sv2 ^= Long.rotateRight(sv2 * K3, 21) + sv1;
-        h += sv2;
-        off += 16;
-        remaining -= 16;
-      }
-
-      if (remaining >= 8) {
-        h += getLong(buffer, off) * K3;
-        h ^= Long.rotateRight(h, 55) * K1;
-        off += 8;
-        remaining -= 8;
-      }
-
-      if (remaining >= 4) {
-        h += (getInt(buffer, off) & 0xFFFFFFFFL) * K3;
-        h ^= Long.rotateRight(h, 26) * K1;
-        off += 4;
-        remaining -= 4;
-      }
-
-      if (remaining >= 2) {
-        h += (getShort(buffer, off) & 0xFFFFL) * K3;
-        h ^= Long.rotateRight(h, 48) * K1;
-        off += 2;
-        remaining -= 2;
-      }
-
-      if (remaining >= 1) {
-        h += (buffer[off] & 0xFFL) * K3;
-        h ^= Long.rotateRight(h, 37) * K1;
-      }
-
-      h ^= Long.rotateRight(h, 28);
-      h *= K0;
-      h ^= Long.rotateRight(h, 29);
-
-      return h;
+      return MetroHash64.finalize(h, buffer, 0, offset);
     }
   }
 
@@ -643,12 +599,12 @@ class MetroHash64 implements AbstractHasher64 {
     if (this == obj) return true;
     if (!(obj instanceof MetroHash64)) return false;
     MetroHash64 that = (MetroHash64) obj;
-    return seed == that.seed;
+    return vseed == that.vseed;
   }
 
   @Override
   public int hashCode() {
-    return Long.hashCode(seed);
+    return Long.hashCode(vseed);
   }
 
   private static long finalMix(long h) {
@@ -668,66 +624,53 @@ class MetroHash64 implements AbstractHasher64 {
 
   @Override
   public long hashIntIntIntToLong(int v1, int v2, int v3) {
-    long h = vseed;
-    long w0 = (v1 & 0xFFFFFFFFL) | ((long) v2 << 32);
-    h += w0 * K3;
-    h ^= Long.rotateRight(h, 55) * K1;
-    h += (v3 & 0xFFFFFFFFL) * K3;
-    h ^= Long.rotateRight(h, 26) * K1;
-    return finalMix(h);
+    return hashLongIntToLong((v1 & 0xFFFFFFFFL) | ((long) v2 << 32), v3);
   }
 
   @Override
   public long hashIntLongToLong(int v1, long v2) {
-    long h = vseed;
     long w0 = (v1 & 0xFFFFFFFFL) | (v2 << 32);
-    h += w0 * K3;
+    long h = vseed + w0 * K3;
     h ^= Long.rotateRight(h, 55) * K1;
-    h += (v2 >>> 32 & 0xFFFFFFFFL) * K3;
+    h += ((v2 >>> 32) & 0xFFFFFFFFL) * K3;
     h ^= Long.rotateRight(h, 26) * K1;
     return finalMix(h);
   }
 
   @Override
   public long hashLongToLong(long v) {
-    long h = vseed;
-    h += v * K3;
+    long h = vseed + v * K3;
     h ^= Long.rotateRight(h, 55) * K1;
     return finalMix(h);
   }
 
   @Override
   public long hashLongLongToLong(long v1, long v2) {
-    long h = vseed;
-    long a = h + (v1 * K2);
+    long a = vseed + (v1 * K2);
+    long b = vseed + (v2 * K2);
     a = Long.rotateRight(a, 29) * K3;
-    long b = h + (v2 * K2);
     b = Long.rotateRight(b, 29) * K3;
     a ^= Long.rotateRight(a * K0, 21) + b;
     b ^= Long.rotateRight(b * K3, 21) + a;
-    h += b;
-    return finalMix(h);
+    return finalMix(vseed + b);
   }
 
   @Override
   public long hashLongLongLongToLong(long v1, long v2, long v3) {
-    long h = vseed;
-    long a = h + (v1 * K2);
+    long a = vseed + (v1 * K2);
+    long b = vseed + (v2 * K2);
     a = Long.rotateRight(a, 29) * K3;
-    long b = h + (v2 * K2);
     b = Long.rotateRight(b, 29) * K3;
     a ^= Long.rotateRight(a * K0, 21) + b;
     b ^= Long.rotateRight(b * K3, 21) + a;
-    h += b;
-    h += v3 * K3;
+    long h = vseed + b + v3 * K3;
     h ^= Long.rotateRight(h, 55) * K1;
     return finalMix(h);
   }
 
   @Override
   public long hashLongIntToLong(long v1, int v2) {
-    long h = vseed;
-    h += v1 * K3;
+    long h = vseed + v1 * K3;
     h ^= Long.rotateRight(h, 55) * K1;
     h += (v2 & 0xFFFFFFFFL) * K3;
     h ^= Long.rotateRight(h, 26) * K1;

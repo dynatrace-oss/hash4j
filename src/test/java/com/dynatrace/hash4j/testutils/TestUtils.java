@@ -61,6 +61,13 @@ public final class TestUtils {
     return b;
   }
 
+  public static int byteArrayToInt(byte[] b) {
+    if (b.length != 4) {
+      throw new IllegalArgumentException();
+    }
+    return ((b[3] & 0xFF) << 24) | ((b[2] & 0xFF) << 16) | ((b[1] & 0xFF) << 8) | (b[0] & 0xFF);
+  }
+
   public static long byteArrayToLong(byte[] b) {
     if (b.length != 8) {
       throw new IllegalArgumentException();
@@ -141,6 +148,14 @@ public final class TestUtils {
       } else {
         throw new IllegalArgumentException();
       }
+    }
+    return result;
+  }
+
+  public static byte[] reverseByteArray(byte[] b) {
+    byte[] result = new byte[b.length];
+    for (int i = 0; i < b.length; ++i) {
+      result[i] = b[b.length - 1 - i];
     }
     return result;
   }
