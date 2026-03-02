@@ -26,7 +26,7 @@ hash4j currently implements the following hash algorithms:
 * [Komihash](https://github.com/avaneev/komihash): version [4.3](https://github.com/avaneev/komihash/releases/tag/4.3) (compatible with [4.7](https://github.com/avaneev/komihash/releases/tag/4.7)) and version [5.0](https://github.com/avaneev/komihash/releases/tag/5.0) (compatible with [5.10](https://github.com/avaneev/komihash/releases/tag/5.10) and  [5.28](https://github.com/avaneev/komihash/releases/tag/5.28))
 * [FarmHash](https://github.com/google/farmhash): farmhashna and farmhashuo
 * [PolymurHash 2.0](https://github.com/orlp/polymur-hash)
-* [XXH3](https://github.com/Cyan4973/xxHash): 64-bit and 128-bit
+* [XXHash](https://github.com/Cyan4973/xxHash): XXH32, XXH64, XXH3_64bits, XXH3_128bits
 * [Rapidhash v3](https://github.com/Nicoshev/rapidhash/tree/rapidhash_v3)
 * [ChibiHash v2](https://github.com/N-R-K/ChibiHash/tree/v2)
 * [MetroHash](https://github.com/jandrewrogers/MetroHash): 64-bit and 128-bit

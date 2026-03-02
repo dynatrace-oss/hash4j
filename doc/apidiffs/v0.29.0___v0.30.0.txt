@@ -5,6 +5,10 @@ Comparing source compatibility of hash4j-0.30.0.jar against hash4j-0.29.0.jar
 	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher128 metroHash128(long)
 	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 metroHash64()
 	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 metroHash64(long)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher32 xxh32()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher32 xxh32(int)
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 xxh64()
+	+++  NEW METHOD: PUBLIC(+) STATIC(+) com.dynatrace.hash4j.hashing.Hasher64 xxh64(long)
 **** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.random.PseudoRandomGenerator  (not serializable)
 	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
 	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) long uniformLong(long)
