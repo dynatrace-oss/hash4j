@@ -123,6 +123,9 @@ final class XXH32 implements AbstractHasher32 {
       case 1:
         hash += getInt(buf, off) * PRIME32_3;
         hash = Integer.rotateLeft(hash, 17) * PRIME32_4;
+      // fall through
+      default:
+        // do nothing
     }
     switch (len & 3) {
       case 3:
@@ -136,7 +139,9 @@ final class XXH32 implements AbstractHasher32 {
       case 1:
         hash += (buf[end - 1] & 0xFF) * PRIME32_5;
         hash = Integer.rotateLeft(hash, 11) * PRIME32_1;
-        // fall through
+      // fall through
+      default:
+        // do nothing
     }
     return avalanche(hash);
   }
@@ -158,6 +163,9 @@ final class XXH32 implements AbstractHasher32 {
       case 1:
         hash += access.getInt(input, off) * PRIME32_3;
         hash = Integer.rotateLeft(hash, 17) * PRIME32_4;
+      // fall through
+      default:
+        // do nothing
     }
     switch ((int) len & 3) {
       case 3:
@@ -171,7 +179,9 @@ final class XXH32 implements AbstractHasher32 {
       case 1:
         hash += access.getByteAsUnsignedInt(input, end - 1) * PRIME32_5;
         hash = Integer.rotateLeft(hash, 11) * PRIME32_1;
-        // fall through
+      // fall through
+      default:
+        // do nothing
     }
     return avalanche(hash);
   }

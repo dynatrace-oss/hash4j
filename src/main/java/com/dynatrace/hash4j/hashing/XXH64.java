@@ -133,6 +133,9 @@ final class XXH64 implements AbstractHasher64 {
         hash ^= round(0, getLong(buf, off));
         hash = Long.rotateLeft(hash, 27) * PRIME64_1 + PRIME64_4;
         off += 8;
+      // fall through
+      default:
+        // do nothing
     }
     if ((len & 4) != 0) {
       hash ^= (getInt(buf, off) & 0xFFFFFFFFL) * PRIME64_1;
@@ -150,6 +153,9 @@ final class XXH64 implements AbstractHasher64 {
       case 1:
         hash ^= (buf[end - 1] & 0xFFL) * PRIME64_5;
         hash = Long.rotateLeft(hash, 11) * PRIME64_1;
+      // fall through
+      default:
+        // do nothing
     }
     return avalanche(hash);
   }
@@ -172,6 +178,9 @@ final class XXH64 implements AbstractHasher64 {
         hash ^= round(0, access.getLong(input, off));
         hash = Long.rotateLeft(hash, 27) * PRIME64_1 + PRIME64_4;
         off += 8;
+      // fall through
+      default:
+        // do nothing
     }
     if ((len & 4) != 0) {
       hash ^= access.getIntAsUnsignedLong(input, off) * PRIME64_1;
@@ -189,6 +198,9 @@ final class XXH64 implements AbstractHasher64 {
       case 1:
         hash ^= access.getByteAsUnsignedInt(input, end - 1) * PRIME64_5;
         hash = Long.rotateLeft(hash, 11) * PRIME64_1;
+      // fall through
+      default:
+        // do nothing
     }
     return avalanche(hash);
   }
