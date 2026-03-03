@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rapidhash_3_checksum_config.hpp"
+#include "rapidhash_bbaf1a70_checksum_config.hpp"
 #include "rapidhash/rapidhash.h"
 #include <cstring>
 
-void Rapidhash3ChecksumConfig::calculateHash(const uint8_t *seedBytes,
+void Rapidhash_bbaf1a70_ChecksumConfig::calculateHash(const uint8_t *seedBytes,
 		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
 
 	uint64_t seed;

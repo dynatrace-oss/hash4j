@@ -38,7 +38,7 @@ class Rapidhash3Test extends AbstractHasher64Test {
 
   @Override
   protected String getChecksumResourceFileName() {
-    return "Rapidhash 3.txt";
+    return "Rapidhash revision bbaf1a70.txt";
   }
 
   @Override

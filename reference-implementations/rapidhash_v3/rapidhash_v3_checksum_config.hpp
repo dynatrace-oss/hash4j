@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RAPIDHASH_3_CHECKSUM_CONFIG_HPP
-#define RAPIDHASH_3_CHECKSUM_CONFIG_HPP
+#ifndef RAPIDHASH_V3_CHECKSUM_CONFIG_HPP
+#define RAPIDHASH_V3_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class Rapidhash3ChecksumConfig {
+class Rapidhash_v3_ChecksumConfig {
 
 public:
 
@@ -32,7 +32,7 @@ public:
 	}
 
 	std::string getName() const {
-		return "Rapidhash 3";
+		return "Rapidhash v3";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif // RAPIDHASH_3_CHECKSUM_CONFIG_HPP
+#endif // RAPIDHASH_V3_CHECKSUM_CONFIG_HPP
