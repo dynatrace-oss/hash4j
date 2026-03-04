@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RAPIDHASH_BBAF1A70_CHECKSUM_CONFIG_HPP
-#define RAPIDHASH_BBAF1A70_CHECKSUM_CONFIG_HPP
+#ifndef RAPIDHASH_RAPIDHASH_V3_LEGACY_CHECKSUM_CONFIG_HPP
+#define RAPIDHASH_RAPIDHASH_V3_LEGACY_CHECKSUM_CONFIG_HPP
 
 #include <string>
 #include <cstdint>
 
-class Rapidhash_bbaf1a70_ChecksumConfig {
+class Rapidhash_v3_legacy_ChecksumConfig {
 
 public:
 
@@ -32,7 +32,7 @@ public:
 	}
 
 	std::string getName() const {
-		return "Rapidhash revision bbaf1a70";
+		return "Rapidhash v3 legacy";
 	}
 
 	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
@@ -40,4 +40,4 @@ public:
 
 };
 
-#endif // RAPIDHASH_BBAF1A70_CHECKSUM_CONFIG_HPP
+#endif // RAPIDHASH_RAPIDHASH_V3_LEGACY_CHECKSUM_CONFIG_HPP

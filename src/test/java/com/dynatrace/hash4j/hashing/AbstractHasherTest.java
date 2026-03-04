@@ -1384,17 +1384,27 @@ abstract class AbstractHasherTest {
       HashStream hashStream, Hasher hasher, byte[] data, int off, int len) {
     Supplier<String> description = () -> "input length = " + len + " bytes";
     if (hasher instanceof Hasher128) {
-      assertThat(((HashStream128) hashStream).get())
+      HashValue128 expected = ((Hasher128) hasher).hashBytesTo128Bits(data, off, len);
+      assertThat(((HashStream128) hashStream).get()).describedAs(description).isEqualTo(expected);
+      assertThat(((HashStream128) hashStream).getAsLong())
           .describedAs(description)
-          .isEqualTo(((Hasher128) hasher).hashBytesTo128Bits(data, off, len));
+          .isEqualTo(expected.getAsLong());
+      assertThat(((HashStream128) hashStream).getAsInt())
+          .describedAs(description)
+          .isEqualTo(expected.getAsInt());
     } else if (hasher instanceof Hasher64) {
+      long expected = ((Hasher64) hasher).hashBytesToLong(data, off, len);
       assertThat(((HashStream64) hashStream).getAsLong())
           .describedAs(description)
-          .isEqualTo(((Hasher64) hasher).hashBytesToLong(data, off, len));
+          .isEqualTo(expected);
+      assertThat(((HashStream64) hashStream).getAsInt())
+          .describedAs(description)
+          .isEqualTo((int) expected);
     } else if (hasher instanceof Hasher32) {
+      int expected = ((Hasher32) hasher).hashBytesToInt(data, off, len);
       assertThat(((HashStream32) hashStream).getAsInt())
           .describedAs(description)
-          .isEqualTo(((Hasher32) hasher).hashBytesToInt(data, off, len));
+          .isEqualTo(expected);
     } else {
       fail();
     }
@@ -1756,6 +1766,23 @@ abstract class AbstractHasherTest {
     }
   }
 
+  private static boolean isHashEqual(HashStream hs1, HashStream hs2) {
+    assertThat(hs1.getClass()).isEqualTo(hs2.getClass());
+    boolean isHashEqual = true;
+    if (hs1 instanceof HashStream32) {
+      isHashEqual =
+          isHashEqual && ((HashStream32) hs1).getAsInt() == ((HashStream32) hs2).getAsInt();
+    }
+    if (hs1 instanceof HashStream64) {
+      isHashEqual =
+          isHashEqual && ((HashStream64) hs1).getAsLong() == ((HashStream64) hs2).getAsLong();
+    }
+    if (hs1 instanceof HashStream128) {
+      isHashEqual = isHashEqual && ((HashStream128) hs1).get().equals(((HashStream128) hs2).get());
+    }
+    return isHashEqual;
+  }
+
   @ParameterizedTest
   @MethodSource("getHashers")
   void testRandomStateModifications(Hasher hasher) {
@@ -1770,13 +1797,15 @@ abstract class AbstractHasherTest {
       byte[] modifiedState = Arrays.copyOf(state, state.length);
       assertThat(state[0]).isEqualTo(getLatestStreamSerialVersion());
       for (int pos = 1; pos < state.length; ++pos) {
-        modifiedState[pos] = (byte) (modifiedState[pos] ^ 0xFF);
+        modifiedState[pos] = (byte) (modifiedState[pos] ^ 0xFF); // modify byte at position pos
         try {
           HashStream hs = hasher.hashStreamFromState(state);
           HashStream hsModified = hasher.hashStreamFromState(modifiedState);
+
+          // verify that sequence of hash values is different
           int k;
           for (k = 0; k < maxNumExtraBytes; ++k) {
-            if (hs.hashCode() != hsModified.hashCode()) break;
+            if (!isHashEqual(hs, hsModified)) break;
             byte b = (byte) random.nextInt();
             hs.putByte(b);
             hsModified.putByte(b);
@@ -1792,7 +1821,7 @@ abstract class AbstractHasherTest {
           fail("len = " + len + ", pos = " + pos, e);
         }
 
-        modifiedState[pos] = (byte) (modifiedState[pos] ^ 0xFF);
+        modifiedState[pos] = (byte) (modifiedState[pos] ^ 0xFF); // revert modification
       }
     }
   }

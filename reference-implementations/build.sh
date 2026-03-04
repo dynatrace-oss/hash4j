@@ -7,7 +7,7 @@ calculate_checksums.cpp \
 polymur-hash_2_0/polymur-hash_2_0_checksum_config.cpp \
 wyhash_final_3/wyhash_final_3_checksum_config.cpp \
 wyhash_final_4/wyhash_final_4_checksum_config.cpp \
-rapidhash_bbaf1a70/rapidhash_bbaf1a70_checksum_config.cpp \
+rapidhash_v3_legacy/rapidhash_v3_legacy_checksum_config.cpp \
 rapidhash_v3/rapidhash_v3_checksum_config.cpp \
 komihash_4_3/komihash_4_3_checksum_config.cpp \
 komihash_4_7/komihash_4_7_checksum_config.cpp \

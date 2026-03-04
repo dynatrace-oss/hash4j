@@ -31,8 +31,8 @@
 [submodule "reference-implementations/komihash_5_28/komihash"]
 	path = reference-implementations/komihash_5_28/komihash
 	url = https://github.com/avaneev/komihash.git
-[submodule "reference-implementations/rapidhash_bbaf1a70/rapidhash"]
-	path = reference-implementations/rapidhash_bbaf1a70/rapidhash
+[submodule "reference-implementations/rapidhash_v3_legacy/rapidhash"]
+	path = reference-implementations/rapidhash_v3_legacy/rapidhash
 	url = https://github.com/Nicoshev/rapidhash.git
 [submodule "reference-implementations/chibihash_2/ChibiHash"]
 	path = reference-implementations/chibihash_2/ChibiHash

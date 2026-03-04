@@ -49,15 +49,17 @@ final class HashTestUtils {
     assertThat(hashStreamActual.getHashBitSize()).isEqualTo(hashStreamExpected.getHashBitSize());
     assertThat(hashStreamActual).isEqualTo(hashStreamExpected);
     int hashBitSize = hashStreamExpected.getHashBitSize();
-    if (hashBitSize == 128) {
+    if (hashBitSize >= 128) {
       assertThat(((HashStream128) hashStreamActual).get())
           .describedAs(descriptionSupplier)
           .isEqualTo(((HashStream128) hashStreamExpected).get());
-    } else if (hashBitSize == 64) {
+    }
+    if (hashBitSize >= 64) {
       assertThat(((HashStream64) hashStreamActual).getAsLong())
           .describedAs(descriptionSupplier)
           .isEqualTo(((HashStream64) hashStreamExpected).getAsLong());
-    } else if (hashBitSize == 32) {
+    }
+    if (hashBitSize >= 32) {
       assertThat(((HashStream32) hashStreamActual).getAsInt())
           .describedAs(descriptionSupplier)
           .isEqualTo(((HashStream32) hashStreamExpected).getAsInt());
