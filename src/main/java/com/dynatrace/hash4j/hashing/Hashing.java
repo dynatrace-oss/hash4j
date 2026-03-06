@@ -109,8 +109,6 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/e107760596dc5e883e26a58f81a5fd653061bd5a/komihash.h">komihash.h</a>
    * on an Intel x86 architecture. Furthermore, it is compatible with Komihash versions 4.5 and 4.7.
    *
-   * <p>This implementation is also compatible with Komihash versions 4.5 and 4.7.
-   *
    * <p>This function is superseded by {@link #komihash5_0} and should only be used if compatibility
    * is needed.
    *
@@ -130,7 +128,7 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/3f5ff057be1f4738e21b2d225c9d34cc089524bd/komihash.h">komihash.h</a>
    * on an Intel x86 architecture.
    *
-   * <p>This implementation is also compatible with Komihash versions 5.1 and 5.7
+   * <p>This implementation is also compatible with Komihash versions 5.10 and 5.28.
    *
    * @return a hasher instance
    */
@@ -147,7 +145,7 @@ public final class Hashing {
    * href="https://github.com/avaneev/komihash/blob/3f5ff057be1f4738e21b2d225c9d34cc089524bd/komihash.h">komihash.h</a>
    * on an Intel x86 architecture.
    *
-   * <p>This implementation is also compatible with Komihash versions 5.1 and 5.7
+   * <p>This implementation is also compatible with Komihash versions 5.10 and 5.28.
    *
    * @param seed a 64-bit seed
    * @return a hasher instance
@@ -184,7 +182,7 @@ public final class Hashing {
    *
    * @param tweak a 64-bit tweak
    * @param kSeed a 64-bit kSeed
-   * @param sSeed a 64-bit kSeed
+   * @param sSeed a 64-bit sSeed
    * @return a hasher instance
    */
   public static Hasher64 polymurHash2_0(long tweak, long kSeed, long sSeed) {
@@ -503,48 +501,102 @@ public final class Hashing {
   }
 
   /**
-   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 algorithm using a seed value of
-   * zero and the default secret.
+   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 (latest v3 release) algorithm
+   * using a seed value of zero and the default secret.
    *
-   * <p>Important: This algorithm is not necessarily compatible with other Rapidhash v3
-   * implementations, because there was a "re-release" of Rapidhash v3 (see <a
-   * href="https://github.com/dynatrace-oss/hash4j/issues/555">here</a> for more details), which
-   * redefined the computation of hash values for input byte lengths 5, 6, and 7. Therefore, using
-   * this method is not recommended. This method will likely be renamed or removed in a future
-   * release.
+   * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
+   * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
+   * the latest v3 release and is not compatible with the first v3 release for input lengths of 5,
+   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths. If
+   * you need compatibility with the first v3 release (because you also expect input lengths smaller
+   * than 8 bytes) please see {@link #rapidhashV3Legacy()}. This function is not compatible with
+   * {@code Hashing.rapidhash3()} that was available in Hash4j versions prior to v0.30.0.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code rapidhash}
-   * defined in <a
+   * revision bc4b4baa defined in <a
+   * href="https://github.com/Nicoshev/rapidhash/blob/bc4b4baa48a15ff52ff4725e1ccdcda62815221c/rapidhash.h#L506">rapidhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @return a hasher instance
+   */
+  public static Hasher64 rapidhashV3() {
+    return RapidhashV3.create();
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 (latest v3 release) algorithm
+   * using the given seed value and the default secret.
+   *
+   * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
+   * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
+   * the latest v3 release and is not compatible with the first v3 release for input lengths of 5,
+   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths. If
+   * you need compatibility with the first v3 release (because you also expect input lengths smaller
+   * than 8 bytes) please see {@link #rapidhashV3Legacy(long)}. This function is not compatible with
+   * {@code Hashing.rapidhash3(long)} that was available in Hash4j versions prior to v0.30.0.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code
+   * rapidhash_withSeed} revision bc4b4baa defined in <a
+   * href="https://github.com/Nicoshev/rapidhash/blob/bc4b4baa48a15ff52ff4725e1ccdcda62815221c/rapidhash.h#L492">rapidhash.h</a>
+   * on an Intel x86 architecture.
+   *
+   * @param seed a 64-bit seed
+   * @return a hasher instance
+   */
+  public static Hasher64 rapidhashV3(long seed) {
+    return RapidhashV3.create(seed);
+  }
+
+  /**
+   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 (first v3 release) algorithm
+   * using a seed value of zero and the default secret.
+   *
+   * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
+   * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
+   * the first v3 release and is not compatible with the latest v3 release for input lengths of 5,
+   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths.
+   * This method is not recommended for use and will likely be removed in a future release. If you
+   * cannot switch to {@link #rapidhashV3()}, because you expect input lengths smaller than 8 bytes,
+   * please consider moving the corresponding code to your own code base. This method corresponds to
+   * {@code Hashing.rapidhash3()} that was available in Hash4j versions prior to v0.30.0.
+   *
+   * <p>This implementation is compatible with the C++ reference implementation of {@code rapidhash}
+   * revision bbaf1a70 defined in <a
    * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L506">rapidhash.h</a>
    * on an Intel x86 architecture.
    *
    * @return a hasher instance
    */
-  public static Hasher64 rapidhash3() {
-    return Rapidhash3.create();
+  @Deprecated
+  public static Hasher64 rapidhashV3Legacy() {
+    return RapidhashV3Legacy.create();
   }
 
   /**
-   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 algorithm using the given seed
-   * value and the default secret.
+   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 (first v3 release) algorithm
+   * using the given seed value and the default secret.
    *
-   * <p>Important: This algorithm is not necessarily compatible with other Rapidhash v3
-   * implementations, because there was a "re-release" of Rapidhash v3 (see <a
-   * href="https://github.com/dynatrace-oss/hash4j/issues/555">here</a> for more details), which
-   * redefined the computation of hash values for input byte lengths 5, 6, and 7. Therefore, using
-   * this method is not recommended. This method will likely be renamed or removed in a future
-   * release.
+   * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
+   * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
+   * the first v3 release and is not compatible with the latest v3 release for input lengths of 5,
+   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths.
+   * This method is not recommended for use and will likely be removed in a future release. If you
+   * cannot switch to {@link #rapidhashV3(long)}, because you expect input lengths smaller than 8
+   * bytes, please consider moving the corresponding code to your own code base. This method
+   * corresponds to {@code Hashing.rapidhash3(long)} that was available in Hash4j versions prior to
+   * v0.30.0.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
-   * rapidhash_withSeed} defined in <a
+   * rapidhash_withSeed} revision bbaf1a70 defined in <a
    * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L492">rapidhash.h</a>
    * on an Intel x86 architecture.
    *
    * @param seed a 64-bit seed
    * @return a hasher instance
    */
-  public static Hasher64 rapidhash3(long seed) {
-    return Rapidhash3.create(seed);
+  @Deprecated
+  public static Hasher64 rapidhashV3Legacy(long seed) {
+    return RapidhashV3Legacy.create(seed);
   }
 
   /**

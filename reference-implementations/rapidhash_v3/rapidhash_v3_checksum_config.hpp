@@ -13,19 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "rapidhash_3_checksum_config.hpp"
-#include "rapidhash/rapidhash.h"
-#include <cstring>
+#ifndef RAPIDHASH_V3_CHECKSUM_CONFIG_HPP
+#define RAPIDHASH_V3_CHECKSUM_CONFIG_HPP
 
-void Rapidhash3ChecksumConfig::calculateHash(const uint8_t *seedBytes,
-		uint8_t *hashBytes, const uint8_t *dataBytes, uint64_t size) const {
+#include <string>
+#include <cstdint>
 
-	uint64_t seed;
-	memcpy(&seed, seedBytes, 8);
+class Rapidhash_v3_ChecksumConfig {
 
-	uint64_t hash0 = rapidhash(dataBytes, size);
-	uint64_t hash1 = rapidhash_withSeed(dataBytes, size, seed);
+public:
 
-	memcpy(hashBytes, &hash0, 8);
-	memcpy(hashBytes + 8, &hash1, 8);
-}
+	uint64_t getSeedSize() const {
+		return 8;
+	}
+
+	uint64_t getHashSize() const {
+		return 16;
+	}
+
+	std::string getName() const {
+		return "Rapidhash v3";
+	}
+
+	void calculateHash(const uint8_t *seedBytes, uint8_t *hashBytes,
+			const uint8_t *dataBytes, uint64_t size) const;
+
+};
+
+#endif // RAPIDHASH_V3_CHECKSUM_CONFIG_HPP

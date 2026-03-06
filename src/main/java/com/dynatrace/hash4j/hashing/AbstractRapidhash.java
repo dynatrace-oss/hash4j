@@ -52,7 +52,7 @@ import static com.dynatrace.hash4j.internal.ByteArrayUtil.setShort;
 import static com.dynatrace.hash4j.internal.Preconditions.checkArgument;
 import static com.dynatrace.hash4j.internal.UnsignedMultiplyUtil.unsignedMultiplyHigh;
 
-final class Rapidhash3 implements AbstractHasher64 {
+abstract class AbstractRapidhash implements AbstractHasher64 {
 
   private static final long SEC0 = 0x2d358dccaa6c78a5L;
   private static final long SEC1 = 0x8bb84b93962eacc9L;
@@ -63,21 +63,11 @@ final class Rapidhash3 implements AbstractHasher64 {
   private static final long SEC6 = 0x90ed1765281c388cL;
   private static final long SEC7 = 0xaaaaaaaaaaaaaaaaL;
 
-  private final long seed;
+  protected final long seed;
 
-  private Rapidhash3(long seed) {
+  protected AbstractRapidhash(long seed) {
     this.seed = seed ^ mix(seed ^ SEC2, SEC1);
   }
-
-  static Hasher64 create() {
-    return DEFAULT_HASHER_INSTANCE;
-  }
-
-  static Hasher64 create(long seed) {
-    return new Rapidhash3(seed);
-  }
-
-  private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);
 
   @Override
   public HashStream64 hashStream() {
@@ -94,8 +84,13 @@ final class Rapidhash3 implements AbstractHasher64 {
           a = getLong(input, off);
           b = getLong(input, off + len - 8);
         } else {
-          b = getInt(input, off) & 0xFFFFFFFFL;
-          a = getInt(input, off + len - 4) & 0xFFFFFFFFL;
+          a = getInt(input, off) & 0xFFFFFFFFL;
+          b = getInt(input, off + len - 4) & 0xFFFFFFFFL;
+          if (isLegacy()) {
+            long tmp = a;
+            a = b;
+            b = tmp;
+          }
         }
         return finish(a ^ len, b, seed ^ len, len);
       } else if (len > 0) {
@@ -165,8 +160,13 @@ final class Rapidhash3 implements AbstractHasher64 {
           a = access.getLong(input, off);
           b = access.getLong(input, off + len - 8);
         } else {
-          b = access.getIntAsUnsignedLong(input, off);
-          a = access.getIntAsUnsignedLong(input, off + len - 4);
+          a = access.getIntAsUnsignedLong(input, off);
+          b = access.getIntAsUnsignedLong(input, off + len - 4);
+          if (isLegacy()) {
+            long tmp = a;
+            a = b;
+            b = tmp;
+          }
         }
         return finish(a ^ len, b, seed ^ len, len);
       } else if (len > 0) {
@@ -255,8 +255,13 @@ final class Rapidhash3 implements AbstractHasher64 {
           a = getLong(input, 0);
           b = getLong(input, len - 4);
         } else {
-          b = getIntAsUnsignedLong(input, 0);
-          a = getIntAsUnsignedLong(input, len - 2);
+          a = getIntAsUnsignedLong(input, 0);
+          b = getIntAsUnsignedLong(input, len - 2);
+          if (isLegacy()) {
+            long tmp = a;
+            a = b;
+            b = tmp;
+          }
         }
         return finish(a ^ (len << 1), b, seed ^ (len << 1), len << 1);
       } else if (len > 0) {
@@ -358,7 +363,7 @@ final class Rapidhash3 implements AbstractHasher64 {
 
     @Override
     public Hasher64 getHasher() {
-      return Rapidhash3.this;
+      return AbstractRapidhash.this;
     }
 
     private static final byte SERIAL_VERSION_V0 = 0;
@@ -777,8 +782,13 @@ final class Rapidhash3 implements AbstractHasher64 {
             a = getLong(buffer, 0);
             b = getLong(buffer, (int) (byteCount - 8));
           } else {
-            b = getInt(buffer, 0) & 0xFFFFFFFFL;
-            a = getInt(buffer, (int) (byteCount - 4)) & 0xFFFFFFFFL;
+            a = getInt(buffer, 0) & 0xFFFFFFFFL;
+            b = getInt(buffer, (int) (byteCount - 4)) & 0xFFFFFFFFL;
+            if (isLegacy()) {
+              long tmp = a;
+              a = b;
+              b = tmp;
+            }
           }
           a ^= byteCount;
           see0 ^= byteCount;
@@ -889,16 +899,5 @@ final class Rapidhash3 implements AbstractHasher64 {
     return finish(v1 ^ 12, ((long) v2 << 32) ^ (v1 >>> 32), seed ^ 12, 12);
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (!(obj instanceof Rapidhash3)) return false;
-    Rapidhash3 that = (Rapidhash3) obj;
-    return seed == that.seed;
-  }
-
-  @Override
-  public int hashCode() {
-    return Long.hashCode(seed);
-  }
+  protected abstract boolean isLegacy();
 }

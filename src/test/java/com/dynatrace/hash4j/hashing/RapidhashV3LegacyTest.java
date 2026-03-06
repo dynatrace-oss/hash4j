@@ -24,11 +24,11 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.provider.Arguments;
 
-class Rapidhash3Test extends AbstractHasher64Test {
+class RapidhashV3LegacyTest extends AbstractHasher64Test {
 
   @Override
   protected List<? extends Hasher64> createHashers() {
-    return List.of(Hashing.rapidhash3(), Hashing.rapidhash3(0x52a4bc2b51cd5d00L));
+    return List.of(Hashing.rapidhashV3Legacy(), Hashing.rapidhashV3Legacy(0x52a4bc2b51cd5d00L));
   }
 
   @Override
@@ -38,15 +38,15 @@ class Rapidhash3Test extends AbstractHasher64Test {
 
   @Override
   protected String getChecksumResourceFileName() {
-    return "Rapidhash 3.txt";
+    return "Rapidhash v3 legacy.txt";
   }
 
   @Override
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, byte[] dataBytes) {
     long seed = getLong(seedBytes, 0);
 
-    long hash0 = Hashing.rapidhash3().hashBytesToLong(dataBytes);
-    long hash1 = Hashing.rapidhash3(seed).hashBytesToLong(dataBytes);
+    long hash0 = Hashing.rapidhashV3Legacy().hashBytesToLong(dataBytes);
+    long hash1 = Hashing.rapidhashV3Legacy(seed).hashBytesToLong(dataBytes);
 
     setLong(hashBytes, 0, hash0);
     setLong(hashBytes, 8, hash1);
@@ -63,8 +63,8 @@ class Rapidhash3Test extends AbstractHasher64Test {
 
     long seed = getLong(seedBytes, 0);
 
-    long hash0 = Hashing.rapidhash3().hashBytesToLong(o, off, len, byteAccess);
-    long hash1 = Hashing.rapidhash3(seed).hashBytesToLong(o, off, len, byteAccess);
+    long hash0 = Hashing.rapidhashV3Legacy().hashBytesToLong(o, off, len, byteAccess);
+    long hash1 = Hashing.rapidhashV3Legacy(seed).hashBytesToLong(o, off, len, byteAccess);
 
     setLong(hashBytes, 0, hash0);
     setLong(hashBytes, 8, hash1);
@@ -74,8 +74,8 @@ class Rapidhash3Test extends AbstractHasher64Test {
   protected void calculateHashForChecksum(byte[] seedBytes, byte[] hashBytes, CharSequence c) {
     long seed = getLong(seedBytes, 0);
 
-    long hash0 = Hashing.rapidhash3().hashCharsToLong(c);
-    long hash1 = Hashing.rapidhash3(seed).hashCharsToLong(c);
+    long hash0 = Hashing.rapidhashV3Legacy().hashCharsToLong(c);
+    long hash1 = Hashing.rapidhashV3Legacy(seed).hashCharsToLong(c);
 
     setLong(hashBytes, 0, hash0);
     setLong(hashBytes, 8, hash1);
@@ -84,7 +84,8 @@ class Rapidhash3Test extends AbstractHasher64Test {
   @Override
   protected List<HashStream> getHashStreams(byte[] seedBytes) {
     long seed = getLong(seedBytes, 0);
-    return List.of(Hashing.rapidhash3().hashStream(), Hashing.rapidhash3(seed).hashStream());
+    return List.of(
+        Hashing.rapidhashV3Legacy().hashStream(), Hashing.rapidhashV3Legacy(seed).hashStream());
   }
 
   @Override
@@ -133,7 +134,7 @@ class Rapidhash3Test extends AbstractHasher64Test {
           arguments(
               hasher,
               "00F1FFFFFFFFFFFFFFAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAEEEEEEEEEEEEEEEEFFFFFFFFFFFFFF"));
-      arguments(
+      arguments.add(
           arguments(
               hasher,
               "00F1FFFFFFFFFFFFFFAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAABBBBBBBBBBBBBBBBAAAAAAAAAAAAAAAAEEEEEEEEEEEEEEEEFFFFFFFFFFFFFFFFFF"));
