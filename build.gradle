@@ -245,9 +245,9 @@ def readPythonLicense(licenseName) {
 
 apply plugin: "groovy"
 spotless {
-	def googleJavaFormatVersion = "1.33.0"
+	def googleJavaFormatVersion = "1.35.0"
 	def eclipseCdtVersion = "12.3"
-	def blackVersion = "26.1.0"
+	def blackVersion = "26.3.0"
 	def greclipseVersion = "4.32"
 	def specialLicenseHeaders = [
 		new Tuple3("javaImohash", "MIT_IMOHASH", [
