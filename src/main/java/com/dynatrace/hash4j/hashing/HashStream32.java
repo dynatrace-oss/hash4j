@@ -22,7 +22,19 @@ import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.function.ToLongFunction;
 
-/** A hash stream computing a 32-bit hash value. */
+/**
+ * A hash stream computing a 32-bit hash value.
+ *
+ * <p>Implementations override {@link Object#equals(Object)} and {@link Object#hashCode()}. Two hash
+ * streams are considered equal if they are of the same class, have equal hashers (as defined by the
+ * hasher's {@code equals} method), and have the same state. {@link Object#hashCode()} returns the
+ * same value as {@link #getAsInt()}.
+ *
+ * <p><strong>Warning:</strong> hash streams are mutable. Consequently, operations that modify the
+ * current stream state, such as appending data or resetting/changing the state, may change the
+ * result of {@link Object#equals(Object)} and {@link Object#hashCode()}. Therefore, instances
+ * should not be used as keys in hash-based collections while they are being mutated.
+ */
 public interface HashStream32 extends HashStream {
 
   /**
