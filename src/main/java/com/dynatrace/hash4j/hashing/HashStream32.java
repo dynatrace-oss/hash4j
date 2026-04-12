@@ -244,7 +244,7 @@ public interface HashStream32 extends HashStream {
    * that is equal to {@link #getHasher()}.
    *
    * @param state the state
-   * @return a reference to the underlying hasher
+   * @return this
    */
   @Override
   HashStream32 setState(byte[] state);

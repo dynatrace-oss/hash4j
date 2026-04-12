@@ -386,7 +386,7 @@ public interface HashSink {
   HashSink putIntArray(int[] x);
 
   /**
-   * Adds along <code>long</code> value to the hash computation using little-endian byte order.
+   * Adds a <code>long</code> value to the hash computation using little-endian byte order.
    *
    * @param v the value
    * @return this
@@ -439,7 +439,7 @@ public interface HashSink {
    * <p>Equivalent to <br>
    * {@code putLongs(x).putInt(x.length);}
    *
-   * @param x the int array
+   * @param x the long array
    * @return this
    */
   HashSink putLongArray(long[] x);

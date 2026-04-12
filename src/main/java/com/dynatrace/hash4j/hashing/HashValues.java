@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 Dynatrace LLC
+ * Copyright 2023-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ public final class HashValues {
    *
    * <p>The given long hash value is mapped to the returned byte array in little-endian order.
    *
-   * @param hashValue a 32-bit hash value
-   * @return a byte array of length 4
+   * @param hashValue a 64-bit hash value
+   * @return a byte array of length 8
    */
   public static byte[] toByteArray(long hashValue) {
     byte[] b = new byte[8];

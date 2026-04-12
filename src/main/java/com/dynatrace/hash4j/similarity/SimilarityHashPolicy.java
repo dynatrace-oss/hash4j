@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public interface SimilarityHashPolicy {
    *
    * @param signature1 hash signature 1
    * @param signature2 hash signature 2
-   * @return the number of equal components
+   * @return the fraction of equal components
    * @throws IllegalArgumentException if the hash signatures are null or do not have the expected
    *     size
    */

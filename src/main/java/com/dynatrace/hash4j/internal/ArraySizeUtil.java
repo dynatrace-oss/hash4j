@@ -38,7 +38,7 @@ public final class ArraySizeUtil {
    * <p>It is guaranteed that the return value is greater than the current size. If the current size
    * is equal to {@link Integer#MAX_VALUE}, an {@link OutOfMemoryError} exception is thrown.
    *
-   * <p>This function takes care that the maximum allowed arrow size is not exceeded.
+   * <p>This function takes care that the maximum allowed array size is not exceeded.
    *
    * @param currentSize current array size
    * @param requiredIndex the index that needs to be supported/covered with the new array size

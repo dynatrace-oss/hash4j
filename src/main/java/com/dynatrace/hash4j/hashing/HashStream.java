@@ -217,7 +217,7 @@ interface HashStream extends HashSink {
    * that is equal to {@link #getHasher()}.
    *
    * @param state the state
-   * @return a reference to the underlying hasher
+   * @return this
    */
   HashStream setState(byte[] state);
 }
