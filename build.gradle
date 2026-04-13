@@ -61,7 +61,7 @@ dependencies {
 	testImplementation("org.greenrobot:essentials:3.1.0")
 	testImplementation("com.sangupta:murmur:1.0.0")
 	testImplementation("at.yawk.lz4:lz4-java:1.11.0")
-	errorprone("com.google.errorprone:error_prone_core:2.48.0")
+	errorprone("com.google.errorprone:error_prone_core:2.49.0")
 }
 
 java {
