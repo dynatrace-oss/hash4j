@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ public final class PermutationGenerator {
   /**
    * Resets this permutation generator.
    *
-   * <p>Must be called before starting a new iteration over the permutated elements using {@link
+   * <p>Must be called before starting a new iteration over the permuted elements using {@link
    * #next(PseudoRandomGenerator)}.
    */
   public void reset() {
@@ -88,7 +88,7 @@ public final class PermutationGenerator {
       // if version counter reaches zero, it is theoretically possible that some components in
       // currentVersion are still zero from initialization, and the corresponding values in
       // the permutation array would be considered as initialized. Therefore,
-      // set all values in currentVersion to 0 and the currentVerson to 1 to circumvent this
+      // set all values in currentVersion to 0 and the currentVersion to 1 to circumvent this
       // potential problem.
       Arrays.fill(currentVersion, 0);
       versionCounter = 1;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Dynatrace LLC
+ * Copyright 2023-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ public interface FileHashing {
   }
 
   /**
-   * Returns a {@link FileHasher128} implementing version 1.0.2 of the Imohash algorithm using
-   * default parameters.
+   * Returns a {@link FileHasher128} implementing version 1.0.2 of the Imohash algorithm using the
+   * given parameters.
    *
    * <p>This implementation is compatible with the Go reference implementation <a
    * href="https://github.com/kalafut/imohash/blob/v1.0.2/imohash.go">imohash.go</a>.

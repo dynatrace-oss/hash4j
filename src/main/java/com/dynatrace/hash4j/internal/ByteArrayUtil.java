@@ -166,14 +166,14 @@ public final class ByteArrayUtil {
    * Copies a given number of characters from a {@link CharSequence} into a byte array.
    *
    * @param charSequence a char sequence
-   * @param offetCharSequence an offset for the char sequence
+   * @param offsetCharSequence an offset for the char sequence
    * @param byteArray a byte array
    * @param offsetByteArray an offset for the byte array
    * @param numChars the number of characters to copy
    */
   public static void copyCharsToByteArray(
       CharSequence charSequence,
-      int offetCharSequence,
+      int offsetCharSequence,
       byte[] byteArray,
       int offsetByteArray,
       int numChars) {
@@ -181,21 +181,21 @@ public final class ByteArrayUtil {
       setLong(
           byteArray,
           offsetByteArray + (charIdx << 1),
-          getLong(charSequence, offetCharSequence + charIdx));
+          getLong(charSequence, offsetCharSequence + charIdx));
     }
     if ((numChars & 2) != 0) {
       int charIdx = numChars & 0xFFFFFFFC;
       setInt(
           byteArray,
           offsetByteArray + (charIdx << 1),
-          getInt(charSequence, offetCharSequence + charIdx));
+          getInt(charSequence, offsetCharSequence + charIdx));
     }
     if ((numChars & 1) != 0) {
       int charIdx = numChars & 0xFFFFFFFE;
       setChar(
           byteArray,
           offsetByteArray + (charIdx << 1),
-          charSequence.charAt(offetCharSequence + charIdx));
+          charSequence.charAt(offsetCharSequence + charIdx));
     }
   }
 }
