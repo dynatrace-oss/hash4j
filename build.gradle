@@ -15,6 +15,12 @@
  */
 import com.diffplug.gradle.spotless.JavaExtension
 
+buildscript {
+	configurations.classpath.resolutionStrategy {
+		force "org.bouncycastle:bcprov-jdk18on:1.84"
+	}
+}
+
 plugins {
 	id "java-library"
 	id "jacoco"
