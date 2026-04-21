@@ -4,7 +4,7 @@
 hash4j is a Java library by Dynatrace providing non-cryptographic hash algorithms and hash-based data structures. It is published to Maven Central as `com.dynatrace.hash4j:hash4j`.
 
 ## Tech Stack
-- **Language**: Java (minimum JDK 11, with multi-release JAR support for Java 21 and 25)
+- **Language**: Java (library/runtime baseline: Java 11; multi-release JAR support for Java 21 and 25; contributors typically build with the Gradle Java 25 toolchain and run tests for Java 11, 21, and 25)
 - **Build System**: Gradle (use `./gradlew` or `gradlew.bat`)
 - **Testing**: JUnit 5, AssertJ
 - **Code Formatting**: Spotless (Google Java Format), ErrorProne
