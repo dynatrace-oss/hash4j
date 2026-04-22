@@ -8,7 +8,9 @@
 *.csv text
 gradlew.bat text eol=crlf
 gradlew text eol=lf
-*.gradle eol=lf
+*.gradle text eol=lf
 *.sh text eol=lf
 *.yml text eol=lf
+*.json text eol=lf
 *.jar binary
+*.png binary
