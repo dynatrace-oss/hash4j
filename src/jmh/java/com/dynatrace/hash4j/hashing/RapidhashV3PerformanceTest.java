@@ -15,9 +15,9 @@
  */
 package com.dynatrace.hash4j.hashing;
 
-public class Rapidhash3PerformanceTest extends AbstractHasher64PerformanceTest {
+public class RapidhashV3PerformanceTest extends AbstractHasher64PerformanceTest {
 
-  private static final Hasher64 HASHER_INSTANCE = Hashing.rapidhash3();
+  private static final Hasher64 HASHER_INSTANCE = Hashing.rapidhashV3();
 
   @Override
   protected Hasher64 getHasherInstance() {

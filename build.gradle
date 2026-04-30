@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import com.diffplug.gradle.spotless.JavaExtension
+import me.champeau.gradle.japicmp.JapicmpTask
 
 plugins {
 	id "java-library"
@@ -129,7 +130,7 @@ File findArtifact(String version) {
 }
 
 
-tasks.register("jApiCmp", me.champeau.gradle.japicmp.JapicmpTask) {
+tasks.register("jApiCmp", JapicmpTask) {
 	dependsOn "jar"
 
 	def baselineVersion = project.hasProperty("apiCheckBaseVersion")?apiCheckBaseVersion:latestReleasedVersion
@@ -358,15 +359,7 @@ sonarqube {
 
 
 jmh {
-	fork = 1
-	timeUnit = "us"
 	failOnError = false
-	timeOnIteration = "1s"
-	warmupForks = 0
-	warmupIterations = 5
-	warmupBatchSize = 1
-	warmup = "1s"
-	iterations = 20
 	resultFormat = "JSON"
 	if (project.hasProperty("benchmarkIncludes")) {
 		includes = [benchmarkIncludes.trim()]
