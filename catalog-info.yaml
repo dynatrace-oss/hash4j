@@ -1,0 +1,32 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hash4j
+  title: hash4j
+  description: >-
+    Dynatrace Java library of non-cryptographic hash algorithms and hash-based
+    data structures (HyperLogLog, UltraLogLog, MinHash, SimHash, consistent
+    hashing, ImoHash, and more).
+  annotations:
+    github.com/project-slug: dynatrace-oss/hash4j
+    backstage.io/techdocs-ref: dir:.
+    dynatrace.com/contact-email: opensource@dynatrace.com
+  tags:
+    - java
+    - gradle
+    - hashing
+    - library
+    - opensource
+  links:
+    - url: https://github.com/dynatrace-oss/hash4j
+      title: GitHub Repository
+      icon: github
+    - url: https://central.sonatype.com/artifact/com.dynatrace.hash4j/hash4j
+      title: Maven Central
+      icon: web
+spec:
+  type: library
+  lifecycle: production
+  owner: group:default/dynatrace-oss
+  system: hash4j
+
