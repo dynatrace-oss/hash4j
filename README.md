@@ -288,7 +288,25 @@ To ensure that your contribution adheres to our coding style, run the `spotlessA
 
 This project contains python code. We recommend using a python virtual environment in a `.venv` directory. If you are new, please follow the steps outlined
 in the [official Python documentation](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) for creation and activation.
-To install the required dependencies including black, please execute `pip install -r requirements.txt`.
+To install the required dependencies (matching the versions used in CI) execute:
+
+```bash
+python -m pip install --only-binary :all: --require-hashes -r requirements.txt
+```
+
+`--require-hashes` enforces hash-pinned installs and `--only-binary :all:` rejects source distributions, preventing arbitrary `setup.py` execution.
+
+#### Refreshing the locked dependencies
+
+Direct dependencies live in `requirements.in`; the fully resolved, hash-pinned `requirements.txt` is generated from it. Whenever you change `requirements.in`
+(or want to pick up new transitive versions for security updates), regenerate `requirements.txt` under the Python version used in CI:
+
+```bash
+python -m pip install pip-tools
+pip-compile --generate-hashes --allow-unsafe --no-strip-extras --output-file requirements.txt requirements.in
+```
+
+Commit `requirements.in` and `requirements.txt` together. Renovate keeps both files (and `build.gradle`'s `blackVersion`) in sync automatically.
 
 ### Reference implementations
 

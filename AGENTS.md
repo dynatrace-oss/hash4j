@@ -10,7 +10,7 @@ hash4j is a Java library by Dynatrace providing non-cryptographic hash algorithm
 - **Code Formatting**: Spotless (Google Java Format), ErrorProne
 - **Benchmarking**: JMH
 - **Code Coverage**: JaCoCo (100% line and branch coverage required)
-- **Python**: Used for evaluation scripts (dependencies in `requirements.txt`)
+- **Python**: Used for evaluation scripts (direct dependencies in `requirements.in`, hash-pinned lock in `requirements.txt`)
 
 ## Project Structure
 - `src/main/java/` — Main source (Java 11 baseline)
