@@ -29,4 +29,14 @@ spec:
   lifecycle: production
   owner: group:default/dynatrace-oss
   system: hash4j
-
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: hash4j
+  title: hash4j
+  description: >-
+    System for the hash4j library and its related Backstage catalog entities.
+spec:
+  owner: group:default/dynatrace-oss
+  lifecycle: production
