@@ -7,5 +7,73 @@
     "managerFilePatterns": [
       "/(^|/)requirements\\.txt$/"
     ]
-  }
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)build\\.gradle$/"
+      ],
+      "matchStrings": [
+        "blackVersion\\s*=\\s*[\"'](?<currentValue>[^\"']+)[\"']"
+      ],
+      "depNameTemplate": "black",
+      "datasourceTemplate": "pypi"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)build\\.gradle$/"
+      ],
+      "matchStrings": [
+        "googleJavaFormatVersion\\s*=\\s*[\"'](?<currentValue>[^\"']+)[\"']"
+      ],
+      "depNameTemplate": "com.google.googlejavaformat:google-java-format",
+      "datasourceTemplate": "maven"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)build\\.gradle$/"
+      ],
+      "matchStrings": [
+        "eclipseCdtVersion\\s*=\\s*[\"'](?<currentValue>[^\"']+)[\"']"
+      ],
+      "depNameTemplate": "com.diffplug.spotless:spotless-eclipse-cdt",
+      "datasourceTemplate": "maven"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/(^|/)build\\.gradle$/"
+      ],
+      "matchStrings": [
+        "greclipseVersion\\s*=\\s*[\"'](?<currentValue>[^\"']+)[\"']"
+      ],
+      "depNameTemplate": "com.diffplug.spotless:spotless-eclipse-groovy",
+      "datasourceTemplate": "maven"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": ["black"],
+      "groupName": "black",
+      "commitMessageTopic": "black"
+    },
+    {
+      "matchPackageNames": ["com.google.googlejavaformat:google-java-format"],
+      "groupName": "google-java-format",
+      "commitMessageTopic": "google-java-format"
+    },
+    {
+      "matchPackageNames": ["com.diffplug.spotless:spotless-eclipse-cdt"],
+      "groupName": "spotless-eclipse-cdt",
+      "commitMessageTopic": "spotless-eclipse-cdt"
+    },
+    {
+      "matchPackageNames": ["com.diffplug.spotless:spotless-eclipse-groovy"],
+      "groupName": "spotless-eclipse-groovy",
+      "commitMessageTopic": "spotless-eclipse-groovy"
+    }
+  ]
 }
