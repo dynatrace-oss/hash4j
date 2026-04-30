@@ -15,18 +15,11 @@
  */
 import com.diffplug.gradle.spotless.JavaExtension
 
-buildscript {
-	configurations.classpath.resolutionStrategy {
-		force "org.bouncycastle:bcprov-jdk18on:1.84" // temporary workaround for CVE-2026-0636
-	}
-}
-
 plugins {
 	id "java-library"
 	id "jacoco"
 	id "me.champeau.jmh" version "0.7.3"
-	id "org.sonarqube" version "7.2.3.7755" /* remove workaround above for CVE-2026-0636 once sonarqube plugin
-	 fixed dependency to vulnerable version of bouncycastle */
+	id "org.sonarqube" version "7.3.0.8198"
 	id "com.diffplug.spotless" version "8.4.0"
 	id "maven-publish"
 	id "signing"
@@ -51,18 +44,18 @@ ext {
 }
 
 group = "com.dynatrace.hash4j"
-version = "0.30.0"
+version = "0.31.0-SNAPSHOT"
 
 dependencies {
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.3") // upgrade to version 6 requires Java 17
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.3") // upgrade to version 6 requires Java 17
-	testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.3") // upgrade to version 6 requires Java 17
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.3") // upgrade to version 6 requires Java 17
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.4") // upgrade to version 6 requires Java 17
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.4") // upgrade to version 6 requires Java 17
+	testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.4") // upgrade to version 6 requires Java 17
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.4") // upgrade to version 6 requires Java 17
 	testImplementation("org.assertj:assertj-core:3.27.7")
 	testImplementation("org.hipparchus:hipparchus-stat:4.0.3")
 	testImplementation("org.hipparchus:hipparchus-optim:4.0.3")
 	testImplementation("com.google.guava:guava:33.6.0-jre")
-	testImplementation("commons-codec:commons-codec:1.21.0")
+	testImplementation("commons-codec:commons-codec:1.22.0")
 	testImplementation("net.openhft:zero-allocation-hashing:2026.0")
 	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
 	testImplementation("org.greenrobot:essentials:3.1.0")
