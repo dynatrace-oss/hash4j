@@ -25,8 +25,8 @@ plugins {
 	id "java-library"
 	id "jacoco"
 	id "me.champeau.jmh" version "0.7.3"
-	id "org.sonarqube" version "7.2.3.7755" // remove workaround above for CVE-2026-0636 once sonarqube plugin
-											// fixed dependency to vulnerable version of bouncycastle
+	id "org.sonarqube" version "7.2.3.7755" /* remove workaround above for CVE-2026-0636 once sonarqube plugin
+	 fixed dependency to vulnerable version of bouncycastle */
 	id "com.diffplug.spotless" version "8.4.0"
 	id "maven-publish"
 	id "signing"
