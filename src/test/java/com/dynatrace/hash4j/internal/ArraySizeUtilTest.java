@@ -16,8 +16,8 @@
 package com.dynatrace.hash4j.internal;
 
 import static com.dynatrace.hash4j.internal.ArraySizeUtil.increaseArraySize;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import org.junit.jupiter.api.Test;
 

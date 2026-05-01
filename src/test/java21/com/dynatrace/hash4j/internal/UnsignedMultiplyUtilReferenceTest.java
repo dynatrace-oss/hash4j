@@ -15,7 +15,7 @@
  */
 package com.dynatrace.hash4j.internal;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.SplittableRandom;
 import org.junit.jupiter.api.Test;
