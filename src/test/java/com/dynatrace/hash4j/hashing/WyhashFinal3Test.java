@@ -17,7 +17,7 @@ package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.getLong;
 import static com.dynatrace.hash4j.internal.ByteArrayUtil.setLong;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.ArrayList;

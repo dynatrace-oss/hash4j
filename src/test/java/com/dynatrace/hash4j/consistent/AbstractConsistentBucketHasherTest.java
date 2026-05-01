@@ -15,9 +15,9 @@
  */
 package com.dynatrace.hash4j.consistent;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashStream64;
 import com.dynatrace.hash4j.hashing.Hashing;

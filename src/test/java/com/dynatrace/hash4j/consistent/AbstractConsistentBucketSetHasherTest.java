@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.consistent;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.dynatrace.hash4j.hashing.HashStream64;

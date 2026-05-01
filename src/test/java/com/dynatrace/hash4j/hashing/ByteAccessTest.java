@@ -15,8 +15,8 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.nio.ByteOrder;
 import java.util.SplittableRandom;

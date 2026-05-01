@@ -16,7 +16,7 @@
 package com.dynatrace.hash4j.hashing;
 
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream32;
 import java.util.function.Consumer;
