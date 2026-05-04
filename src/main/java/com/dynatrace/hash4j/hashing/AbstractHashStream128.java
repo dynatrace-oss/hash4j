@@ -102,6 +102,18 @@ interface AbstractHashStream128 extends AbstractHashStream64, HashStream128 {
   }
 
   @Override
+  default HashStream128 putCharsUTF8(CharSequence c) {
+    AbstractHashStream64.super.putCharsUTF8(c);
+    return this;
+  }
+
+  @Override
+  default HashStream128 putStringUTF8(String s) {
+    AbstractHashStream64.super.putStringUTF8(s);
+    return this;
+  }
+
+  @Override
   default HashStream128 putCharArray(char[] x) {
     AbstractHashStream64.super.putCharArray(x);
     return this;

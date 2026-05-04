@@ -98,6 +98,12 @@ public interface HashStream64 extends HashStream32 {
   HashStream64 putChars(CharSequence c);
 
   @Override
+  HashStream64 putCharsUTF8(CharSequence c);
+
+  @Override
+  HashStream64 putStringUTF8(String s);
+
+  @Override
   HashStream64 putCharArray(char[] x);
 
   @Override

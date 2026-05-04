@@ -97,6 +97,18 @@ interface AbstractHashStream32 extends AbstractHashStream, HashStream32 {
   }
 
   @Override
+  default HashStream32 putCharsUTF8(CharSequence c) {
+    AbstractHashStream.super.putCharsUTF8(c);
+    return this;
+  }
+
+  @Override
+  default HashStream32 putStringUTF8(String s) {
+    AbstractHashStream.super.putStringUTF8(s);
+    return this;
+  }
+
+  @Override
   default HashStream32 putCharArray(char[] x) {
     AbstractHashStream.super.putCharArray(x);
     return this;

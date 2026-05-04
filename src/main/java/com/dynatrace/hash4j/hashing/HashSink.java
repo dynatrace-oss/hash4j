@@ -96,7 +96,7 @@ public interface HashSink {
    * <p>Equivalent to <br>
    * {@code putBytes(x).putInt(x.length);}
    *
-   * @param x the boolean array
+   * @param x the byte array
    * @return this
    */
   HashSink putByteArray(byte[] x);
@@ -277,12 +277,57 @@ public interface HashSink {
    * <p>will be equivalent contributions to the hash value computation.
    *
    * <p>Equivalent to <br>
-   * {@code for (int i = 0; i < s.length(); ++i) putChar(s.charAt(i));}
+   * {@code for (int i = 0; i < c.length(); ++i) putChar(c.charAt(i));}
    *
    * @param c a char sequence
    * @return this
    */
   HashSink putChars(CharSequence c);
+
+  /**
+   * Adds the UTF-8 encoded bytes of a char sequence to the hash computation.
+   *
+   * <p>This method does not include the length information. In this way,
+   *
+   * <p>{@code hashSink.putCharsUTF8}{@code ("AB").putCharsUTF8}{@code ("C")}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.putCharsUTF8}{@code ("A").putCharsUTF8}{@code ("BC")}
+   *
+   * <p>will be equivalent contributions to the hash value computation.
+   *
+   * <p>Proper surrogate pairs are encoded as 4-byte UTF-8 sequences. Unpaired surrogates are
+   * replaced by the character {@code '?'}.
+   *
+   * <p>Equivalent to <br>
+   * {@code putBytes(c.toString().getBytes(StandardCharsets.UTF_8));}
+   *
+   * @param c a char sequence
+   * @return this
+   */
+  HashSink putCharsUTF8(CharSequence c);
+
+  /**
+   * Adds a string to the hash computation as UTF-8 encoded bytes.
+   *
+   * <p>This method includes the length information (number of Unicode code points). In this way,
+   *
+   * <p>{@code hashSink.putStringUTF8}{@code ("AB").putStringUTF8}{@code ("C")}
+   *
+   * <p>and
+   *
+   * <p>{@code hashSink.putStringUTF8}{@code ("A").putStringUTF8}{@code ("BC")}
+   *
+   * <p>will be different contributions to the hash value computation.
+   *
+   * <p>Equivalent to <br>
+   * {@code putCharsUTF8(s).putInt(s.codePointCount(0, s.length()));}
+   *
+   * @param s the string
+   * @return this
+   */
+  HashSink putStringUTF8(String s);
 
   /**
    * Adds a {@code char} array to the hash computation.
@@ -378,7 +423,7 @@ public interface HashSink {
    * <p>will be different contributions to the hash value computation.
    *
    * <p>Equivalent to <br>
-   * {@code }{@code putInts(x).putInt(x.length);}
+   * {@code putInts(x).putInt(x.length);}
    *
    * @param x the int array
    * @return this
