@@ -1,2 +1,26 @@
 Comparing source compatibility of hash4j-0.31.0-SNAPSHOT.jar against hash4j-0.30.0.jar
-No changes.
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashSink  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putStringUTF8(java.lang.String)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putStringUTF8(java.lang.String)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putStringUTF8(java.lang.String)
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putStringUTF8(java.lang.String)

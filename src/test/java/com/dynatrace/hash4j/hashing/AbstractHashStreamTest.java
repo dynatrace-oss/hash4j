@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream;
 import com.dynatrace.hash4j.testutils.TestUtils;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.SplittableRandom;
 import java.util.UUID;
@@ -327,5 +328,110 @@ class AbstractHashStreamTest {
     assertBytes(
         h -> h.putUUID(new UUID(0xa545f65632545698L, 0x75affa68e4905345L)),
         "455390e468faaf759856543256f645a5");
+  }
+
+  @Test
+  void testPutCharsUTF8DefaultImplementation() {
+    int numCases = 10_000;
+    int maxNumChars = 100;
+
+    SplittableRandom random = new SplittableRandom(0x99dc5d0644d52055L);
+
+    TestHashStream hashStream = new TestHashStream();
+    for (int i = 0; i < numCases; ++i) {
+
+      hashStream.reset();
+
+      int numChars = random.nextInt(maxNumChars + 1);
+      char[] chars = new char[numChars];
+      for (int c = 0; c < numChars; ++c) {
+        chars[c] = (char) random.nextInt();
+      }
+
+      String s = String.copyValueOf(chars);
+      hashStream.putCharsUTF8(s);
+      byte[] actualBytes = hashStream.getData();
+      byte[] expectedBytes = s.getBytes(StandardCharsets.UTF_8);
+
+      assertThat(actualBytes).isEqualTo(expectedBytes);
+    }
+  }
+
+  @Test
+  void testPutCharsUTF8KnownCases() {
+    // empty
+    assertBytes(h -> h.putCharsUTF8(""), "");
+    // ASCII (1 byte)
+    assertBytes(h -> h.putCharsUTF8("A"), "41");
+    assertBytes(h -> h.putCharsUTF8("AB"), "4142");
+    // 2-byte sequences
+    assertBytes(h -> h.putCharsUTF8("\u0080"), "c280"); // U+0080 → C2 80
+    assertBytes(h -> h.putCharsUTF8("\u07FF"), "dfbf"); // U+07FF → DF BF
+    // 3-byte sequences
+    assertBytes(h -> h.putCharsUTF8("\u0800"), "e0a080"); // U+0800 → E0 A0 80
+    assertBytes(h -> h.putCharsUTF8("\uFFFF"), "efbfbf"); // U+FFFF → EF BF BF
+    // 4-byte sequences (surrogate pairs)
+    assertBytes(h -> h.putCharsUTF8("\uD800\uDC00"), "f0908080"); // U+10000 → F0 90 80 80
+    assertBytes(h -> h.putCharsUTF8("\uDBFF\uDFFF"), "f48fbfbf"); // U+10FFFF → F4 8F BF BF
+    // lone surrogates → replaced by '?' (0x3F)
+    assertBytes(h -> h.putCharsUTF8("\uD800"), "3f"); // lone high surrogate
+    assertBytes(h -> h.putCharsUTF8("\uDC00"), "3f"); // lone low surrogate
+    assertBytes(h -> h.putCharsUTF8("\uD800A"), "3f41"); // high surrogate not followed by low
+  }
+
+  @Test
+  void testPutStringUTF8DefaultImplementation() {
+    int numCases = 10_000;
+    int maxNumChars = 100;
+
+    SplittableRandom random = new SplittableRandom(0x3c8d0f6a2b1e7594L);
+
+    TestHashStream hashStream = new TestHashStream();
+    for (int i = 0; i < numCases; ++i) {
+      hashStream.reset();
+
+      int numChars = random.nextInt(maxNumChars + 1);
+      char[] chars = new char[numChars];
+      for (int c = 0; c < numChars; ++c) {
+        chars[c] = (char) random.nextInt();
+      }
+
+      String s = String.copyValueOf(chars);
+      hashStream.putStringUTF8(s);
+      byte[] actual = hashStream.getData();
+
+      byte[] utf8Bytes = s.getBytes(StandardCharsets.UTF_8);
+      int codePointCount = s.codePointCount(0, s.length());
+      byte[] expected = new byte[utf8Bytes.length + 4];
+      System.arraycopy(utf8Bytes, 0, expected, 0, utf8Bytes.length);
+      expected[utf8Bytes.length] = (byte) codePointCount;
+      expected[utf8Bytes.length + 1] = (byte) (codePointCount >>> 8);
+      expected[utf8Bytes.length + 2] = (byte) (codePointCount >>> 16);
+      expected[utf8Bytes.length + 3] = (byte) (codePointCount >>> 24);
+
+      assertThat(actual).isEqualTo(expected);
+    }
+  }
+
+  @Test
+  void testPutStringUTF8KnownCases() {
+    // empty string → no bytes + count 0
+    assertBytes(h -> h.putStringUTF8(""), "00000000");
+    // ASCII (1 code point)
+    assertBytes(h -> h.putStringUTF8("A"), "4101000000");
+    // two ASCII chars (2 code points)
+    assertBytes(h -> h.putStringUTF8("AB"), "414202000000");
+    // 2-byte char U+0080 (1 code point)
+    assertBytes(h -> h.putStringUTF8("\u0080"), "c28001000000");
+    // 3-byte char U+0800 (1 code point)
+    assertBytes(h -> h.putStringUTF8("\u0800"), "e0a08001000000");
+    // surrogate pair U+10000 (1 code point)
+    assertBytes(h -> h.putStringUTF8("\uD800\uDC00"), "f090808001000000");
+    // lone high surrogate → '?', count 1
+    assertBytes(h -> h.putStringUTF8("\uD800"), "3f01000000");
+    // lone low surrogate → '?', count 1
+    assertBytes(h -> h.putStringUTF8("\uDC00"), "3f01000000");
+    // mixed: "A" + surrogate pair U+10000 + "B" → 3 code points
+    assertBytes(h -> h.putStringUTF8("A\uD800\uDC00B"), "41f09080804203000000");
   }
 }

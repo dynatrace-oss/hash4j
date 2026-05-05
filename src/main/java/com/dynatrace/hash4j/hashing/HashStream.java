@@ -83,6 +83,12 @@ interface HashStream extends HashSink {
   HashStream putChars(CharSequence c);
 
   @Override
+  HashStream putCharsUTF8(CharSequence c);
+
+  @Override
+  HashStream putStringUTF8(String s);
+
+  @Override
   HashStream putCharArray(char[] x);
 
   @Override

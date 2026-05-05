@@ -181,6 +181,18 @@ interface AbstractHashStream extends HashStream {
   }
 
   @Override
+  default HashStream putCharsUTF8(CharSequence c) {
+    HashUtil.putCharsUTF8(this, c);
+    return this;
+  }
+
+  @Override
+  default HashStream putStringUTF8(String s) {
+    putInt(HashUtil.putCharsUTF8(this, s));
+    return this;
+  }
+
+  @Override
   default HashStream putCharArray(char[] x) {
     return putChars(x).putInt(x.length);
   }
