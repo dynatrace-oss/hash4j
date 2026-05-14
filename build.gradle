@@ -182,6 +182,9 @@ tasks.register("java21Test", Test) {
 	}
 	testClassesDirs = sourceSets.java21Test.output + sourceSets.test.output
 	classpath = sourceSets.java21Test.runtimeClasspath + files(jar)
+	jvmArgs += [
+		"--add-opens",
+		"java.base/java.lang=ALL-UNNAMED"] // for StringSupportTest
 	finalizedBy "jacocoTestReportJava21"
 }
 
@@ -192,6 +195,9 @@ tasks.register("java25Test", Test) {
 	}
 	testClassesDirs = sourceSets.java25Test.output + sourceSets.java21Test.output + sourceSets.test.output
 	classpath = sourceSets.java25Test.runtimeClasspath + sourceSets.java21Test.runtimeClasspath + files(jar)
+	jvmArgs += [
+		"--add-opens",
+		"java.base/java.lang=ALL-UNNAMED"] // for StringSupportTest
 	finalizedBy "jacocoTestReportJava25"
 }
 

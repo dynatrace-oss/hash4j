@@ -1,5 +1,5 @@
 /*
- * Copyright 2022-2025 Dynatrace LLC
+ * Copyright 2022-2026 Dynatrace LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,11 @@ public class Murmur3_32GreenrobotEssentialsPerformanceTest extends AbstractPerfo
   }
 
   @Override
+  protected void hashCharsViaAccess(String s, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
     Murmur3A murmur = new Murmur3A();
     murmur.update(b);
@@ -44,6 +49,11 @@ public class Murmur3_32GreenrobotEssentialsPerformanceTest extends AbstractPerfo
 
   @Override
   protected void hashCharsIndirect(String s, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 }
