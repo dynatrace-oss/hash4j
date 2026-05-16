@@ -40,7 +40,7 @@ ext {
 	googleJavaFormatVersion = "1.35.0"
 	eclipseCdtVersion = "12.3"
 	greclipseVersion = "4.32"
-	blackVersion = "26.3.1"
+	blackVersion = "26.5.0"
 
 	latestReleasedVersion = {
 		def tempConfig = configurations.create("tempConfig_4e0253959df7d471")
