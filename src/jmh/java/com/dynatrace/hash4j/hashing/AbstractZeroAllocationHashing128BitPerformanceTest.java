@@ -40,12 +40,22 @@ public abstract class AbstractZeroAllocationHashing128BitPerformanceTest
   }
 
   @Override
+  protected void hashCharsViaAccess(String s, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   protected void hashCharsIndirect(String s, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
 

@@ -64,13 +64,8 @@ class WyhashFinal3Test extends AbstractHasher64Test {
   }
 
   @Override
-  protected void calculateHashForChecksum(
-      byte[] seedBytes,
-      byte[] hashBytes,
-      Object o,
-      long off,
-      long len,
-      ByteAccess<Object> byteAccess) {
+  protected <T> void calculateHashForChecksum(
+      byte[] seedBytes, byte[] hashBytes, T o, long off, long len, ByteAccess<T> byteAccess) {
     long seed0 = getLong(seedBytes, 0);
     long seed1 = getLong(seedBytes, 8);
     long rand = getLong(seedBytes, 16);

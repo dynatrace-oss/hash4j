@@ -721,13 +721,8 @@ abstract class AbstractHasherTest {
   protected abstract void calculateHashForChecksum(
       byte[] seedBytes, byte[] hashBytes, byte[] dataBytes);
 
-  protected abstract void calculateHashForChecksum(
-      byte[] seedBytes,
-      byte[] hashBytes,
-      Object o,
-      long off,
-      long len,
-      ByteAccess<Object> byteAccess);
+  protected abstract <T> void calculateHashForChecksum(
+      byte[] seedBytes, byte[] hashBytes, T o, long off, long len, ByteAccess<T> byteAccess);
 
   protected abstract void calculateHashForChecksum(
       byte[] seedBytes, byte[] hashBytes, CharSequence charSequence);
@@ -842,6 +837,51 @@ abstract class AbstractHasherTest {
 
         charSequence.reset(len, pseudoRandomGenerator);
         calculateHashForChecksum(seedBytes, hashBytes, charSequence);
+        md.update(hashBytes);
+      }
+      md.digest(checksumHashBytes, 0, checksumHashBytes.length);
+      String checksum = byteArrayToHexString(checksumHashBytes);
+      assertThat(checksum)
+          .describedAs(checksumRecord::toString)
+          .isEqualTo(checksumRecord.getChecksum());
+    }
+  }
+
+  @Test
+  void testCheckSumsHashStringViaAccess() throws NoSuchAlgorithmException, DigestException {
+
+    int maxChars = 1000;
+
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+    byte[] seedBytes = new byte[getSeedSizeForChecksum()];
+    byte[] hashBytes = new byte[getHashSizeForChecksum()];
+    byte[] checksumHashBytes = new byte[32];
+
+    RandomOnDemandCharSequence charSequence = new RandomOnDemandCharSequence();
+    SplitMix64 pseudoRandomGenerator = new SplitMix64();
+
+    for (ChecksumRecord checksumRecord : getChecksumRecords()) {
+
+      long dataLength = checksumRecord.getDataSize();
+
+      if (dataLength % 2 != 0 || dataLength / 2 > maxChars) {
+        continue;
+      }
+      int len = Math.toIntExact(checksumRecord.getDataSize() / 2);
+      long numCycles = checksumRecord.getNumCycles();
+
+      pseudoRandomGenerator.reset(checksumRecord.getSeed());
+
+      for (long cycle = 0; cycle < numCycles; ++cycle) {
+
+        generateRandomBytes(seedBytes, pseudoRandomGenerator);
+        charSequence.reset(len, pseudoRandomGenerator);
+        String string = charSequence.toString();
+
+        ByteAccess<String> access = StringByteAccess.get(string);
+
+        calculateHashForChecksum(seedBytes, hashBytes, string, 0, dataLength, access);
         md.update(hashBytes);
       }
       md.digest(checksumHashBytes, 0, checksumHashBytes.length);
