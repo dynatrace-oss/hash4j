@@ -196,7 +196,7 @@ tasks.register("java25Test", Test) {
 }
 
 tasks.check {
-	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21", "java25Test", "jacocoTestCoverageVerificationJava25", "jApiCmp"
+	dependsOn "java21Test", "jacocoTestCoverageVerification", "jacocoTestCoverageVerificationJava21", "java25Test", "jacocoTestCoverageVerificationJava25", "jApiCmp", "jmhClasses"
 }
 
 tasks.withType(Test).configureEach {
@@ -361,9 +361,6 @@ sonarqube {
 jmh {
 	failOnError = false
 	resultFormat = "JSON"
-	if (project.hasProperty("benchmarkIncludes")) {
-		includes = [benchmarkIncludes.trim()]
-	}
 	jvmArgs = ["-Xmx8g"]
 }
 
@@ -418,38 +415,7 @@ tasks.register("simulateEstimationErrors") {
 	dependsOn evaluationTasks
 }
 
-tasks.register("checkStatusForBenchmarks") {
-	outputs.upToDateWhen { false }
-	doLast {
-		def status_text = "git status --porcelain".execute().text
-		if(status_text?.trim() && !(project.hasProperty("benchmarkIgnoreGitChanges") && benchmarkIgnoreGitChanges.trim().equals("true"))) {
-			throw new GradleException("There are uncommitted changes:\n" + status_text)
-		}
-	}
-}
 
-tasks.register("copyBenchmarkReport", Copy) {
-	def proc = "git rev-parse HEAD".execute()
-	def revision = proc.text.trim()
-	from("build/results/jmh/") {
-		include "results.*"
-		if (project.hasProperty("benchmarkPrefix") && !benchmarkPrefix.trim().isEmpty()) {
-			rename "results", benchmarkPrefix.trim() + "-" + new Date().format("yyyy-MM-dd-HH-mm-ss") + " " + revision
-		} else {
-			rename "results", new Date().format("yyyy-MM-dd-HH-mm-ss") + " " + revision
-		}
-	}
-	into "benchmark-results"
-}
-
-tasks.register("deleteBenchmarkReport", Delete) {
-	delete "build/results/jmh/results.json"
-}
-
-tasks.jmh.finalizedBy copyBenchmarkReport
-tasks.copyBenchmarkReport.finalizedBy deleteBenchmarkReport
-tasks.jmh.dependsOn checkStatusForBenchmarks
-tasks.copyBenchmarkReport.dependsOn checkStatusForBenchmarks
 tasks.simulateHyperLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 tasks.simulateUltraLogLogEstimationErrors.finalizedBy evaluateEstimationErrors
 
