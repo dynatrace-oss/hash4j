@@ -802,6 +802,8 @@ public abstract class AbstractPerformanceTest {
 
   protected abstract void hashCharsDirect(String s, Blackhole blackhole);
 
+  protected abstract void hashCharsUTF8Indirect(String s, Blackhole blackhole);
+
   protected abstract void hashBytesIndirect(byte[] b, Blackhole blackhole);
 
   protected abstract void hashCharsIndirect(String s, Blackhole blackhole);

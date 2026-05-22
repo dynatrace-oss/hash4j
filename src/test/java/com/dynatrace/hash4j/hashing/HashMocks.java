@@ -644,6 +644,7 @@ final class HashMocks {
     }
 
     public void assertData(byte[] expected, int len) {
+      assertThat(size).isEqualTo(len);
       assertThat(Arrays.equals(data, 0, size, expected, 0, len)).isTrue();
     }
 

@@ -40,23 +40,28 @@ final class HashUtil {
 
   static int putCharsUTF8(HashStream stream, CharSequence c) {
     int pos = 0;
-    int len = c.length();
-    while (pos < len) {
+    final int len = c.length();
+
+    while (pos <= len - 4) {
       // ascii fast loop
-      char ch = c.charAt(pos);
-      if (ch >= 0x80) {
+      char ch0 = c.charAt(pos);
+      char ch1 = c.charAt(pos + 1);
+      char ch2 = c.charAt(pos + 2);
+      char ch3 = c.charAt(pos + 3);
+      if ((ch0 | ch1 | ch2 | ch3) >= 0x80) {
         break;
       }
-      stream.putByte((byte) ch);
-      pos++;
+      stream.putInt(ch0 | (ch1 << 8) | (ch2 << 16) | (ch3 << 24));
+      pos += 4;
     }
+
     int charCount = pos;
     while (pos < len) {
       char ch = c.charAt(pos++);
       if (ch < 0x80) {
         stream.putByte((byte) ch);
       } else if (ch < 0x800) {
-        stream.putChar((char) (0x80c0 | (((ch >>> 6) | (ch << 8)) & 0x3fff)));
+        stream.putChar((char) ((0x80c0 | (ch >>> 6) | (ch << 8)) & 0xbfff));
       } else if (ch >= 0xd800 && ch < 0xe000) {
         int uc = 0xfca02400;
         if (ch < 0xdc00 && pos < len) {
@@ -68,17 +73,14 @@ final class HashUtil {
         if (uc < 0) {
           stream.putByte((byte) '?');
         } else {
-          stream.putInt(
-              0x808080f0
-                  | (uc >>> 18)
-                  | ((uc >>> 4) & 0x3f00)
-                  | ((uc << 10) & 0x3f0000)
-                  | ((uc << 24) & 0x3f000000));
+          // 0x00010000 <= uc < 0x00210000
+          int y = (uc << 16) | (uc >>> 12);
+          stream.putInt(0x808080f0 | ((y >>> 6) & 0x3f003f) | ((y & 0x3f003f) << 8));
           pos++; // 2 chars
         }
       } else {
         stream.putByte((byte) (0xe0 | (ch >>> 12)));
-        stream.putChar((char) ((0x8080 | ((ch >>> 6) & 0x3f)) | ((ch << 8) & 0x3fff)));
+        stream.putChar((char) ((0x8080 | ((ch >>> 6) & 0x3f)) | ((ch & 0x3f) << 8)));
       }
       charCount++;
     }

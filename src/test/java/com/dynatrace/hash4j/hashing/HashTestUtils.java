@@ -165,6 +165,15 @@ final class HashTestUtils {
     public CharSequence subSequence(int start, int end) {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder(length);
+      for (int i = 0; i < length; ++i) {
+        sb.append(charAt(i));
+      }
+      return sb.toString();
+    }
   }
 
   static final class RandomOnDemandByteAccess implements ByteAccess<Object> {

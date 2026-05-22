@@ -51,13 +51,8 @@ class MetroHash128Test extends AbstractHasher128Test {
   }
 
   @Override
-  protected void calculateHashForChecksum(
-      byte[] seedBytes,
-      byte[] hashBytes,
-      Object o,
-      long off,
-      long len,
-      ByteAccess<Object> byteAccess) {
+  protected <T> void calculateHashForChecksum(
+      byte[] seedBytes, byte[] hashBytes, T o, long off, long len, ByteAccess<T> byteAccess) {
     long seed = getLong(seedBytes, 0);
 
     HashValue128 hash0 = Hashing.metroHash128().hashBytesTo128Bits(o, off, len, byteAccess);
