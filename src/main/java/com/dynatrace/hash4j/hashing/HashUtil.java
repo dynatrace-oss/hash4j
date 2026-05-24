@@ -73,7 +73,7 @@ final class HashUtil {
         if (uc < 0) {
           stream.putByte((byte) '?');
         } else {
-          // 0x00010000 <= uc < 0x00210000
+          // 0x00010000 <= uc < 0x00110000
           int y = (uc << 16) | (uc >>> 12);
           stream.putInt(0x808080f0 | ((y >>> 6) & 0x3f003f) | ((y & 0x3f003f) << 8));
           pos++; // 2 chars

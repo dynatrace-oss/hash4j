@@ -51,4 +51,9 @@ public class Murmur3_32GreenrobotEssentialsPerformanceTest extends AbstractPerfo
   protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
 }

@@ -54,5 +54,10 @@ public abstract class AbstractGuava128BitPerformanceTest extends AbstractPerform
     blackhole.consume(createHashFunction().hashObject(b, GUAVA_BYTES_FUNNEL));
   }
 
+  @Override
+  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
+
   protected abstract HashFunction createHashFunction();
 }

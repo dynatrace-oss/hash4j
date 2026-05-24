@@ -384,6 +384,12 @@ public abstract class AbstractPerformanceTest {
     }
   }
 
+  private void testHashCharsUTF8Indirect(String[] data, Blackhole blackhole) {
+    for (String s : data) {
+      hashCharsUTF8Indirect(s, blackhole);
+    }
+  }
+
   private void objectTest(TestObject[] data, Blackhole blackhole) {
     for (TestObject o : data) {
       hashObject(o, blackhole);
@@ -770,6 +776,114 @@ public abstract class AbstractPerformanceTest {
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
+  public void hashChars000001UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_1, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars000004UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_4, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars000016UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_16, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars000064UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_64, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars000256UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_256, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars001024UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_1024, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars004096UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_4096, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars016384UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_16384, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashChars065536UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(STRINGS_65536, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars000001UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_1, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars000004UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_4, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars000016UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_16, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars000064UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_64, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars000256UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_256, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars001024UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_1024, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars004096UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_4096, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars016384UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_16384, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashGreekChars065536UTF8Indirect(Blackhole blackhole) {
+    testHashCharsUTF8Indirect(GREEK_STRINGS_65536, blackhole);
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
   public void hashTestObject1(Blackhole blackhole) {
     objectTest(TEST_OBJECTS1, blackhole);
   }
@@ -796,9 +910,7 @@ public abstract class AbstractPerformanceTest {
 
   protected abstract void hashBytesDirect(byte[] b, Blackhole blackhole);
 
-  protected void hashBytesViaAccess(byte[] b, Blackhole blackhole) {
-    throw new UnsupportedOperationException();
-  }
+  protected abstract void hashBytesViaAccess(byte[] b, Blackhole blackhole);
 
   protected abstract void hashCharsDirect(String s, Blackhole blackhole);
 
