@@ -193,7 +193,7 @@ class HashUtilTest {
   }
 
   @Test
-  void testRandomAsciiString() {
+  void testRandomLatin1Strings() {
 
     TestHashStream hashStream = new TestHashStream();
 
