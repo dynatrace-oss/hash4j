@@ -19,6 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream;
 import java.nio.charset.StandardCharsets;
+import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
@@ -188,6 +189,33 @@ class HashUtilTest {
           }
         }
       }
+    }
+  }
+
+  @Test
+  void testRandomAsciiString() {
+
+    TestHashStream hashStream = new TestHashStream();
+
+    SplittableRandom random = new SplittableRandom(0x4392cd5b27b28a4fL);
+
+    int numIterations = 1000;
+    int maxLength = 20;
+
+    for (int i = 0; i < numIterations; ++i) {
+      int len = random.nextInt(0, maxLength + 1);
+
+      char[] chars = new char[len];
+      for (int k = 0; k < len; ++k) {
+        chars[k] = (char) random.nextInt(256);
+      }
+      String s = String.valueOf(chars);
+      byte[] expectedBytes = s.getBytes(StandardCharsets.UTF_8);
+
+      hashStream.reset();
+      int numCodePoints = HashUtil.putCharsUTF8(hashStream, s);
+      assertThat(numCodePoints).isEqualTo(len);
+      hashStream.assertData(expectedBytes, expectedBytes.length);
     }
   }
 }
