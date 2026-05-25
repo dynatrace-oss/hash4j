@@ -5,7 +5,8 @@
 *.txt text eol=lf
 *.py text eol=lf
 *.md text eol=lf
-*.csv text
+gradle.properties text eol=lf
+*.csv text eol=lf
 gradlew.bat text eol=crlf
 gradlew text eol=lf
 *.gradle text eol=lf
