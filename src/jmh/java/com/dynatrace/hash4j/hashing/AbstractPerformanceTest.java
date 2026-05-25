@@ -31,6 +31,10 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -138,7 +142,8 @@ public abstract class AbstractPerformanceTest {
       int numKeyValuePairs = random.nextInt(1, 6);
       Map<String, String> temporaryMap = new HashMap<>();
       while (temporaryMap.size() < numKeyValuePairs) {
-        temporaryMap.put(createRandomString(1, 15, random), createRandomString(1, 30, random));
+        temporaryMap.put(
+            createRandomLatinString(1, 15, random), createRandomLatinString(1, 30, random));
       }
       data = ImmutableMap.copyOf(temporaryMap);
     }
@@ -178,7 +183,7 @@ public abstract class AbstractPerformanceTest {
 
     TestObject4(SplittableRandom random) {
       b = random.nextBoolean();
-      s = createRandomString(0, 16384, random);
+      s = createRandomLatinString(0, 16384, random);
     }
 
     @Override
@@ -209,37 +214,72 @@ public abstract class AbstractPerformanceTest {
   }
 
   private static final int NUM_OBJECTS = 100;
-  private static final byte[][] BYTE_ARRAYS_1;
-  private static final byte[][] BYTE_ARRAYS_4;
-  private static final byte[][] BYTE_ARRAYS_16;
-  private static final byte[][] BYTE_ARRAYS_64;
-  private static final byte[][] BYTE_ARRAYS_256;
-  private static final byte[][] BYTE_ARRAYS_1024;
-  private static final byte[][] BYTE_ARRAYS_4096;
-  private static final byte[][] BYTE_ARRAYS_16384;
-  private static final byte[][] BYTE_ARRAYS_65536;
-  private static final TestObject[] TEST_OBJECTS1;
-  private static final TestObject[] TEST_OBJECTS2;
-  private static final TestObject[] TEST_OBJECTS3;
-  private static final TestObject[] TEST_OBJECTS4;
-  private static final String[] STRINGS_1;
-  private static final String[] STRINGS_4;
-  private static final String[] STRINGS_16;
-  private static final String[] STRINGS_64;
-  private static final String[] STRINGS_256;
-  private static final String[] STRINGS_1024;
-  private static final String[] STRINGS_4096;
-  private static final String[] STRINGS_16384;
-  private static final String[] STRINGS_65536;
-  private static final String[] GREEK_STRINGS_1;
-  private static final String[] GREEK_STRINGS_4;
-  private static final String[] GREEK_STRINGS_16;
-  private static final String[] GREEK_STRINGS_64;
-  private static final String[] GREEK_STRINGS_256;
-  private static final String[] GREEK_STRINGS_1024;
-  private static final String[] GREEK_STRINGS_4096;
-  private static final String[] GREEK_STRINGS_16384;
-  private static final String[] GREEK_STRINGS_65536;
+
+  @SuppressWarnings("ImmutableEnumChecker")
+  public enum TestObjectType {
+    TEST_CASE_1(TestObject1::new, 0x37569b3107539e19L),
+    TEST_CASE_2(TestObject2::new, 0x892da841ae127839L),
+    TEST_CASE_3(TestObject3::new, 0xb443e2873a03f397L),
+    TEST_CASE_4(TestObject4::new, 0x49952ea071f1cc0aL);
+
+    private final TestObject[] instances;
+
+    TestObjectType(Function<SplittableRandom, ? extends TestObject> supplier, long seed) {
+      instances = createTestObjects(NUM_OBJECTS, supplier, seed);
+    }
+
+    public TestObject[] getInstances() {
+      return instances;
+    }
+  }
+
+  @State(Scope.Thread)
+  public static class ByteArrayState {
+    @Param({"4", "16", "64", "256", "1024", "4096", "16384", "65536"})
+    public int maxLen;
+
+    public byte[][] data;
+
+    @Setup
+    public void setup() {
+      data = createRandomByteArrays(NUM_OBJECTS, 1, maxLen, 0x035348bcb49493a4L ^ maxLen);
+    }
+  }
+
+  @State(Scope.Thread)
+  public static class StringState {
+    @Param({"4", "16", "64", "256", "1024", "4096", "16384", "65536"})
+    public int maxLen;
+
+    @Param({"false", "true"})
+    public boolean latin1Only;
+
+    public String[] data;
+
+    @Setup
+    public void setup() {
+      long seed =
+          Hashing.komihash5_0()
+              .hashStream()
+              .putLong(0xa756b898d936d351L)
+              .putInt(maxLen)
+              .putBoolean(latin1Only)
+              .getAsLong();
+      data = createRandomStrings(NUM_OBJECTS, 1, maxLen, latin1Only, seed);
+    }
+  }
+
+  @State(Scope.Thread)
+  public static class TestObjectState {
+    @Param public TestObjectType type;
+
+    public TestObject[] data;
+
+    @Setup
+    public void setup() {
+      data = type.getInstances();
+    }
+  }
 
   private static byte[][] createRandomByteArrays(int size, int minLen, int maxLen, long seed) {
     byte[][] result = new byte[size][];
@@ -253,42 +293,34 @@ public abstract class AbstractPerformanceTest {
   private static byte[] createRandomByteArray(int minLen, int maxLen, SplittableRandom random) {
     int len = random.nextInt(minLen, maxLen + 1);
     byte[] b = new byte[len];
-    for (int k = 0; k < len; ++k) {
-      b[k] = (byte) random.nextInt();
-    }
+    random.nextBytes(b);
     return b;
   }
 
   private static long[] createRandomLongArray(int minLen, int maxLen, SplittableRandom random) {
     int len = random.nextInt(minLen, maxLen + 1);
-    long[] b = new long[len];
-    for (int k = 0; k < len; ++k) {
-      b[k] = random.nextLong();
-    }
-    return b;
+    return random.longs(len).toArray();
   }
 
-  private static String[] createRandomStrings(int size, int minLen, int maxLen, long seed) {
+  private static String[] createRandomStrings(
+      int size, int minLen, int maxLen, boolean latin1Only, long seed) {
     String[] result = new String[size];
     SplittableRandom random = new SplittableRandom(seed);
-    for (int i = 0; i < size; ++i) {
-      result[i] = createRandomString(minLen, maxLen, random);
+    if (latin1Only) {
+      for (int i = 0; i < size; ++i) {
+        result[i] = createRandomLatinString(minLen, maxLen, random);
+      }
+    } else {
+      for (int i = 0; i < size; ++i) {
+        result[i] = createRandomGreekString(minLen, maxLen, random);
+      }
     }
     return result;
   }
 
-  private static String[] createRandomGreekStrings(int size, int minLen, int maxLen, long seed) {
-    String[] result = new String[size];
-    SplittableRandom random = new SplittableRandom(seed);
-    for (int i = 0; i < size; ++i) {
-      result[i] = createRandomGreekString(minLen, maxLen, random);
-    }
-    return result;
-  }
-
-  private static String createRandomString(int minLen, int maxLen, SplittableRandom random) {
+  private static String createRandomLatinString(int minLen, int maxLen, SplittableRandom random) {
     int len = random.nextInt(minLen, maxLen + 1);
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder(len);
     for (int i = 0; i < len; ++i) {
       char c = (char) ('a' + random.nextInt(0, 26));
       sb.append(c);
@@ -298,7 +330,7 @@ public abstract class AbstractPerformanceTest {
 
   private static String createRandomGreekString(int minLen, int maxLen, SplittableRandom random) {
     int len = random.nextInt(minLen, maxLen + 1);
-    StringBuilder sb = new StringBuilder();
+    StringBuilder sb = new StringBuilder(len);
     for (int i = 0; i < len; ++i) {
       char c = (char) (0x03B1 + random.nextInt(0, 24));
       if (c >= 0x03C2) c = (char) (c + 1);
@@ -317,593 +349,60 @@ public abstract class AbstractPerformanceTest {
     return result;
   }
 
-  static {
-    BYTE_ARRAYS_1 = createRandomByteArrays(NUM_OBJECTS, 1, 1, 0x035348bcb49493a4L);
-    BYTE_ARRAYS_4 = createRandomByteArrays(NUM_OBJECTS, 1, 4, 0xcc6444ca02edfbd0L);
-    BYTE_ARRAYS_16 = createRandomByteArrays(NUM_OBJECTS, 1, 16, 0x187c616cabc3e0a7L);
-    BYTE_ARRAYS_64 = createRandomByteArrays(NUM_OBJECTS, 1, 64, 0xa820ddbf8f76273dL);
-    BYTE_ARRAYS_256 = createRandomByteArrays(NUM_OBJECTS, 1, 256, 0x898e4c60ab901376L);
-    BYTE_ARRAYS_1024 = createRandomByteArrays(NUM_OBJECTS, 1, 1024, 0x9ab1d4c83e21e7b5L);
-    BYTE_ARRAYS_4096 = createRandomByteArrays(NUM_OBJECTS, 1, 4096, 0x7b45b65d1b255bd2L);
-    BYTE_ARRAYS_16384 = createRandomByteArrays(NUM_OBJECTS, 1, 16384, 0xfdd3e95143976394L);
-    BYTE_ARRAYS_65536 = createRandomByteArrays(NUM_OBJECTS, 1, 65536, 0xb88f915ab0eb17d4L);
-
-    STRINGS_1 = createRandomStrings(NUM_OBJECTS, 1, 1, 0xa756b898d936d351L);
-    STRINGS_4 = createRandomStrings(NUM_OBJECTS, 1, 4, 0xf06e23722173067aL);
-    STRINGS_16 = createRandomStrings(NUM_OBJECTS, 1, 16, 0xfbc6f5c26f29b374L);
-    STRINGS_64 = createRandomStrings(NUM_OBJECTS, 1, 64, 0x3c27c7802abf21d1L);
-    STRINGS_256 = createRandomStrings(NUM_OBJECTS, 1, 256, 0x730639ee2907f2f1L);
-    STRINGS_1024 = createRandomStrings(NUM_OBJECTS, 1, 1024, 0xdfa31cd8edd04d3bL);
-    STRINGS_4096 = createRandomStrings(NUM_OBJECTS, 1, 4096, 0x695efc0349910083L);
-    STRINGS_16384 = createRandomStrings(NUM_OBJECTS, 1, 16384, 0x0768fc20ab155665L);
-    STRINGS_65536 = createRandomStrings(NUM_OBJECTS, 1, 65536, 0x9d616b61b5dc068cL);
-
-    GREEK_STRINGS_1 = createRandomGreekStrings(NUM_OBJECTS, 1, 1, 0x9b3886cada089a3eL);
-    GREEK_STRINGS_4 = createRandomGreekStrings(NUM_OBJECTS, 1, 4, 0xa7b004204ddb0910L);
-    GREEK_STRINGS_16 = createRandomGreekStrings(NUM_OBJECTS, 1, 16, 0x738ef036d9062454L);
-    GREEK_STRINGS_64 = createRandomGreekStrings(NUM_OBJECTS, 1, 64, 0xebbad16d8b6f33dcL);
-    GREEK_STRINGS_256 = createRandomGreekStrings(NUM_OBJECTS, 1, 256, 0xd847c15d9d95a4b3L);
-    GREEK_STRINGS_1024 = createRandomGreekStrings(NUM_OBJECTS, 1, 1024, 0x89d476632e2a4c07L);
-    GREEK_STRINGS_4096 = createRandomGreekStrings(NUM_OBJECTS, 1, 4096, 0xd3000da570497d66L);
-    GREEK_STRINGS_16384 = createRandomGreekStrings(NUM_OBJECTS, 1, 16384, 0xd689541852036364L);
-    GREEK_STRINGS_65536 = createRandomGreekStrings(NUM_OBJECTS, 1, 65536, 0x099adddb7a111298L);
-
-    TEST_OBJECTS1 = createTestObjects(NUM_OBJECTS, TestObject1::new, 0x37569b3107539e19L);
-    TEST_OBJECTS2 = createTestObjects(NUM_OBJECTS, TestObject2::new, 0x892da841ae127839L);
-    TEST_OBJECTS3 = createTestObjects(NUM_OBJECTS, TestObject3::new, 0xb443e2873a03f397L);
-    TEST_OBJECTS4 = createTestObjects(NUM_OBJECTS, TestObject4::new, 0x49952ea071f1cc0aL);
-  }
-
-  private void testHashBytesDirect(byte[][] data, Blackhole blackhole) {
-    for (byte[] b : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytesDirect(ByteArrayState state, Blackhole blackhole) {
+    for (byte[] b : state.data) {
       hashBytesDirect(b, blackhole);
     }
   }
 
-  private void testHashBytesViaAccess(byte[][] data, Blackhole blackhole) {
-    for (byte[] b : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytesViaAccess(ByteArrayState state, Blackhole blackhole) {
+    for (byte[] b : state.data) {
       hashBytesViaAccess(b, blackhole);
     }
   }
 
-  private void testHashBytesIndirect(byte[][] data, Blackhole blackhole) {
-    for (byte[] b : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashBytesIndirect(ByteArrayState state, Blackhole blackhole) {
+    for (byte[] b : state.data) {
       hashBytesIndirect(b, blackhole);
     }
   }
 
-  private void testHashCharsDirect(String[] data, Blackhole blackhole) {
-    for (String s : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashCharsDirect(StringState state, Blackhole blackhole) {
+    for (String s : state.data) {
       hashCharsDirect(s, blackhole);
     }
   }
 
-  private void testHashCharsIndirect(String[] data, Blackhole blackhole) {
-    for (String s : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashCharsIndirect(StringState state, Blackhole blackhole) {
+    for (String s : state.data) {
       hashCharsIndirect(s, blackhole);
     }
   }
 
-  private void testHashCharsUTF8Indirect(String[] data, Blackhole blackhole) {
-    for (String s : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashCharsUTF8Indirect(StringState state, Blackhole blackhole) {
+    for (String s : state.data) {
       hashCharsUTF8Indirect(s, blackhole);
     }
   }
 
-  private void objectTest(TestObject[] data, Blackhole blackhole) {
-    for (TestObject o : data) {
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
+  public void hashTestObject(TestObjectState state, Blackhole blackhole) {
+    for (TestObject o : state.data) {
       hashObject(o, blackhole);
     }
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000001Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000004Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000016Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000064Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000256Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes001024Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes004096Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes016384Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes065536Direct(Blackhole blackhole) {
-    testHashBytesDirect(BYTE_ARRAYS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000001ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000004ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000016ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000064ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000256ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes001024ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes004096ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes016384ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes065536ViaAccess(Blackhole blackhole) {
-    testHashBytesViaAccess(BYTE_ARRAYS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000001Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000004Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000016Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000064Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes000256Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes001024Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes004096Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes016384Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashBytes065536Indirect(Blackhole blackhole) {
-    testHashBytesIndirect(BYTE_ARRAYS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000001Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000004Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000016Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000064Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000256Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars001024Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars004096Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars016384Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars065536Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(STRINGS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000001Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000004Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000016Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000064Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000256Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars001024Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars004096Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars016384Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars065536Direct(Blackhole blackhole) {
-    testHashCharsDirect(STRINGS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000001Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000004Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000016Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000064Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000256Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars001024Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars004096Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars016384Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars065536Indirect(Blackhole blackhole) {
-    testHashCharsIndirect(GREEK_STRINGS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000001Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000004Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000016Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000064Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000256Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars001024Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars004096Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars016384Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars065536Direct(Blackhole blackhole) {
-    testHashCharsDirect(GREEK_STRINGS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000001UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000004UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000016UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000064UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars000256UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars001024UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars004096UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars016384UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashChars065536UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(STRINGS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000001UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000004UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_4, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000016UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_16, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000064UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_64, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars000256UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_256, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars001024UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_1024, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars004096UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_4096, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars016384UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_16384, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashGreekChars065536UTF8Indirect(Blackhole blackhole) {
-    testHashCharsUTF8Indirect(GREEK_STRINGS_65536, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashTestObject1(Blackhole blackhole) {
-    objectTest(TEST_OBJECTS1, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashTestObject2(Blackhole blackhole) {
-    objectTest(TEST_OBJECTS2, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashTestObject3(Blackhole blackhole) {
-    objectTest(TEST_OBJECTS3, blackhole);
-  }
-
-  @Benchmark
-  @BenchmarkMode(Mode.AverageTime)
-  public void hashTestObject4(Blackhole blackhole) {
-    objectTest(TEST_OBJECTS4, blackhole);
   }
 
   protected abstract void hashObject(TestObject testObject, Blackhole blackhole);
