@@ -49,13 +49,8 @@ class XXH3_64Test extends AbstractHasher64Test {
   }
 
   @Override
-  protected void calculateHashForChecksum(
-      byte[] seedBytes,
-      byte[] hashBytes,
-      Object o,
-      long off,
-      long len,
-      ByteAccess<Object> byteAccess) {
+  protected <T> void calculateHashForChecksum(
+      byte[] seedBytes, byte[] hashBytes, T o, long off, long len, ByteAccess<T> byteAccess) {
     long seed = getLong(seedBytes, 0);
 
     long hash0 = Hashing.xxh3_64().hashBytesToLong(o, off, len, byteAccess);

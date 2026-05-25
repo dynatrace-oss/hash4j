@@ -15,12 +15,13 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_BYTES_FUNNEL;
+import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_CHARS_FUNNEL;
+import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_CHARS_UTF8_FUNNEL;
+
 import org.openjdk.jmh.infra.Blackhole;
 
 public abstract class AbstractHasher128PerformanceTest extends AbstractPerformanceTest {
-
-  protected static final HashFunnel<CharSequence> CHARS_FUNNEL = (s, sink) -> sink.putChars(s);
-  protected static final HashFunnel<byte[]> BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 
   @Override
   protected void hashObject(TestObject testObject, Blackhole blackhole) {
@@ -40,7 +41,7 @@ public abstract class AbstractHasher128PerformanceTest extends AbstractPerforman
 
   @Override
   protected void hashBytesIndirect(byte[] b, Blackhole blackhole) {
-    blackhole.consume(getHasherInstance().hashTo128Bits(b, BYTES_FUNNEL));
+    blackhole.consume(getHasherInstance().hashTo128Bits(b, HASH4J_BYTES_FUNNEL));
   }
 
   @Override
@@ -50,7 +51,12 @@ public abstract class AbstractHasher128PerformanceTest extends AbstractPerforman
 
   @Override
   protected void hashCharsIndirect(String s, Blackhole blackhole) {
-    blackhole.consume(getHasherInstance().hashTo128Bits(s, CHARS_FUNNEL));
+    blackhole.consume(getHasherInstance().hashTo128Bits(s, HASH4J_CHARS_FUNNEL));
+  }
+
+  @Override
+  protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashTo128Bits(s, HASH4J_CHARS_UTF8_FUNNEL));
   }
 
   protected abstract Hasher128 getHasherInstance();

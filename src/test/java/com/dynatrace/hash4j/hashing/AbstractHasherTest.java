@@ -721,13 +721,8 @@ abstract class AbstractHasherTest {
   protected abstract void calculateHashForChecksum(
       byte[] seedBytes, byte[] hashBytes, byte[] dataBytes);
 
-  protected abstract void calculateHashForChecksum(
-      byte[] seedBytes,
-      byte[] hashBytes,
-      Object o,
-      long off,
-      long len,
-      ByteAccess<Object> byteAccess);
+  protected abstract <T> void calculateHashForChecksum(
+      byte[] seedBytes, byte[] hashBytes, T o, long off, long len, ByteAccess<T> byteAccess);
 
   protected abstract void calculateHashForChecksum(
       byte[] seedBytes, byte[] hashBytes, CharSequence charSequence);

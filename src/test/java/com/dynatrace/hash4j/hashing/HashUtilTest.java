@@ -19,6 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream;
 import java.nio.charset.StandardCharsets;
+import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +38,7 @@ class HashUtilTest {
    * HashUtil#putCharsUTF8(HashStream, CharSequence)}. This allows to test the handling of these
    * conditions without testing all 65536 char values.
    */
-  private static char[] createLimitedCharPool() {
-    int extend = 200;
+  private static char[] createLimitedCharPool(int extend) {
     int[] branchPoints =
         IntStream.of(0x0, 0x80, 0x800, 0xd800, 0xe000, 0xdc00)
             .flatMap(i -> IntStream.rangeClosed(i - extend, i + extend))
@@ -123,7 +123,7 @@ class HashUtilTest {
 
     TestHashStream hashStream = new TestHashStream();
 
-    char[] charPool = createLimitedCharPool();
+    char[] charPool = createLimitedCharPool(200);
     for (char c0 : charPool) {
       for (char c1 : charPool) {
         chars[0] = c0;
@@ -137,6 +137,85 @@ class HashUtilTest {
         assertThat(numCodePoints).isBetween(1, 2);
         hashStream.assertData(expectedBytes, expectedBytes.length);
       }
+    }
+  }
+
+  @Test
+  void testPutCharsUTF8FourChars() {
+    char[] chars = new char[4];
+    CharSequence charSequence =
+        new CharSequence() {
+          @Override
+          public int length() {
+            return 4;
+          }
+
+          @Override
+          public char charAt(int index) {
+            return chars[index];
+          }
+
+          @Override
+          public String toString() {
+            return String.valueOf(chars);
+          }
+
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            throw new UnsupportedOperationException();
+          }
+        };
+
+    TestHashStream hashStream = new TestHashStream();
+
+    char[] charPool = createLimitedCharPool(3);
+    for (char c0 : charPool) {
+      for (char c1 : charPool) {
+        for (char c2 : charPool) {
+          for (char c3 : charPool) {
+
+            chars[0] = c0;
+            chars[1] = c1;
+            chars[2] = c2;
+            chars[3] = c3;
+
+            byte[] expectedBytes = charSequence.toString().getBytes(StandardCharsets.UTF_8);
+
+            hashStream.reset();
+            int numCodePoints = HashUtil.putCharsUTF8(hashStream, charSequence);
+
+            assertThat(numCodePoints).isBetween(2, 4);
+            hashStream.assertData(expectedBytes, expectedBytes.length);
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  void testRandomLatin1Strings() {
+
+    TestHashStream hashStream = new TestHashStream();
+
+    SplittableRandom random = new SplittableRandom(0x4392cd5b27b28a4fL);
+
+    int numIterations = 1000;
+    int maxLength = 20;
+
+    for (int i = 0; i < numIterations; ++i) {
+      int len = random.nextInt(0, maxLength + 1);
+
+      char[] chars = new char[len];
+      for (int k = 0; k < len; ++k) {
+        chars[k] = (char) random.nextInt(256);
+      }
+      String s = String.valueOf(chars);
+      byte[] expectedBytes = s.getBytes(StandardCharsets.UTF_8);
+
+      hashStream.reset();
+      int numCodePoints = HashUtil.putCharsUTF8(hashStream, s);
+      assertThat(numCodePoints).isEqualTo(len);
+      hashStream.assertData(expectedBytes, expectedBytes.length);
     }
   }
 }
