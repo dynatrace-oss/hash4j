@@ -330,7 +330,9 @@ spotless {
 		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
 		formatAnnotations()
+		expandWildcardImports()
 		forbidWildcardImports()
+		forbidModuleImports()
 		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
 		targetExclude specialLicenseHeaders.collect {it.get(2)}.flatten()
 	}
@@ -362,6 +364,18 @@ jmh {
 	failOnError = false
 	resultFormat = "JSON"
 	jvmArgs = ["-Xmx8g"]
+	if (project.hasProperty('jmhIncludes')) {
+		includes = [
+			project.property('jmhIncludes')
+		]
+	}
+}
+
+tasks.named("jmhJar") {
+	dependsOn "compileJava21Java", "compileJava25Java"
+	into("META-INF/versions/21") { from sourceSets.java21.output }
+	into("META-INF/versions/25") { from sourceSets.java25.output }
+	manifest { attributes "Multi-Release": "true" }
 }
 
 tasks.register("evaluateEstimationErrors", Exec) {
