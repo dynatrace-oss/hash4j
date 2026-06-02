@@ -221,7 +221,10 @@ public interface HashStream32 extends HashStream {
    * @param <T> the type
    * @return a 32-bit hash value
    */
-  <T> int resetAndHashToInt(T obj, HashFunnel<T> funnel);
+  default <T> int resetAndHashToInt(T obj, HashFunnel<T> funnel) {
+    funnel.put(obj, reset());
+    return getAsInt();
+  }
 
   /**
    * Returns a reference of the underlying hasher.

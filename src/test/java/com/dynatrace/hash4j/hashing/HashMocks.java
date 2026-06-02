@@ -92,7 +92,8 @@ final class HashMocks {
       return new FixedHasher32.HashStreamImpl(this);
     }
 
-    private static final class HashStreamImpl implements AbstractHashStream32 {
+    private static final class HashStreamImpl extends AbstractHashStream<HashStream32>
+        implements HashStream32 {
 
       private final FixedHasher32 hasher;
 
@@ -194,7 +195,8 @@ final class HashMocks {
       return new FixedHasher64.HashStreamImpl(this);
     }
 
-    private static final class HashStreamImpl implements AbstractHashStream64 {
+    private static final class HashStreamImpl extends AbstractHashStream<HashStream64>
+        implements HashStream64 {
 
       private final FixedHasher64 hasher;
 
@@ -293,7 +295,8 @@ final class HashMocks {
       return hash.getAsLong();
     }
 
-    private static final class HashStreamImpl implements AbstractHashStream128 {
+    private static final class HashStreamImpl extends AbstractHashStream<HashStream128>
+        implements HashStream128 {
 
       private final FixedHasher128 hasher;
 
@@ -372,7 +375,8 @@ final class HashMocks {
       return referenceHasher.hashCharsToInt(input);
     }
 
-    private static class HashStreamImpl implements AbstractHashStream32 {
+    private static class HashStreamImpl extends AbstractHashStream<HashStream32>
+        implements HashStream32 {
 
       private final Hasher32 hasher;
       private final HashStream32 hashStream;
@@ -451,7 +455,8 @@ final class HashMocks {
       return referenceHasher.hashCharsToLong(input);
     }
 
-    private static class HashStreamImpl implements AbstractHashStream64 {
+    private static class HashStreamImpl extends AbstractHashStream<HashStream64>
+        implements HashStream64 {
 
       private final Hasher64 hasher;
       private final HashStream64 hashStream;
@@ -532,7 +537,8 @@ final class HashMocks {
       return referenceHasher.hashCharsTo128Bits(input);
     }
 
-    private static class HashStreamImpl implements AbstractHashStream128 {
+    private static class HashStreamImpl extends AbstractHashStream<HashStream128>
+        implements HashStream128 {
 
       private final Hasher128 hasher;
       private final HashStream128 hashStream;
@@ -602,7 +608,7 @@ final class HashMocks {
     }
   }
 
-  public static class TestHashStream implements AbstractHashStream {
+  public static class TestHashStream extends AbstractHashStream<HashStream> {
     private int size = 0;
     private byte[] data = new byte[1];
 
@@ -684,7 +690,8 @@ final class HashMocks {
     }
   }
 
-  public static final class TestHashStream32 implements AbstractHashStream32 {
+  public static final class TestHashStream32 extends AbstractHashStream<HashStream32>
+      implements HashStream32 {
 
     private final TestHashStream hashStream;
 
@@ -765,7 +772,8 @@ final class HashMocks {
     }
   }
 
-  public static final class TestHashStream64 implements AbstractHashStream64 {
+  public static final class TestHashStream64 extends AbstractHashStream<HashStream64>
+      implements HashStream64 {
 
     private final TestHashStream hashStream;
 
@@ -851,7 +859,8 @@ final class HashMocks {
     }
   }
 
-  public static final class TestHashStream128 implements AbstractHashStream128 {
+  public static final class TestHashStream128 extends AbstractHashStream<HashStream128>
+      implements HashStream128 {
 
     private final TestHashStream hashStream;
 

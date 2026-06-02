@@ -47,6 +47,11 @@ public interface HashStream64 extends HashStream32 {
   long getAsLong();
 
   @Override
+  default int getAsInt() {
+    return (int) getAsLong();
+  }
+
+  @Override
   HashStream64 putByte(byte v);
 
   @Override
@@ -210,7 +215,10 @@ public interface HashStream64 extends HashStream32 {
    * @param <T> the type
    * @return a 64-bit hash value
    */
-  <T> long resetAndHashToLong(T obj, HashFunnel<T> funnel);
+  default <T> long resetAndHashToLong(T obj, HashFunnel<T> funnel) {
+    funnel.put(obj, reset());
+    return getAsLong();
+  }
 
   @Override
   Hasher64 getHasher();

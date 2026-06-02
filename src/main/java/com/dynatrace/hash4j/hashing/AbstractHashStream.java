@@ -33,26 +33,27 @@ import java.util.RandomAccess;
 import java.util.UUID;
 import java.util.function.ToLongFunction;
 
-interface AbstractHashStream extends HashStream {
+@SuppressWarnings("unchecked")
+abstract class AbstractHashStream<H extends HashStream> implements HashStream {
 
   @Override
-  default int getHashBitSize() {
+  public int getHashBitSize() {
     return getHasher().getHashBitSize();
   }
 
   @Override
-  default HashStream putBoolean(boolean v) {
+  public H putBoolean(boolean v) {
     putByte((byte) (v ? 1 : 0));
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putBooleans(boolean[] x) {
+  public H putBooleans(boolean[] x) {
     return putBooleans(x, 0, x.length);
   }
 
   @Override
-  default HashStream putBooleans(boolean[] x, int off, int len) {
+  public H putBooleans(boolean[] x, int off, int len) {
     int end = len + off;
     while (off <= end - 8) {
       long b0 = (x[off + 0] ? 1L : 0L) << (8 * 0);
@@ -83,26 +84,28 @@ interface AbstractHashStream extends HashStream {
     if (off < end) {
       putBoolean(x[off]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putBooleanArray(boolean[] x) {
-    return putBooleans(x).putInt(x.length);
+  public H putBooleanArray(boolean[] x) {
+    putBooleans(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putBytes(byte[] b) {
+  public H putBytes(byte[] b) {
     return putBytes(b, 0, b.length);
   }
 
   @Override
-  default HashStream putBytes(byte[] b, int off, int len) {
+  public H putBytes(byte[] b, int off, int len) {
     return putBytes(b, off, len, ByteArrayByteAccess.get());
   }
 
   @Override
-  default <T> HashStream putBytes(T b, long off, long len, ByteAccess<T> access) {
+  public <T> H putBytes(T b, long off, long len, ByteAccess<T> access) {
     while (len >= 8) {
       putLong(access.getLong(b, off));
       off += 8;
@@ -120,27 +123,29 @@ interface AbstractHashStream extends HashStream {
         if (len != 2) putByte(access.getByte(b, off + 2));
       }
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putByteArray(byte[] x) {
-    return putBytes(x).putInt(x.length);
+  public H putByteArray(byte[] x) {
+    putBytes(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putChar(char v) {
+  public H putChar(char v) {
     putShort((short) v);
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putChars(char[] x) {
+  public H putChars(char[] x) {
     return putChars(x, 0, x.length);
   }
 
   @Override
-  default HashStream putChars(char[] x, int off, int len) {
+  public H putChars(char[] x, int off, int len) {
     int end = len + off;
     while (off <= end - 4) {
       long b0 = (long) x[off + 0] << (16 * 0);
@@ -159,11 +164,11 @@ interface AbstractHashStream extends HashStream {
     if (off < end) {
       putChar(x[off]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putChars(CharSequence s) {
+  public H putChars(CharSequence s) {
     int end = s.length();
     int off = 0;
     while (off <= end - 4) {
@@ -177,52 +182,56 @@ interface AbstractHashStream extends HashStream {
     if (off < end) {
       putChar(s.charAt(off));
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putCharsUTF8(CharSequence c) {
-    HashUtil.putCharsUTF8(this, c);
-    return this;
+  public H putCharsUTF8(CharSequence c) {
+    putCharsUTF8Internal(c);
+    return (H) this;
   }
 
   @Override
-  default HashStream putStringUTF8(String s) {
-    putInt(HashUtil.putCharsUTF8(this, s));
-    return this;
+  public H putStringUTF8(String s) {
+    putInt(putCharsUTF8Internal(s));
+    return (H) this;
   }
 
   @Override
-  default HashStream putCharArray(char[] x) {
-    return putChars(x).putInt(x.length);
+  public H putCharArray(char[] x) {
+    putChars(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putString(String s) {
+  public H putString(String s) {
     putChars(s);
     putInt(s.length());
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putShort(short v) {
+  public H putShort(short v) {
     putByte((byte) v);
     putByte((byte) (v >>> 8));
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putShortArray(short[] x) {
-    return putShorts(x).putInt(x.length);
+  public H putShortArray(short[] x) {
+    putShorts(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putShorts(short[] x) {
+  public H putShorts(short[] x) {
     return putShorts(x, 0, x.length);
   }
 
   @Override
-  default HashStream putShorts(short[] x, int off, int len) {
+  public H putShorts(short[] x, int off, int len) {
     int end = off + len;
     while (off <= end - 4) {
       long b0 = (x[off + 0] & 0xFFFFL) << (16 * 0);
@@ -241,30 +250,32 @@ interface AbstractHashStream extends HashStream {
     if (off < end) {
       putShort(x[off]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putInt(int v) {
+  public H putInt(int v) {
     putByte((byte) v);
     putByte((byte) (v >>> 8));
     putByte((byte) (v >>> 16));
     putByte((byte) (v >>> 24));
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putIntArray(int[] x) {
-    return putInts(x).putInt(x.length);
+  public H putIntArray(int[] x) {
+    putInts(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putInts(int[] x) {
+  public H putInts(int[] x) {
     return putInts(x, 0, x.length);
   }
 
   @Override
-  default HashStream putInts(int[] x, int off, int len) {
+  public H putInts(int[] x, int off, int len) {
     int end = off + len;
     while (off <= end - 2) {
       long b0 = x[off + 0] & 0xFFFFFFFFL;
@@ -275,47 +286,49 @@ interface AbstractHashStream extends HashStream {
     if (off < end) {
       putInt(x[off]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putLong(long v) {
+  public H putLong(long v) {
     putInt((int) v);
     putInt((int) (v >> 32));
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putLongArray(long[] x) {
-    return putLongs(x).putInt(x.length);
+  public H putLongArray(long[] x) {
+    putLongs(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putLongs(long[] x) {
+  public H putLongs(long[] x) {
     return putLongs(x, 0, x.length);
   }
 
   @Override
-  default HashStream putLongs(long[] x, int off, int len) {
+  public H putLongs(long[] x, int off, int len) {
     for (int i = 0; i < len; ++i) {
       putLong(x[off + i]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putFloat(float v) {
+  public H putFloat(float v) {
     putInt(Float.floatToRawIntBits(v));
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putFloats(float[] x) {
+  public H putFloats(float[] x) {
     return putFloats(x, 0, x.length);
   }
 
   @Override
-  default HashStream putFloats(float[] x, int off, int len) {
+  public H putFloats(float[] x, int off, int len) {
     int end = off + len;
     while (off <= end - 2) {
       long b0 = Float.floatToRawIntBits(x[off + 0]) & 0xFFFFFFFFL;
@@ -326,82 +339,86 @@ interface AbstractHashStream extends HashStream {
     if (off < end) {
       putFloat(x[off]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putFloatArray(float[] x) {
-    return putFloats(x).putInt(x.length);
+  public H putFloatArray(float[] x) {
+    putFloats(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putDouble(double v) {
+  public H putDouble(double v) {
     putLong(Double.doubleToRawLongBits(v));
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putDoubleArray(double[] x) {
-    return putDoubles(x).putInt(x.length);
+  public H putDoubleArray(double[] x) {
+    putDoubles(x);
+    putInt(x.length);
+    return (H) this;
   }
 
   @Override
-  default HashStream putDoubles(double[] x) {
+  public H putDoubles(double[] x) {
     return putDoubles(x, 0, x.length);
   }
 
   @Override
-  default HashStream putDoubles(double[] x, int off, int len) {
+  public H putDoubles(double[] x, int off, int len) {
     for (int i = 0; i < len; ++i) {
       putDouble(x[off + i]);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putUUID(UUID uuid) {
+  public H putUUID(UUID uuid) {
     putLong(uuid.getLeastSignificantBits());
     putLong(uuid.getMostSignificantBits());
-    return this;
+    return (H) this;
   }
 
   @Override
-  default <T> HashStream put(T data, HashFunnel<T> funnel) {
+  public <T> H put(T data, HashFunnel<T> funnel) {
     funnel.put(data, this);
-    return this;
+    return (H) this;
   }
 
   @Override
-  default <T> HashStream putNullable(T data, HashFunnel<T> funnel) {
+  public <T> H putNullable(T data, HashFunnel<T> funnel) {
     if (data != null) {
       funnel.put(data, this);
       putBoolean(true);
     } else {
       putBoolean(false);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default <T> HashStream putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
+  public <T> H putOrderedIterable(Iterable<T> data, HashFunnel<? super T> funnel) {
     int counter = 0;
     for (T d : data) {
       put(d, funnel);
       counter += 1;
     }
     putInt(counter);
-    return this;
+    return (H) this;
   }
 
   @Override
-  default <T> HashStream putUnorderedIterable(
+  public <T> H putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, Hasher64 hasher) {
     HashStream64 hashStream = hasher.hashStream();
     return putUnorderedIterable(data, x -> hashStream.resetAndHashToLong(x, funnel));
   }
 
   @Override
-  default <T> HashStream putUnorderedIterable(
+  public <T> H putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream) {
     checkArgument(
         this != hashStream,
@@ -410,7 +427,7 @@ interface AbstractHashStream extends HashStream {
   }
 
   @Override
-  default <T> HashStream putUnorderedIterable(
+  public <T> H putUnorderedIterable(
       final Iterable<T> data, final ToLongFunction<? super T> elementHashFunction) {
     requireNonNull(data);
     requireNonNull(elementHashFunction);
@@ -436,7 +453,7 @@ interface AbstractHashStream extends HashStream {
       putLongs(elementHashes, 0, counter);
       putInt(counter);
     }
-    return this;
+    return (H) this;
   }
 
   private void putSorted(long l0, long l1) {
@@ -1461,51 +1478,105 @@ interface AbstractHashStream extends HashStream {
   }
 
   @Override
-  default <T> HashStream putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
+  public <T> H putOptional(Optional<T> obj, HashFunnel<? super T> funnel) {
     if (obj.isPresent()) {
       put(obj.get(), funnel);
       putBoolean(true);
     } else {
       putBoolean(false);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putOptionalInt(OptionalInt v) {
+  public H putOptionalInt(OptionalInt v) {
     if (v.isPresent()) {
       putInt(v.getAsInt());
       putBoolean(true);
     } else {
       putBoolean(false);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putOptionalLong(OptionalLong v) {
+  public H putOptionalLong(OptionalLong v) {
     if (v.isPresent()) {
       putLong(v.getAsLong());
       putBoolean(true);
     } else {
       putBoolean(false);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream putOptionalDouble(OptionalDouble v) {
+  public H putOptionalDouble(OptionalDouble v) {
     if (v.isPresent()) {
       putDouble(v.getAsDouble());
       putBoolean(true);
     } else {
       putBoolean(false);
     }
-    return this;
+    return (H) this;
   }
 
   @Override
-  default HashStream copy() {
-    return getHasher().hashStreamFromState(getState());
+  public H copy() {
+    return (H) getHasher().hashStreamFromState(getState());
+  }
+
+  // visible for testing
+  int putCharsUTF8Internal(CharSequence c) {
+    int pos = 0;
+    final int len = c.length();
+
+    while (pos <= len - 4) {
+      // ascii fast loop
+      char ch0 = c.charAt(pos);
+      char ch1 = c.charAt(pos + 1);
+      char ch2 = c.charAt(pos + 2);
+      char ch3 = c.charAt(pos + 3);
+      if ((ch0 | ch1 | ch2 | ch3) >= 0x80) {
+        break;
+      }
+      putInt(ch0 | (ch1 << 8) | (ch2 << 16) | (ch3 << 24));
+      pos += 4;
+    }
+
+    int byteCount = pos;
+    while (pos < len) {
+      char ch = c.charAt(pos++);
+      if (ch < 0x80) {
+        putByte((byte) ch);
+        byteCount += 1;
+      } else if (ch < 0x800) {
+        putChar((char) ((0x80c0 | (ch >>> 6) | (ch << 8)) & 0xbfff));
+        byteCount += 2;
+      } else if (ch >= 0xd800 && ch < 0xe000) {
+        int uc = 0xfca02400;
+        if (ch < 0xdc00 && pos < len) {
+          char ch2 = c.charAt(pos);
+          if (ch2 >= 0xdc00 && ch2 < 0xe000) {
+            uc += (ch << 10) + ch2;
+          }
+        }
+        if (uc < 0) {
+          putByte((byte) '?');
+          byteCount += 1;
+        } else {
+          // 0x00010000 <= uc < 0x00110000
+          int y = (uc << 16) | (uc >>> 12);
+          putInt(0x808080f0 | ((y >>> 6) & 0x3f003f) | ((y & 0x3f003f) << 8));
+          byteCount += 4;
+          pos++; // 2 chars
+        }
+      } else {
+        putByte((byte) (0xe0 | (ch >>> 12)));
+        putChar((char) ((0x8080 | ((ch >>> 6) & 0x3f)) | ((ch & 0x3f) << 8)));
+        byteCount += 3;
+      }
+    }
+    return byteCount;
   }
 }

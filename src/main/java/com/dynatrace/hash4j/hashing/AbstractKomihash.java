@@ -80,7 +80,8 @@ abstract class AbstractKomihash implements AbstractHasher64 {
     this.initSeed = seed;
   }
 
-  protected abstract class HashStreamImpl implements AbstractHashStream64 {
+  protected abstract class HashStreamImpl extends AbstractHashStream<HashStream64>
+      implements HashStream64 {
 
     protected boolean init = false;
     protected int bufferCount = 0;

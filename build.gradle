@@ -26,6 +26,7 @@ plugins {
 	id "signing"
 	id "net.ltgt.errorprone" version "5.1.0"
 	id "me.champeau.gradle.japicmp" version "0.4.6"
+	id "de.thetaphi.forbiddenapis" version "3.9"
 }
 
 repositories {
@@ -215,6 +216,15 @@ tasks.withType(JavaCompile).configureEach {
 	// options.errorprone.enabled = false
 }
 
+// Forbid specific APIs across all source sets.
+// Add new banned signatures to the signaturesFiles below.
+forbiddenApis {
+	failOnUnsupportedJava = false
+	signaturesFiles = files("$rootDir/gradle/forbidden-apis/forbidden-signatures.txt")
+	ignoreFailures = false
+}
+tasks.named("check").configure { dependsOn tasks.withType(de.thetaphi.forbiddenapis.gradle.CheckForbiddenApis) }
+
 
 def readJavaLicense(licenseName) {
 	File licenseFile = new File(rootDir, "licenses/" + licenseName + ".txt")
@@ -330,7 +340,9 @@ spotless {
 		cleanthat()
 		googleJavaFormat(googleJavaFormatVersion)
 		formatAnnotations()
+		expandWildcardImports()
 		forbidWildcardImports()
+		forbidModuleImports()
 		licenseHeader readJavaLicense("APACHE_2_0_DYNATRACE")
 		targetExclude specialLicenseHeaders.collect {it.get(2)}.flatten()
 	}
@@ -362,6 +374,18 @@ jmh {
 	failOnError = false
 	resultFormat = "JSON"
 	jvmArgs = ["-Xmx8g"]
+	if (project.hasProperty('jmhIncludes')) {
+		includes = [
+			project.property('jmhIncludes')
+		]
+	}
+}
+
+tasks.named("jmhJar") {
+	dependsOn "compileJava21Java", "compileJava25Java"
+	into("META-INF/versions/21") { from sourceSets.java21.output }
+	into("META-INF/versions/25") { from sourceSets.java25.output }
+	manifest { attributes "Multi-Release": "true" }
 }
 
 tasks.register("evaluateEstimationErrors", Exec) {

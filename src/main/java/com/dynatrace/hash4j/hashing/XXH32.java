@@ -308,7 +308,7 @@ final class XXH32 implements AbstractHasher32 {
     return avalanche(h);
   }
 
-  private class HashStreamImpl implements AbstractHashStream32 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream32> implements HashStream32 {
 
     private final byte[] buffer = new byte[16 + 8];
     private int offset = 0;

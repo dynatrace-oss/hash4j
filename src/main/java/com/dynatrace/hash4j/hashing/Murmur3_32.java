@@ -155,7 +155,7 @@ final class Murmur3_32 implements AbstractHasher32 {
     return h;
   }
 
-  private class HashStreamImpl implements AbstractHashStream32 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream32> implements HashStream32 {
 
     private int h1 = seed;
     private long buffer = 0; // most significant 2 bytes are always zero

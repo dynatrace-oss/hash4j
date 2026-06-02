@@ -18,21 +18,21 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.testutils.TestUtils.byteArrayToHexString;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream32;
+import com.dynatrace.hash4j.hashing.HashMocks.TestHashStream128;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 
-class AbstractHashStream32Test extends AbstractHashStreamTest {
+class HashStream128Test extends AbstractHashStreamTest {
 
   @Override
   protected void assertBytes(Consumer<HashStream> c, String hexString) {
-    TestHashStream32 hashStream = new TestHashStream32();
+    TestHashStream128 hashStream = new TestHashStream128();
     c.accept(hashStream);
     assertThat(byteArrayToHexString(hashStream.getData())).isEqualTo(hexString);
   }
 
   @Test
   void testGetHashBitSize() {
-    assertThat(new TestHashStream32().getHashBitSize()).isEqualTo(32);
+    assertThat(new TestHashStream128().getHashBitSize()).isEqualTo(128);
   }
 }

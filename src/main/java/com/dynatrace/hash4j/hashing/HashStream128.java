@@ -47,6 +47,11 @@ public interface HashStream128 extends HashStream64 {
   HashValue128 get();
 
   @Override
+  default long getAsLong() {
+    return get().getAsLong();
+  }
+
+  @Override
   HashStream128 putByte(byte v);
 
   @Override
@@ -206,7 +211,10 @@ public interface HashStream128 extends HashStream64 {
    * @param <T> the type
    * @return a 128-bit hash value
    */
-  <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel);
+  default <T> HashValue128 resetAndHashTo128Bits(T obj, HashFunnel<T> funnel) {
+    funnel.put(obj, reset());
+    return get();
+  }
 
   @Override
   Hasher128 getHasher();

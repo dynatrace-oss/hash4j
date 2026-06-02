@@ -321,8 +321,36 @@ public interface HashSink {
    *
    * <p>will be different contributions to the hash value computation.
    *
-   * <p>Equivalent to <br>
-   * {@code putCharsUTF8(s).putInt(s.codePointCount(0, s.length()));}
+   * <p>Equivalent to:
+   *
+   * <pre>{@code
+   * byte[] b = s.getBytes(StandardCharsets.UTF_8);
+   * putBytes(b).putInt(b.length);
+   * }</pre>
+   *
+   * <p>In contrast to the snippet above, the actual implementation does not allocate an
+   * intermediate byte array and therefore does not fail when the UTF-8 encoded length would exceed
+   * the maximum possible byte array length. The number of encoded bytes is computed on the fly
+   * while the bytes are streamed into the hash, and the resulting count is finally appended modulo
+   * {@code 2^32} as a single 32-bit value.
+   *
+   * <p>In practice, a UTF-8 encoded length of {@code 2^32} bytes or more cannot be reached on any
+   * conforming JVM, so the modulo reduction has no observable effect:
+   *
+   * <ul>
+   *   <li>A Java {@link String} can hold at most {@link Integer#MAX_VALUE} (= {@code 2^31 - 1})
+   *       UTF-16 code units, because its backing array is bounded by the JVM array-length limit.
+   *   <li>UTF-8 encodes each UTF-16 code unit using at most three bytes (code units in {@code
+   *       U+0800}–{@code U+FFFF}, excluding surrogates). Surrogate pairs occupy two code units and
+   *       produce four bytes (i.e. two bytes per code unit), and unpaired surrogates are replaced
+   *       by the single-byte character {@code '?'}.
+   *   <li>Reaching {@code 2^32} encoded bytes would therefore require more than {@code 2^32 / 3 ≈
+   *       1.43 × 10^9} code units that each encode to three bytes. Such a string contains only
+   *       non-Latin-1 characters, so the JVM stores it internally as UTF-16 (two bytes per code
+   *       unit), requiring a backing array of more than {@code 2 × 2^32 / 3 ≈ 2.86 × 10^9} bytes.
+   *       This exceeds the maximum array length allowed by the JVM, so such a string cannot be
+   *       constructed in the first place.
+   * </ul>
    *
    * @param s the string
    * @return this

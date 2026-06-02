@@ -295,7 +295,7 @@ abstract class AbstractWyhashFinal implements AbstractHasher64 {
     return secret;
   }
 
-  private class HashStreamImpl implements AbstractHashStream64 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream64> implements HashStream64 {
 
     private final byte[] buffer = new byte[48 + 8];
     private long byteCount = 0;

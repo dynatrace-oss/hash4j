@@ -630,7 +630,7 @@ final class PolymurHash2_0 implements AbstractHasher64 {
     return polymurRed611(t0Hi, t0Lo);
   }
 
-  private class HashStreamImpl implements AbstractHashStream64 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream64> implements HashStream64 {
     private boolean init = false;
     private int offset = 0;
     private final byte[] buffer = new byte[49 + 8];
