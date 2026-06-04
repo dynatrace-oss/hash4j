@@ -309,7 +309,7 @@ class MetroHash64 implements AbstractHasher64 {
     return h;
   }
 
-  private class HashStreamImpl implements AbstractHashStream64 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream64> implements HashStream64 {
 
     private final byte[] buffer = new byte[32 + 8];
     private int offset = 0;

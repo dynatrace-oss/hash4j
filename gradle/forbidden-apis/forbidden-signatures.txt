@@ -1,0 +1,3 @@
+@ignoreMissingClasses
+@defaultMessage Use org.assertj.core.api.Assertions instead of AssertionsForClassTypes
+org.assertj.core.api.AssertionsForClassTypes

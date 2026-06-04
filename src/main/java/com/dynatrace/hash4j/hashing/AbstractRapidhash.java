@@ -323,7 +323,7 @@ abstract class AbstractRapidhash implements AbstractHasher64 {
     return finish(a, b, see0, (long) len << 1);
   }
 
-  private class HashStreamImpl implements AbstractHashStream64 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream64> implements HashStream64 {
 
     private final byte[] buffer = new byte[112 + 8];
     private long byteCount = 0;

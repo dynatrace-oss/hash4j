@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.SplittableRandom;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 class AbstractHashStreamTest {
@@ -401,13 +402,13 @@ class AbstractHashStreamTest {
       byte[] actual = hashStream.getData();
 
       byte[] utf8Bytes = s.getBytes(StandardCharsets.UTF_8);
-      int codePointCount = s.codePointCount(0, s.length());
+      int byteCount = utf8Bytes.length;
       byte[] expected = new byte[utf8Bytes.length + 4];
       System.arraycopy(utf8Bytes, 0, expected, 0, utf8Bytes.length);
-      expected[utf8Bytes.length] = (byte) codePointCount;
-      expected[utf8Bytes.length + 1] = (byte) (codePointCount >>> 8);
-      expected[utf8Bytes.length + 2] = (byte) (codePointCount >>> 16);
-      expected[utf8Bytes.length + 3] = (byte) (codePointCount >>> 24);
+      expected[utf8Bytes.length] = (byte) byteCount;
+      expected[utf8Bytes.length + 1] = (byte) (byteCount >>> 8);
+      expected[utf8Bytes.length + 2] = (byte) (byteCount >>> 16);
+      expected[utf8Bytes.length + 3] = (byte) (byteCount >>> 24);
 
       assertThat(actual).isEqualTo(expected);
     }
@@ -415,23 +416,217 @@ class AbstractHashStreamTest {
 
   @Test
   void testPutStringUTF8KnownCases() {
-    // empty string → no bytes + count 0
+    // empty string → no bytes + byte count 0
     assertBytes(h -> h.putStringUTF8(""), "00000000");
-    // ASCII (1 code point)
+    // ASCII (1 byte)
     assertBytes(h -> h.putStringUTF8("A"), "4101000000");
-    // two ASCII chars (2 code points)
+    // two ASCII chars (2 bytes)
     assertBytes(h -> h.putStringUTF8("AB"), "414202000000");
-    // 2-byte char U+0080 (1 code point)
-    assertBytes(h -> h.putStringUTF8("\u0080"), "c28001000000");
-    // 3-byte char U+0800 (1 code point)
-    assertBytes(h -> h.putStringUTF8("\u0800"), "e0a08001000000");
-    // surrogate pair U+10000 (1 code point)
-    assertBytes(h -> h.putStringUTF8("\uD800\uDC00"), "f090808001000000");
-    // lone high surrogate → '?', count 1
+    // 2-byte char U+0080
+    assertBytes(h -> h.putStringUTF8("\u0080"), "c28002000000");
+    // 3-byte char U+0800
+    assertBytes(h -> h.putStringUTF8("\u0800"), "e0a08003000000");
+    // surrogate pair U+10000 (4 bytes)
+    assertBytes(h -> h.putStringUTF8("\uD800\uDC00"), "f090808004000000");
+    // lone high surrogate → '?', 1 byte
     assertBytes(h -> h.putStringUTF8("\uD800"), "3f01000000");
-    // lone low surrogate → '?', count 1
+    // lone low surrogate → '?', 1 byte
     assertBytes(h -> h.putStringUTF8("\uDC00"), "3f01000000");
-    // mixed: "A" + surrogate pair U+10000 + "B" → 3 code points
-    assertBytes(h -> h.putStringUTF8("A\uD800\uDC00B"), "41f09080804203000000");
+    // mixed: "A" + surrogate pair U+10000 + "B" → 1 + 4 + 1 = 6 bytes
+    assertBytes(h -> h.putStringUTF8("A\uD800\uDC00B"), "41f09080804206000000");
+  }
+
+  private static char[] createCompleteCharPool() {
+    char[] result = new char[1 << 16];
+    for (int i = 0; i < result.length; ++i) {
+      result[i] = (char) i;
+    }
+    return result;
+  }
+
+  /**
+   * A smaller char pool containing characters around branching conditions in {@link
+   * AbstractHashStream#putCharsUTF8(CharSequence)}. This allows to test the handling of these
+   * conditions without testing all 65536 char values.
+   */
+  private static char[] createLimitedCharPool(int extend) {
+    int[] branchPoints =
+        IntStream.of(0x0, 0x80, 0x800, 0xd800, 0xe000, 0xdc00)
+            .flatMap(i -> IntStream.rangeClosed(i - extend, i + extend))
+            .map(x -> x & 0xffff)
+            .distinct()
+            .sorted()
+            .toArray();
+    char[] result = new char[branchPoints.length];
+    for (int i = 0; i < branchPoints.length; ++i) {
+      result[i] = (char) branchPoints[i];
+    }
+    return result;
+  }
+
+  @Test
+  void testPutCharsUTF8SingleChar() {
+    char[] chars = new char[1];
+    CharSequence charSequence =
+        new CharSequence() {
+          @Override
+          public int length() {
+            return 1;
+          }
+
+          @Override
+          public char charAt(int index) {
+            return chars[index];
+          }
+
+          @Override
+          public String toString() {
+            return String.valueOf(chars);
+          }
+
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            throw new UnsupportedOperationException();
+          }
+        };
+
+    TestHashStream hashStream = new TestHashStream();
+
+    char[] charPool = createCompleteCharPool();
+    for (char c : charPool) {
+      chars[0] = c;
+
+      byte[] expectedBytes = charSequence.toString().getBytes(StandardCharsets.UTF_8);
+
+      hashStream.reset();
+      int numEncodedBytes = hashStream.putCharsUTF8Internal(charSequence);
+      assertThat(numEncodedBytes).isEqualTo(expectedBytes.length);
+
+      hashStream.assertData(expectedBytes, expectedBytes.length);
+    }
+  }
+
+  @Test
+  void testPutCharsUTF8TwoChars() {
+    char[] chars = new char[2];
+    CharSequence charSequence =
+        new CharSequence() {
+          @Override
+          public int length() {
+            return 2;
+          }
+
+          @Override
+          public char charAt(int index) {
+            return chars[index];
+          }
+
+          @Override
+          public String toString() {
+            return String.valueOf(chars);
+          }
+
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            throw new UnsupportedOperationException();
+          }
+        };
+
+    TestHashStream hashStream = new TestHashStream();
+
+    char[] charPool = createLimitedCharPool(200);
+    for (char c0 : charPool) {
+      for (char c1 : charPool) {
+        chars[0] = c0;
+        chars[1] = c1;
+
+        byte[] expectedBytes = charSequence.toString().getBytes(StandardCharsets.UTF_8);
+
+        hashStream.reset();
+        int numEncodedBytes = hashStream.putCharsUTF8Internal(charSequence);
+
+        assertThat(numEncodedBytes).isEqualTo(expectedBytes.length);
+        hashStream.assertData(expectedBytes, expectedBytes.length);
+      }
+    }
+  }
+
+  @Test
+  void testPutCharsUTF8FourChars() {
+    char[] chars = new char[4];
+    CharSequence charSequence =
+        new CharSequence() {
+          @Override
+          public int length() {
+            return 4;
+          }
+
+          @Override
+          public char charAt(int index) {
+            return chars[index];
+          }
+
+          @Override
+          public String toString() {
+            return String.valueOf(chars);
+          }
+
+          @Override
+          public CharSequence subSequence(int start, int end) {
+            throw new UnsupportedOperationException();
+          }
+        };
+
+    TestHashStream hashStream = new TestHashStream();
+
+    char[] charPool = createLimitedCharPool(3);
+    for (char c0 : charPool) {
+      for (char c1 : charPool) {
+        for (char c2 : charPool) {
+          for (char c3 : charPool) {
+
+            chars[0] = c0;
+            chars[1] = c1;
+            chars[2] = c2;
+            chars[3] = c3;
+
+            byte[] expectedBytes = charSequence.toString().getBytes(StandardCharsets.UTF_8);
+
+            hashStream.reset();
+            int numEncodedBytes = hashStream.putCharsUTF8Internal(charSequence);
+
+            assertThat(numEncodedBytes).isEqualTo(expectedBytes.length);
+            hashStream.assertData(expectedBytes, expectedBytes.length);
+          }
+        }
+      }
+    }
+  }
+
+  @Test
+  void testRandomLatin1Strings() {
+
+    TestHashStream hashStream = new TestHashStream();
+
+    SplittableRandom random = new SplittableRandom(0x4392cd5b27b28a4fL);
+
+    int numIterations = 1000;
+    int maxLength = 20;
+
+    for (int i = 0; i < numIterations; ++i) {
+      int len = random.nextInt(0, maxLength + 1);
+
+      char[] chars = new char[len];
+      for (int k = 0; k < len; ++k) {
+        chars[k] = (char) random.nextInt(256);
+      }
+      String s = String.valueOf(chars);
+      byte[] expectedBytes = s.getBytes(StandardCharsets.UTF_8);
+
+      hashStream.reset();
+      int numEncodedBytes = hashStream.putCharsUTF8Internal(s);
+      assertThat(numEncodedBytes).isEqualTo(expectedBytes.length);
+      hashStream.assertData(expectedBytes, expectedBytes.length);
+    }
   }
 }

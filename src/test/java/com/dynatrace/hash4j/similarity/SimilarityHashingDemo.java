@@ -16,7 +16,7 @@
 package com.dynatrace.hash4j.similarity;
 
 import static java.util.stream.Collectors.toSet;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 
 import com.dynatrace.hash4j.hashing.Hashing;

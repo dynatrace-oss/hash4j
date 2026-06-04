@@ -301,7 +301,7 @@ final class Murmur3_128 implements AbstractHasher128 {
     return finalizeHash(h1, h2, ((long) len) << 1);
   }
 
-  private class HashStreamImpl implements AbstractHashStream128 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream128> implements HashStream128 {
 
     private long h1 = seed;
     private long h2 = seed;

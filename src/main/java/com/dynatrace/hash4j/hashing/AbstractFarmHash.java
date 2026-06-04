@@ -367,7 +367,8 @@ abstract class AbstractFarmHash implements AbstractHasher64 {
     return finalizeHash(hashLength16(c, d, mul));
   }
 
-  protected abstract static class FarmHashStreamImpl implements AbstractHashStream64 {
+  protected abstract static class FarmHashStreamImpl extends AbstractHashStream<HashStream64>
+      implements HashStream64 {
 
     protected final byte[] buffer = new byte[64 + 8 + 8];
     protected int bufferCount = 8;

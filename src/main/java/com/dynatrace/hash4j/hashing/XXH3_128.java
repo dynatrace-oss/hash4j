@@ -107,7 +107,8 @@ final class XXH3_128 extends XXH3Base implements AbstractHasher128 {
     return new HashStreamImpl();
   }
 
-  private final class HashStreamImpl extends HashStreamImplBase implements AbstractHashStream128 {
+  private final class HashStreamImpl extends HashStreamImplBase<HashStream128>
+      implements HashStream128 {
 
     @Override
     public HashValue128 get() {

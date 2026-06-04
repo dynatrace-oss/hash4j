@@ -26,6 +26,7 @@ plugins {
 	id "signing"
 	id "net.ltgt.errorprone" version "5.1.0"
 	id "me.champeau.gradle.japicmp" version "0.4.6"
+	id "de.thetaphi.forbiddenapis" version "3.9"
 }
 
 repositories {
@@ -214,6 +215,15 @@ tasks.withType(JavaCompile).configureEach {
 	options.errorprone.disableWarningsInGeneratedCode = false
 	// options.errorprone.enabled = false
 }
+
+// Forbid specific APIs across all source sets.
+// Add new banned signatures to the signaturesFiles below.
+forbiddenApis {
+	failOnUnsupportedJava = false
+	signaturesFiles = files("$rootDir/gradle/forbidden-apis/forbidden-signatures.txt")
+	ignoreFailures = false
+}
+tasks.named("check").configure { dependsOn tasks.withType(de.thetaphi.forbiddenapis.gradle.CheckForbiddenApis) }
 
 
 def readJavaLicense(licenseName) {

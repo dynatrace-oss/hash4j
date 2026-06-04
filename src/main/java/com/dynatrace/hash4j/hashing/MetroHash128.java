@@ -367,7 +367,7 @@ class MetroHash128 implements AbstractHasher128 {
     return finalize128(v0, v1);
   }
 
-  private class HashStreamImpl implements AbstractHashStream128 {
+  private class HashStreamImpl extends AbstractHashStream<HashStream128> implements HashStream128 {
 
     private final byte[] buffer = new byte[32 + 8];
     private int offset = 0;

@@ -191,7 +191,8 @@ abstract class XXH3Base implements AbstractHasher64 {
     return (acc ^ (acc >>> 47) ^ sec) * INIT_ACC_7;
   }
 
-  protected abstract class HashStreamImplBase implements HashStream64 {
+  protected abstract class HashStreamImplBase<H extends HashStream64> extends AbstractHashStream<H>
+      implements HashStream64 {
 
     protected static final int BULK_SIZE = 256;
     protected static final int BULK_SIZE_HALF = 128;

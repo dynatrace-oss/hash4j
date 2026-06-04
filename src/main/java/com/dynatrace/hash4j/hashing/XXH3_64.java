@@ -80,7 +80,8 @@ final class XXH3_64 extends XXH3Base {
     return new HashStreamImpl();
   }
 
-  private final class HashStreamImpl extends HashStreamImplBase implements AbstractHashStream64 {
+  private final class HashStreamImpl extends HashStreamImplBase<HashStream64>
+      implements HashStream64 {
 
     @Override
     public long getAsLong() {
