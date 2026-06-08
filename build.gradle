@@ -26,7 +26,7 @@ plugins {
 	id "signing"
 	id "net.ltgt.errorprone" version "5.1.0"
 	id "me.champeau.gradle.japicmp" version "0.4.6"
-	id "de.thetaphi.forbiddenapis" version "3.9"
+	id "de.thetaphi.forbiddenapis" version "3.10"
 }
 
 repositories {
