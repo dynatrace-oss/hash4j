@@ -418,6 +418,7 @@ abstract class AbstractHashStream<H extends HashStream> implements HashStream {
   }
 
   @Override
+  @SuppressWarnings("ReferenceEquality")
   public <T> H putUnorderedIterable(
       Iterable<T> data, HashFunnel<? super T> funnel, HashStream64 hashStream) {
     checkArgument(
