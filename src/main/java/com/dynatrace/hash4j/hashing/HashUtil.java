@@ -23,6 +23,7 @@ final class HashUtil {
 
   private HashUtil() {}
 
+  @SuppressWarnings("ReferenceEquality")
   static boolean equalsHelper(HashStream hashStream, Object obj) {
     if (hashStream == obj) return true;
     if (obj == null) return false;
