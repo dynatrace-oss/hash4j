@@ -376,7 +376,7 @@ public abstract class AbstractConsistentBucketSetHasherTest {
           int idx = random.nextInt(bucketList.size());
           int bucket = bucketList.get(idx);
           bucketList.set(idx, bucketList.get(bucketList.size() - 1));
-          bucketList.remove(bucketList.size() - 1);
+          bucketList.remove(/* index */ bucketList.size() - 1);
           assertTrue(bucketSet.remove(bucket));
           assertTrue(hasher.removeBucket(bucket));
         }
