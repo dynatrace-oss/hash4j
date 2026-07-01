@@ -406,7 +406,7 @@ class CrossCheckTest {
   }
 
   @Test
-  void testXXH32Lz4Java() {
+  void testXXH32JpountzJava() {
     XXHash32 xxHash32 = XXHashFactory.safeInstance().hash32();
     SplittableRandom random = new SplittableRandom(0x6c4d2e8f1a3b5e7dL);
     for (int len = 0; len < MAX_LENGTH; ++len) {
@@ -438,7 +438,7 @@ class CrossCheckTest {
   }
 
   @Test
-  void testXXH64Lz4Java() {
+  void testXXH64JpountzJava() {
     XXHash64 xxHash64 = XXHashFactory.safeInstance().hash64();
     SplittableRandom random = new SplittableRandom(0x3b7e9d2c4a1f8e5bL);
     for (int len = 0; len < MAX_LENGTH; ++len) {
