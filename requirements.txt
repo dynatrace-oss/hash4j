@@ -485,9 +485,9 @@ pillow==12.3.0 \
     --hash=sha256:fe3cca2e4e8a592be0f269a1ca4835c25199d9f3ce815c8491048f785b0a0198 \
     --hash=sha256:ffd0c5368496f41b0944be820fcb7a838aa6e623d250b01acf2643939c3f99d7
     # via matplotlib
-platformdirs==4.10.0 \
-    --hash=sha256:31e761a6a0ca04faf7353ea759bdba55652be214725111e5aac52dfa29d4bef7 \
-    --hash=sha256:fb516cdb12eb0d857d0cd85a7c57cea4d060bee4578d6cf5a14dfdf8cbf8784a
+platformdirs==4.10.1 \
+    --hash=sha256:0e4eff26be2d75293977f7cddc153fd9b8eaa7fb0c7b64ffe4076cb443117443 \
+    --hash=sha256:ceab4084426fe6319ce18e86deada8ab1b7487c7aee7040c55e277c9ae793695
     # via black
 pyparsing==3.3.2 \
     --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
