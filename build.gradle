@@ -38,7 +38,7 @@ ext {
 	// --- Tooling versions ---
 	// Kept here so they are easy to find and so Renovate's customManagers
 	// in renovate.json can locate and bump them.
-	googleJavaFormatVersion = "1.35.0"
+	googleJavaFormatVersion = "1.36.0"
 	eclipseCdtVersion = "12.3"
 	greclipseVersion = "4.32"
 	blackVersion = "26.5.1"
