@@ -310,5 +310,18 @@ class DistinctCountUtilTest {
       assertThat(tokens[2]).isEqualTo(5);
       assertThat(tokens[3]).isEqualTo(6);
     }
+    {
+      int[] tokens = {1, 2, 5, 5, 6};
+      assertThat(DistinctCountUtil.deduplicateTokens(tokens, 2, 5)).isEqualTo(4);
+      assertThat(tokens[0]).isEqualTo(1);
+      assertThat(tokens[1]).isEqualTo(2);
+      assertThat(tokens[2]).isEqualTo(5);
+      assertThat(tokens[3]).isEqualTo(6);
+    }
+    {
+      int[] tokens = {0, 0, 1};
+      assertThat(DistinctCountUtil.deduplicateTokens(tokens, 2, 3)).isEqualTo(3);
+      assertThat(tokens[2]).isEqualTo(1);
+    }
   }
 }
