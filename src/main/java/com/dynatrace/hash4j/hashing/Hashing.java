@@ -507,10 +507,7 @@ public final class Hashing {
    * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
    * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
    * the latest v3 release and is not compatible with the first v3 release for input lengths of 5,
-   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths. If
-   * you need compatibility with the first v3 release (because you also expect input lengths smaller
-   * than 8 bytes) please see {@link #rapidhashV3Legacy()}. This function is not compatible with
-   * {@code Hashing.rapidhash3()} that was available in Hash4j versions prior to v0.30.0.
+   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code rapidhash}
    * revision bc4b4baa defined in <a
@@ -530,10 +527,7 @@ public final class Hashing {
    * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
    * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
    * the latest v3 release and is not compatible with the first v3 release for input lengths of 5,
-   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths. If
-   * you need compatibility with the first v3 release (because you also expect input lengths smaller
-   * than 8 bytes) please see {@link #rapidhashV3Legacy(long)}. This function is not compatible with
-   * {@code Hashing.rapidhash3(long)} that was available in Hash4j versions prior to v0.30.0.
+   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths.
    *
    * <p>This implementation is compatible with the C++ reference implementation of {@code
    * rapidhash_withSeed} revision bc4b4baa defined in <a
@@ -545,58 +539,6 @@ public final class Hashing {
    */
   public static Hasher64 rapidhashV3(long seed) {
     return RapidhashV3.create(seed);
-  }
-
-  /**
-   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 (first v3 release) algorithm
-   * using a seed value of zero and the default secret.
-   *
-   * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
-   * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
-   * the first v3 release and is not compatible with the latest v3 release for input lengths of 5,
-   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths.
-   * This method is not recommended for use and will likely be removed in a future release. If you
-   * cannot switch to {@link #rapidhashV3()}, because you expect input lengths smaller than 8 bytes,
-   * please consider moving the corresponding code to your own code base. This method corresponds to
-   * {@code Hashing.rapidhash3()} that was available in Hash4j versions prior to v0.30.0.
-   *
-   * <p>This implementation is compatible with the C++ reference implementation of {@code rapidhash}
-   * revision bbaf1a70 defined in <a
-   * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L506">rapidhash.h</a>
-   * on an Intel x86 architecture.
-   *
-   * @return a hasher instance
-   */
-  @Deprecated
-  public static Hasher64 rapidhashV3Legacy() {
-    return RapidhashV3Legacy.create();
-  }
-
-  /**
-   * Returns a {@link Hasher64} implementing the 64-bit Rapidhash v3 (first v3 release) algorithm
-   * using the given seed value and the default secret.
-   *
-   * <p>IMPORTANT: Rapidhash v3 was re-released with a breaking change (see <a
-   * href="https://github.com/dynatrace-oss/hash4j/issues/555">details</a>). This method implements
-   * the first v3 release and is not compatible with the latest v3 release for input lengths of 5,
-   * 6, and 7 bytes. However, it is compatible with both v3 releases for any other input lengths.
-   * This method is not recommended for use and will likely be removed in a future release. If you
-   * cannot switch to {@link #rapidhashV3(long)}, because you expect input lengths smaller than 8
-   * bytes, please consider moving the corresponding code to your own code base. This method
-   * corresponds to {@code Hashing.rapidhash3(long)} that was available in Hash4j versions prior to
-   * v0.30.0.
-   *
-   * <p>This implementation is compatible with the C++ reference implementation of {@code
-   * rapidhash_withSeed} revision bbaf1a70 defined in <a
-   * href="https://github.com/Nicoshev/rapidhash/blob/bbaf1a70775b785f11dab29dc7d9bd717b4eb6a6/rapidhash.h#L492">rapidhash.h</a>
-   * on an Intel x86 architecture.
-   *
-   * @param seed a 64-bit seed
-   * @return a hasher instance
-   */
-  @Deprecated
-  public static Hasher64 rapidhashV3Legacy(long seed) {
-    return RapidhashV3Legacy.create(seed);
   }
 
   /**
