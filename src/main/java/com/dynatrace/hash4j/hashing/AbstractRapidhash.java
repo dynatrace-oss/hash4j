@@ -86,11 +86,6 @@ abstract class AbstractRapidhash implements AbstractHasher64 {
         } else {
           a = getInt(input, off) & 0xFFFFFFFFL;
           b = getInt(input, off + len - 4) & 0xFFFFFFFFL;
-          if (isLegacy()) {
-            long tmp = a;
-            a = b;
-            b = tmp;
-          }
         }
         return finish(a ^ len, b, seed ^ len, len);
       } else if (len > 0) {
@@ -162,11 +157,6 @@ abstract class AbstractRapidhash implements AbstractHasher64 {
         } else {
           a = access.getIntAsUnsignedLong(input, off);
           b = access.getIntAsUnsignedLong(input, off + len - 4);
-          if (isLegacy()) {
-            long tmp = a;
-            a = b;
-            b = tmp;
-          }
         }
         return finish(a ^ len, b, seed ^ len, len);
       } else if (len > 0) {
@@ -257,11 +247,6 @@ abstract class AbstractRapidhash implements AbstractHasher64 {
         } else {
           a = getIntAsUnsignedLong(input, 0);
           b = getIntAsUnsignedLong(input, len - 2);
-          if (isLegacy()) {
-            long tmp = a;
-            a = b;
-            b = tmp;
-          }
         }
         return finish(a ^ (len << 1), b, seed ^ (len << 1), len << 1);
       } else if (len > 0) {
@@ -784,11 +769,6 @@ abstract class AbstractRapidhash implements AbstractHasher64 {
           } else {
             a = getInt(buffer, 0) & 0xFFFFFFFFL;
             b = getInt(buffer, (int) (byteCount - 4)) & 0xFFFFFFFFL;
-            if (isLegacy()) {
-              long tmp = a;
-              a = b;
-              b = tmp;
-            }
           }
           a ^= byteCount;
           see0 ^= byteCount;
@@ -898,6 +878,4 @@ abstract class AbstractRapidhash implements AbstractHasher64 {
   public long hashLongIntToLong(long v1, int v2) {
     return finish(v1 ^ 12, ((long) v2 << 32) ^ (v1 >>> 32), seed ^ 12, 12);
   }
-
-  protected abstract boolean isLegacy();
 }

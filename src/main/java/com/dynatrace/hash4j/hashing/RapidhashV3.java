@@ -57,11 +57,6 @@ final class RapidhashV3 extends AbstractRapidhash {
   private static final Hasher64 DEFAULT_HASHER_INSTANCE = create(0L);
 
   @Override
-  protected boolean isLegacy() {
-    return false;
-  }
-
-  @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
     if (!(obj instanceof RapidhashV3)) return false;
