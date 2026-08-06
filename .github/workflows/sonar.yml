@@ -12,7 +12,7 @@ permissions:
 jobs:
   sonar:
     name: Sonar analysis
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'pull_request' || github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     steps:
       - name: Check out analyzed revision
@@ -28,6 +28,12 @@ jobs:
           rm -rf source/build source/.scannerwork
           rm -f source/sonar-project.properties
           mkdir source/build
+      - name: Cache Sonar packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
       - name: Download build outputs
         uses: actions/download-artifact@v8
         with:
