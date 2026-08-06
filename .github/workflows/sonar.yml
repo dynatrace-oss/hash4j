@@ -27,7 +27,6 @@ jobs:
         run: |
           rm -rf source/build source/.scannerwork
           rm -f source/sonar-project.properties
-          mkdir source/build
       - name: Cache Sonar packages
         uses: actions/cache@v6
         with:
@@ -38,7 +37,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: sonar-inputs
-          path: source/build
+          path: source
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
