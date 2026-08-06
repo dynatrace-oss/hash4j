@@ -1,0 +1,74 @@
+name: Sonar analysis
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  sonar:
+    name: Sonar analysis
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out analyzed revision
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: source
+      - name: Prepare analysis directory
+        run: |
+          rm -rf source/build source/.scannerwork
+          rm -f source/sonar-project.properties
+          mkdir source/build
+      - name: Download build outputs
+        uses: actions/download-artifact@v8
+        with:
+          name: sonar-inputs
+          path: source/build
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Analyze pull request
+        if: github.event.workflow_run.event == 'pull_request'
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        with:
+          projectBaseDir: source
+          args: >
+            -Dsonar.projectKey=dynatrace-oss_hash4j
+            -Dsonar.organization=dynatrace-oss
+            -Dsonar.sources=src/main/java,src/main/java21,src/main/java25
+            -Dsonar.tests=src/test/java,src/test/java21,src/test/java25
+            -Dsonar.java.binaries=build/classes/java/main,build/classes/java/java21,build/classes/java/java25
+            -Dsonar.java.test.binaries=build/classes/java/test,build/classes/java/java21Test,build/classes/java/java25Test
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml,build/reports/jacoco/java21Test/jacocoTestReport.xml,build/reports/jacoco/java25Test/jacocoTestReport.xml
+            -Dsonar.pullrequest.key=${{ github.event.workflow_run.pull_requests[0].number }}
+            -Dsonar.pullrequest.branch=${{ github.event.workflow_run.head_branch }}
+            -Dsonar.pullrequest.base=${{ github.event.workflow_run.pull_requests[0].base.ref }}
+            -Dsonar.scm.revision=${{ github.event.workflow_run.head_sha }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Analyze branch
+        if: github.event.workflow_run.event == 'push'
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        with:
+          projectBaseDir: source
+          args: >
+            -Dsonar.projectKey=dynatrace-oss_hash4j
+            -Dsonar.organization=dynatrace-oss
+            -Dsonar.sources=src/main/java,src/main/java21,src/main/java25
+            -Dsonar.tests=src/test/java,src/test/java21,src/test/java25
+            -Dsonar.java.binaries=build/classes/java/main,build/classes/java/java21,build/classes/java/java25
+            -Dsonar.java.test.binaries=build/classes/java/test,build/classes/java/java21Test,build/classes/java/java25Test
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml,build/reports/jacoco/java21Test/jacocoTestReport.xml,build/reports/jacoco/java25Test/jacocoTestReport.xml
+            -Dsonar.branch.name=${{ github.event.workflow_run.head_branch }}
+            -Dsonar.scm.revision=${{ github.event.workflow_run.head_sha }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
