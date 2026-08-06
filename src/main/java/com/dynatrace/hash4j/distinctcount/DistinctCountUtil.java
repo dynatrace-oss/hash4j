@@ -339,7 +339,7 @@ public final class DistinctCountUtil {
     if (toIndexExcl > fromIndexIncl) {
       int lastToken = tokens[fromIndexIncl];
       writeIndex += 1;
-      for (int readIndex = 1; readIndex < toIndexExcl; ++readIndex) {
+      for (int readIndex = fromIndexIncl + 1; readIndex < toIndexExcl; ++readIndex) {
         int token = tokens[readIndex];
         if (token != lastToken) {
           tokens[writeIndex] = token;
