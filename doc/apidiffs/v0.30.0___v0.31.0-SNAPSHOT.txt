@@ -1,4 +1,10 @@
 Comparing source compatibility of hash4j-0.31.0-SNAPSHOT.jar against hash4j-0.30.0.jar
+***! MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) com.dynatrace.hash4j.hashing.Hasher64 rapidhashV3Legacy()
+		---  REMOVED ANNOTATION: java.lang.Deprecated
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) com.dynatrace.hash4j.hashing.Hasher64 rapidhashV3Legacy(long)
+		---  REMOVED ANNOTATION: java.lang.Deprecated
 **** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashSink  (not serializable)
 	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
 	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putCharsUTF8(java.lang.CharSequence)
