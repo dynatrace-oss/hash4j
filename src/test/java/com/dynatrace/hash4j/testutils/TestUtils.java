@@ -126,7 +126,7 @@ public final class TestUtils {
     return (d1, d2) -> {
       double absMax = Math.max(Math.abs(d1), Math.abs(d2));
       double absDiff = Math.abs(d1 - d2);
-      if (absDiff <= absMax * relativeError) {
+      if (Double.compare(absDiff, absMax * relativeError) <= 0) {
         return 0;
       } else if (d1 < d2) {
         return -1;
