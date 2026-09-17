@@ -25,10 +25,14 @@ final class PerformanceTestUtil {
   static final Funnel<String> GUAVA_CHARS_FUNNEL = (s, sink) -> sink.putUnencodedChars(s);
   static final Funnel<String> GUAVA_CHARS_UTF8_FUNNEL =
       (s, sink) -> sink.putString(s, StandardCharsets.UTF_8);
+  static final Funnel<String> GUAVA_CHARS_UTF8_VIA_GET_BYTES_FUNNEL =
+      (s, sink) -> sink.putBytes(s.getBytes(StandardCharsets.UTF_8));
   static final Funnel<byte[]> GUAVA_BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 
   static final HashFunnel<CharSequence> HASH4J_CHARS_FUNNEL = (s, sink) -> sink.putChars(s);
   static final HashFunnel<CharSequence> HASH4J_CHARS_UTF8_FUNNEL =
       (s, sink) -> sink.putCharsUTF8(s);
+  static final HashFunnel<CharSequence> HASH4J_CHARS_UTF8_VIA_GET_BYTES_FUNNEL =
+      (s, sink) -> sink.putBytes(s.toString().getBytes(StandardCharsets.UTF_8));
   static final HashFunnel<byte[]> HASH4J_BYTES_FUNNEL = (s, sink) -> sink.putBytes(s);
 }

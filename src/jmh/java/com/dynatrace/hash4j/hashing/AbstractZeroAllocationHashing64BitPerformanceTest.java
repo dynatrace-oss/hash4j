@@ -54,6 +54,11 @@ public abstract class AbstractZeroAllocationHashing64BitPerformanceTest
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  protected void hashCharsUTF8IndirectViaGetBytes(String s, Blackhole blackhole) {
+    throw new UnsupportedOperationException();
+  }
+
   protected abstract LongHashFunction createHashFunction();
 
   @Override

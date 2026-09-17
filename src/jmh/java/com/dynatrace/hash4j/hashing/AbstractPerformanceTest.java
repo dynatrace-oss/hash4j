@@ -399,6 +399,14 @@ public abstract class AbstractPerformanceTest {
 
   @Benchmark
   @BenchmarkMode(Mode.AverageTime)
+  public void hashCharsUTF8IndirectViaGetBytes(StringState state, Blackhole blackhole) {
+    for (String s : state.data) {
+      hashCharsUTF8IndirectViaGetBytes(s, blackhole);
+    }
+  }
+
+  @Benchmark
+  @BenchmarkMode(Mode.AverageTime)
   public void hashTestObject(TestObjectState state, Blackhole blackhole) {
     for (TestObject o : state.data) {
       hashObject(o, blackhole);
@@ -414,6 +422,8 @@ public abstract class AbstractPerformanceTest {
   protected abstract void hashCharsDirect(String s, Blackhole blackhole);
 
   protected abstract void hashCharsUTF8Indirect(String s, Blackhole blackhole);
+
+  protected abstract void hashCharsUTF8IndirectViaGetBytes(String s, Blackhole blackhole);
 
   protected abstract void hashBytesIndirect(byte[] b, Blackhole blackhole);
 

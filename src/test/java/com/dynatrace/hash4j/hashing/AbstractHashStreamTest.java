@@ -381,6 +381,18 @@ class AbstractHashStreamTest {
   }
 
   @Test
+  void testPutCharsUTF8InternalAsciiFastLoopDetectsNonAscii() {
+    String s = "\u0100abcdefg";
+    byte[] expectedBytes = s.getBytes(StandardCharsets.UTF_8);
+
+    TestHashStream hashStream = new TestHashStream();
+    int numEncodedBytes = hashStream.putCharsUTF8Internal(s);
+
+    assertThat(numEncodedBytes).isEqualTo(expectedBytes.length);
+    hashStream.assertData(expectedBytes, expectedBytes.length);
+  }
+
+  @Test
   void testPutStringUTF8DefaultImplementation() {
     int numCases = 10_000;
     int maxNumChars = 100;

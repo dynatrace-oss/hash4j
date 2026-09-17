@@ -1532,17 +1532,30 @@ abstract class AbstractHashStream<H extends HashStream> implements HashStream {
     int pos = 0;
     final int len = c.length();
 
-    while (pos <= len - 4) {
+    int limit = len - 8;
+    while (pos <= limit) {
       // ascii fast loop
       char ch0 = c.charAt(pos);
       char ch1 = c.charAt(pos + 1);
       char ch2 = c.charAt(pos + 2);
       char ch3 = c.charAt(pos + 3);
-      if ((ch0 | ch1 | ch2 | ch3) >= 0x80) {
+      char ch4 = c.charAt(pos + 4);
+      char ch5 = c.charAt(pos + 5);
+      char ch6 = c.charAt(pos + 6);
+      char ch7 = c.charAt(pos + 7);
+      if ((ch0 | ch1 | ch2 | ch3 | ch4 | ch5 | ch6 | ch7) >= 0x80) {
         break;
       }
-      putInt(ch0 | (ch1 << 8) | (ch2 << 16) | (ch3 << 24));
-      pos += 4;
+      putLong(
+          (long) ch0
+              | ((long) ch1 << 8)
+              | ((long) ch2 << 16)
+              | ((long) ch3 << 24)
+              | ((long) ch4 << 32)
+              | ((long) ch5 << 40)
+              | ((long) ch6 << 48)
+              | ((long) ch7 << 56));
+      pos += 8;
     }
 
     int byteCount = pos;
