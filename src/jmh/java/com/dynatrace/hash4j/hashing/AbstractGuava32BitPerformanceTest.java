@@ -18,6 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.GUAVA_BYTES_FUNNEL;
 import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.GUAVA_CHARS_FUNNEL;
 import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.GUAVA_CHARS_UTF8_FUNNEL;
+import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.GUAVA_CHARS_UTF8_VIA_GET_BYTES_FUNNEL;
 
 import com.google.common.hash.HashFunction;
 import org.openjdk.jmh.infra.Blackhole;
@@ -48,6 +49,12 @@ public abstract class AbstractGuava32BitPerformanceTest extends AbstractPerforma
   @Override
   protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
     blackhole.consume(createHashFunction().hashObject(s, GUAVA_CHARS_UTF8_FUNNEL).asInt());
+  }
+
+  @Override
+  protected void hashCharsUTF8IndirectViaGetBytes(String s, Blackhole blackhole) {
+    blackhole.consume(
+        createHashFunction().hashObject(s, GUAVA_CHARS_UTF8_VIA_GET_BYTES_FUNNEL).asInt());
   }
 
   @Override

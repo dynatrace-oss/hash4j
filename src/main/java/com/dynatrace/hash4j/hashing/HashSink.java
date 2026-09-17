@@ -303,6 +303,9 @@ public interface HashSink {
    * <p>Equivalent to <br>
    * {@code putBytes(c.toString().getBytes(StandardCharsets.UTF_8));}
    *
+   * <p>The allocation-free implementation encodes and streams the bytes directly and may be slower
+   * than the equivalent code using {@code getBytes}.
+   *
    * @param c a char sequence
    * @return this
    */
@@ -311,7 +314,7 @@ public interface HashSink {
   /**
    * Adds a string to the hash computation as UTF-8 encoded bytes.
    *
-   * <p>This method includes the length information (number of Unicode code points). In this way,
+   * <p>This method includes the length information (number of UTF-8 encoded bytes). In this way,
    *
    * <p>{@code hashSink.putStringUTF8}{@code ("AB").putStringUTF8}{@code ("C")}
    *
@@ -328,28 +331,31 @@ public interface HashSink {
    * putBytes(b).putInt(b.length);
    * }</pre>
    *
+   * <p>The allocation-free implementation encodes and streams the bytes directly and may be slower
+   * than the equivalent code using {@code getBytes}.
+   *
    * <p>In contrast to the snippet above, the actual implementation does not allocate an
    * intermediate byte array and therefore does not fail when the UTF-8 encoded length would exceed
    * the maximum possible byte array length. The number of encoded bytes is computed on the fly
    * while the bytes are streamed into the hash, and the resulting count is finally appended modulo
    * {@code 2^32} as a single 32-bit value.
    *
-   * <p>In practice, a UTF-8 encoded length of {@code 2^32} bytes or more cannot be reached on any
-   * conforming JVM, so the modulo reduction has no observable effect:
+   * <p>The Java API alone does not rule out a UTF-8 encoded length of {@code 2^32} bytes: a string
+   * may contain up to {@link Integer#MAX_VALUE} UTF-16 code units, each of which may contribute
+   * three bytes. On OpenJDK's Java 11+ compact-string representation, however, the contents are
+   * stored in a single byte array and {@code 2^32} encoded bytes cannot be reached:
    *
    * <ul>
-   *   <li>A Java {@link String} can hold at most {@link Integer#MAX_VALUE} (= {@code 2^31 - 1})
-   *       UTF-16 code units, because its backing array is bounded by the JVM array-length limit.
-   *   <li>UTF-8 encodes each UTF-16 code unit using at most three bytes (code units in {@code
-   *       U+0800}–{@code U+FFFF}, excluding surrogates). Surrogate pairs occupy two code units and
-   *       produce four bytes (i.e. two bytes per code unit), and unpaired surrogates are replaced
-   *       by the single-byte character {@code '?'}.
-   *   <li>Reaching {@code 2^32} encoded bytes would therefore require more than {@code 2^32 / 3 ≈
-   *       1.43 × 10^9} code units that each encode to three bytes. Such a string contains only
-   *       non-Latin-1 characters, so the JVM stores it internally as UTF-16 (two bytes per code
-   *       unit), requiring a backing array of more than {@code 2 × 2^32 / 3 ≈ 2.86 × 10^9} bytes.
-   *       This exceeds the maximum array length allowed by the JVM, so such a string cannot be
-   *       constructed in the first place.
+   *   <li>If every character is Latin-1, every code unit encodes to at most two UTF-8 bytes.
+   *       Therefore, even a backing array of length {@link Integer#MAX_VALUE} produces at most
+   *       {@code 2 * (2^31 - 1) = 2^32 - 2} bytes.
+   *   <li>If the string contains a non-Latin-1 character, including any character requiring three
+   *       UTF-8 bytes, the entire string uses two bytes of UTF-16 storage per code unit. The
+   *       backing array can therefore represent fewer than {@code 2^30} code units. Each code unit
+   *       contributes at most three UTF-8 bytes: a surrogate pair contributes four bytes for two
+   *       code units, and an unpaired surrogate is replaced by the single-byte character {@code
+   *       '?'}. Thus, any mixture of one-, two-, and three-byte characters produces fewer than
+   *       {@code 3 * 2^30 < 2^32} bytes.
    * </ul>
    *
    * @param s the string

@@ -15,6 +15,7 @@
  */
 package com.dynatrace.hash4j.hashing;
 
+import java.nio.charset.StandardCharsets;
 import org.greenrobot.essentials.hash.Murmur3F;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -50,6 +51,13 @@ public class Murmur3_128GreenrobotEssentialsPerformanceTest extends AbstractPerf
   @Override
   protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected void hashCharsUTF8IndirectViaGetBytes(String s, Blackhole blackhole) {
+    Murmur3F murmur = new Murmur3F();
+    murmur.update(s.getBytes(StandardCharsets.UTF_8));
+    blackhole.consume(murmur.getValue());
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.dynatrace.hash4j.hashing;
 import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_BYTES_FUNNEL;
 import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_CHARS_FUNNEL;
 import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_CHARS_UTF8_FUNNEL;
+import static com.dynatrace.hash4j.hashing.PerformanceTestUtil.HASH4J_CHARS_UTF8_VIA_GET_BYTES_FUNNEL;
 
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -57,6 +58,11 @@ public abstract class AbstractHasher64PerformanceTest extends AbstractPerformanc
   @Override
   protected void hashCharsUTF8Indirect(String s, Blackhole blackhole) {
     blackhole.consume(getHasherInstance().hashToLong(s, HASH4J_CHARS_UTF8_FUNNEL));
+  }
+
+  @Override
+  protected void hashCharsUTF8IndirectViaGetBytes(String s, Blackhole blackhole) {
+    blackhole.consume(getHasherInstance().hashToLong(s, HASH4J_CHARS_UTF8_VIA_GET_BYTES_FUNNEL));
   }
 
   protected abstract Hasher64 getHasherInstance();
