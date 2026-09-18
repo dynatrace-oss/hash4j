@@ -1,0 +1,40 @@
+Comparing source compatibility of hash4j-0.31.0.jar against hash4j-0.30.0.jar
+***! MODIFIED CLASS: PUBLIC FINAL com.dynatrace.hash4j.hashing.Hashing  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) com.dynatrace.hash4j.hashing.Hasher64 rapidhashV3Legacy()
+		---  REMOVED ANNOTATION: java.lang.Deprecated
+	---! REMOVED METHOD: PUBLIC(-) STATIC(-) com.dynatrace.hash4j.hashing.Hasher64 rapidhashV3Legacy(long)
+		---  REMOVED ANNOTATION: java.lang.Deprecated
+**** MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashSink  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashSink putStringUTF8(java.lang.String)
+***! MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream128  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream64
+	+++  NEW METHOD: PUBLIC(+) long getAsLong()
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream128 putStringUTF8(java.lang.String)
+	***! MODIFIED METHOD: PUBLIC NON_ABSTRACT (<- ABSTRACT) com.dynatrace.hash4j.hashing.HashValue128 resetAndHashTo128Bits(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T><T>)
+		GENERIC TEMPLATES: === T:java.lang.Object
+***! MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream32  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream32 putStringUTF8(java.lang.String)
+	***! MODIFIED METHOD: PUBLIC NON_ABSTRACT (<- ABSTRACT) int resetAndHashToInt(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T><T>)
+		GENERIC TEMPLATES: === T:java.lang.Object
+***! MODIFIED INTERFACE: PUBLIC ABSTRACT com.dynatrace.hash4j.hashing.HashStream64  (not serializable)
+	===  CLASS FILE FORMAT VERSION: 55.0 <- 55.0
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream
+	===* UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashSink
+	===! UNCHANGED INTERFACE: com.dynatrace.hash4j.hashing.HashStream32
+	+++  NEW METHOD: PUBLIC(+) int getAsInt()
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putCharsUTF8(java.lang.CharSequence)
+	+++* NEW METHOD: PUBLIC(+) ABSTRACT(+) com.dynatrace.hash4j.hashing.HashStream64 putStringUTF8(java.lang.String)
+	***! MODIFIED METHOD: PUBLIC NON_ABSTRACT (<- ABSTRACT) long resetAndHashToLong(java.lang.Object, com.dynatrace.hash4j.hashing.HashFunnel<T><T>)
+		GENERIC TEMPLATES: === T:java.lang.Object

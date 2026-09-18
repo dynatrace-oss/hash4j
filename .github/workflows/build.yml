@@ -51,3 +51,16 @@ jobs:
         with:
           name: reports
           path: build/reports/
+      - name: Create Maven Central repository
+        if: github.event_name == 'push'
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: ./gradlew createRepoForUploadToMavenCentral --info
+      - name: Upload Maven Central repository
+        if: success() && github.event_name == 'push'
+        uses: actions/upload-artifact@v7
+        with:
+          name: maven-central-repository
+          path: build/mavencentral/repo.zip
+          if-no-files-found: error
