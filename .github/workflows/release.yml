@@ -54,6 +54,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh release upload "$RELEASE_TAG" \
-            "build/mavencentral/hash4j-${RELEASE_TAG#v}-maven-central-bundle.zip" \
-            --clobber
+          bundle_path="build/mavencentral/hash4j-${RELEASE_TAG#v}-maven-central-bundle.zip"
+          if ! upload_output=$(gh release upload "$RELEASE_TAG" "$bundle_path" --clobber 2>&1); then
+            if grep -qi "immutable release" <<<"$upload_output"; then
+              echo "Skipping upload because the release is immutable."
+              echo "$upload_output"
+            else
+              echo "$upload_output" >&2
+              exit 1
+            fi
+          fi
