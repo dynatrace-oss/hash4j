@@ -54,7 +54,7 @@ ext {
 }
 
 group = "com.dynatrace.hash4j"
-version = "0.31.0"
+version = providers.gradleProperty("releaseVersion").getOrElse("SNAPSHOT")
 
 dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.4") // upgrade to version 6 requires Java 17
@@ -552,5 +552,5 @@ tasks.register("createRepoForUploadToMavenCentral", Zip) {
 	dependsOn build, publish
 	from "$projectDir/build/mavencentral/repo"
 	destinationDirectory = file("$projectDir/build/mavencentral")
-	archiveFileName = "repo.zip"
+	archiveFileName = "${archivesBaseName}-${project.version}-maven-central-bundle.zip"
 }
