@@ -1,21 +1,22 @@
-name: Release
+name: Create Release
+
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    name: Create Maven Central repository
-    if: startsWith(github.event.release.tag_name, 'v')
+  create-release:
+    name: Create draft release
     runs-on: ubuntu-latest
     environment: maven-central
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ github.ref_name }}
           fetch-depth: 0
           persist-credentials: false
       - name: Set up Java
@@ -40,20 +41,24 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid release tag: $RELEASE_TAG" >&2
-            exit 1
-          fi
           ./gradlew createRepoForUploadToMavenCentral \
             -PreleaseVersion="${RELEASE_TAG#v}" \
             --info
+      - name: Verify Maven Central repository bundle
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: test -f "build/mavencentral/hash4j-${RELEASE_TAG#v}-maven-central-bundle.zip"
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" --draft --generate-notes --verify-tag
       - name: Add Maven Central repository to release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           gh release upload "$RELEASE_TAG" \
-            "build/mavencentral/hash4j-${RELEASE_TAG#v}-maven-central-bundle.zip" \
-            --clobber
+            "build/mavencentral/hash4j-${RELEASE_TAG#v}-maven-central-bundle.zip"
