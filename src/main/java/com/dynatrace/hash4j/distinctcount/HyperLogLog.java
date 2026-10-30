@@ -125,7 +125,8 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
    * Creates an empty {@link HyperLogLog} sketch with given precision.
    *
    * <p>The precision parameter {@code p} must be in the range {@code {3, 4, 5, ..., 25, 26}}. It
-   * also defines the size of the internal state, which is a byte array of length {@code 2^p}.
+   * also defines the size of the internal state, which is a byte array of length {@code 6 * 2^p /
+   * 8}.
    *
    * @param p the precision parameter
    * @return the new sketch
@@ -156,8 +157,8 @@ public final class HyperLogLog implements DistinctCounter<HyperLogLog, HyperLogL
   /**
    * Returns a {@link HyperLogLog} sketch whose state is kept in the given byte array.
    *
-   * <p>The array must have a length that is a power of two of a valid precision parameter. If the
-   * state is not valid (it was not retrieved using {@link #getState()}) the behavior will be
+   * <p>The array must have length {@code 6 * 2^p / 8} for a valid precision parameter {@code p}. If
+   * the state is not valid (it was not retrieved using {@link #getState()}) the behavior will be
    * undefined.
    *
    * @param state the state
