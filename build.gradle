@@ -24,7 +24,7 @@ plugins {
 	id "com.diffplug.spotless" version "8.10.4"
 	id "maven-publish"
 	id "signing"
-	id "net.ltgt.errorprone" version "5.1.1"
+	id "net.ltgt.errorprone" version "5.2.0"
 	id "me.champeau.gradle.japicmp" version "0.4.6"
 	id "de.thetaphi.forbiddenapis" version "3.11"
 }
