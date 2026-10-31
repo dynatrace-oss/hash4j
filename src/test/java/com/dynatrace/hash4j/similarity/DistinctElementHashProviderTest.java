@@ -63,10 +63,8 @@ class DistinctElementHashProviderTest {
         new DistinctElementHashProvider(PseudoRandomGeneratorProvider.splitMix64_V1());
 
     assertThatIllegalArgumentException()
-        .isThrownBy(
-            () ->
-                distinctElementHashProvider.reset(
-                    ElementHashProvider.ofFunction(i -> 0L, 0x40000001)));
+        .isThrownBy(() ->
+            distinctElementHashProvider.reset(ElementHashProvider.ofFunction(i -> 0L, 0x40000001)));
   }
 
   @Test

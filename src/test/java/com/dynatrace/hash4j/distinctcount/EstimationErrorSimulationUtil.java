@@ -115,57 +115,53 @@ public final class EstimationErrorSimulationUtil {
       ForkJoinPool forkJoinPool =
           new ForkJoinPool(Math.min(ForkJoinPool.getCommonPoolParallelism(), maxParallelism));
       forkJoinPool
-          .submit(
-              () ->
-                  IntStream.range(0, numCycles)
-                      .parallel()
-                      .forEach(
-                          i -> {
-                            LocalState<T> state = localStates.get();
-                            final PseudoRandomGenerator prg = state.prg;
-                            prg.reset(seeds[i]);
-                            final T sketch = state.sketch;
-                            sketch.reset();
-                            MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
-                            final Transition[] transitions = state.transitions;
-                            state.generateTransitions(largeScaleSimulationModeDistinctCountLimit);
+          .submit(() ->
+              IntStream.range(0, numCycles)
+                  .parallel()
+                  .forEach(i -> {
+                    LocalState<T> state = localStates.get();
+                    final PseudoRandomGenerator prg = state.prg;
+                    prg.reset(seeds[i]);
+                    final T sketch = state.sketch;
+                    sketch.reset();
+                    MartingaleEstimator martingaleEstimator = new MartingaleEstimator();
+                    final Transition[] transitions = state.transitions;
+                    state.generateTransitions(largeScaleSimulationModeDistinctCountLimit);
 
-                            BigInt trueDistinctCount = BigInt.createZero();
-                            int transitionIndex = 0;
-                            for (int distinctCountIndex = 0;
-                                distinctCountIndex < targetDistinctCounts.size();
-                                ++distinctCountIndex) {
-                              BigInt targetDistinctCount =
-                                  targetDistinctCounts.get(distinctCountIndex);
-                              BigInt limit = targetDistinctCount.copy();
-                              limit.min(largeScaleSimulationModeDistinctCountLimit);
+                    BigInt trueDistinctCount = BigInt.createZero();
+                    int transitionIndex = 0;
+                    for (int distinctCountIndex = 0;
+                        distinctCountIndex < targetDistinctCounts.size();
+                        ++distinctCountIndex) {
+                      BigInt targetDistinctCount = targetDistinctCounts.get(distinctCountIndex);
+                      BigInt limit = targetDistinctCount.copy();
+                      limit.min(largeScaleSimulationModeDistinctCountLimit);
 
-                              while (trueDistinctCount.compareTo(limit) < 0) {
-                                sketch.add(prg.nextLong(), martingaleEstimator);
-                                trueDistinctCount.increment();
-                              }
-                              if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
-                                while (transitionIndex < transitions.length
-                                    && transitions[transitionIndex]
-                                            .getDistinctCount()
-                                            .compareTo(targetDistinctCount)
-                                        <= 0) {
-                                  sketch.add(
-                                      transitions[transitionIndex].getHash(), martingaleEstimator);
-                                  transitionIndex += 1;
-                                }
-                                trueDistinctCount.set(targetDistinctCount);
-                              }
+                      while (trueDistinctCount.compareTo(limit) < 0) {
+                        sketch.add(prg.nextLong(), martingaleEstimator);
+                        trueDistinctCount.increment();
+                      }
+                      if (trueDistinctCount.compareTo(targetDistinctCount) < 0) {
+                        while (transitionIndex < transitions.length
+                            && transitions[transitionIndex]
+                                    .getDistinctCount()
+                                    .compareTo(targetDistinctCount)
+                                <= 0) {
+                          sketch.add(transitions[transitionIndex].getHash(), martingaleEstimator);
+                          transitionIndex += 1;
+                        }
+                        trueDistinctCount.set(targetDistinctCount);
+                      }
 
-                              for (int k = 0; k < estimatorConfigs.size(); ++k) {
-                                estimatedDistinctCounts[k][distinctCountIndex][i] =
-                                    estimatorConfigs
-                                        .get(k)
-                                        .estimator
-                                        .applyAsDouble(sketch, martingaleEstimator);
-                              }
-                            }
-                          }))
+                      for (int k = 0; k < estimatorConfigs.size(); ++k) {
+                        estimatedDistinctCounts[k][distinctCountIndex][i] =
+                            estimatorConfigs
+                                .get(k)
+                                .estimator
+                                .applyAsDouble(sketch, martingaleEstimator);
+                      }
+                    }
+                  }))
           .get();
     } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException(e);
