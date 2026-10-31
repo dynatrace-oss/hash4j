@@ -78,20 +78,18 @@ class Imohash1_0_2Test {
               inputStream.setTotalLength(dataLen);
 
               assertThatNoException()
-                  .isThrownBy(
-                      () ->
-                          FileHashing.imohash1_0_2()
-                              .hashInputStreamTo128Bits(inputStream, finalDataLen));
+                  .isThrownBy(() ->
+                      FileHashing.imohash1_0_2()
+                          .hashInputStreamTo128Bits(inputStream, finalDataLen));
             }
             {
               TestInputStream inputStream = new TestInputStream();
               inputStream.setTotalLength(dataLen);
 
               assertThatExceptionOfType(EOFException.class)
-                  .isThrownBy(
-                      () ->
-                          FileHashing.imohash1_0_2()
-                              .hashInputStreamTo128Bits(inputStream, finalDataLen + 1));
+                  .isThrownBy(() ->
+                      FileHashing.imohash1_0_2()
+                          .hashInputStreamTo128Bits(inputStream, finalDataLen + 1));
             }
           }
         }
@@ -173,11 +171,9 @@ class Imohash1_0_2Test {
     testInputStream.setMinSkipLength(Long.MAX_VALUE);
     testInputStream.setThrowExceptionWhenEOF(throwExceptionWhenEOF);
     assertThatIOException()
-        .isThrownBy(
-            () ->
-                FileHashing.imohash1_0_2()
-                    .hashInputStreamTo128Bits(
-                        testInputStream, Imohash1_0_2.DEFAULT_SAMPLE_THRESHOLD));
+        .isThrownBy(() ->
+            FileHashing.imohash1_0_2()
+                .hashInputStreamTo128Bits(testInputStream, Imohash1_0_2.DEFAULT_SAMPLE_THRESHOLD));
   }
 
   @ParameterizedTest
@@ -188,11 +184,9 @@ class Imohash1_0_2Test {
     testInputStream.setThrowExceptionWhenEOF(throwExceptionWhenEOF);
     testInputStream.setTotalLength(Imohash1_0_2.DEFAULT_SAMPLE_SIZE);
     assertThatIOException()
-        .isThrownBy(
-            () ->
-                FileHashing.imohash1_0_2()
-                    .hashInputStreamTo128Bits(
-                        testInputStream, Imohash1_0_2.DEFAULT_SAMPLE_THRESHOLD));
+        .isThrownBy(() ->
+            FileHashing.imohash1_0_2()
+                .hashInputStreamTo128Bits(testInputStream, Imohash1_0_2.DEFAULT_SAMPLE_THRESHOLD));
   }
 
   @Test

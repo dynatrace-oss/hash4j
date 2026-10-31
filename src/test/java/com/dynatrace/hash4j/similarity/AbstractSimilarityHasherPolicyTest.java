@@ -175,22 +175,21 @@ abstract class AbstractSimilarityHasherPolicyTest {
     int numberOfComponents = 11;
     SimilarityHashPolicy policy = getSimilarityHashPolicy(numberOfComponents);
     assertThatIllegalArgumentException()
-        .isThrownBy(
-            () ->
-                policy
-                    .createHasher()
-                    .compute(
-                        new ElementHashProvider() {
-                          @Override
-                          public long getElementHash(int elementIndex) {
-                            return 0;
-                          }
+        .isThrownBy(() ->
+            policy
+                .createHasher()
+                .compute(
+                    new ElementHashProvider() {
+                      @Override
+                      public long getElementHash(int elementIndex) {
+                        return 0;
+                      }
 
-                          @Override
-                          public int getNumberOfElements() {
-                            return 0;
-                          }
-                        }));
+                      @Override
+                      public int getNumberOfElements() {
+                        return 0;
+                      }
+                    }));
   }
 
   @Test

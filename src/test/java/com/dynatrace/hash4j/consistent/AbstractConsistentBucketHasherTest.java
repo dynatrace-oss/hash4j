@@ -191,15 +191,14 @@ abstract class AbstractConsistentBucketHasherTest {
 
     for (int i = 0; i < MONOTONICITY_TEST_NUM_CYCLES; ++i) {
       getMonotonicityTestLargeNumBuckets()
-          .forEach(
-              numBuckets -> {
-                long hashedKey = randomGenerator.nextLong();
-                int bucketIndex = consistentBucketHasher.getBucket(hashedKey, numBuckets);
-                int bucketIndexA = consistentBucketHasher.getBucket(hashedKey, bucketIndex + 1);
-                int bucketIndexB = consistentBucketHasher.getBucket(hashedKey, bucketIndex);
-                assertThat(bucketIndexA).isEqualTo(bucketIndex).isNotNegative();
-                assertThat(bucketIndexB).isLessThan(bucketIndex).isNotNegative();
-              });
+          .forEach(numBuckets -> {
+            long hashedKey = randomGenerator.nextLong();
+            int bucketIndex = consistentBucketHasher.getBucket(hashedKey, numBuckets);
+            int bucketIndexA = consistentBucketHasher.getBucket(hashedKey, bucketIndex + 1);
+            int bucketIndexB = consistentBucketHasher.getBucket(hashedKey, bucketIndex);
+            assertThat(bucketIndexA).isEqualTo(bucketIndex).isNotNegative();
+            assertThat(bucketIndexB).isLessThan(bucketIndex).isNotNegative();
+          });
     }
   }
 

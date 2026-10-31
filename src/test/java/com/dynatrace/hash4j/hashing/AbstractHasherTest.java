@@ -680,9 +680,8 @@ abstract class AbstractHasherTest {
       HashStream64 hashStream = hasher64.hashStream();
       List<Long> data = Collections.emptyList();
       assertThatIllegalArgumentException()
-          .isThrownBy(
-              () ->
-                  hashStream.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hashStream));
+          .isThrownBy(() ->
+              hashStream.putUnorderedIterable(data, (l, sink) -> sink.putLong(l), hashStream));
     }
   }
 

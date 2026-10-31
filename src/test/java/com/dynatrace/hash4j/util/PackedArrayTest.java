@@ -174,10 +174,9 @@ class PackedArrayTest {
   void testTooLargeArraySize(int bitSize) {
     if (bitSize >= 8) {
       assertThatIllegalArgumentException()
-          .isThrownBy(
-              () ->
-                  PackedArray.getHandler(bitSize)
-                      .create((int) (((Integer.MAX_VALUE * 8L) / bitSize) + 1)));
+          .isThrownBy(() ->
+              PackedArray.getHandler(bitSize)
+                  .create((int) (((Integer.MAX_VALUE * 8L) / bitSize) + 1)));
     }
     if (bitSize > 8) {
       assertThatIllegalArgumentException()
