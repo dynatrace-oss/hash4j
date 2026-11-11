@@ -67,7 +67,7 @@ dependencies {
 	testImplementation("com.google.guava:guava:33.7.2-jre")
 	testImplementation("commons-codec:commons-codec:1.23.0")
 	testImplementation("net.openhft:zero-allocation-hashing:2026.0")
-	testImplementation("com.appmattus.crypto:cryptohash:1.0.2")
+	testImplementation("com.appmattus.crypto:cryptohash:2.0.0")
 	testImplementation("org.greenrobot:essentials:3.1.0")
 	testImplementation("com.sangupta:murmur:1.0.0")
 	testImplementation("at.yawk.lz4:lz4-java:1.14.0")
