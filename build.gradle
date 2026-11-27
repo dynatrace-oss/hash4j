@@ -57,10 +57,10 @@ group = "com.dynatrace.hash4j"
 version = providers.gradleProperty("releaseVersion").getOrElse("SNAPSHOT")
 
 dependencies {
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.4") // upgrade to version 6 requires Java 17
-	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.4") // upgrade to version 6 requires Java 17
-	testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.4") // upgrade to version 6 requires Java 17
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.4") // upgrade to version 6 requires Java 17
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.14.5") // upgrade to version 6 requires Java 17
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.14.5") // upgrade to version 6 requires Java 17
+	testImplementation("org.junit.jupiter:junit-jupiter-params:5.14.5") // upgrade to version 6 requires Java 17
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.5") // upgrade to version 6 requires Java 17
 	testImplementation("org.assertj:assertj-core:3.27.7")
 	testImplementation("org.hipparchus:hipparchus-stat:4.1")
 	testImplementation("org.hipparchus:hipparchus-optim:4.1")
